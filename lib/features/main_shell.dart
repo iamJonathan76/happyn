@@ -1,0 +1,133 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:happyn/features/home/home_screen.dart';
+import 'package:happyn/features/profile/profile_screen.dart';
+import 'package:happyn/features/events/create_event_screen.dart';
+import 'package:happyn/features/discover/discover_screen.dart';
+import 'package:happyn/features/ticketing/my_tickets_screen.dart';
+
+class MainShell extends StatefulWidget {
+  const MainShell({super.key});
+
+  @override
+  State<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<MainShell> {
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = const [
+    HomeScreen(),
+   DiscoverScreen(), // Discover — coming soon
+    SizedBox(),    // + button — not a page
+    MyTicketsScreen(), // Tickets — coming soon
+    ProfileScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF08080F),
+      body: IndexedStack(
+        index: _currentIndex == 2 ? 0 : _currentIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    final items = [
+      {'icon': Icons.home_rounded, 'label': 'Home'},
+      {'icon': Icons.explore_outlined, 'label': 'Discover'},
+      {'icon': Icons.add, 'label': ''},
+      {'icon': Icons.confirmation_number_outlined, 'label': 'Tickets'},
+      {'icon': Icons.person_outline, 'label': 'Profile'},
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF08080F).withOpacity(0.96),
+        border: Border(
+          top: BorderSide(color: Colors.white.withOpacity(0.07)),
+        ),
+      ),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).padding.bottom + 8,
+        top: 8,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: items.asMap().entries.map((entry) {
+          final i = entry.key;
+          final item = entry.value;
+          final isActive = i == _currentIndex;
+
+          // FAB center button
+          if (i == 2) {
+            return GestureDetector(
+              onTap: () async {
+                final result = await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreateEventScreen(),
+                  ),
+                );
+                if (result == true && mounted) {
+                  // Refresh home
+                  setState(() => _currentIndex = 0);
+                }
+              },
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF7C3AED).withOpacity(0.55),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.add, color: Colors.white, size: 24),
+              ),
+            );
+          }
+
+          return GestureDetector(
+            onTap: () => setState(() => _currentIndex = i),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  item['icon'] as IconData,
+                  size: 22,
+                  color: isActive
+                      ? const Color(0xFFA78BFA)
+                      : Colors.white.withOpacity(0.32),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item['label'] as String,
+                  style: GoogleFonts.inter(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: isActive
+                        ? const Color(0xFFA78BFA)
+                        : Colors.white.withOpacity(0.3),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
