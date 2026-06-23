@@ -1,46 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/features/settings/settings_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _supabase = Supabase.instance.client;
-  List<Map<String, dynamic>> _myEvents = [];
-  bool _isLoading = true;
   int _selectedTab = 0; // 0 = events, 1 = about
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMyEvents();
-  }
-
-  Future<void> _loadMyEvents() async {
-    try {
-      final user = _supabase.auth.currentUser;
-      if (user == null) return;
-
-      final data = await _supabase
-          .from('events')
-          .select()
-          .eq('created_by', user.id)
-          .order('created_at', ascending: false);
-
-      setState(() {
-        _myEvents = List<Map<String, dynamic>>.from(data);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-  }
 
   String get _userName {
     final user = _supabase.auth.currentUser;
@@ -66,8 +41,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _deleteEvent(String id) async {
+    try {
+      await _supabase.from('events').delete().eq('id', id);
+      // Invalide le provider partagé : Home, Discover ET Profile
+      // se rafraîchissent tous automatiquement, sans rien faire de plus.
+      ref.invalidate(eventsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Event deleted',
+                style: GoogleFonts.inter(color: Colors.white)),
+            backgroundColor: const Color(0xFF1A1535),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final eventsAsync = ref.watch(eventsProvider);
+    final myEvents = ref.watch(myEventsProvider);
+    final isLoading = eventsAsync.isLoading;
+
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
       body: Column(
@@ -89,7 +91,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => _showSettingsMenu(context),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const SettingsScreen())),
                   child: Container(
                     width: 38,
                     height: 38,
@@ -212,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // Stats
                 Row(
                   children: [
-                    _statItem('${_myEvents.length}', 'Events'),
+                    _statItem('${myEvents.length}', 'Events'),
                     _divider(),
                     _statItem('0', 'Following'),
                     _divider(),
@@ -275,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // ── Tab Content ──────────────────────────────────────────
           Expanded(
             child: _selectedTab == 0
-                ? _buildMyEvents()
+                ? _buildMyEvents(isLoading, myEvents)
                 : _buildAbout(),
           ),
         ],
@@ -285,14 +288,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── My Events Tab ──────────────────────────────────────────────────────────
 
-  Widget _buildMyEvents() {
-    if (_isLoading) {
+  Widget _buildMyEvents(bool isLoading, List<Map<String, dynamic>> myEvents) {
+    if (isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
       );
     }
 
-    if (_myEvents.isEmpty) {
+    if (myEvents.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -325,9 +328,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: _myEvents.length,
+      itemCount: myEvents.length,
       itemBuilder: (context, i) {
-        final ev = _myEvents[i];
+        final ev = myEvents[i];
         return _EventTile(event: ev, onDelete: () => _deleteEvent(ev['id']));
       },
     );
@@ -376,100 +379,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _deleteEvent(String id) async {
-    try {
-      await _supabase.from('events').delete().eq('id', id);
-      _loadMyEvents();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Event deleted',
-                style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  void _showSettingsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1A1535),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Settings',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _settingsTile(Icons.notifications_outlined, 'Notifications', () {}),
-            _settingsTile(Icons.lock_outlined, 'Privacy', () {}),
-            _settingsTile(Icons.help_outline, 'Help & Support', () {}),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-                _signOut();
-              },
-              child: Container(
-                width: double.infinity,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF4B4B).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                      color: const Color(0xFFFF4B4B).withOpacity(0.3)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.logout,
-                        color: Color(0xFFFF4B4B), size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Sign Out',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFFFF4B4B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
       ),
     );
   }
@@ -544,35 +453,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _settingsTile(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.04),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white.withOpacity(0.6), size: 18),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
-            const Spacer(),
-            Icon(Icons.chevron_right,
-                color: Colors.white.withOpacity(0.3), size: 18),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // ─── Event Tile ───────────────────────────────────────────────────────────────
@@ -608,9 +488,9 @@ class _EventTile extends StatelessWidget {
               width: 60,
               height: 60,
               fit: BoxFit.cover,
-              placeholder: (_, __) =>
+              placeholder: (_, _) =>
                   Container(color: const Color(0xFF1A1535)),
-              errorWidget: (_, __, ___) => Container(
+              errorWidget: (_, _, _) => Container(
                 color: const Color(0xFF1A1535),
                 child: const Icon(Icons.event, color: Color(0xFF7C3AED)),
               ),

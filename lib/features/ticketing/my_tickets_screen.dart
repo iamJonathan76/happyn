@@ -273,9 +273,9 @@ class _TicketCard extends StatelessWidget {
                     CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
-                      placeholder: (_, __) =>
+                      placeholder: (_, _) =>
                           Container(color: const Color(0xFF1A0F3D)),
-                      errorWidget: (_, __, ___) =>
+                      errorWidget: (_, _, _) =>
                           Container(color: const Color(0xFF1A0F3D)),
                     ),
                     Container(

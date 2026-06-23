@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/config/auth_config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -51,6 +53,51 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _snack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg, style: GoogleFonts.inter(color: Colors.white))),
+    );
+  }
+
+  /// Connexion native Google : on récupère un idToken via `google_sign_in`,
+  /// puis on l'échange contre une vraie session Supabase (signInWithIdToken).
+  Future<void> _signInWithGoogle() async {
+    if (!AuthConfig.isGoogleConfigured) {
+      _snack('Google sign-in is not set up yet');
+      return;
+    }
+    try {
+      setState(() => _isLoading = true);
+
+      final googleSignIn = GoogleSignIn(
+        serverClientId: AuthConfig.googleWebClientId,
+        scopes: const ['email', 'profile'],
+      );
+      final account = await googleSignIn.signIn();
+      if (account == null) return; // annulé par l'utilisateur
+
+      final googleAuth = await account.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null) throw Exception('Missing Google ID token');
+
+      await Supabase.instance.client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: googleAuth.accessToken,
+      );
+
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    } on AuthException catch (e) {
+      if (mounted) _snack(e.message);
+    } catch (_) {
+      if (mounted) _snack('Google sign-in failed. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _authenticate() async {
     try {
       setState(() => _isLoading = true);
@@ -76,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.of(context).pushReplacementNamed('/home');
         }
       } else {
-        final response = await Supabase.instance.client.auth.signUp(
+        await Supabase.instance.client.auth.signUp(
           email: email,
           password: password,
           data: {'full_name': _nameController.text.trim()},
@@ -234,9 +281,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 // OAuth buttons
                 Row(
                   children: [
-                    _oauthButton('G', 'Google'),
+                    _oauthButton('G', 'Google', _signInWithGoogle),
                     const SizedBox(width: 12),
-                    _oauthButton('🍎', 'Apple'),
+                    _oauthButton(
+                        '🍎', 'Apple', () => _snack('Apple sign-in coming soon')),
                   ],
                 ),
 
@@ -326,7 +374,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Password reset — coming soon',
+                                style: GoogleFonts.inter(color: Colors.white)),
+                            backgroundColor: const Color(0xFF1A1535),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
                       child: Text(
                         'Forgot password?',
                         style: GoogleFonts.inter(
@@ -409,10 +469,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _oauthButton(String emoji, String label) {
+  Widget _oauthButton(String emoji, String label, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
-        onTap: () => Navigator.of(context).pushReplacementNamed('/home'),
+        onTap: _isLoading ? null : onTap,
         child: Container(
           height: 48,
           decoration: BoxDecoration(

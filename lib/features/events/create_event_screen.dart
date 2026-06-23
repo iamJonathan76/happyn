@@ -1,31 +1,36 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
 
-class CreateEventScreen extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/providers/categories_provider.dart';
+
+class CreateEventScreen extends ConsumerStatefulWidget {
   const CreateEventScreen({super.key});
 
   @override
-  State<CreateEventScreen> createState() => _CreateEventScreenState();
+  ConsumerState<CreateEventScreen> createState() => _CreateEventScreenState();
 }
 
-class _CreateEventScreenState extends State<CreateEventScreen> {
+class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   final _cityController = TextEditingController();
-  final _imageUrlController = TextEditingController();
-  final _priceController = TextEditingController();
+  // Tiers de billets : 1 par défaut (« General Admission »), l'organisateur
+  // peut en ajouter d'autres (VIP, Early Bird…).
+  final List<_TicketTier> _tiers = [_TicketTier(name: 'General Admission')];
+
+  XFile? _pickedImage;
 
   String _selectedCategory = 'Music';
   DateTime _startDate = DateTime.now().add(const Duration(days: 1));
   DateTime _endDate = DateTime.now().add(const Duration(days: 1, hours: 3));
   bool _isLoading = false;
 
-  final _categories = [
-    'Music', 'Party', 'Festival', 'Networking',
-    'Art', 'Sports', 'Food & Drink', 'Other'
-  ];
 
   @override
   void dispose() {
@@ -33,9 +38,81 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     _descriptionController.dispose();
     _locationController.dispose();
     _cityController.dispose();
-    _imageUrlController.dispose();
-    _priceController.dispose();
+    for (final t in _tiers) {
+      t.dispose();
+    }
     super.dispose();
+  }
+
+  void _addTier() => setState(() => _tiers.add(_TicketTier()));
+
+  void _removeTier(int i) => setState(() => _tiers.removeAt(i).dispose());
+
+  Widget _tierCard(int i) {
+    final tier = _tiers[i];
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.09)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: tier.nameController,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: _inputDec(
+                      'Tier name (e.g. VIP)', Icons.local_activity_outlined),
+                ),
+              ),
+              if (_tiers.length > 1) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => _removeTier(i),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF4B4B).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.close,
+                        color: Color(0xFFFF4B4B), size: 18),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: tier.priceController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: _inputDec('0 = free', Icons.attach_money),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: tier.quantityController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: _inputDec(
+                      'Qty e.g. 100', Icons.confirmation_number_outlined),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickDate({required bool isStart}) async {
@@ -85,6 +162,38 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1280,
+      imageQuality: 80,
+    );
+    if (picked != null) {
+      setState(() => _pickedImage = picked);
+    }
+  }
+
+  /// Upload l'image choisie dans le bucket `events` et renvoie son URL publique.
+  Future<String?> _uploadImage(String userId) async {
+    final image = _pickedImage;
+    if (image == null) return null;
+
+    final bytes = await image.readAsBytes();
+    final ext = image.name.contains('.') ? image.name.split('.').last : 'jpg';
+    final path = '$userId/${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    await Supabase.instance.client.storage.from('events').uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(
+            contentType: image.mimeType ?? 'image/jpeg',
+            upsert: false,
+          ),
+        );
+
+    return Supabase.instance.client.storage.from('events').getPublicUrl(path);
+  }
+
   Future<void> _createEvent() async {
     if (_titleController.text.trim().isEmpty) {
       _showSnack('Please enter a title');
@@ -99,31 +208,70 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       return;
     }
 
+    // Valide et construit les tiers de billets (nom + quantité requis)
+    final tiers = <Map<String, dynamic>>[];
+    for (final t in _tiers) {
+      final name = t.nameController.text.trim();
+      final qty = int.tryParse(t.quantityController.text) ?? 0;
+      if (name.isEmpty || qty <= 0) continue;
+      tiers.add({
+        'name': name,
+        'price': double.tryParse(t.priceController.text) ?? 0.0,
+        'quantity_total': qty,
+        'quantity_sold': 0,
+      });
+    }
+    if (tiers.isEmpty) {
+      _showSnack('Add at least one ticket tier (name + quantity)');
+      return;
+    }
+    // Prix affiché de l'event = le tier le moins cher (« Starting from »)
+    final eventPrice = tiers
+        .map((t) => t['price'] as double)
+        .reduce((a, b) => a < b ? a : b);
+
     setState(() => _isLoading = true);
 
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) throw Exception('Not authenticated');
 
-      await Supabase.instance.client.from('events').insert({
-        'title': _titleController.text.trim(),
-        'description': _descriptionController.text.trim(),
-        'category': _selectedCategory,
-        'location': _locationController.text.trim(),
-        'city': _cityController.text.trim(),
-        'start_date': _startDate.toIso8601String(),
-        'end_date': _endDate.toIso8601String(),
-        'price': double.tryParse(_priceController.text) ?? 0.0,
-        'image_url': _imageUrlController.text.trim().isEmpty
-            ? 'https://images.unsplash.com/photo-1574155376612-bfa4ed8aabfd?w=800&h=450&fit=crop'
-            : _imageUrlController.text.trim(),
-        'created_by': user.id,
-      });
+      // Upload de l'image (si choisie) → URL publique, sinon image par défaut.
+      final uploadedUrl = await _uploadImage(user.id);
+      final imageUrl = uploadedUrl ??
+          'https://images.unsplash.com/photo-1574155376612-bfa4ed8aabfd?w=800&h=450&fit=crop';
+
+      // 1. Crée l'event et récupère son id
+      final createdEvent = await Supabase.instance.client
+          .from('events')
+          .insert({
+            'title': _titleController.text.trim(),
+            'description': _descriptionController.text.trim(),
+            'category': _selectedCategory,
+            'location': _locationController.text.trim(),
+            'city': _cityController.text.trim(),
+            'start_date': _startDate.toIso8601String(),
+            'end_date': _endDate.toIso8601String(),
+            'price': eventPrice,
+            'image_url': imageUrl,
+            'created_by': user.id,
+          })
+          .select()
+          .single();
+
+      // 2. Crée tous les tiers de billets liés à l'event
+      final ticketRows = tiers
+          .map((t) => {...t, 'event_id': createdEvent['id']})
+          .toList();
+      await Supabase.instance.client.from('ticket_types').insert(ticketRows);
 
       if (mounted) {
+        // Invalide le provider partagé : Home, Discover et Profile
+        // verront le nouvel event automatiquement, sans relancer l'app.
+        ref.invalidate(eventsProvider);
         _showSnack('Event created successfully! 🎉');
         await Future.delayed(const Duration(seconds: 1));
-        Navigator.of(context).pop(true); // true = refresh home
+        Navigator.of(context).pop(true); // true = signal optionnel pour l'appelant
       }
     } catch (e) {
       _showSnack('Error: ${e.toString()}');
@@ -172,6 +320,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final categoryNames = ref.watch(categoryNamesProvider);
+    // Fallback tant que la table n'est pas chargée, pour ne pas casser le menu.
+    final cats = categoryNames.isEmpty ? [_selectedCategory] : categoryNames;
+    final dropdownValue =
+        cats.contains(_selectedCategory) ? _selectedCategory : cats.first;
+
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
       body: Container(
@@ -248,12 +402,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
-                            value: _selectedCategory,
+                            value: dropdownValue,
                             isExpanded: true,
                             dropdownColor: const Color(0xFF1A1535),
                             style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
                             icon: Icon(Icons.keyboard_arrow_down, color: Colors.white.withOpacity(0.4)),
-                            items: _categories.map((cat) => DropdownMenuItem(
+                            items: cats.map((cat) => DropdownMenuItem(
                               value: cat,
                               child: Text(cat),
                             )).toList(),
@@ -304,28 +458,96 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Price
-                      _label('Price (CAD)'),
-                      TextField(
-                        controller: _priceController,
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('0 for free event', Icons.attach_money),
+                      // Ticket tiers
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _label('Ticket Tiers *'),
+                          GestureDetector(
+                            onTap: _addTier,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.add,
+                                    color: Color(0xFFA78BFA), size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Add tier',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFFA78BFA),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
+                      ...List.generate(_tiers.length, (i) => _tierCard(i)),
 
                       const SizedBox(height: 16),
 
-                      // Image URL
-                      _label('Cover Image URL'),
-                      TextField(
-                        controller: _imageUrlController,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('https://... (optional)', Icons.image_outlined),
+                      // Cover image picker
+                      _label('Cover Image'),
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          height: 160,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.09)),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: _pickedImage == null
+                              ? Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_photo_alternate_outlined,
+                                        color: Colors.white.withOpacity(0.4),
+                                        size: 36),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Tap to choose a cover photo',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: Colors.white.withOpacity(0.4),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    Image.file(File(_pickedImage!.path),
+                                        fit: BoxFit.cover),
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: GestureDetector(
+                                        onTap: () => setState(
+                                            () => _pickedImage = null),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withOpacity(0.6),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(Icons.close,
+                                              color: Colors.white, size: 16),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
                       ),
-
                       const SizedBox(height: 8),
                       Text(
-                        'Leave empty to use a default image. Supabase Storage upload coming soon.',
+                        'Optional — a default image is used if you skip this.',
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: Colors.white.withOpacity(0.3),
@@ -443,5 +665,22 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         ),
       ),
     );
+  }
+}
+
+/// Un tier de billet en cours d'édition dans Create Event (nom, prix, quantité).
+class _TicketTier {
+  final TextEditingController nameController;
+  final TextEditingController priceController = TextEditingController();
+  final TextEditingController quantityController =
+      TextEditingController(text: '100');
+
+  _TicketTier({String name = ''})
+      : nameController = TextEditingController(text: name);
+
+  void dispose() {
+    nameController.dispose();
+    priceController.dispose();
+    quantityController.dispose();
   }
 }

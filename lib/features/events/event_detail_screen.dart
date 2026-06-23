@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
+import 'package:happyn/features/ticketing/scanner_screen.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final Map<String, dynamic> event;
@@ -51,7 +54,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     final imageUrl = (ev['image_url'] ?? '') as String;
     final price = ev['price'];
     final priceText = (price == null || price == 0) ? 'Free' : '\$$price';
-    final isOrganizer = false; // TODO: check if current user is organizer
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isOrganizer =
+        currentUserId != null && ev['created_by'] == currentUserId;
 
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
@@ -71,9 +76,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       CachedNetworkImage(
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) =>
+                        placeholder: (_, _) =>
                             Container(color: const Color(0xFF1A0F3D)),
-                        errorWidget: (_, __, ___) => Container(
+                        errorWidget: (_, _, _) => Container(
                           color: const Color(0xFF1A0F3D),
                           child: const Center(
                             child: Icon(
@@ -136,20 +141,39 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               // Share + Like
                               Row(
                                 children: [
-                                  Container(
-                                    width: 38,
-                                    height: 38,
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.45),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.12),
+                                  GestureDetector(
+                                    onTap: () {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text('Sharing — coming soon',
+                                              style: GoogleFonts.inter(
+                                                  color: Colors.white)),
+                                          backgroundColor:
+                                              const Color(0xFF1A1535),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                          duration: const Duration(seconds: 1),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 38,
+                                      height: 38,
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.45),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.12),
+                                        ),
                                       ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.share_outlined,
-                                      color: Colors.white,
-                                      size: 16,
+                                      child: const Icon(
+                                        Icons.share_outlined,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -342,40 +366,80 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ],
                 ),
               ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Price
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                  // DEBUG : permet à l'organisateur d'acheter un billet de test
+                  // sur son propre event, pour valider la boucle scan avec un
+                  // seul compte. Invisible en build release.
+                  if (isOrganizer && kDebugMode)
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => TicketSelectionScreen(event: ev),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.07),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.white.withOpacity(0.15)),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '🐛 Buy a test ticket (debug)',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  Row(
                     children: [
-                      Text(
-                        'Starting from',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.white.withOpacity(0.38),
+                      // Price (masqué pour l'organisateur)
+                      if (!isOrganizer) ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Starting from',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: Colors.white.withOpacity(0.38),
+                          ),
                         ),
-                      ),
-                      Text(
-                        priceText,
-                        style: GoogleFonts.poppins(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                        Text(
+                          priceText,
+                          style: GoogleFonts.poppins(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                  ],
 
-                  const SizedBox(width: 16),
-
-                  // CTA Button
+                  // CTA Button : Scan (organisateur) ou Get Tickets (visiteur)
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => TicketSelectionScreen(event: ev),
+                            builder: (_) => isOrganizer
+                                ? ScannerScreen(event: ev)
+                                : TicketSelectionScreen(event: ev),
                           ),
                         );
                       },
@@ -399,14 +463,16 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.confirmation_number_outlined,
+                            Icon(
+                              isOrganizer
+                                  ? Icons.qr_code_scanner
+                                  : Icons.confirmation_number_outlined,
                               color: Colors.white,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Get Tickets',
+                              isOrganizer ? 'Scan tickets' : 'Get Tickets',
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -424,6 +490,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       ),
                     ),
                   ),
+                  ],
+                ),
                 ],
               ),
             ),

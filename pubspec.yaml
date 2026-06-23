@@ -31,6 +31,14 @@ dependencies:
   flutter:
     sdk: flutter
   qr_flutter: ^4.1.0
+  # QR scanning (organizer)
+  mobile_scanner: ^5.2.3
+  # Payments
+  flutter_stripe: ^11.1.0
+  # Image picking (event covers)
+  image_picker: ^1.1.2
+  # Google sign-in (OAuth)
+  google_sign_in: ^6.2.1
   # Navigation
   go_router: ^14.0.0
   

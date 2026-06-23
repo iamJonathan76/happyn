@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:happyn/core/config/stripe_config.dart';
 import 'qr_ticket_screen.dart';
+import 'payment_processing_screen.dart';
 
 class TicketSelectionScreen extends StatefulWidget {
   final Map<String, dynamic> event;
@@ -64,47 +67,101 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
       if (user == null) throw Exception('Not authenticated');
 
       final selectedType = _ticketTypes[_selectedTypeIndex!];
-      final eventId = widget.event['id'] as String;
       final ticketTypeId = selectedType['id'] as String;
+      final unitPrice = (selectedType['price'] ?? 0 as num).toDouble();
 
-      // Generate QR token
-      final qrToken = 'HPN-${DateTime.now().millisecondsSinceEpoch}-${user.id.substring(0, 8)}';
+      // ── Event GRATUIT : émission directe, pas de Stripe ────────────────
+      if (unitPrice <= 0) {
+        final rows = await Supabase.instance.client.rpc(
+          'issue_tickets',
+          params: {
+            'p_ticket_type_id': ticketTypeId,
+            'p_quantity': _quantity,
+          },
+        );
+        final tickets = List<Map<String, dynamic>>.from(rows as List);
+        if (tickets.isEmpty) throw Exception('no_ticket_created');
 
-      // Insert ticket
-      final result = await Supabase.instance.client
-          .from('tickets')
-          .insert({
-            'ticket_type_id': ticketTypeId,
-            'event_id': eventId,
-            'user_id': user.id,
-            'qr_token': qrToken,
-            'status': 'valid',
-          })
-          .select()
-          .single();
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => QrTicketScreen(
+                ticket: tickets.first,
+                event: widget.event,
+                ticketType: selectedType,
+              ),
+            ),
+          );
+        }
+        return;
+      }
 
-      // Update quantity sold
-      await Supabase.instance.client
-          .from('ticket_types')
-          .update({'quantity_sold': (selectedType['quantity_sold'] ?? 0) + _quantity})
-          .eq('id', ticketTypeId);
+      // ── Event PAYANT : paiement Stripe avant émission ──────────────────
+      if (!StripeConfig.isConfigured) {
+        throw Exception('payments_not_configured');
+      }
 
+      // 1. PaymentIntent (montant calculé côté serveur)
+      final res = await Supabase.instance.client.functions.invoke(
+        'create-payment-intent',
+        body: {'ticket_type_id': ticketTypeId, 'quantity': _quantity},
+      );
+      final data = (res.data as Map).cast<String, dynamic>();
+      final clientSecret = data['client_secret'] as String;
+      final paymentIntentId = data['payment_intent_id'] as String;
+
+      // 2. PaymentSheet Stripe
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: 'HAPPYN',
+          style: ThemeMode.dark,
+        ),
+      );
+      // Lance `StripeException` si l'utilisateur annule ou si le paiement échoue.
+      await Stripe.instance.presentPaymentSheet();
+
+      // 3. Paiement OK -> l'émission se fait via webhook ; on poll le ticket.
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => QrTicketScreen(
-              ticket: result,
+            builder: (_) => PaymentProcessingScreen(
+              paymentIntentId: paymentIntentId,
               event: widget.event,
               ticketType: selectedType,
             ),
           ),
         );
       }
-    } catch (e) {
+    } on StripeException catch (_) {
+      // Annulation ou échec côté Stripe : on reste sur l'écran, message discret.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}',
+            content: Text('Payment cancelled',
+                style: GoogleFonts.inter(color: Colors.white)),
+            backgroundColor: const Color(0xFF1A1535),
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        final msg = e.toString();
+        final friendly = msg.contains('insufficient_stock')
+            ? 'Sorry, not enough tickets left.'
+            : msg.contains('not_authenticated')
+                ? 'Please sign in again.'
+                : msg.contains('ticket_type_not_found')
+                    ? 'This ticket is no longer available.'
+                    : msg.contains('payments_not_configured')
+                        ? 'Payments are not set up yet.'
+                        : 'Something went wrong. Please try again.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(friendly,
                 style: GoogleFonts.inter(color: Colors.white)),
             backgroundColor: const Color(0xFF1A1535),
             behavior: SnackBarBehavior.floating,
@@ -135,8 +192,8 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
                 CachedNetworkImage(
                   imageUrl: imageUrl,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(color: const Color(0xFF1A0F3D)),
-                  errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A0F3D)),
+                  placeholder: (_, _) => Container(color: const Color(0xFF1A0F3D)),
+                  errorWidget: (_, _, _) => Container(color: const Color(0xFF1A0F3D)),
                 ),
                 Container(
                   decoration: const BoxDecoration(

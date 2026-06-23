@@ -5,8 +5,9 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/auth/onboarding_screen.dart';
 import 'features/auth/login_screen.dart';
-import 'features/home/home_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/features/main_shell.dart';
 
 Future<void> main() async {
@@ -16,8 +17,12 @@ Future<void> main() async {
     url: 'https://jvjvuozvlzqqmcjanvnh.supabase.co',
     anonKey: 'sb_publishable_wkRU0rXDmrPaDyhP2b5Mdw_rkbXBrmO',
   );
-  print('Supabase connecté !');
-  print(Supabase.instance.client);
+
+  // Init Stripe (uniquement si la clé publishable est renseignée)
+  if (StripeConfig.isConfigured) {
+    Stripe.publishableKey = StripeConfig.publishableKey;
+    await Stripe.instance.applySettings();
+  }
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

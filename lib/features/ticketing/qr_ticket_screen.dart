@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class QrTicketScreen extends StatefulWidget {
   final Map<String, dynamic> ticket;
@@ -20,18 +23,73 @@ class QrTicketScreen extends StatefulWidget {
 }
 
 class _QrTicketScreenState extends State<QrTicketScreen> {
+  // Payload signé renvoyé par l'Edge Function `mint-qr`, valable 5 min.
+  // Régénéré automatiquement avant expiration tant que l'écran est ouvert.
+  String? _qrPayload;
+  bool _loading = true;
+  String? _error;
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
     // Block screenshots on this screen
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    _mintQr();
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     super.dispose();
+  }
+
+  /// Demande un QR signé fraîchement au serveur, puis programme un rafraîchissement
+  /// automatique avant l'expiration (TTL renvoyé par la fonction, moins une marge).
+  Future<void> _mintQr() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final res = await Supabase.instance.client.functions.invoke(
+        'mint-qr',
+        body: {'ticket_id': widget.ticket['id']},
+      );
+
+      final data = res.data as Map<String, dynamic>;
+      final payload = data['qr_payload'] as String?;
+      final ttl = (data['ttl_seconds'] as num?)?.toInt() ?? 300;
+
+      if (payload == null) throw Exception('empty_payload');
+
+      // DEBUG : permet de copier le payload depuis la console pour tester
+      // le scanner sans caméra (mode « coller le payload »).
+      assert(() {
+        debugPrint('QR_PAYLOAD => $payload');
+        return true;
+      }());
+
+      if (!mounted) return;
+      setState(() {
+        _qrPayload = payload;
+        _loading = false;
+      });
+
+      // Rafraîchit ~1 min avant l'expiration (TTL 5 min -> refresh à 4 min).
+      final refreshIn = Duration(seconds: (ttl - 60).clamp(30, ttl));
+      _refreshTimer?.cancel();
+      _refreshTimer = Timer(refreshIn, _mintQr);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'Could not load your ticket QR. Tap to retry.';
+      });
+    }
   }
 
   String _formatDate(String? dateStr) {
@@ -46,7 +104,6 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
     final ev = widget.event;
     final ticket = widget.ticket;
     final ticketType = widget.ticketType;
-    final qrToken = ticket['qr_token'] as String;
 
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
@@ -239,31 +296,59 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                               color: const Color(0xFF13111C),
                               child: Column(
                                 children: [
-                                  // QR Code
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: QrImageView(
-                                      data: qrToken,
-                                      version: QrVersions.auto,
-                                      size: 160,
-                                      backgroundColor: Colors.white,
-                                      eyeStyle: const QrEyeStyle(
-                                        eyeShape: QrEyeShape.square,
-                                        color: Color(0xFF08080F),
+                                  // QR Code (payload signé, rafraîchi auto)
+                                  GestureDetector(
+                                    onTap: _error != null ? _mintQr : null,
+                                    child: Container(
+                                      width: 184,
+                                      height: 184,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
-                                      dataModuleStyle: const QrDataModuleStyle(
-                                        dataModuleShape: QrDataModuleShape.square,
-                                        color: Color(0xFF08080F),
-                                      ),
+                                      child: _loading
+                                          ? const Center(
+                                              child: SizedBox(
+                                                width: 28,
+                                                height: 28,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2.5,
+                                                  color: Color(0xFF7C3AED),
+                                                ),
+                                              ),
+                                            )
+                                          : _error != null
+                                              ? Center(
+                                                  child: Icon(
+                                                    Icons.refresh,
+                                                    color: const Color(0xFF08080F)
+                                                        .withOpacity(0.6),
+                                                    size: 40,
+                                                  ),
+                                                )
+                                              : QrImageView(
+                                                  data: _qrPayload!,
+                                                  version: QrVersions.auto,
+                                                  size: 160,
+                                                  backgroundColor: Colors.white,
+                                                  eyeStyle: const QrEyeStyle(
+                                                    eyeShape: QrEyeShape.square,
+                                                    color: Color(0xFF08080F),
+                                                  ),
+                                                  dataModuleStyle:
+                                                      const QrDataModuleStyle(
+                                                    dataModuleShape:
+                                                        QrDataModuleShape.square,
+                                                    color: Color(0xFF08080F),
+                                                  ),
+                                                ),
                                     ),
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    'Scan at entry',
+                                    _error ?? 'Scan at entry',
+                                    textAlign: TextAlign.center,
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -271,13 +356,25 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    qrToken,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 10,
-                                      color: Colors.white.withOpacity(0.25),
+                                  if (_error == null)
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.lock_outline,
+                                          size: 11,
+                                          color: Colors.white.withOpacity(0.3),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Secure code · refreshes automatically',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 10,
+                                            color: Colors.white.withOpacity(0.3),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
                                 ],
                               ),
                             ),

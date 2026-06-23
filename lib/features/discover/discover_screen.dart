@@ -1,39 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/providers/categories_provider.dart';
 
-class DiscoverScreen extends StatefulWidget {
+class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
 
   @override
-  State<DiscoverScreen> createState() => _DiscoverScreenState();
+  ConsumerState<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen> {
+class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   final _searchController = TextEditingController();
-  List<Map<String, dynamic>> _allEvents = [];
-  List<Map<String, dynamic>> _filteredEvents = [];
-  bool _isLoading = true;
   String _activeFilter = 'All';
   String _searchQuery = '';
 
-  final _filters = [
-    'All',
-    'Tonight',
-    'Free',
-    'Music',
-    'Party',
-    'Networking',
-    'Festival',
-  ];
+  // 'All' + filtres rapides + catégories (ces dernières viennent du provider,
+  // ajoutées en début de build).
+  List<String> _filters = const ['All', 'Tonight', 'Free'];
 
   @override
   void initState() {
     super.initState();
-    _loadEvents();
-    _searchController.addListener(_onSearchChanged);
+    _searchController.addListener(() {
+      setState(() => _searchQuery = _searchController.text.toLowerCase());
+    });
   }
 
   @override
@@ -42,31 +36,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     super.dispose();
   }
 
-  Future<void> _loadEvents() async {
-    try {
-      final data = await Supabase.instance.client
-          .from('events')
-          .select()
-          .order('created_at', ascending: false);
-      setState(() {
-        _allEvents = List<Map<String, dynamic>>.from(data);
-        _filteredEvents = _allEvents;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _onSearchChanged() {
-    setState(() {
-      _searchQuery = _searchController.text.toLowerCase();
-      _applyFilters();
-    });
-  }
-
-  void _applyFilters() {
-    List<Map<String, dynamic>> result = List.from(_allEvents);
+  List<Map<String, dynamic>> _applyFilters(List<Map<String, dynamic>> all) {
+    List<Map<String, dynamic>> result = List.from(all);
 
     // Search filter
     if (_searchQuery.isNotEmpty) {
@@ -105,11 +76,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       }
     }
 
-    _filteredEvents = result;
+    return result;
+  }
+
+  Future<void> _refresh() async {
+    ref.invalidate(eventsProvider);
+    await ref.read(eventsProvider.future);
   }
 
   @override
   Widget build(BuildContext context) {
+    final eventsAsync = ref.watch(eventsProvider);
+    _filters = ['All', 'Tonight', 'Free', ...ref.watch(categoryNamesProvider)];
+
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
       body: Column(
@@ -172,10 +151,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     GestureDetector(
                       onTap: () {
                         _searchController.clear();
-                        setState(() {
-                          _searchQuery = '';
-                          _applyFilters();
-                        });
+                        setState(() => _searchQuery = '');
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(right: 12),
@@ -204,12 +180,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 final f = _filters[i];
                 final isActive = f == _activeFilter;
                 return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _activeFilter = f;
-                      _applyFilters();
-                    });
-                  },
+                  onTap: () => setState(() => _activeFilter = f),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.only(right: 8),
@@ -259,46 +230,69 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
           const SizedBox(height: 16),
 
-          // ── Results count ────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  '${_filteredEvents.length} event${_filteredEvents.length != 1 ? 's' : ''} found',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withOpacity(0.4),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
           // ── Results ─────────────────────────────────────────────
           Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
-                  )
-                : _filteredEvents.isEmpty
-                ? _buildEmptyState()
-                : GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.78,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                    itemCount: _filteredEvents.length,
-                    itemBuilder: (context, i) =>
-                        _DiscoverCard(event: _filteredEvents[i]),
+            child: eventsAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+              ),
+              error: (err, _) => Center(
+                child: Text(
+                  'Could not load events',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.35),
                   ),
+                ),
+              ),
+              data: (allEvents) {
+                final filtered = _applyFilters(allEvents);
+                return RefreshIndicator(
+                  color: const Color(0xFF7C3AED),
+                  backgroundColor: const Color(0xFF1A1535),
+                  onRefresh: _refresh,
+                  child: Column(
+                    children: [
+                      // Results count
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20)
+                            .copyWith(bottom: 12),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${filtered.length} event${filtered.length != 1 ? 's' : ''} found',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withOpacity(0.4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: filtered.isEmpty
+                            ? _buildEmptyState()
+                            : GridView.builder(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 0.78,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                ),
+                                itemCount: filtered.length,
+                                itemBuilder: (context, i) =>
+                                    _DiscoverCard(event: filtered[i]),
+                              ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -306,35 +300,44 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 52,
-            color: Colors.white.withOpacity(0.15),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _searchQuery.isNotEmpty
-                ? 'No results for "$_searchQuery"'
-                : 'No events in this category yet',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.35),
+    return ListView(
+      // ListView (pas Center) pour que le RefreshIndicator marche
+      // même quand la liste est vide
+      children: [
+        SizedBox(
+          height: 360,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_off,
+                  size: 52,
+                  color: Colors.white.withOpacity(0.15),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _searchQuery.isNotEmpty
+                      ? 'No results for "$_searchQuery"'
+                      : 'No events in this category yet',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.35),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Try a different search or filter',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.2),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Try a different search or filter',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: Colors.white.withOpacity(0.2),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -390,9 +393,9 @@ class _DiscoverCardState extends State<_DiscoverCard> {
               CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                placeholder: (_, __) =>
+                placeholder: (_, _) =>
                     Container(color: const Color(0xFF1A0F3D)),
-                errorWidget: (_, __, ___) => Container(
+                errorWidget: (_, _, _) => Container(
                   color: const Color(0xFF1A0F3D),
                   child: const Center(
                     child: Icon(

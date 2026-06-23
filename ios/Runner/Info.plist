@@ -4,6 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>HAPPYN needs camera access to scan event tickets at entry.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>HAPPYN needs photo access to set a cover image for your events.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

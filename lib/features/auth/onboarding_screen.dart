@@ -72,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0x33080F),
+                        Color(0x0033080f),
                         Color(0x1A08080F),
                         Color(0xFF08080F),
                       ],

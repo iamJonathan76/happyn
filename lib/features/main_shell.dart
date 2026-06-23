@@ -16,13 +16,17 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomeScreen(),
-   DiscoverScreen(), // Discover — coming soon
-    SizedBox(),    // + button — not a page
-    MyTicketsScreen(), // Tickets — coming soon
-    ProfileScreen(),
-  ];
+  // Plus besoin de GlobalKey : le refresh passe maintenant par
+  // eventsProvider (Riverpod), invalidé directement dans
+  // CreateEventScreen et ProfileScreen après chaque mutation.
+  // La recherche du Home renvoie vers l'onglet Discover (vraie recherche).
+  List<Widget> get _pages => [
+        HomeScreen(onSearchTap: () => setState(() => _currentIndex = 1)),
+        const DiscoverScreen(),
+        const SizedBox(),
+        const MyTicketsScreen(),
+        const ProfileScreen(),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +52,7 @@ class _MainShellState extends State<MainShell> {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF08080F).withOpacity(0.96),
-        border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.07)),
-        ),
+        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.07))),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).padding.bottom + 8,
@@ -67,13 +69,12 @@ class _MainShellState extends State<MainShell> {
           if (i == 2) {
             return GestureDetector(
               onTap: () async {
-                final result = await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const CreateEventScreen(),
-                  ),
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CreateEventScreen()),
                 );
-                if (result == true && mounted) {
-                  // Refresh home
+                // Le provider a déjà été invalidé dans CreateEventScreen.
+                // On bascule juste l'utilisateur sur Home pour voir le résultat.
+                if (mounted) {
                   setState(() => _currentIndex = 0);
                 }
               },
