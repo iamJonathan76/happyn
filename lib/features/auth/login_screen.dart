@@ -73,6 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
         serverClientId: AuthConfig.googleWebClientId,
         scopes: const ['email', 'profile'],
       );
+      // Vide le compte mis en cache pour TOUJOURS afficher le sélecteur de
+      // compte (sinon Google reconnecte silencieusement le même mail).
+      await googleSignIn.signOut();
       final account = await googleSignIn.signIn();
       if (account == null) return; // annulé par l'utilisateur
 
@@ -281,10 +284,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 // OAuth buttons
                 Row(
                   children: [
-                    _oauthButton('G', 'Google', _signInWithGoogle),
+                    _oauthButton(
+                      Text('G',
+                          style: GoogleFonts.poppins(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          )),
+                      'Google',
+                      _signInWithGoogle,
+                    ),
                     const SizedBox(width: 12),
                     _oauthButton(
-                        '🍎', 'Apple', () => _snack('Apple sign-in coming soon')),
+                      const Icon(Icons.apple, color: Colors.white, size: 22),
+                      'Apple',
+                      () => _snack('Apple sign-in coming soon'),
+                    ),
                   ],
                 ),
 
@@ -469,7 +484,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _oauthButton(String emoji, String label, VoidCallback onTap) {
+  Widget _oauthButton(Widget icon, String label, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
         onTap: _isLoading ? null : onTap,
@@ -483,7 +498,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 16)),
+              icon,
               const SizedBox(width: 8),
               Text(
                 label,

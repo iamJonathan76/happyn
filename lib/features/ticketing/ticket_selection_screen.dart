@@ -89,6 +89,7 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
                 ticket: tickets.first,
                 event: widget.event,
                 ticketType: selectedType,
+                totalTickets: tickets.length,
               ),
             ),
           );

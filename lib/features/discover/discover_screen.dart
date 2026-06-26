@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
+import 'package:happyn/core/widgets/event_list_card.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -273,19 +272,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       Expanded(
                         child: filtered.isEmpty
                             ? _buildEmptyState()
-                            : GridView.builder(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 0.78,
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 12,
-                                ),
+                            : ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(
+                                    20, 0, 20, 90),
                                 itemCount: filtered.length,
                                 itemBuilder: (context, i) =>
-                                    _DiscoverCard(event: filtered[i]),
+                                    EventListCard(event: filtered[i]),
                               ),
                       ),
                     ],
@@ -338,202 +330,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ─── Discover Card ────────────────────────────────────────────────────────────
-
-class _DiscoverCard extends StatefulWidget {
-  final Map<String, dynamic> event;
-  const _DiscoverCard({required this.event});
-
-  @override
-  State<_DiscoverCard> createState() => _DiscoverCardState();
-}
-
-class _DiscoverCardState extends State<_DiscoverCard> {
-  bool _liked = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final ev = widget.event;
-    final imageUrl = (ev['image_url'] ?? '') as String;
-    final price = ev['price'];
-    final priceText = (price == null || price == 0) ? 'Free' : '\$$price';
-    final date = ev['start_date'] != null
-        ? DateTime.parse(ev['start_date']).toString().substring(0, 10)
-        : 'TBD';
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => EventDetailScreen(event: widget.event),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Image
-              CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                placeholder: (_, _) =>
-                    Container(color: const Color(0xFF1A0F3D)),
-                errorWidget: (_, _, _) => Container(
-                  color: const Color(0xFF1A0F3D),
-                  child: const Center(
-                    child: Icon(
-                      Icons.event,
-                      color: Color(0xFF7C3AED),
-                      size: 32,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Gradient
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Color(0xAA08080F),
-                      Color(0xFF08080F),
-                    ],
-                    stops: [0.3, 0.7, 1.0],
-                  ),
-                ),
-              ),
-
-              // Category badge
-              Positioned(
-                top: 10,
-                left: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF7C3AED).withOpacity(0.85),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    (ev['category'] ?? '') as String,
-                    style: GoogleFonts.inter(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Like button
-              Positioned(
-                top: 8,
-                right: 8,
-                child: GestureDetector(
-                  onTap: () => setState(() => _liked = !_liked),
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.35),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _liked ? Icons.favorite : Icons.favorite_border,
-                      color: _liked ? const Color(0xFFEC4899) : Colors.white,
-                      size: 14,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Content bottom
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        (ev['title'] ?? '') as String,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          height: 1.2,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.calendar_today_outlined,
-                                  color: Color(0xFFA78BFA),
-                                  size: 9,
-                                ),
-                                const SizedBox(width: 3),
-                                Expanded(
-                                  child: Text(
-                                    date,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 9,
-                                      color: Colors.white.withOpacity(0.55),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            priceText,
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFFC4B5FD),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

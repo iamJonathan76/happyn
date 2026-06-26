@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
@@ -54,6 +55,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     final imageUrl = (ev['image_url'] ?? '') as String;
     final price = ev['price'];
     final priceText = (price == null || price == 0) ? 'Free' : '\$$price';
+    final cat = (ev['category'] ?? '') as String;
+    final catColor = categoryColor(cat);
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final isOrganizer =
         currentUserId != null && ev['created_by'] == currentUserId;
@@ -256,52 +259,42 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 6),
 
-                      // Info grid
+                      // Category subtitle
                       Row(
                         children: [
-                          Expanded(
-                            child: _infoCard(
-                              Icons.calendar_today_outlined,
-                              'Date',
-                              _formatDate(ev['start_date'] as String?),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _infoCard(
-                              Icons.access_time_outlined,
-                              'Time',
-                              _formatTime(ev['start_date'] as String?),
+                          Icon(categoryIcon(cat), size: 15, color: catColor),
+                          const SizedBox(width: 6),
+                          Text(
+                            cat,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: catColor,
                             ),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 22),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _infoCard(
-                              Icons.location_on_outlined,
-                              'Venue',
-                              (ev['location'] ?? 'TBD') as String,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _infoCard(
-                              Icons.location_city_outlined,
-                              'City',
-                              (ev['city'] ?? 'TBD') as String,
-                            ),
-                          ),
-                        ],
+                      // Date & time
+                      _infoRow(
+                        Icons.calendar_today_outlined,
+                        _formatDate(ev['start_date'] as String?),
+                        '${_formatTime(ev['start_date'] as String?)} - ${_formatTime(ev['end_date'] as String?)}',
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Location
+                      _infoRow(
+                        Icons.location_on_outlined,
+                        (ev['location'] ?? 'TBD') as String,
+                        (ev['city'] ?? '') as String,
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
                       // Description
                       if (ev['description'] != null &&
@@ -501,38 +494,54 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
-  Widget _infoCard(IconData icon, String label, String value) {
+  Widget _infoRow(IconData icon, String top, String bottom) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.07)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Icon(icon, color: const Color(0xFFA78BFA), size: 14),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 9,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withOpacity(0.38),
-              letterSpacing: 0.5,
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFF7C3AED).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: Icon(icon, color: const Color(0xFFC4B5FD), size: 18),
           ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  top,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (bottom.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    bottom,
+                    style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      color: Colors.white.withOpacity(0.5),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

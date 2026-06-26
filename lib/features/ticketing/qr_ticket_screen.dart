@@ -11,11 +11,15 @@ class QrTicketScreen extends StatefulWidget {
   final Map<String, dynamic> event;
   final Map<String, dynamic> ticketType;
 
+  /// Nombre total de billets émis dans cet achat (pour le bandeau « 1 of N »).
+  final int totalTickets;
+
   const QrTicketScreen({
     super.key,
     required this.ticket,
     required this.event,
     required this.ticketType,
+    this.totalTickets = 1,
   });
 
   @override
@@ -150,6 +154,37 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
+                    // Bandeau achat multiple
+                    if (widget.totalTickets > 1)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7C3AED).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: const Color(0xFF7C3AED).withOpacity(0.4)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.confirmation_number,
+                                color: Color(0xFFC4B5FD), size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Ticket 1 of ${widget.totalTickets} · all ${widget.totalTickets} are in “My Tickets”',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withOpacity(0.8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     // ── Ticket Card ──────────────────────────────────
                     Container(
                       decoration: BoxDecoration(

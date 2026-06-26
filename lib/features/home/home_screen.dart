@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
+import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/core/widgets/event_list_card.dart';
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 // Note: ConsumerStatefulWidget au lieu de StatefulWidget car on garde
@@ -26,6 +28,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Alimenté depuis le provider en début de build : ['All', ...catégories].
   List<String> _categories = const ['All'];
+  // Données catégories (nom + emoji) pour les cercles.
+  List<Map<String, dynamic>> _catData = const [];
 
   final user = Supabase.instance.client.auth.currentUser;
 
@@ -35,6 +39,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final parts = userName.trim().split(' ');
     if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     return userName.substring(0, 1).toUpperCase();
+  }
+
+  String get _greeting {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 18) return 'Good afternoon';
+    return 'Good evening';
   }
 
   List<Map<String, dynamic>> _filterByCategory(
@@ -55,7 +66,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(eventsProvider);
-    _categories = ['All', ...ref.watch(categoryNamesProvider)];
+    _catData = ref.watch(categoriesProvider).maybeWhen(
+          data: (d) => d,
+          orElse: () => const [],
+        );
+    _categories = ['All', ..._catData.map((c) => c['name'] as String)];
 
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
@@ -72,9 +87,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             SliverToBoxAdapter(child: _buildSearchBar()),
             SliverToBoxAdapter(child: _buildLocation(eventsAsync)),
             SliverToBoxAdapter(child: _buildCategories()),
-            SliverToBoxAdapter(child: _buildSectionHeader('Featured Tonight')),
+            SliverToBoxAdapter(
+                child: _buildSectionHeader('For you', seeAll: true)),
             SliverToBoxAdapter(child: _buildHeroCards(eventsAsync)),
-            SliverToBoxAdapter(child: _buildSectionHeader('This Weekend')),
+            SliverToBoxAdapter(
+                child: _buildSectionHeader('Popular near you', seeAll: true)),
             SliverToBoxAdapter(child: _buildCompactList(eventsAsync)),
             const SliverToBoxAdapter(child: SizedBox(height: 90)),
           ],
@@ -89,27 +106,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'GOOD EVENING',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFFF0EEFF).withOpacity(0.38),
-                  letterSpacing: 2,
-                ),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$_greeting,\n',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFF0EEFF).withOpacity(0.5),
+                    ),
+                  ),
+                  TextSpan(
+                    text: '$userName 👋',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                '$userName 🔥',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+            ),
           ),
           Row(
             children: [
@@ -245,69 +264,113 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCategories() {
-    return SizedBox(
-      height: 40,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: 20, right: 8, top: 6),
-        itemCount: _categories.length,
-        itemBuilder: (context, i) {
-          final isActive = i == _selectedCat;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedCat = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: isActive
-                    ? const LinearGradient(
-                        colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                color: isActive ? null : Colors.white.withOpacity(0.055),
-                borderRadius: BorderRadius.circular(20),
-                border: isActive
-                    ? null
-                    : Border.all(color: Colors.white.withOpacity(0.09)),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFF7C3AED).withOpacity(0.55),
-                          blurRadius: 12,
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: SizedBox(
+        height: 86,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(left: 20, right: 8),
+          itemCount: _categories.length,
+          itemBuilder: (context, i) {
+            final isActive = i == _selectedCat;
+            final label = _categories[i];
+            final color =
+                i == 0 ? const Color(0xFFA78BFA) : categoryColor(label);
+
+            return GestureDetector(
+              onTap: () => setState(() => _selectedCat = i),
+              child: SizedBox(
+                width: 66,
+                child: Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? color
+                            : color.withOpacity(0.13),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: color.withOpacity(isActive ? 0 : 0.30),
                         ),
-                      ]
-                    : null,
-              ),
-              child: Text(
-                _categories[i],
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: isActive
-                      ? Colors.white
-                      : const Color(0xFFF0EEFF).withOpacity(0.45),
+                        boxShadow: isActive
+                            ? [
+                                BoxShadow(
+                                  color: color.withOpacity(0.45),
+                                  blurRadius: 14,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          i == 0
+                              ? Icons.auto_awesome
+                              : categoryIcon(label),
+                          color: isActive ? Colors.white : color,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isActive
+                            ? Colors.white
+                            : const Color(0xFFF0EEFF).withOpacity(0.5),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, {bool seeAll = false}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-      child: Text(
-        title,
-        style: GoogleFonts.poppins(
-          fontSize: 15,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+          if (seeAll)
+            GestureDetector(
+              onTap: widget.onSearchTap,
+              child: Row(
+                children: [
+                  Text(
+                    'See all',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFA78BFA),
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right,
+                      color: Color(0xFFA78BFA), size: 14),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -315,13 +378,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildHeroCards(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
     return eventsAsync.when(
       loading: () => const SizedBox(
-        height: 210,
+        height: 252,
         child: Center(
           child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
         ),
       ),
       error: (err, _) => SizedBox(
-        height: 210,
+        height: 252,
         child: Center(
           child: Text(
             'Could not load events',
@@ -336,7 +399,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         final events = _filterByCategory(allEvents);
         if (events.isEmpty) {
           return SizedBox(
-            height: 210,
+            height: 252,
             child: Center(
               child: Text(
                 'No events yet — create the first one! 🎉',
@@ -349,7 +412,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           );
         }
         return SizedBox(
-          height: 210,
+          height: 252,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 20, right: 8),
@@ -370,7 +433,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: allEvents
             .skip(1)
             .take(4)
-            .map((ev) => _CompactCard(event: ev))
+            .map((ev) => EventListCard(event: ev))
             .toList(),
       ),
     );
@@ -391,352 +454,195 @@ class _HeroCard extends StatefulWidget {
 class _HeroCardState extends State<_HeroCard> {
   bool _liked = false;
 
+  (String, String) _dateParts(String? s) {
+    if (s == null) return ('', '');
+    final dt = DateTime.parse(s);
+    const m = [
+      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+    ];
+    return (m[dt.month - 1], dt.day.toString());
+  }
+
   @override
   Widget build(BuildContext context) {
     final ev = widget.event;
+    final cat = (ev['category'] ?? '') as String;
+    final color = categoryColor(cat);
+    final (mon, day) = _dateParts(ev['start_date'] as String?);
+    final priceText = (ev['price'] == 0 || ev['price'] == null)
+        ? 'Free'
+        : '\$${ev['price']}';
+    final city = (ev['city'] ?? ev['location'] ?? '') as String;
+
     return GestureDetector(
-      onTap: () {
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => EventDetailScreen(event: ev)));
-      },
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => EventDetailScreen(event: ev)),
+      ),
       child: Container(
-        width: 300,
-        height: 200,
-        margin: const EdgeInsets.only(right: 12),
+        width: 290,
+        margin: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          color: const Color(0xFF13111C),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white.withOpacity(0.06)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.55),
-              blurRadius: 24,
+              color: Colors.black.withOpacity(0.45),
+              blurRadius: 20,
               offset: const Offset(0, 8),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Stack(
+          borderRadius: BorderRadius.circular(22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 300,
-                height: 200,
-                child: CachedNetworkImage(
-                  imageUrl: (ev['image_url'] ?? '') as String,
-                  fit: BoxFit.cover,
-                  placeholder: (_, _) => Container(
-                    color: const Color(0xFF1A0F3D),
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF7C3AED),
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  ),
-                  errorWidget: (_, _, _) => Container(
-                    color: const Color(0xFF1A0F3D),
-                    child: const Center(
-                      child: Icon(
-                        Icons.music_note,
-                        color: Color(0xFF7C3AED),
-                        size: 40,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Color(0x2608080F),
-                      Color(0xFF08080F),
-                    ],
-                    stops: [0.0, 0.45, 1.0],
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                left: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFEC4899), Color(0xFFF97316)],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '🔥 New',
-                    style: GoogleFonts.inter(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: GestureDetector(
-                  onTap: () => setState(() => _liked = !_liked),
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.15)),
-                    ),
-                    child: Icon(
-                      _liked ? Icons.favorite : Icons.favorite_border,
-                      color: _liked ? const Color(0xFFEC4899) : Colors.white,
-                      size: 14,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF7C3AED).withOpacity(0.75),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              (ev['category'] ?? '') as String,
-                              style: GoogleFonts.inter(
-                                fontSize: 8,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        (ev['title'] ?? '') as String,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
+              // ── Image + badge date + cœur ─────────────────────────
+              Stack(
+                children: [
+                  SizedBox(
+                    height: 150,
+                    width: double.infinity,
+                    child: CachedNetworkImage(
+                      imageUrl: (ev['image_url'] ?? '') as String,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) =>
+                          Container(color: const Color(0xFF1A0F3D)),
+                      errorWidget: (_, _, _) => Container(
+                        color: const Color(0xFF1A0F3D),
+                        child: Center(
+                          child: Icon(categoryIcon(cat),
+                              color: const Color(0xFF7C3AED), size: 38),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      width: 44,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
                         children: [
-                          Row(
+                          Text(mon,
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFFEC4899),
+                                letterSpacing: 0.5,
+                              )),
+                          Text(day,
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF08080F),
+                                height: 1,
+                              )),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _liked = !_liked),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.4),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _liked ? Icons.favorite : Icons.favorite_border,
+                          color: _liked ? const Color(0xFFEC4899) : Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // ── Infos ─────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (ev['title'] ?? '') as String,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(categoryIcon(cat), size: 12, color: color),
+                        const SizedBox(width: 5),
+                        Text(
+                          cat,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: color,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
                             children: [
-                              const Icon(
-                                Icons.location_on,
-                                color: Color(0xFFA78BFA),
-                                size: 11,
-                              ),
+                              Icon(Icons.location_on,
+                                  size: 12,
+                                  color: Colors.white.withOpacity(0.4)),
                               const SizedBox(width: 3),
-                              Text(
-                                ((ev['location'] ?? '') as String).split(
-                                  ',',
-                                )[0],
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  color: Colors.white.withOpacity(0.65),
+                              Expanded(
+                                child: Text(
+                                  city,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: Colors.white.withOpacity(0.55),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          Text(
-                            (ev['price'] == 0 || ev['price'] == null)
-                                ? 'Free'
-                                : '\$${ev['price']}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          priceText,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Compact Card ─────────────────────────────────────────────────────────────
-
-class _CompactCard extends StatefulWidget {
-  final Map<String, dynamic> event;
-  const _CompactCard({required this.event});
-
-  @override
-  State<_CompactCard> createState() => _CompactCardState();
-}
-
-class _CompactCardState extends State<_CompactCard> {
-  bool _liked = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final ev = widget.event;
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => EventDetailScreen(event: ev),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.09)),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                imageUrl: (ev['image_url'] ?? '') as String,
-                width: 62,
-                height: 62,
-                fit: BoxFit.cover,
-                placeholder: (_, _) =>
-                    Container(color: const Color(0xFF1A0F3D)),
-                errorWidget: (_, _, _) => Container(
-                  color: const Color(0xFF1A0F3D),
-                  child: const Icon(
-                    Icons.music_note,
-                    color: Color(0xFF7C3AED),
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          (ev['title'] ?? '') as String,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => setState(() => _liked = !_liked),
-                        child: Icon(
-                          _liked ? Icons.favorite : Icons.favorite_border,
-                          color: _liked
-                              ? const Color(0xFFEC4899)
-                              : Colors.white.withOpacity(0.35),
-                          size: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        color: Color(0xFFA78BFA),
-                        size: 10,
-                      ),
-                      const SizedBox(width: 3),
-                      Expanded(
-                        child: Text(
-                          (ev['location'] ?? '') as String,
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            color: Colors.white.withOpacity(0.45),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            color: Colors.white.withOpacity(0.35),
-                            size: 10,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            ev['start_date'] != null
-                                ? DateTime.parse(
-                                    ev['start_date'],
-                                  ).toString().substring(0, 10)
-                                : 'TBD',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              color: Colors.white.withOpacity(0.45),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        (ev['price'] == 0 || ev['price'] == null)
-                            ? 'Free'
-                            : '\$${ev['price']}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFFC4B5FD),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

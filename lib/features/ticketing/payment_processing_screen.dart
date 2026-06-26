@@ -52,8 +52,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       final rows = await Supabase.instance.client
           .from('tickets')
           .select()
-          .eq('payment_intent_id', widget.paymentIntentId)
-          .limit(1);
+          .eq('payment_intent_id', widget.paymentIntentId);
 
       final list = List<Map<String, dynamic>>.from(rows);
       if (list.isNotEmpty) {
@@ -65,6 +64,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
               ticket: list.first,
               event: widget.event,
               ticketType: widget.ticketType,
+              totalTickets: list.length,
             ),
           ),
         );

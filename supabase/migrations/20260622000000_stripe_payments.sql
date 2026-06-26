@@ -14,9 +14,12 @@
 alter table public.tickets
   add column if not exists payment_intent_id text;
 
-create unique index if not exists tickets_payment_intent_unique
-  on public.tickets (payment_intent_id, ticket_type_id)
-  where payment_intent_id is not null;
+-- Index (NON-unique) pour accélérer le polling du ticket après paiement.
+-- NB : pas d'unicité ici, sinon impossible d'émettre plusieurs tickets pour
+-- le même paiement/tier (achat de quantité > 1). L'idempotence des webhooks
+-- est gérée dans `issue_tickets_paid` via le count(*) initial.
+create index if not exists tickets_payment_intent_idx
+  on public.tickets (payment_intent_id);
 
 create or replace function public.issue_tickets_paid(
   p_ticket_type_id   uuid,
