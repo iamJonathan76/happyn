@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
-  const CreateEventScreen({super.key});
+  /// Si non-null, l'écran est en mode ÉDITION de cet event (au lieu de création).
+  final Map<String, dynamic>? event;
+  const CreateEventScreen({super.key, this.event});
 
   @override
   ConsumerState<CreateEventScreen> createState() => _CreateEventScreenState();
@@ -30,6 +33,58 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   DateTime _startDate = DateTime.now().add(const Duration(days: 1));
   DateTime _endDate = DateTime.now().add(const Duration(days: 1, hours: 3));
   bool _isLoading = false;
+
+  bool get _isEditing => widget.event != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final ev = widget.event;
+    if (ev != null) {
+      _titleController.text = (ev['title'] ?? '') as String;
+      _descriptionController.text = (ev['description'] ?? '') as String;
+      _locationController.text = (ev['location'] ?? '') as String;
+      _cityController.text = (ev['city'] ?? '') as String;
+      _selectedCategory = (ev['category'] ?? 'Music') as String;
+      if (ev['start_date'] != null) {
+        _startDate = DateTime.parse(ev['start_date'] as String);
+      }
+      if (ev['end_date'] != null) {
+        _endDate = DateTime.parse(ev['end_date'] as String);
+      }
+      _loadTiers(ev['id'] as String);
+    }
+  }
+
+  /// Charge les tiers existants de l'event (mode édition).
+  Future<void> _loadTiers(String eventId) async {
+    try {
+      final data = await Supabase.instance.client
+          .from('ticket_types')
+          .select()
+          .eq('event_id', eventId)
+          .order('price');
+      final list = List<Map<String, dynamic>>.from(data);
+      if (list.isEmpty || !mounted) return;
+      setState(() {
+        for (final t in _tiers) {
+          t.dispose();
+        }
+        _tiers
+          ..clear()
+          ..addAll(list.map((t) => _TicketTier(
+                id: t['id'] as String,
+                name: (t['name'] ?? '') as String,
+                price: (t['price'] ?? 0).toString(),
+                quantity: (t['quantity_total'] ?? 0).toString(),
+                maxPerOrder: (t['max_per_order'] ?? 10).toString(),
+                quantitySold: (t['quantity_sold'] ?? 0) as int,
+              )));
+      });
+    } catch (_) {
+      // silencieux : on garde le tier par défaut si le chargement échoue
+    }
+  }
 
 
   @override
@@ -70,7 +125,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       'Tier name (e.g. VIP)', Icons.local_activity_outlined),
                 ),
               ),
-              if (_tiers.length > 1) ...[
+              // Supprimer : seulement les tiers nouveaux (pas ceux qui existent
+              // déjà en base, pour ne pas casser des ventes).
+              if (tier.id == null && _tiers.length > 1) ...[
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () => _removeTier(i),
@@ -87,6 +144,19 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               ],
             ],
           ),
+          if (tier.quantitySold > 0) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${tier.quantitySold} sold · min quantity ${tier.quantitySold}',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: const Color(0xFFA78BFA),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           Row(
             children: [
@@ -106,6 +176,16 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: _inputDec(
                       'Qty e.g. 100', Icons.confirmation_number_outlined),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: tier.maxPerOrderController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration:
+                      _inputDec('Max/person (0=∞)', Icons.person_outline),
                 ),
               ),
             ],
@@ -208,17 +288,101 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       return;
     }
 
+    // ── Mode ÉDITION : infos de l'event + tiers (update/insert) ─────────────
+    if (_isEditing) {
+      // Construit et valide les tiers
+      final editTiers = <_TicketTier>[];
+      for (final t in _tiers) {
+        final name = t.nameController.text.trim();
+        final qty = int.tryParse(t.quantityController.text) ?? 0;
+        if (name.isEmpty || qty <= 0) continue;
+        // Garde-fou : on ne descend pas sous le nombre déjà vendu.
+        if (t.id != null && qty < t.quantitySold) {
+          _showSnack('“$name”: quantity can’t be below ${t.quantitySold} sold');
+          return;
+        }
+        editTiers.add(t);
+      }
+      if (editTiers.isEmpty) {
+        _showSnack('Keep at least one ticket tier');
+        return;
+      }
+      final eventPrice = editTiers
+          .map((t) => double.tryParse(t.priceController.text) ?? 0.0)
+          .reduce((a, b) => a < b ? a : b);
+
+      setState(() => _isLoading = true);
+      try {
+        final userId = Supabase.instance.client.auth.currentUser!.id;
+        final imageUrl = _pickedImage != null
+            ? await _uploadImage(userId)
+            : (widget.event!['image_url'] as String?);
+        final eventId = widget.event!['id'];
+
+        await Supabase.instance.client.from('events').update({
+          'title': _titleController.text.trim(),
+          'description': _descriptionController.text.trim(),
+          'category': _selectedCategory,
+          'location': _locationController.text.trim(),
+          'city': _cityController.text.trim(),
+          'start_date': _startDate.toIso8601String(),
+          'end_date': _endDate.toIso8601String(),
+          'price': eventPrice,
+          if (imageUrl != null) 'image_url': imageUrl,
+        }).eq('id', eventId);
+
+        // Upsert des tiers : update si existant, insert si nouveau.
+        for (final t in editTiers) {
+          final qty = int.parse(t.quantityController.text);
+          final maxRaw = int.tryParse(t.maxPerOrderController.text) ?? 0;
+          final maxPer = maxRaw <= 0 ? qty : maxRaw;
+          final payload = {
+            'name': t.nameController.text.trim(),
+            'price': double.tryParse(t.priceController.text) ?? 0.0,
+            'quantity_total': qty,
+            'max_per_order': maxPer,
+          };
+          if (t.id != null) {
+            await Supabase.instance.client
+                .from('ticket_types')
+                .update(payload)
+                .eq('id', t.id!);
+          } else {
+            await Supabase.instance.client.from('ticket_types').insert(
+              {...payload, 'event_id': eventId, 'quantity_sold': 0},
+            );
+          }
+        }
+
+        if (mounted) {
+          ref.invalidate(eventsProvider);
+          _showSnack('Event updated ✓');
+          await Future.delayed(const Duration(milliseconds: 800));
+          if (mounted) Navigator.of(context).pop(true);
+        }
+      } catch (e) {
+        _showSnack('Error: ${e.toString()}');
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+      return;
+    }
+
     // Valide et construit les tiers de billets (nom + quantité requis)
     final tiers = <Map<String, dynamic>>[];
     for (final t in _tiers) {
       final name = t.nameController.text.trim();
       final qty = int.tryParse(t.quantityController.text) ?? 0;
       if (name.isEmpty || qty <= 0) continue;
+      // 0 ou vide = pas de limite par personne → plafonné par le stock (qty).
+      final maxRaw = int.tryParse(t.maxPerOrderController.text) ?? 0;
+      final maxPer = maxRaw <= 0 ? qty : maxRaw;
       tiers.add({
         'name': name,
         'price': double.tryParse(t.priceController.text) ?? 0.0,
         'quantity_total': qty,
         'quantity_sold': 0,
+        'max_per_order': maxPer,
       });
     }
     if (tiers.isEmpty) {
@@ -360,7 +524,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     ),
                     const SizedBox(width: 14),
                     Text(
-                      'Create Event',
+                      _isEditing ? 'Edit Event' : 'Create Event',
                       style: GoogleFonts.poppins(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -458,34 +622,36 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Ticket tiers
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _label('Ticket Tiers *'),
-                          GestureDetector(
-                            onTap: _addTier,
-                            child: Row(
-                              children: [
-                                const Icon(Icons.add,
-                                    color: Color(0xFFA78BFA), size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Add tier',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFFA78BFA),
+                      // Ticket tiers (création + édition : augmenter la quantité,
+                      // changer le prix/max, ajouter un tier)
+                      ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _label('Ticket Tiers *'),
+                            GestureDetector(
+                              onTap: _addTier,
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.add,
+                                      color: Color(0xFFA78BFA), size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Add tier',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFFA78BFA),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      ...List.generate(_tiers.length, (i) => _tierCard(i)),
-
-                      const SizedBox(height: 16),
+                          ],
+                        ),
+                        ...List.generate(_tiers.length, (i) => _tierCard(i)),
+                        const SizedBox(height: 16),
+                      ],
 
                       // Cover image picker
                       _label('Cover Image'),
@@ -502,22 +668,34 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: _pickedImage == null
-                              ? Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.add_photo_alternate_outlined,
-                                        color: Colors.white.withOpacity(0.4),
-                                        size: 36),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Tap to choose a cover photo',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12,
-                                        color: Colors.white.withOpacity(0.4),
-                                      ),
-                                    ),
-                                  ],
-                                )
+                              ? (_isEditing &&
+                                      ((widget.event!['image_url'] ?? '')
+                                              as String)
+                                          .isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl:
+                                          widget.event!['image_url'] as String,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    )
+                                  : Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                            Icons.add_photo_alternate_outlined,
+                                            color: Colors.white.withOpacity(0.4),
+                                            size: 36),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Tap to choose a cover photo',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            color: Colors.white.withOpacity(0.4),
+                                          ),
+                                        ),
+                                      ],
+                                    ))
                               : Stack(
                                   fit: StackFit.expand,
                                   children: [
@@ -588,10 +766,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                 : Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.rocket_launch, color: Colors.white, size: 18),
+                                      Icon(
+                                          _isEditing
+                                              ? Icons.check_circle_outline
+                                              : Icons.rocket_launch,
+                                          color: Colors.white,
+                                          size: 18),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Publish Event',
+                                        _isEditing
+                                            ? 'Save Changes'
+                                            : 'Publish Event',
                                         style: GoogleFonts.poppins(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
@@ -670,17 +855,33 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
 /// Un tier de billet en cours d'édition dans Create Event (nom, prix, quantité).
 class _TicketTier {
-  final TextEditingController nameController;
-  final TextEditingController priceController = TextEditingController();
-  final TextEditingController quantityController =
-      TextEditingController(text: '100');
+  /// id du ticket_type existant (null = nouveau tier à créer).
+  final String? id;
 
-  _TicketTier({String name = ''})
-      : nameController = TextEditingController(text: name);
+  /// Nombre déjà vendu (garde-fou : on ne descend pas la quantité en dessous).
+  final int quantitySold;
+
+  final TextEditingController nameController;
+  final TextEditingController priceController;
+  final TextEditingController quantityController;
+  final TextEditingController maxPerOrderController;
+
+  _TicketTier({
+    String name = '',
+    this.id,
+    this.quantitySold = 0,
+    String price = '',
+    String quantity = '100',
+    String maxPerOrder = '10',
+  })  : nameController = TextEditingController(text: name),
+        priceController = TextEditingController(text: price),
+        quantityController = TextEditingController(text: quantity),
+        maxPerOrderController = TextEditingController(text: maxPerOrder);
 
   void dispose() {
     nameController.dispose();
     priceController.dispose();
     quantityController.dispose();
+    maxPerOrderController.dispose();
   }
 }

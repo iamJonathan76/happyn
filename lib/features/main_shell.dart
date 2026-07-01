@@ -15,13 +15,23 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
+  final ScrollController _homeScrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _homeScrollController.dispose();
+    super.dispose();
+  }
 
   // Plus besoin de GlobalKey : le refresh passe maintenant par
   // eventsProvider (Riverpod), invalidé directement dans
   // CreateEventScreen et ProfileScreen après chaque mutation.
   // La recherche du Home renvoie vers l'onglet Discover (vraie recherche).
   List<Widget> get _pages => [
-        HomeScreen(onSearchTap: () => setState(() => _currentIndex = 1)),
+        HomeScreen(
+          onSearchTap: () => setState(() => _currentIndex = 1),
+          scrollController: _homeScrollController,
+        ),
         const DiscoverScreen(),
         const SizedBox(),
         const MyTicketsScreen(),
@@ -102,7 +112,20 @@ class _MainShellState extends State<MainShell> {
           }
 
           return GestureDetector(
-            onTap: () => setState(() => _currentIndex = i),
+            onTap: () {
+              // Retaper Home en y étant déjà → remonter en haut de la page.
+              if (i == 0 &&
+                  _currentIndex == 0 &&
+                  _homeScrollController.hasClients) {
+                _homeScrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeOut,
+                );
+              } else {
+                setState(() => _currentIndex = i);
+              }
+            },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -52,6 +52,13 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
     return (price as num).toDouble() * _quantity;
   }
 
+  // Limite de billets par personne, fixée par l'organisateur sur le tier.
+  int get _maxQuantity {
+    if (_selectedTypeIndex == null) return 10;
+    final m = _ticketTypes[_selectedTypeIndex!]['max_per_order'];
+    return (m is int && m > 0) ? m : 10;
+  }
+
   String get _priceText {
     if (_totalPrice == 0) return 'Free';
     return '\$${_totalPrice.toStringAsFixed(2)}';
@@ -151,7 +158,9 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
     } catch (e) {
       if (mounted) {
         final msg = e.toString();
-        final friendly = msg.contains('insufficient_stock')
+        final friendly = msg.contains('exceeds_max_per_order')
+            ? 'You reached the limit per person for this ticket.'
+            : msg.contains('insufficient_stock')
             ? 'Sorry, not enough tickets left.'
             : msg.contains('not_authenticated')
                 ? 'Please sign in again.'
@@ -296,7 +305,10 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
                               return GestureDetector(
                                 onTap: isSoldOut
                                     ? null
-                                    : () => setState(() => _selectedTypeIndex = i),
+                                    : () => setState(() {
+                                          _selectedTypeIndex = i;
+                                          _quantity = 1;
+                                        }),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
                                   margin: const EdgeInsets.only(bottom: 12),
@@ -450,7 +462,7 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
                                   _qtyButton(
                                     Icons.add,
                                     () => setState(() {
-                                      if (_quantity < 10) _quantity++;
+                                      if (_quantity < _maxQuantity) _quantity++;
                                     }),
                                   ),
                                 ],

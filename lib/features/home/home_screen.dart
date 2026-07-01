@@ -17,7 +17,11 @@ import 'package:happyn/core/widgets/event_list_card.dart';
 class HomeScreen extends ConsumerStatefulWidget {
   /// Appelé quand l'utilisateur tape la barre de recherche → bascule sur Discover.
   final VoidCallback? onSearchTap;
-  const HomeScreen({super.key, this.onSearchTap});
+
+  /// Controller partagé par MainShell pour le « scroll-to-top » au tap Home.
+  final ScrollController? scrollController;
+
+  const HomeScreen({super.key, this.onSearchTap, this.scrollController});
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -79,6 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: const Color(0xFF1A1535),
         onRefresh: _refresh,
         child: CustomScrollView(
+          controller: widget.scrollController,
           slivers: [
             SliverToBoxAdapter(
               child: SizedBox(height: MediaQuery.of(context).padding.top + 8),

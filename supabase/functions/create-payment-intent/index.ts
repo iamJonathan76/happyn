@@ -78,11 +78,19 @@ Deno.serve(async (req) => {
   );
   const { data: tt, error: ttErr } = await admin
     .from("ticket_types")
-    .select("price, quantity_total, quantity_sold")
+    .select("price, quantity_total, quantity_sold, max_per_order")
     .eq("id", ticketTypeId)
     .maybeSingle();
 
   if (ttErr || !tt) return jsonResponse({ error: "ticket_type_not_found" }, 404);
+
+  const maxPerOrder = (tt.max_per_order ?? 10) as number;
+  if (quantity > maxPerOrder) {
+    return jsonResponse(
+      { error: "exceeds_max_per_order", max: maxPerOrder },
+      400,
+    );
+  }
 
   const remaining = (tt.quantity_total ?? 0) - (tt.quantity_sold ?? 0);
   if (remaining < quantity) {

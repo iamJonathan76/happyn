@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
@@ -141,9 +142,42 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 ),
                               ),
 
-                              // Share + Like
+                              // Edit (organizer) + Share + Like
                               Row(
                                 children: [
+                                  if (isOrganizer) ...[
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final result =
+                                            await Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                CreateEventScreen(event: ev),
+                                          ),
+                                        );
+                                        // Event modifié → on revient à la liste
+                                        // (déjà rafraîchie via le provider).
+                                        if (result == true && mounted) {
+                                          Navigator.of(context).pop();
+                                        }
+                                      },
+                                      child: Container(
+                                        width: 38,
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.45),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: Colors.white
+                                                  .withOpacity(0.12)),
+                                        ),
+                                        child: const Icon(Icons.edit_outlined,
+                                            color: Colors.white, size: 16),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
                                   GestureDetector(
                                     onTap: () {
                                       ScaffoldMessenger.of(context)
