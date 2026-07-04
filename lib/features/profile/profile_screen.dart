@@ -4,6 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/providers/favorites_provider.dart';
+import 'package:happyn/core/providers/user_profile_provider.dart';
+import 'package:happyn/core/widgets/event_list_card.dart';
+import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/settings/settings_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -25,6 +30,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String get _userEmail {
     return _supabase.auth.currentUser?.email ?? '';
   }
+
+  String get _userHandle {
+    final e = _userEmail;
+    if (e.contains('@')) return '@${e.split('@').first}';
+    final n = _userName.trim().toLowerCase().replaceAll(' ', '');
+    return n.isEmpty ? '@user' : '@$n';
+  }
+
+  String? get _avatarUrl =>
+      _supabase.auth.currentUser?.userMetadata?['avatar_url'] as String?;
 
   String get _userInitials {
     final parts = _userName.trim().split(' ');
@@ -68,6 +83,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(eventsProvider);
     final myEvents = ref.watch(myEventsProvider);
+    final profileRow = ref.watch(userProfileProvider).asData?.value;
+    final bio = (profileRow?['bio'] ?? '') as String;
+    final city = (profileRow?['city'] ?? '') as String;
     final isLoading = eventsAsync.isLoading;
 
     return Scaffold(
@@ -76,153 +94,195 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
 
-          // ── Header ──────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // ── Banner + avatar + gear ───────────────────────────────
+          SizedBox(
+            height: 168,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                Text(
-                  'Profile',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                // Bannière (dégradé)
+                Container(
+                  height: 120,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF4C1D95), Color(0xFF7C3AED), Color(0xFFEC4899)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const SettingsScreen())),
-                  child: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.09)),
+                // Gear par-dessus la bannière
+                Positioned(
+                  top: 8,
+                  left: 16,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const SettingsScreen())),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.35),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.settings_outlined,
+                          color: Colors.white, size: 18),
                     ),
-                    child: const Icon(
-                      Icons.settings_outlined,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                  ),
+                ),
+                // Avatar (anneau dégradé) + nom + @handle
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  top: 78,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: 84,
+                        height: 84,
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                              ? CachedNetworkImage(
+                                  imageUrl: _avatarUrl!,
+                                  width: 78,
+                                  height: 78,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, _, _) => _initialsAvatar(),
+                                )
+                              : _initialsAvatar(),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _userName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                _userHandle,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.white.withOpacity(0.45),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
 
-          // ── Profile Info ─────────────────────────────────────────
-          Container(
-            margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF7C3AED).withOpacity(0.15),
-                  const Color(0xFFEC4899).withOpacity(0.08),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
-            ),
-            child: Column(
+          const SizedBox(height: 16),
+
+          // ── Stats ─────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    // Avatar
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF7C3AED).withOpacity(0.55),
-                            blurRadius: 16,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          _userInitials,
-                          style: GoogleFonts.poppins(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 16),
-
-                    // Name + email
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _userName,
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            _userEmail,
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.45),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'Member',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // Stats
-                Row(
-                  children: [
-                    _statItem('${myEvents.length}', 'Events'),
-                    _divider(),
-                    _statItem('0', 'Following'),
-                    _divider(),
-                    _statItem('0', 'Followers'),
-                  ],
-                ),
+                _statItem('${myEvents.length}', 'Events'),
+                _divider(),
+                _statItem('0', 'Followers'),
+                _divider(),
+                _statItem('0', 'Following'),
               ],
+            ),
+          ),
+
+          // ── Ville + Bio ───────────────────────────────────────────
+          if (city.isNotEmpty || bio.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (city.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(Icons.location_on,
+                            size: 13, color: Colors.white.withOpacity(0.4)),
+                        const SizedBox(width: 4),
+                        Text(
+                          city,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (bio.isNotEmpty) ...[
+                    if (city.isNotEmpty) const SizedBox(height: 8),
+                    Text(
+                      bio,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        height: 1.5,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 16),
+
+          // ── Edit Profile ──────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GestureDetector(
+              onTap: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const EditProfileScreen()));
+                ref.invalidate(userProfileProvider); // ville/bio
+                if (mounted) setState(() {}); // nom/photo
+              },
+              child: Container(
+                width: double.infinity,
+                height: 46,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: Text(
+                    'Edit Profile',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
 
@@ -232,44 +292,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
-              children: ['My Events', 'About'].asMap().entries.map((e) {
-                final isActive = e.key == _selectedTab;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedTab = e.key),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.only(right: 12),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: isActive
-                          ? const LinearGradient(
-                              colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                          : null,
-                      color: isActive
-                          ? null
-                          : Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(20),
-                      border: isActive
-                          ? null
-                          : Border.all(color: Colors.white.withOpacity(0.09)),
-                    ),
-                    child: Text(
-                      e.value,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.45),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+              children: [
+                _tabChip(0, Icons.event_outlined, 'My Events'),
+                _tabChip(1, Icons.favorite_border, 'Favorites'),
+                _tabChip(2, Icons.info_outline, 'About'),
+              ],
             ),
           ),
 
@@ -279,7 +306,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Expanded(
             child: _selectedTab == 0
                 ? _buildMyEvents(isLoading, myEvents)
-                : _buildAbout(),
+                : _selectedTab == 1
+                    ? _buildFavorites()
+                    : _buildAbout(),
           ),
         ],
       ),
@@ -287,6 +316,95 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   // ── My Events Tab ──────────────────────────────────────────────────────────
+
+  Widget _tabChip(int index, IconData icon, String label) {
+    final isActive = index == _selectedTab;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedTab = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            gradient: isActive
+                ? const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isActive ? null : Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(14),
+            border: isActive
+                ? null
+                : Border.all(color: Colors.white.withOpacity(0.09)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon,
+                  size: 14,
+                  color:
+                      isActive ? Colors.white : Colors.white.withOpacity(0.45)),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color:
+                      isActive ? Colors.white : Colors.white.withOpacity(0.45),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFavorites() {
+    final favEvents = ref.watch(favoriteEventsProvider);
+    final loading = ref.watch(favoritesProvider).isLoading;
+
+    if (loading && favEvents.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+      );
+    }
+    if (favEvents.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.favorite_border,
+                size: 48, color: Colors.white.withOpacity(0.2)),
+            const SizedBox(height: 12),
+            Text(
+              'No favorites yet',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.35),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tap the ♥ on an event to save it here.',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: Colors.white.withOpacity(0.25),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: favEvents.map((e) => EventListCard(event: e)).toList(),
+    );
+  }
 
   Widget _buildMyEvents(bool isLoading, List<Map<String, dynamic>> myEvents) {
     if (isLoading) {
@@ -383,6 +501,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Widget _initialsAvatar() => Container(
+        width: 78,
+        height: 78,
+        color: const Color(0xFF1A1535),
+        child: Center(
+          child: Text(
+            _userInitials,
+            style: GoogleFonts.poppins(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+
   Widget _statItem(String value, String label) {
     return Expanded(
       child: Column(
@@ -470,7 +604,11 @@ class _EventTile extends StatelessWidget {
         ? DateTime.parse(event['start_date']).toString().substring(0, 10)
         : 'TBD';
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => EventDetailScreen(event: event)),
+      ),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -562,6 +700,7 @@ class _EventTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

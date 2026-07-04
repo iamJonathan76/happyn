@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
 
 /// Carte d'event en ligne (vignette + badge date + titre + lieu + cœur/prix).
-/// Partagée par le Home (« Popular near you ») et Discover.
-class EventListCard extends StatefulWidget {
+/// Partagée par le Home (« Popular near you ») et Discover. Le cœur est
+/// persisté via `favoritesProvider`.
+class EventListCard extends ConsumerWidget {
   final Map<String, dynamic> event;
   const EventListCard({super.key, required this.event});
-
-  @override
-  State<EventListCard> createState() => _EventListCardState();
-}
-
-class _EventListCardState extends State<EventListCard> {
-  bool _liked = false;
 
   (String, String) _dateParts(String? s) {
     if (s == null) return ('', '');
@@ -28,8 +24,9 @@ class _EventListCardState extends State<EventListCard> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final ev = widget.event;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ev = event;
+    final eventId = ev['id'] as String;
     final cat = (ev['category'] ?? '') as String;
     final color = categoryColor(cat);
     final (mon, day) = _dateParts(ev['start_date'] as String?);
@@ -38,6 +35,9 @@ class _EventListCardState extends State<EventListCard> {
         : '\$${ev['price']}';
     final city = (ev['city'] ?? '') as String;
     final venue = (ev['location'] ?? '') as String;
+
+    final favIds = ref.watch(favoritesProvider).asData?.value ?? <String>{};
+    final isFav = favIds.contains(eventId);
 
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
@@ -145,16 +145,19 @@ class _EventListCardState extends State<EventListCard> {
               ),
             ),
             const SizedBox(width: 8),
-            // Cœur + prix
+            // Cœur (persisté) + prix
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
                 GestureDetector(
-                  onTap: () => setState(() => _liked = !_liked),
+                  onTap: () async {
+                    await toggleFavorite(eventId, isFav);
+                    ref.invalidate(favoritesProvider);
+                  },
                   child: Icon(
-                    _liked ? Icons.favorite : Icons.favorite_border,
-                    color: _liked
+                    isFav ? Icons.favorite : Icons.favorite_border,
+                    color: isFav
                         ? const Color(0xFFEC4899)
                         : Colors.white.withOpacity(0.35),
                     size: 18,

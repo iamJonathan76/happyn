@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Édition basique du profil : nom complet (stocké dans les user metadata
-/// Supabase) et synchronisé dans la table `profiles`.
+/// Édition du profil : nom + photo (avatar). Stockés dans les user metadata
+/// Supabase (`full_name`, `avatar_url`) et synchronisés dans la table profiles.
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -14,19 +18,79 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _supabase = Supabase.instance.client;
   late final TextEditingController _nameController;
+  final _cityController = TextEditingController();
+  final _bioController = TextEditingController();
+  XFile? _pickedAvatar;
+  String? _currentAvatarUrl;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    final name = _supabase.auth.currentUser?.userMetadata?['full_name'] ?? '';
-    _nameController = TextEditingController(text: name as String);
+    final meta = _supabase.auth.currentUser?.userMetadata;
+    _nameController =
+        TextEditingController(text: (meta?['full_name'] ?? '') as String);
+    _currentAvatarUrl = meta?['avatar_url'] as String?;
+    _loadExtra();
+  }
+
+  Future<void> _loadExtra() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+    try {
+      final row = await _supabase
+          .from('profiles')
+          .select('city, bio')
+          .eq('id', user.id)
+          .maybeSingle();
+      if (row != null && mounted) {
+        _cityController.text = (row['city'] ?? '') as String;
+        _bioController.text = (row['bio'] ?? '') as String;
+      }
+    } catch (_) {}
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _cityController.dispose();
+    _bioController.dispose();
     super.dispose();
+  }
+
+  String get _initials {
+    final n = _nameController.text.trim();
+    final parts = n.split(' ');
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return n.isNotEmpty ? n[0].toUpperCase() : 'U';
+  }
+
+  Future<void> _pickAvatar() async {
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 600,
+      imageQuality: 85,
+    );
+    if (picked != null) setState(() => _pickedAvatar = picked);
+  }
+
+  Future<String?> _uploadAvatar(String userId) async {
+    final img = _pickedAvatar;
+    if (img == null) return _currentAvatarUrl;
+    final bytes = await img.readAsBytes();
+    final ext = img.name.contains('.') ? img.name.split('.').last : 'jpg';
+    final path = '$userId/${DateTime.now().millisecondsSinceEpoch}.$ext';
+    await _supabase.storage.from('avatars').uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(
+            contentType: img.mimeType ?? 'image/jpeg',
+            upsert: false,
+          ),
+        );
+    return _supabase.storage.from('avatars').getPublicUrl(path);
   }
 
   Future<void> _save() async {
@@ -38,17 +102,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _saving = true);
     try {
-      final user = _supabase.auth.currentUser;
-      // 1. Met à jour les metadata d'auth
-      await _supabase.auth.updateUser(
-        UserAttributes(data: {'full_name': name}),
-      );
-      // 2. Synchronise la table profiles (best-effort)
-      if (user != null) {
-        await _supabase
-            .from('profiles')
-            .update({'full_name': name}).eq('id', user.id);
-      }
+      final user = _supabase.auth.currentUser!;
+      final avatarUrl = await _uploadAvatar(user.id);
+
+      await _supabase.auth.updateUser(UserAttributes(data: {
+        'full_name': name,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
+      }));
+      // Synchronise profiles (best-effort)
+      await _supabase.from('profiles').update({
+        'full_name': name,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'city': _cityController.text.trim(),
+        'bio': _bioController.text.trim(),
+      }).eq('id', user.id);
+
       if (mounted) {
         _snack('Profile updated ✓');
         Navigator.of(context).pop(true);
@@ -97,15 +165,85 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // ── Avatar ────────────────────────────────────────────────
+          Center(
+            child: GestureDetector(
+              onTap: _pickAvatar,
+              child: Stack(
+                children: [
+                  Container(
+                    width: 104,
+                    height: 104,
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: ClipOval(child: _avatarInner()),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: const Color(0xFF08080F), width: 2),
+                      ),
+                      child: const Icon(Icons.camera_alt,
+                          color: Colors.white, size: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Center(
+            child: Text(
+              'Tap to change photo',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: Colors.white.withOpacity(0.35),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
           _label('Full Name'),
           TextField(
             controller: _nameController,
+            onChanged: (_) => setState(() {}), // maj des initiales du placeholder
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: _dec('Your name', Icons.person_outline),
           ),
           const SizedBox(height: 16),
+          _label('City'),
+          TextField(
+            controller: _cityController,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: _dec('e.g. Ottawa, ON', Icons.location_city_outlined),
+          ),
+          const SizedBox(height: 16),
+          _label('Bio'),
+          TextField(
+            controller: _bioController,
+            maxLines: 3,
+            maxLength: 160,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: _dec('A few words about you...', null).copyWith(
+              counterStyle: GoogleFonts.inter(
+                  color: Colors.white.withOpacity(0.3), fontSize: 10),
+            ),
+          ),
+          const SizedBox(height: 16),
           _label('Email'),
-          // Email en lecture seule (changer l'email = flow de vérification séparé)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -130,7 +268,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Email and photo changes are coming soon.',
+            'Email changes are coming soon.',
             style: GoogleFonts.inter(
               fontSize: 11,
               color: Colors.white.withOpacity(0.3),
@@ -171,6 +309,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Widget _avatarInner() {
+    if (_pickedAvatar != null) {
+      return Image.file(File(_pickedAvatar!.path),
+          width: 98, height: 98, fit: BoxFit.cover);
+    }
+    if (_currentAvatarUrl != null && _currentAvatarUrl!.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: _currentAvatarUrl!,
+        width: 98,
+        height: 98,
+        fit: BoxFit.cover,
+        errorWidget: (_, _, _) => _initialsCircle(),
+      );
+    }
+    return _initialsCircle();
+  }
+
+  Widget _initialsCircle() => Container(
+        width: 98,
+        height: 98,
+        color: const Color(0xFF1A1535),
+        child: Center(
+          child: Text(
+            _initials,
+            style: GoogleFonts.poppins(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(
@@ -183,11 +354,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
 
-  InputDecoration _dec(String hint, IconData icon) => InputDecoration(
+  InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
         hintText: hint,
         hintStyle:
             GoogleFonts.inter(color: Colors.white.withOpacity(0.25), fontSize: 14),
-        prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
+        prefixIcon: icon == null
+            ? null
+            : Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
         filled: true,
         fillColor: Colors.white.withOpacity(0.055),
         border: OutlineInputBorder(

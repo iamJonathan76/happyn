@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/config/auth_config.dart';
+import 'package:happyn/features/auth/complete_profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -59,6 +60,31 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  /// Après auth : si le profil n'est pas encore « onboardé », on propose
+  /// l'écran « Complete your profile » ; sinon on va direct au Home.
+  Future<void> _routeAfterAuth() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    bool onboarded = true;
+    if (user != null) {
+      try {
+        final row = await Supabase.instance.client
+            .from('profiles')
+            .select('onboarded')
+            .eq('id', user.id)
+            .maybeSingle();
+        onboarded = (row?['onboarded'] ?? false) as bool;
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    if (onboarded) {
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
+      );
+    }
+  }
+
   /// Connexion native Google : on récupère un idToken via `google_sign_in`,
   /// puis on l'échange contre une vraie session Supabase (signInWithIdToken).
   Future<void> _signInWithGoogle() async {
@@ -89,9 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
         accessToken: googleAuth.accessToken,
       );
 
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+      if (mounted) await _routeAfterAuth();
     } on AuthException catch (e) {
       if (mounted) _snack(e.message);
     } catch (_) {
@@ -122,15 +146,20 @@ class _LoginScreenState extends State<LoginScreen> {
           password: password,
         );
 
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
-        }
+        if (mounted) await _routeAfterAuth();
       } else {
-        await Supabase.instance.client.auth.signUp(
+        final res = await Supabase.instance.client.auth.signUp(
           email: email,
           password: password,
           data: {'full_name': _nameController.text.trim()},
         );
+
+        // Si une session est créée direct (confirmation email désactivée),
+        // on enchaîne sur l'onboarding. Sinon, message « check email ».
+        if (res.session != null) {
+          if (mounted) await _routeAfterAuth();
+          return;
+        }
 
        /* final user = response.user;
 

@@ -7,6 +7,7 @@ import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
@@ -44,6 +45,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     return userName.substring(0, 1).toUpperCase();
   }
+
+  String? get avatarUrl => user?.userMetadata?['avatar_url'] as String?;
 
   String get _greeting {
     final h = DateTime.now().hour;
@@ -174,15 +177,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Text(
-                    userInitials,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
-                  ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: (avatarUrl != null && avatarUrl!.isNotEmpty)
+                      ? CachedNetworkImage(
+                          imageUrl: avatarUrl!,
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, _, _) => Center(
+                            child: Text(
+                              userInitials,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            userInitials,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -448,16 +471,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 // ─── Hero Card ────────────────────────────────────────────────────────────────
 
-class _HeroCard extends StatefulWidget {
+class _HeroCard extends ConsumerWidget {
   final Map<String, dynamic> event;
   const _HeroCard({required this.event});
-
-  @override
-  State<_HeroCard> createState() => _HeroCardState();
-}
-
-class _HeroCardState extends State<_HeroCard> {
-  bool _liked = false;
 
   (String, String) _dateParts(String? s) {
     if (s == null) return ('', '');
@@ -470,8 +486,9 @@ class _HeroCardState extends State<_HeroCard> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final ev = widget.event;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ev = event;
+    final eventId = ev['id'] as String;
     final cat = (ev['category'] ?? '') as String;
     final color = categoryColor(cat);
     final (mon, day) = _dateParts(ev['start_date'] as String?);
@@ -479,6 +496,8 @@ class _HeroCardState extends State<_HeroCard> {
         ? 'Free'
         : '\$${ev['price']}';
     final city = (ev['city'] ?? ev['location'] ?? '') as String;
+    final favIds = ref.watch(favoritesProvider).asData?.value ?? <String>{};
+    final isFav = favIds.contains(eventId);
 
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
@@ -558,7 +577,10 @@ class _HeroCardState extends State<_HeroCard> {
                     top: 12,
                     right: 12,
                     child: GestureDetector(
-                      onTap: () => setState(() => _liked = !_liked),
+                      onTap: () async {
+                        await toggleFavorite(eventId, isFav);
+                        ref.invalidate(favoritesProvider);
+                      },
                       child: Container(
                         width: 32,
                         height: 32,
@@ -567,8 +589,8 @@ class _HeroCardState extends State<_HeroCard> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          _liked ? Icons.favorite : Icons.favorite_border,
-                          color: _liked ? const Color(0xFFEC4899) : Colors.white,
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          color: isFav ? const Color(0xFFEC4899) : Colors.white,
                           size: 16,
                         ),
                       ),

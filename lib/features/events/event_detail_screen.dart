@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
@@ -17,8 +19,6 @@ class EventDetailScreen extends StatefulWidget {
 }
 
 class _EventDetailScreenState extends State<EventDetailScreen> {
-  bool _liked = false;
-
   String _formatDate(String? dateStr) {
     if (dateStr == null) return 'TBD';
     final dt = DateTime.parse(dateStr);
@@ -214,29 +214,46 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  GestureDetector(
-                                    onTap: () =>
-                                        setState(() => _liked = !_liked),
-                                    child: Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.45),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.white.withOpacity(0.12),
+                                  Consumer(
+                                    builder: (context, ref, _) {
+                                      final favIds = ref
+                                              .watch(favoritesProvider)
+                                              .asData
+                                              ?.value ??
+                                          <String>{};
+                                      final isFav =
+                                          favIds.contains(ev['id']);
+                                      return GestureDetector(
+                                        onTap: () async {
+                                          await toggleFavorite(
+                                              ev['id'] as String, isFav);
+                                          ref.invalidate(favoritesProvider);
+                                        },
+                                        child: Container(
+                                          width: 38,
+                                          height: 38,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.black.withOpacity(0.45),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color:
+                                                  Colors.white.withOpacity(0.12),
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            isFav
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color: isFav
+                                                ? const Color(0xFFEC4899)
+                                                : Colors.white,
+                                            size: 16,
+                                          ),
                                         ),
-                                      ),
-                                      child: Icon(
-                                        _liked
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: _liked
-                                            ? const Color(0xFFEC4899)
-                                            : Colors.white,
-                                        size: 16,
-                                      ),
-                                    ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
