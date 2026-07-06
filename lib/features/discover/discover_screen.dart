@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
+import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
@@ -36,7 +37,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   }
 
   List<Map<String, dynamic>> _applyFilters(List<Map<String, dynamic>> all) {
-    List<Map<String, dynamic>> result = List.from(all);
+    // Exclut les events terminés de la découverte.
+    List<Map<String, dynamic>> result =
+        all.where((e) => !isEventPast(e)).toList();
 
     // Search filter
     if (_searchQuery.isNotEmpty) {
@@ -273,6 +276,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         child: filtered.isEmpty
                             ? _buildEmptyState()
                             : ListView.builder(
+                                physics:
+                                    const AlwaysScrollableScrollPhysics(),
                                 padding: const EdgeInsets.fromLTRB(
                                     20, 0, 20, 90),
                                 itemCount: filtered.length,

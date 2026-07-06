@@ -78,11 +78,21 @@ Deno.serve(async (req) => {
   );
   const { data: tt, error: ttErr } = await admin
     .from("ticket_types")
-    .select("price, quantity_total, quantity_sold, max_per_order")
+    .select("price, quantity_total, quantity_sold, max_per_order, event_id")
     .eq("id", ticketTypeId)
     .maybeSingle();
 
   if (ttErr || !tt) return jsonResponse({ error: "ticket_type_not_found" }, 404);
+
+  // Ventes fermées si l'event est terminé
+  const { data: evRow } = await admin
+    .from("events")
+    .select("end_date")
+    .eq("id", tt.event_id)
+    .maybeSingle();
+  if (evRow?.end_date && new Date(evRow.end_date as string) < new Date()) {
+    return jsonResponse({ error: "event_ended" }, 409);
+  }
 
   const maxPerOrder = (tt.max_per_order ?? 10) as number;
   if (quantity > maxPerOrder) {

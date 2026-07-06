@@ -7,6 +7,7 @@ import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
+import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
@@ -76,7 +77,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         );
       }
     } catch (e) {
-      debugPrint(e.toString());
+      if (mounted) {
+        final msg = e.toString().contains('event_has_tickets')
+            ? "Can't delete: this event has sold tickets. Cancel it instead."
+            : 'Could not delete this event.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
+            backgroundColor: const Color(0xFF1A1535),
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
     }
   }
 
@@ -92,9 +106,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
-      body: Column(
-        children: [
-          SizedBox(height: MediaQuery.of(context).padding.top),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, _) => [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                SizedBox(height: MediaQuery.of(context).padding.top),
 
           // ── Banner + avatar + gear ───────────────────────────────
           SizedBox(
@@ -290,29 +307,42 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           const SizedBox(height: 16),
 
-          // ── Tabs ─────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                _tabChip(0, Icons.event_outlined, 'My Events'),
-                _tabChip(1, Icons.favorite_border, 'Favorites'),
-                _tabChip(2, Icons.info_outline, 'About'),
               ],
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // ── Tab Content ──────────────────────────────────────────
-          Expanded(
-            child: _selectedTab == 0
-                ? _buildMyEvents(isLoading, myEvents)
-                : _selectedTab == 1
-                    ? _buildFavorites()
-                    : _buildAbout(),
+          // ── Onglets épinglés ─────────────────────────────────────
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SliverTabBar(
+              child: Container(
+                color: const Color(0xFF08080F),
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                child: Row(
+                  children: [
+                    _tabChip(0, Icons.event_outlined, 'My Events'),
+                    _tabChip(1, Icons.favorite_border, 'Favorites'),
+                    _tabChip(2, Icons.info_outline, 'About'),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
+        body: RefreshIndicator(
+          color: const Color(0xFF7C3AED),
+          backgroundColor: const Color(0xFF1A1535),
+          onRefresh: () async {
+            ref.invalidate(eventsProvider);
+            ref.invalidate(favoritesProvider);
+            ref.invalidate(userProfileProvider);
+            await ref.read(eventsProvider.future);
+          },
+          child: _selectedTab == 0
+              ? _buildMyEvents(isLoading, myEvents)
+              : _selectedTab == 1
+                  ? _buildFavorites()
+                  : _buildAbout(),
+        ),
       ),
     );
   }
@@ -376,35 +406,42 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
     }
     if (favEvents.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.favorite_border,
-                size: 48, color: Colors.white.withOpacity(0.2)),
-            const SizedBox(height: 12),
-            Text(
-              'No favorites yet',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.35),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Tap the ♥ on an event to save it here.',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: Colors.white.withOpacity(0.25),
-              ),
-            ),
-          ],
-        ),
-      );
+      return _emptyScrollable(Icons.favorite_border, 'No favorites yet',
+          'Tap the ♥ on an event to save it here.');
     }
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: favEvents.map((e) => EventListCard(event: e)).toList(),
+    );
+  }
+
+  // État vide scrollable (pour que le pull-to-refresh marche même sans contenu).
+  Widget _emptyScrollable(IconData icon, String title, String subtitle) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: 380,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 48, color: Colors.white.withOpacity(0.2)),
+                const SizedBox(height: 12),
+                Text(title,
+                    style: GoogleFonts.inter(
+                        fontSize: 14, color: Colors.white.withOpacity(0.35))),
+                const SizedBox(height: 8),
+                Text(subtitle,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: Colors.white.withOpacity(0.25))),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -416,37 +453,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     if (myEvents.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.event_outlined,
-              size: 48,
-              color: Colors.white.withOpacity(0.2),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "You haven't created any events yet.",
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.35),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Tap the + button to create your first event!',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: Colors.white.withOpacity(0.25),
-              ),
-            ),
-          ],
-        ),
-      );
+      return _emptyScrollable(Icons.event_outlined,
+          "You haven't created any events yet.",
+          'Tap the + button to create your first event!');
     }
 
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: myEvents.length,
       itemBuilder: (context, i) {
@@ -476,6 +489,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _monthYear(_supabase.auth.currentUser?.createdAt);
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
           _aboutTile(Icons.mail_outline, 'Email', _userEmail),
@@ -694,6 +708,25 @@ class _EventTile extends StatelessWidget {
                         color: Colors.white.withOpacity(0.4),
                       ),
                     ),
+                    if (isEventPast(event)) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Ended',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -757,4 +790,25 @@ class _EventTile extends StatelessWidget {
       ),
     );
   }
+}
+
+// Header épinglé pour les onglets du profil (reste en haut quand on scrolle).
+class _SliverTabBar extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  _SliverTabBar({required this.child});
+
+  static const double _height = 56;
+
+  @override
+  double get minExtent => _height;
+  @override
+  double get maxExtent => _height;
+
+  @override
+  Widget build(
+          BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      SizedBox.expand(child: child);
+
+  @override
+  bool shouldRebuild(covariant _SliverTabBar oldDelegate) => true;
 }

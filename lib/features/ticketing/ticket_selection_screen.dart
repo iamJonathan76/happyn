@@ -164,7 +164,9 @@ class _TicketSelectionScreenState
     } catch (e) {
       if (mounted) {
         final msg = e.toString();
-        final friendly = msg.contains('exceeds_max_per_order')
+        final friendly = msg.contains('event_ended')
+            ? 'This event has ended — tickets are closed.'
+            : msg.contains('exceeds_max_per_order')
             ? 'You reached the limit per person for this ticket.'
             : msg.contains('insufficient_stock')
             ? 'Sorry, not enough tickets left.'

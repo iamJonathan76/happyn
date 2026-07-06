@@ -43,32 +43,16 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
           // Header
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'My Tickets',
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'My Tickets',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
                 ),
-                GestureDetector(
-                  onTap: () => ref.invalidate(myTicketsProvider),
-                  child: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.09)),
-                    ),
-                    child: const Icon(Icons.refresh,
-                        color: Colors.white, size: 18),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
 
@@ -136,12 +120,14 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
                   },
                   child: filtered.isEmpty
                       ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           children: [
                             SizedBox(
                                 height: 360, child: _buildEmptyState()),
                           ],
                         )
                       : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           padding:
                               const EdgeInsets.fromLTRB(20, 0, 20, 90),
                           itemCount: filtered.length,

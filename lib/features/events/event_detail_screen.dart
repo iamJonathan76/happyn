@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
@@ -57,9 +58,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     final priceText = (price == null || price == 0) ? 'Free' : '\$$price';
     final cat = (ev['category'] ?? '') as String;
     final catColor = categoryColor(cat);
+    final past = isEventPast(ev);
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final isOrganizer =
         currentUserId != null && ev['created_by'] == currentUserId;
+    // Un visiteur ne peut plus acheter un event terminé.
+    final ended = past && !isOrganizer;
 
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
@@ -286,6 +290,40 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           ),
                         ),
                       ),
+
+                      // Badge « Ended » (event terminé)
+                      if (past)
+                        Positioned(
+                          bottom: 20,
+                          right: 20,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                  color: Colors.white.withOpacity(0.2)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.event_busy,
+                                    size: 12,
+                                    color: Colors.white.withOpacity(0.7)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Ended',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -443,57 +481,80 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   // CTA Button : Scan (organisateur) ou Get Tickets (visiteur)
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => isOrganizer
-                                ? ScannerScreen(event: ev)
-                                : TicketSelectionScreen(event: ev),
-                          ),
-                        );
-                      },
+                      onTap: ended
+                          ? null
+                          : () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => isOrganizer
+                                      ? ScannerScreen(event: ev)
+                                      : TicketSelectionScreen(event: ev),
+                                ),
+                              );
+                            },
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: ended
+                              ? null
+                              : const LinearGradient(
+                                  colors: [
+                                    Color(0xFF7C3AED),
+                                    Color(0xFFEC4899)
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                          color: ended ? Colors.white.withOpacity(0.08) : null,
                           borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF7C3AED).withOpacity(0.55),
-                              blurRadius: 20,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
+                          boxShadow: ended
+                              ? null
+                              : [
+                                  BoxShadow(
+                                    color: const Color(0xFF7C3AED)
+                                        .withOpacity(0.55),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              isOrganizer
-                                  ? Icons.qr_code_scanner
-                                  : Icons.confirmation_number_outlined,
-                              color: Colors.white,
+                              ended
+                                  ? Icons.event_busy
+                                  : isOrganizer
+                                      ? Icons.qr_code_scanner
+                                      : Icons.confirmation_number_outlined,
+                              color: ended
+                                  ? Colors.white.withOpacity(0.5)
+                                  : Colors.white,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              isOrganizer ? 'Scan tickets' : 'Get Tickets',
+                              ended
+                                  ? 'Event ended'
+                                  : isOrganizer
+                                      ? 'Scan tickets'
+                                      : 'Get Tickets',
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: ended
+                                    ? Colors.white.withOpacity(0.5)
+                                    : Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.arrow_forward,
-                              color: Colors.white,
-                              size: 16,
-                            ),
+                            if (!ended) ...[
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.arrow_forward,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ],
                           ],
                         ),
                       ),
