@@ -1,54 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:happyn/core/providers/tickets_provider.dart';
+import 'package:happyn/core/categories/category_visuals.dart';
 import 'qr_ticket_screen.dart';
 
-class MyTicketsScreen extends StatefulWidget {
+class MyTicketsScreen extends ConsumerStatefulWidget {
   const MyTicketsScreen({super.key});
 
   @override
-  State<MyTicketsScreen> createState() => _MyTicketsScreenState();
+  ConsumerState<MyTicketsScreen> createState() => _MyTicketsScreenState();
 }
 
-class _MyTicketsScreenState extends State<MyTicketsScreen> {
-  List<Map<String, dynamic>> _tickets = [];
-  bool _isLoading = true;
+class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
   int _selectedTab = 0; // 0 = upcoming, 1 = past
 
-  @override
-  void initState() {
-    super.initState();
-    _loadTickets();
-  }
-
-  Future<void> _loadTickets() async {
-    try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) return;
-
-      final data = await Supabase.instance.client
-          .from('tickets')
-          .select('''
-            *,
-            events(*),
-            ticket_types(*)
-          ''')
-          .eq('user_id', user.id)
-          .order('purchased_at', ascending: false);
-
-      setState(() {
-        _tickets = List<Map<String, dynamic>>.from(data);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  List<Map<String, dynamic>> get _filteredTickets {
+  List<Map<String, dynamic>> _filtered(List<Map<String, dynamic>> tickets) {
     final now = DateTime.now();
-    return _tickets.where((t) {
+    return tickets.where((t) {
       final event = t['events'] as Map<String, dynamic>?;
       if (event == null) return false;
       final startDate = event['start_date'];
@@ -62,6 +32,8 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ticketsAsync = ref.watch(myTicketsProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
       body: Column(
@@ -83,7 +55,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: _loadTickets,
+                  onTap: () => ref.invalidate(myTicketsProvider),
                   child: Container(
                     width: 38,
                     height: 38,
@@ -149,21 +121,38 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
 
           // Content
           Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                        color: Color(0xFF7C3AED)))
-                : _filteredTickets.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: _filteredTickets.length,
-                        itemBuilder: (context, i) =>
-                            _TicketCard(
-                              ticket: _filteredTickets[i],
-                              onTap: () => _openTicket(_filteredTickets[i]),
-                            ),
-                      ),
+            child: ticketsAsync.when(
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF7C3AED))),
+              error: (_, __) => _buildEmptyState(),
+              data: (all) {
+                final filtered = _filtered(all);
+                return RefreshIndicator(
+                  color: const Color(0xFF7C3AED),
+                  backgroundColor: const Color(0xFF1A1535),
+                  onRefresh: () async {
+                    ref.invalidate(myTicketsProvider);
+                    await ref.read(myTicketsProvider.future);
+                  },
+                  child: filtered.isEmpty
+                      ? ListView(
+                          children: [
+                            SizedBox(
+                                height: 360, child: _buildEmptyState()),
+                          ],
+                        )
+                      : ListView.builder(
+                          padding:
+                              const EdgeInsets.fromLTRB(20, 0, 20, 90),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, i) => _TicketCard(
+                            ticket: filtered[i],
+                            onTap: () => _openTicket(filtered[i]),
+                          ),
+                        ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -230,6 +219,10 @@ class _TicketCard extends StatelessWidget {
     final ticketType = ticket['ticket_types'] as Map<String, dynamic>? ?? {};
     final imageUrl = (event['image_url'] ?? '') as String;
     final status = (ticket['status'] ?? 'valid') as String;
+    final cat = (event['category'] ?? '') as String;
+    final accent = categoryColor(cat);
+    final isValid = status == 'valid';
+    const bg = Color(0xFF13111C);
 
     String formatDate(String? d) {
       if (d == null) return 'TBD';
@@ -241,163 +234,249 @@ class _TicketCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: status == 'used'
-                ? Colors.white.withOpacity(0.05)
-                : const Color(0xFF7C3AED).withOpacity(0.25),
+      child: Opacity(
+        opacity: isValid ? 1 : 0.6,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: isValid
+                ? [
+                    BoxShadow(
+                      color: accent.withOpacity(0.22),
+                      blurRadius: 26,
+                      offset: const Offset(0, 8),
+                    )
+                  ]
+                : null,
           ),
-          boxShadow: status == 'valid'
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF7C3AED).withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  )
-                ]
-              : null,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Column(
-            children: [
-              // Image header
-              SizedBox(
-                height: 120,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) =>
-                          Container(color: const Color(0xFF1A0F3D)),
-                      errorWidget: (_, _, _) =>
-                          Container(color: const Color(0xFF1A0F3D)),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.7),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Column(
+              children: [
+                // ── Image (moitié haute du billet) ──────────────────
+                SizedBox(
+                  height: 130,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) =>
+                            Container(color: const Color(0xFF1A0F3D)),
+                        errorWidget: (_, _, _) => Container(
+                          color: const Color(0xFF1A0F3D),
+                          child: Icon(categoryIcon(cat),
+                              color: const Color(0xFF7C3AED), size: 34),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.15),
+                              Colors.transparent,
+                              bg,
+                            ],
+                            stops: const [0, 0.4, 1],
+                          ),
+                        ),
+                      ),
+                      // Status badge
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 9, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isValid
+                                ? const Color(0xFF1DB954)
+                                : Colors.black.withOpacity(0.55),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            isValid ? '✓ Valid' : status.toUpperCase(),
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Category + title
+                      Positioned(
+                        bottom: 10,
+                        left: 14,
+                        right: 14,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(categoryIcon(cat),
+                                    size: 12, color: accent),
+                                const SizedBox(width: 5),
+                                Text(
+                                  cat,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: accent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              (event['title'] ?? '') as String,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                    // Status badge
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: status == 'valid'
-                              ? const Color(0xFF1DB954)
-                              : Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          status == 'valid' ? '✓ Valid' : status.toUpperCase(),
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Event title
-                    Positioned(
-                      bottom: 10,
-                      left: 12,
-                      right: 12,
-                      child: Text(
-                        (event['title'] ?? '') as String,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              // Info row
-              Container(
-                padding: const EdgeInsets.all(12),
-                color: const Color(0xFF13111C),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.calendar_today_outlined,
-                                  color: Color(0xFFA78BFA), size: 11),
-                              const SizedBox(width: 4),
-                              Text(
-                                formatDate(event['start_date'] as String?),
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: Colors.white.withOpacity(0.6),
+                // ── Perforation (encoches + pointillés) ─────────────
+                _perforation(bg),
+
+                // ── Bas du billet ───────────────────────────────────
+                Container(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                  color: bg,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.calendar_today_outlined,
+                                    color: accent, size: 12),
+                                const SizedBox(width: 5),
+                                Text(
+                                  formatDate(event['start_date'] as String?),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11.5,
+                                    color: Colors.white.withOpacity(0.65),
+                                  ),
                                 ),
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              (ticketType['name'] ?? 'Ticket') as String,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            (ticketType['name'] ?? 'Ticket') as String,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                          ],
                         ),
-                        borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.qr_code,
-                              color: Colors.white, size: 14),
-                          const SizedBox(width: 4),
-                          Text(
-                            'View QR',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 9),
+                        decoration: BoxDecoration(
+                          gradient: isValid
+                              ? const LinearGradient(
+                                  colors: [
+                                    Color(0xFF7C3AED),
+                                    Color(0xFFEC4899)
+                                  ],
+                                )
+                              : null,
+                          color: isValid ? null : Colors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.qr_code,
+                                color: Colors.white, size: 15),
+                            const SizedBox(width: 5),
+                            Text(
+                              'View QR',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
               ),
             ],
           ),
+          ),
         ),
+      ),
+    );
+  }
+
+  // Bande de perforation : encoches sur les côtés + pointillés (look billet).
+  Widget _perforation(Color bg) {
+    const notchColor = Color(0xFF08080F);
+    return Container(
+      color: bg,
+      height: 22,
+      child: Row(
+        children: [
+          Container(
+            width: 14,
+            height: 22,
+            decoration: const BoxDecoration(
+              color: notchColor,
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(14),
+                bottomRight: Radius.circular(14),
+              ),
+            ),
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, c) => Flex(
+                direction: Axis.horizontal,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(
+                  (c.maxWidth / 11).floor(),
+                  (_) => Container(
+                    width: 5,
+                    height: 1.5,
+                    color: Colors.white.withOpacity(0.14),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            width: 14,
+            height: 22,
+            decoration: const BoxDecoration(
+              color: notchColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(14),
+                bottomLeft: Radius.circular(14),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

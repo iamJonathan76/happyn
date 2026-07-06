@@ -8,6 +8,7 @@ import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
+import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
@@ -36,7 +37,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Données catégories (nom + emoji) pour les cercles.
   List<Map<String, dynamic>> _catData = const [];
 
-  final user = Supabase.instance.client.auth.currentUser;
+  // Getter (pas un champ figé) → toujours la valeur à jour après un updateUser.
+  User? get user => Supabase.instance.client.auth.currentUser;
 
   String get userName => user?.userMetadata?['full_name'] ?? 'User';
 
@@ -73,6 +75,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(eventsProvider);
+    ref.watch(authStateProvider); // rebuild au changement de nom/photo
     _catData = ref.watch(categoriesProvider).maybeWhen(
           data: (d) => d,
           orElse: () => const [],

@@ -1,14 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/providers/tickets_provider.dart';
 import 'qr_ticket_screen.dart';
 
 /// Après un paiement réussi, l'émission du ticket se fait côté serveur (webhook
 /// Stripe), donc de façon asynchrone. Cet écran poll la table `tickets` jusqu'à
 /// ce que le ticket lié au PaymentIntent apparaisse, puis ouvre le QR.
-class PaymentProcessingScreen extends StatefulWidget {
+class PaymentProcessingScreen extends ConsumerStatefulWidget {
   final String paymentIntentId;
   final Map<String, dynamic> event;
   final Map<String, dynamic> ticketType;
@@ -21,11 +23,12 @@ class PaymentProcessingScreen extends StatefulWidget {
   });
 
   @override
-  State<PaymentProcessingScreen> createState() =>
+  ConsumerState<PaymentProcessingScreen> createState() =>
       _PaymentProcessingScreenState();
 }
 
-class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
+class _PaymentProcessingScreenState
+    extends ConsumerState<PaymentProcessingScreen> {
   static const _maxAttempts = 20; // ~20s à 1s d'intervalle
   int _attempts = 0;
   bool _timedOut = false;
@@ -57,6 +60,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       final list = List<Map<String, dynamic>>.from(rows);
       if (list.isNotEmpty) {
         _timer?.cancel();
+        ref.invalidate(myTicketsProvider); // My Tickets se rafraîchit
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(

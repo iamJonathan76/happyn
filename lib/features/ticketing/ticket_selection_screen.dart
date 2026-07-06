@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:happyn/core/config/stripe_config.dart';
+import 'package:happyn/core/providers/tickets_provider.dart';
 import 'qr_ticket_screen.dart';
 import 'payment_processing_screen.dart';
 
-class TicketSelectionScreen extends StatefulWidget {
+class TicketSelectionScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> event;
   const TicketSelectionScreen({super.key, required this.event});
 
   @override
-  State<TicketSelectionScreen> createState() => _TicketSelectionScreenState();
+  ConsumerState<TicketSelectionScreen> createState() =>
+      _TicketSelectionScreenState();
 }
 
-class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
+class _TicketSelectionScreenState
+    extends ConsumerState<TicketSelectionScreen> {
   List<Map<String, dynamic>> _ticketTypes = [];
   bool _isLoading = true;
   int? _selectedTypeIndex;
@@ -88,6 +92,8 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
         );
         final tickets = List<Map<String, dynamic>>.from(rows as List);
         if (tickets.isEmpty) throw Exception('no_ticket_created');
+
+        ref.invalidate(myTicketsProvider); // My Tickets se rafraîchit
 
         if (mounted) {
           Navigator.of(context).pushReplacement(

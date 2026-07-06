@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -413,40 +412,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // DEBUG : permet à l'organisateur d'acheter un billet de test
-                  // sur son propre event, pour valider la boucle scan avec un
-                  // seul compte. Invisible en build release.
-                  if (isOrganizer && kDebugMode)
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => TicketSelectionScreen(event: ev),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.07),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.white.withOpacity(0.15)),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '🐛 Buy a test ticket (debug)',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withOpacity(0.7),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
                   Row(
                     children: [
                       // Price (masqué pour l'organisateur)

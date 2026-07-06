@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -31,7 +30,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Future<void> _onDetect(BarcodeCapture capture) async {
-    if (_processing) return;
+    // On ignore toute détection tant qu'on traite un scan OU qu'un résultat est
+    // affiché → le résultat reste à l'écran jusqu'à « Scan next » (pas de
+    // rescan en boucle du même billet).
+    if (_processing || _result != _ResultKind.none) return;
     final code = capture.barcodes.firstOrNull?.rawValue;
     if (code == null || code.isEmpty) return;
     await _validate(code);
@@ -98,40 +100,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
   }
 
-  Future<void> _pasteDebugPayload() async {
-    final controller = TextEditingController();
-    final payload = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF13111C),
-        title: Text('Paste QR payload (debug)',
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 15)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 3,
-          style: GoogleFonts.inter(color: Colors.white, fontSize: 12),
-          decoration: const InputDecoration(
-            hintText: 'ticket_id.exp.signature',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Validate'),
-          ),
-        ],
-      ),
-    );
-    if (payload != null && payload.isNotEmpty) {
-      await _validate(payload);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -190,34 +158,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
             ),
           ),
-
-          // Bouton debug « coller le payload »
-          if (kDebugMode && _result == _ResultKind.none && !_processing)
-            Positioned(
-              bottom: 40,
-              left: 20,
-              right: 20,
-              child: GestureDetector(
-                onTap: _pasteDebugPayload,
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '🐛 Paste payload (debug)',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
 
           // Spinner pendant validation
           if (_processing)

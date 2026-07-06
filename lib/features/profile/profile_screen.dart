@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
+import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
@@ -83,6 +84,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(eventsProvider);
     final myEvents = ref.watch(myEventsProvider);
+    ref.watch(authStateProvider); // rebuild au changement de nom/photo
     final profileRow = ref.watch(userProfileProvider).asData?.value;
     final bio = (profileRow?['bio'] ?? '') as String;
     final city = (profileRow?['city'] ?? '') as String;
@@ -456,15 +458,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ── About Tab ──────────────────────────────────────────────────────────────
 
+  String _monthYear(String? iso) {
+    if (iso == null) return '—';
+    final dt = DateTime.tryParse(iso);
+    if (dt == null) return '—';
+    const m = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return '${m[dt.month - 1]} ${dt.year}';
+  }
+
   Widget _buildAbout() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    final city =
+        (ref.watch(userProfileProvider).asData?.value?['city'] ?? '') as String;
+    final memberSince =
+        _monthYear(_supabase.auth.currentUser?.createdAt);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      children: [
           _aboutTile(Icons.mail_outline, 'Email', _userEmail),
-          _aboutTile(Icons.location_on_outlined, 'Location', 'Ottawa, ON'),
-          _aboutTile(Icons.calendar_today_outlined, 'Member since', 'June 2026'),
+          if (city.isNotEmpty)
+            _aboutTile(Icons.location_on_outlined, 'Location', city),
+          _aboutTile(
+              Icons.calendar_today_outlined, 'Member since', memberSince),
           const SizedBox(height: 24),
           // Sign out
           GestureDetector(
@@ -497,7 +515,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ],
-      ),
     );
   }
 

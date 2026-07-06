@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/categories/category_visuals.dart';
 
 class QrTicketScreen extends StatefulWidget {
   final Map<String, dynamic> ticket;
@@ -33,6 +35,9 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
   bool _loading = true;
   String? _error;
   Timer? _refreshTimer;
+
+  static const _bg = Color(0xFF13111C);
+  static const _page = Color(0xFF08080F);
 
   @override
   void initState() {
@@ -108,13 +113,18 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
     final ev = widget.event;
     final ticket = widget.ticket;
     final ticketType = widget.ticketType;
+    final cat = (ev['category'] ?? '') as String;
+    final accent = categoryColor(cat);
+    final priceText = ticketType['price'] == 0 || ticketType['price'] == null
+        ? 'Free'
+        : '\$${ticketType['price']}';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: _page,
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // ── Header ────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
@@ -128,7 +138,8 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withOpacity(0.09)),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.09)),
                       ),
                       child: const Icon(Icons.home_outlined,
                           color: Colors.white, size: 18),
@@ -147,11 +158,11 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                 child: Column(
                   children: [
                     // Bandeau achat multiple
@@ -185,15 +196,16 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                           ],
                         ),
                       ),
-                    // ── Ticket Card ──────────────────────────────────
+
+                    // ── Le billet ─────────────────────────────────
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7C3AED).withOpacity(0.35),
-                            blurRadius: 40,
-                            offset: const Offset(0, 10),
+                            color: accent.withOpacity(0.3),
+                            blurRadius: 44,
+                            offset: const Offset(0, 14),
                           ),
                         ],
                       ),
@@ -201,211 +213,132 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                         borderRadius: BorderRadius.circular(24),
                         child: Column(
                           children: [
-                            // Top gradient section
-                            Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFF4C1D95),
-                                    Color(0xFF7C3AED),
-                                    Color(0xFFEC4899),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            // Image hero + catégorie + titre
+                            SizedBox(
+                              height: 148,
+                              child: Stack(
+                                fit: StackFit.expand,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 48,
-                                        height: 48,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(14),
-                                        ),
-                                        child: const Icon(Icons.confirmation_number,
-                                            color: Colors.white, size: 24),
+                                  CachedNetworkImage(
+                                    imageUrl: (ev['image_url'] ?? '') as String,
+                                    fit: BoxFit.cover,
+                                    placeholder: (_, _) => Container(
+                                        color: const Color(0xFF1A0F3D)),
+                                    errorWidget: (_, _, _) => Container(
+                                      color: const Color(0xFF1A0F3D),
+                                      child: Icon(categoryIcon(cat),
+                                          color: const Color(0xFF7C3AED),
+                                          size: 40),
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.black.withOpacity(0.15),
+                                          Colors.transparent,
+                                          _bg,
+                                        ],
+                                        stops: const [0, 0.4, 1],
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 12,
+                                    left: 16,
+                                    right: 16,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
                                           children: [
+                                            Icon(categoryIcon(cat),
+                                                size: 13, color: accent),
+                                            const SizedBox(width: 5),
                                             Text(
-                                              (ev['title'] ?? '') as String,
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                            Text(
-                                              (ev['location'] ?? '') as String,
+                                              cat,
                                               style: GoogleFonts.inter(
-                                                fontSize: 12,
-                                                color: Colors.white
-                                                    .withOpacity(0.65),
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: accent,
                                               ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      _ticketInfo('DATE',
-                                          _formatDate(ev['start_date'] as String?)),
-                                      _ticketInfo('TYPE',
-                                          (ticketType['name'] ?? '') as String),
-                                      _ticketInfo('PRICE',
-                                          ticketType['price'] == 0 ? 'Free' : '\$${ticketType['price']}'),
-                                    ],
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          (ev['title'] ?? '') as String,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 19,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
 
-                            // Perforation line
+                            // Infos date / type / prix
                             Container(
-                              color: const Color(0xFF13111C),
-                              height: 1,
+                              color: _bg,
+                              padding: const EdgeInsets.fromLTRB(18, 4, 18, 16),
                               child: Row(
                                 children: [
-                                  Container(
-                                    width: 14,
-                                    height: 28,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF08080F),
-                                      borderRadius: BorderRadius.only(
-                                        topRight: Radius.circular(14),
-                                        bottomRight: Radius.circular(14),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        return Flex(
-                                          direction: Axis.horizontal,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: List.generate(
-                                            (constraints.maxWidth / 12).floor(),
-                                            (_) => Container(
-                                              width: 6,
-                                              height: 1,
-                                              color: Colors.white
-                                                  .withOpacity(0.12),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 14,
-                                    height: 28,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF08080F),
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(14),
-                                        bottomLeft: Radius.circular(14),
-                                      ),
-                                    ),
-                                  ),
+                                  _info('DATE',
+                                      _formatDate(ev['start_date'] as String?)),
+                                  _info('TYPE',
+                                      (ticketType['name'] ?? '') as String),
+                                  _info('PRICE', priceText),
                                 ],
                               ),
                             ),
 
-                            // QR Code section
+                            // Perforation
+                            _perforation(),
+
+                            // Zone QR
                             Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.all(24),
-                              color: const Color(0xFF13111C),
+                              color: _bg,
+                              padding: const EdgeInsets.fromLTRB(24, 22, 24, 26),
                               child: Column(
                                 children: [
-                                  // QR Code (payload signé, rafraîchi auto)
-                                  GestureDetector(
-                                    onTap: _error != null ? _mintQr : null,
-                                    child: Container(
-                                      width: 184,
-                                      height: 184,
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: _loading
-                                          ? const Center(
-                                              child: SizedBox(
-                                                width: 28,
-                                                height: 28,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2.5,
-                                                  color: Color(0xFF7C3AED),
-                                                ),
-                                              ),
-                                            )
-                                          : _error != null
-                                              ? Center(
-                                                  child: Icon(
-                                                    Icons.refresh,
-                                                    color: const Color(0xFF08080F)
-                                                        .withOpacity(0.6),
-                                                    size: 40,
-                                                  ),
-                                                )
-                                              : QrImageView(
-                                                  data: _qrPayload!,
-                                                  version: QrVersions.auto,
-                                                  size: 160,
-                                                  backgroundColor: Colors.white,
-                                                  eyeStyle: const QrEyeStyle(
-                                                    eyeShape: QrEyeShape.square,
-                                                    color: Color(0xFF08080F),
-                                                  ),
-                                                  dataModuleStyle:
-                                                      const QrDataModuleStyle(
-                                                    dataModuleShape:
-                                                        QrDataModuleShape.square,
-                                                    color: Color(0xFF08080F),
-                                                  ),
-                                                ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
+                                  _qrBox(),
+                                  const SizedBox(height: 16),
                                   Text(
                                     _error ?? 'Scan at entry',
                                     textAlign: TextAlign.center,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white.withOpacity(0.5),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white.withOpacity(0.85),
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 6),
                                   if (_error == null)
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Icon(
-                                          Icons.lock_outline,
-                                          size: 11,
-                                          color: Colors.white.withOpacity(0.3),
-                                        ),
-                                        const SizedBox(width: 4),
+                                        Icon(Icons.lock_outline,
+                                            size: 12,
+                                            color:
+                                                Colors.white.withOpacity(0.35)),
+                                        const SizedBox(width: 5),
                                         Text(
                                           'Secure code · refreshes automatically',
                                           style: GoogleFonts.inter(
-                                            fontSize: 10,
-                                            color: Colors.white.withOpacity(0.3),
+                                            fontSize: 10.5,
+                                            color:
+                                                Colors.white.withOpacity(0.35),
                                           ),
                                         ),
                                       ],
@@ -418,15 +351,16 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
-                    // ── Ticket Details ───────────────────────────────
+                    // ── Détails ────────────────────────────────────
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.04),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withOpacity(0.08)),
+                        borderRadius: BorderRadius.circular(18),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.07)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,20 +369,24 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                             'Ticket Details',
                             style: GoogleFonts.poppins(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 12),
-                          _detailRow('Order ID', ticket['id'].toString().substring(0, 8).toUpperCase()),
+                          _detailRow(
+                              'Order ID',
+                              ticket['id']
+                                  .toString()
+                                  .substring(0, 8)
+                                  .toUpperCase()),
+                          _detailRow('Type',
+                              (ticketType['name'] ?? '') as String),
                           _detailRow('Status', 'Valid ✓'),
-                          _detailRow('Purchased', DateTime.now().toString().substring(0, 10)),
-                          _detailRow('Type', (ticketType['name'] ?? '') as String),
+                          _detailRow('Venue', (ev['location'] ?? '—') as String),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -459,7 +397,101 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
     );
   }
 
-  Widget _ticketInfo(String label, String value) {
+  // ── QR (loading / error / code) ────────────────────────────────────────────
+  Widget _qrBox() {
+    return GestureDetector(
+      onTap: _error != null ? _mintQr : null,
+      child: Container(
+        width: 210,
+        height: 210,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: _loading
+            ? const Center(
+                child: SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2.6, color: Color(0xFF7C3AED)),
+                ),
+              )
+            : _error != null
+                ? Center(
+                    child: Icon(Icons.refresh,
+                        color: _page.withOpacity(0.6), size: 44),
+                  )
+                : QrImageView(
+                    data: _qrPayload!,
+                    version: QrVersions.auto,
+                    size: 182,
+                    backgroundColor: Colors.white,
+                    eyeStyle: const QrEyeStyle(
+                      eyeShape: QrEyeShape.square,
+                      color: _page,
+                    ),
+                    dataModuleStyle: const QrDataModuleStyle(
+                      dataModuleShape: QrDataModuleShape.square,
+                      color: _page,
+                    ),
+                  ),
+      ),
+    );
+  }
+
+  // ── Perforation (encoches + pointillés) ────────────────────────────────────
+  Widget _perforation() {
+    return Container(
+      color: _bg,
+      height: 26,
+      child: Row(
+        children: [
+          Container(
+            width: 16,
+            height: 26,
+            decoration: const BoxDecoration(
+              color: _page,
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, c) => Flex(
+                direction: Axis.horizontal,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(
+                  (c.maxWidth / 12).floor(),
+                  (_) => Container(
+                    width: 6,
+                    height: 1.5,
+                    color: Colors.white.withOpacity(0.15),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            width: 16,
+            height: 26,
+            decoration: const BoxDecoration(
+              color: _page,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _info(String label, String value) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,16 +501,18 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
             style: GoogleFonts.inter(
               fontSize: 9,
               fontWeight: FontWeight.w700,
-              color: Colors.white.withOpacity(0.45),
+              color: Colors.white.withOpacity(0.4),
               letterSpacing: 1,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
             ),
           ),
@@ -497,15 +531,19 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
             label,
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.38),
+              color: Colors.white.withOpacity(0.4),
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
