@@ -9,7 +9,9 @@ import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
+import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
+import 'package:happyn/features/notifications/notifications_screen.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
@@ -70,6 +72,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _refresh() async {
     ref.invalidate(eventsProvider);
+    ref.invalidate(notificationsProvider); // maj du badge cloche
     // on attend que le nouveau fetch soit terminé pour que le
     // RefreshIndicator se ferme au bon moment
     await ref.read(eventsProvider.future);
@@ -147,22 +150,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () => _comingSoon('Notifications'),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.09)),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.notifications_outlined,
-                      color: Colors.white,
-                      size: 18,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const NotificationsScreen())),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.09)),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (ref.watch(unreadCountProvider) > 0)
+                      Positioned(
+                        top: -3,
+                        right: -3,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          constraints: const BoxConstraints(minWidth: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEC4899),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: const Color(0xFF08080F), width: 1.5),
+                          ),
+                          child: Text(
+                            '${ref.watch(unreadCountProvider)}',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              height: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),
@@ -221,19 +256,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _comingSoon(String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label — coming soon',
-            style: GoogleFonts.inter(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A1535),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-  }
-
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
@@ -277,7 +299,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildLocation(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
-    final count = eventsAsync.asData?.value.length ?? 0;
+    // Compte uniquement les events visibles (publiés + à venir).
+    final count =
+        (eventsAsync.asData?.value ?? []).where(isEventVisible).length;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
       child: Row(

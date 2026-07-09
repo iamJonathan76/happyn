@@ -109,13 +109,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'full_name': name,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       }));
-      // Synchronise profiles (best-effort)
-      await _supabase.from('profiles').update({
+      // upsert : crée la ligne profiles si elle n'existe pas encore.
+      await _supabase.from('profiles').upsert({
+        'id': user.id,
+        'email': user.email,
         'full_name': name,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
         'city': _cityController.text.trim(),
         'bio': _bioController.text.trim(),
-      }).eq('id', user.id);
+      });
 
       if (mounted) {
         _snack('Profile updated ✓');

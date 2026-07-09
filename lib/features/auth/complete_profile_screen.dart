@@ -75,9 +75,12 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     final user = _supabase.auth.currentUser;
     if (user != null) {
       try {
-        await _supabase
-            .from('profiles')
-            .update({'onboarded': true}).eq('id', user.id);
+        await _supabase.from('profiles').upsert({
+          'id': user.id,
+          'email': user.email,
+          'full_name': user.userMetadata?['full_name'],
+          'onboarded': true,
+        });
       } catch (_) {}
     }
     if (mounted) _goHome();
@@ -93,13 +96,17 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         await _supabase.auth
             .updateUser(UserAttributes(data: {'avatar_url': avatarUrl}));
       }
-      await _supabase.from('profiles').update({
+      // upsert : crée la ligne profiles si elle n'existe pas encore.
+      await _supabase.from('profiles').upsert({
+        'id': user.id,
+        'email': user.email,
+        'full_name': user.userMetadata?['full_name'],
         if (avatarUrl != null) 'avatar_url': avatarUrl,
         'city': _cityController.text.trim(),
         'bio': _bioController.text.trim(),
         'interests': _interests.toList(),
         'onboarded': true,
-      }).eq('id', user.id);
+      });
 
       if (mounted) _goHome();
     } catch (e) {
