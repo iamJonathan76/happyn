@@ -6,3 +6,13 @@ bool isEventPast(Map<String, dynamic> event) {
   final dt = DateTime.tryParse(raw as String);
   return dt != null && dt.isBefore(DateTime.now());
 }
+
+String eventStatus(Map<String, dynamic> event) =>
+    (event['status'] ?? 'published') as String;
+
+bool isEventCancelled(Map<String, dynamic> event) =>
+    eventStatus(event) == 'cancelled';
+
+/// Visible dans la découverte (Home/Discover) : publié ET pas terminé.
+bool isEventVisible(Map<String, dynamic> event) =>
+    eventStatus(event) == 'published' && !isEventPast(event);

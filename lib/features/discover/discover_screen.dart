@@ -37,9 +37,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   }
 
   List<Map<String, dynamic>> _applyFilters(List<Map<String, dynamic>> all) {
-    // Exclut les events terminés de la découverte.
-    List<Map<String, dynamic>> result =
-        all.where((e) => !isEventPast(e)).toList();
+    // Découverte : uniquement les events publiés et pas terminés.
+    List<Map<String, dynamic>> result = all.where(isEventVisible).toList();
 
     // Search filter
     if (_searchQuery.isNotEmpty) {

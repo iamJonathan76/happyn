@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
+import 'package:happyn/core/providers/events_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/events/event_utils.dart';
@@ -10,15 +11,133 @@ import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
-class EventDetailScreen extends StatefulWidget {
+class EventDetailScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> event;
   const EventDetailScreen({super.key, required this.event});
 
   @override
-  State<EventDetailScreen> createState() => _EventDetailScreenState();
+  ConsumerState<EventDetailScreen> createState() => _EventDetailScreenState();
 }
 
-class _EventDetailScreenState extends State<EventDetailScreen> {
+class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
+  late String _status;
+
+  @override
+  void initState() {
+    super.initState();
+    _status = (widget.event['status'] ?? 'published') as String;
+  }
+
+  Future<void> _setStatus(String newStatus, String toast) async {
+    try {
+      await Supabase.instance.client
+          .from('events')
+          .update({'status': newStatus}).eq('id', widget.event['id']);
+      widget.event['status'] = newStatus; // maj locale pour l'affichage
+      if (!mounted) return;
+      setState(() => _status = newStatus);
+      ref.invalidate(eventsProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(toast, style: GoogleFonts.inter(color: Colors.white)),
+          backgroundColor: const Color(0xFF1A1535),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Action failed. Please try again.')),
+        );
+      }
+    }
+  }
+
+  Widget _organizerMenu() {
+    return PopupMenuButton<String>(
+      color: const Color(0xFF1A1535),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      position: PopupMenuPosition.under,
+      onSelected: (v) {
+        if (v == 'unpublish') _setStatus('draft', 'Event unpublished');
+        if (v == 'publish') _setStatus('published', 'Event published');
+        if (v == 'cancel') _confirmCancel();
+      },
+      itemBuilder: (context) => [
+        if (_status == 'published')
+          _menuItem('unpublish', Icons.visibility_off_outlined, 'Unpublish')
+        else
+          _menuItem('publish', Icons.publish_outlined, 'Publish'),
+        if (_status != 'cancelled')
+          _menuItem('cancel', Icons.cancel_outlined, 'Cancel event',
+              danger: true),
+      ],
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.45),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0.12)),
+        ),
+        child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _menuItem(String value, IconData icon, String label,
+      {bool danger = false}) {
+    final c = danger ? const Color(0xFFFF4B4B) : Colors.white;
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: c),
+          const SizedBox(width: 10),
+          Text(label,
+              style: GoogleFonts.inter(color: c, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  void _confirmCancel() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1535),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Cancel this event?',
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.w700)),
+        content: Text(
+          'Ticket sales close and attendees will see it as cancelled. '
+          'The event and its data are kept. This can be re-published later.',
+          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.6)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Keep',
+                style: GoogleFonts.inter(color: Colors.white.withOpacity(0.5))),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _setStatus('cancelled', 'Event cancelled');
+            },
+            child: Text('Cancel event',
+                style: GoogleFonts.inter(
+                    color: const Color(0xFFFF4B4B),
+                    fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _formatDate(String? dateStr) {
     if (dateStr == null) return 'TBD';
     final dt = DateTime.parse(dateStr);
@@ -62,8 +181,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final isOrganizer =
         currentUserId != null && ev['created_by'] == currentUserId;
-    // Un visiteur ne peut plus acheter un event terminé.
-    final ended = past && !isOrganizer;
+    final cancelled = _status == 'cancelled';
+    // Un visiteur ne peut pas acheter un event terminé, annulé ou dépublié.
+    final blocked = !isOrganizer && (past || _status != 'published');
+    final ctaLabel = cancelled
+        ? 'Event cancelled'
+        : past
+            ? 'Event ended'
+            : 'Unavailable';
 
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
@@ -217,6 +342,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
+                                  if (isOrganizer)
+                                    _organizerMenu()
+                                  else
                                   Consumer(
                                     builder: (context, ref, _) {
                                       final favIds = ref
@@ -291,8 +419,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ),
                       ),
 
-                      // Badge « Ended » (event terminé)
-                      if (past)
+                      // Badge « Cancelled » / « Ended »
+                      if (cancelled || past)
                         Positioned(
                           bottom: 20,
                           right: 20,
@@ -300,7 +428,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
+                              color: cancelled
+                                  ? const Color(0xFFFF4B4B).withOpacity(0.9)
+                                  : Colors.black.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                   color: Colors.white.withOpacity(0.2)),
@@ -308,16 +438,19 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.event_busy,
+                                Icon(
+                                    cancelled
+                                        ? Icons.cancel
+                                        : Icons.event_busy,
                                     size: 12,
-                                    color: Colors.white.withOpacity(0.7)),
+                                    color: Colors.white.withOpacity(0.85)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Ended',
+                                  cancelled ? 'Cancelled' : 'Ended',
                                   style: GoogleFonts.inter(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white.withOpacity(0.8),
+                                    color: Colors.white.withOpacity(0.9),
                                   ),
                                 ),
                               ],
@@ -481,7 +614,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   // CTA Button : Scan (organisateur) ou Get Tickets (visiteur)
                   Expanded(
                     child: GestureDetector(
-                      onTap: ended
+                      onTap: blocked
                           ? null
                           : () {
                               Navigator.of(context).push(
@@ -495,7 +628,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
-                          gradient: ended
+                          gradient: blocked
                               ? null
                               : const LinearGradient(
                                   colors: [
@@ -505,9 +638,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
-                          color: ended ? Colors.white.withOpacity(0.08) : null,
+                          color: blocked ? Colors.white.withOpacity(0.08) : null,
                           borderRadius: BorderRadius.circular(18),
-                          boxShadow: ended
+                          boxShadow: blocked
                               ? null
                               : [
                                   BoxShadow(
@@ -522,32 +655,32 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              ended
+                              blocked
                                   ? Icons.event_busy
                                   : isOrganizer
                                       ? Icons.qr_code_scanner
                                       : Icons.confirmation_number_outlined,
-                              color: ended
+                              color: blocked
                                   ? Colors.white.withOpacity(0.5)
                                   : Colors.white,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              ended
-                                  ? 'Event ended'
+                              blocked
+                                  ? ctaLabel
                                   : isOrganizer
                                       ? 'Scan tickets'
                                       : 'Get Tickets',
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: ended
+                                color: blocked
                                     ? Colors.white.withOpacity(0.5)
                                     : Colors.white,
                               ),
                             ),
-                            if (!ended) ...[
+                            if (!blocked) ...[
                               const SizedBox(width: 6),
                               const Icon(
                                 Icons.arrow_forward,

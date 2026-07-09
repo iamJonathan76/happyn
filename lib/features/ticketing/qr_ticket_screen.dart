@@ -115,6 +115,7 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
     final ticketType = widget.ticketType;
     final cat = (ev['category'] ?? '') as String;
     final accent = categoryColor(cat);
+    final cancelled = (ev['status'] ?? 'published') == 'cancelled';
     final priceText = ticketType['price'] == 0 || ticketType['price'] == null
         ? 'Free'
         : '\$${ticketType['price']}';
@@ -165,6 +166,38 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                 child: Column(
                   children: [
+                    // Bandeau annulation
+                    if (cancelled)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF4B4B).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: const Color(0xFFFF4B4B).withOpacity(0.5)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.cancel,
+                                color: Color(0xFFFF4B4B), size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'This event was cancelled by the organizer. '
+                                'This ticket is no longer valid.',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withOpacity(0.85),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     // Bandeau achat multiple
                     if (widget.totalTickets > 1)
                       Container(

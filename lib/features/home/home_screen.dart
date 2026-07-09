@@ -61,8 +61,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<Map<String, dynamic>> _filterByCategory(
     List<Map<String, dynamic>> events,
   ) {
-    // Exclut les events terminés de la découverte.
-    final upcoming = events.where((e) => !isEventPast(e)).toList();
+    // Découverte : uniquement les events publiés et pas terminés.
+    final upcoming = events.where(isEventVisible).toList();
     if (_selectedCat <= 0 || _selectedCat >= _categories.length) return upcoming;
     final cat = _categories[_selectedCat];
     return upcoming.where((e) => e['category'] == cat).toList();
@@ -459,9 +459,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCompactList(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
-    final allEvents = (eventsAsync.asData?.value ?? [])
-        .where((e) => !isEventPast(e))
-        .toList();
+    final allEvents =
+        (eventsAsync.asData?.value ?? []).where(isEventVisible).toList();
     if (allEvents.length <= 1) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),

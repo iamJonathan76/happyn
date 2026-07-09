@@ -84,12 +84,15 @@ Deno.serve(async (req) => {
 
   if (ttErr || !tt) return jsonResponse({ error: "ticket_type_not_found" }, 404);
 
-  // Ventes fermées si l'event est terminé
+  // Ventes fermées si l'event n'est pas publié ou est terminé
   const { data: evRow } = await admin
     .from("events")
-    .select("end_date")
+    .select("end_date, status")
     .eq("id", tt.event_id)
     .maybeSingle();
+  if (evRow?.status && evRow.status !== "published") {
+    return jsonResponse({ error: "event_not_available" }, 409);
+  }
   if (evRow?.end_date && new Date(evRow.end_date as string) < new Date()) {
     return jsonResponse({ error: "event_ended" }, 409);
   }

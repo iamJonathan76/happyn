@@ -205,9 +205,10 @@ class _TicketCard extends StatelessWidget {
     final ticketType = ticket['ticket_types'] as Map<String, dynamic>? ?? {};
     final imageUrl = (event['image_url'] ?? '') as String;
     final status = (ticket['status'] ?? 'valid') as String;
+    final eventCancelled = (event['status'] ?? 'published') == 'cancelled';
     final cat = (event['category'] ?? '') as String;
     final accent = categoryColor(cat);
-    final isValid = status == 'valid';
+    final isValid = status == 'valid' && !eventCancelled;
     const bg = Color(0xFF13111C);
 
     String formatDate(String? d) {
@@ -279,13 +280,19 @@ class _TicketCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 9, vertical: 4),
                           decoration: BoxDecoration(
-                            color: isValid
-                                ? const Color(0xFF1DB954)
-                                : Colors.black.withOpacity(0.55),
+                            color: eventCancelled
+                                ? const Color(0xFFFF4B4B)
+                                : isValid
+                                    ? const Color(0xFF1DB954)
+                                    : Colors.black.withOpacity(0.55),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            isValid ? '✓ Valid' : status.toUpperCase(),
+                            eventCancelled
+                                ? 'Cancelled'
+                                : isValid
+                                    ? '✓ Valid'
+                                    : status.toUpperCase(),
                             style: GoogleFonts.inter(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,

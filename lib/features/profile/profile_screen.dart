@@ -708,25 +708,36 @@ class _EventTile extends StatelessWidget {
                         color: Colors.white.withOpacity(0.4),
                       ),
                     ),
-                    if (isEventPast(event)) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'Ended',
-                          style: GoogleFonts.inter(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white.withOpacity(0.5),
+                    ...(() {
+                      final st = eventStatus(event);
+                      final (label, color) = st == 'cancelled'
+                          ? ('Cancelled', const Color(0xFFFF4B4B))
+                          : st == 'draft'
+                              ? ('Unpublished', const Color(0xFFFBBF24))
+                              : isEventPast(event)
+                                  ? ('Ended', Colors.white.withOpacity(0.5))
+                                  : (null, Colors.white);
+                      if (label == null) return <Widget>[];
+                      return [
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            label,
+                            style: GoogleFonts.inter(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: color,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ];
+                    })(),
                   ],
                 ),
               ],
