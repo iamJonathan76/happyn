@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,6 +36,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   DateTime _endDate = DateTime.now().add(const Duration(days: 1, hours: 3));
   bool _isLoading = false;
 
+  /// Event privé : non listé dans la découverte, accessible seulement via code.
+  bool _isPrivate = false;
+  /// Code existant (mode édition) pour ne pas en regénérer un inutilement.
+  String? _existingCode;
+
   bool get _isEditing => widget.event != null;
 
   @override
@@ -46,6 +53,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       _locationController.text = (ev['location'] ?? '') as String;
       _cityController.text = (ev['city'] ?? '') as String;
       _selectedCategory = (ev['category'] ?? 'Music') as String;
+      _isPrivate = (ev['visibility'] ?? 'public') == 'private';
+      _existingCode = ev['access_code'] as String?;
       if (ev['start_date'] != null) {
         _startDate = DateTime.parse(ev['start_date'] as String);
       }
@@ -319,6 +328,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             : (widget.event!['image_url'] as String?);
         final eventId = widget.event!['id'];
 
+        // Passage en privé : on génère un code s'il n'en existe pas encore.
+        final editCode = _isPrivate
+            ? (_existingCode ?? _generateCode())
+            : null;
+
         await Supabase.instance.client.from('events').update({
           'title': _titleController.text.trim(),
           'description': _descriptionController.text.trim(),
@@ -329,6 +343,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           'end_date': _endDate.toIso8601String(),
           'price': eventPrice,
           if (imageUrl != null) 'image_url': imageUrl,
+          'visibility': _isPrivate ? 'private' : 'public',
+          'access_code': editCode, // null si repassé en public
         }).eq('id', eventId);
 
         // Upsert des tiers : update si existant, insert si nouveau.
@@ -356,8 +372,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
         if (mounted) {
           ref.invalidate(eventsProvider);
-          _showSnack('Event updated ✓');
-          await Future.delayed(const Duration(milliseconds: 800));
+          // Si on vient de passer l'event en privé, on montre le code.
+          if (editCode != null && _existingCode == null) {
+            _existingCode = editCode;
+            await _showInviteDialog(_titleController.text.trim(), editCode);
+          } else {
+            _showSnack('Event updated ✓');
+            await Future.delayed(const Duration(milliseconds: 800));
+          }
           if (mounted) Navigator.of(context).pop(true);
         }
       } catch (e) {
@@ -405,6 +427,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       final imageUrl = uploadedUrl ??
           'https://images.unsplash.com/photo-1574155376612-bfa4ed8aabfd?w=800&h=450&fit=crop';
 
+      // Code d'invitation généré uniquement pour les events privés.
+      final accessCode = _isPrivate ? _generateCode() : null;
+
       // 1. Crée l'event et récupère son id
       final createdEvent = await Supabase.instance.client
           .from('events')
@@ -419,6 +444,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             'price': eventPrice,
             'image_url': imageUrl,
             'created_by': user.id,
+            'visibility': _isPrivate ? 'private' : 'public',
+            if (accessCode != null) 'access_code': accessCode,
           })
           .select()
           .single();
@@ -433,15 +460,159 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         // Invalide le provider partagé : Home, Discover et Profile
         // verront le nouvel event automatiquement, sans relancer l'app.
         ref.invalidate(eventsProvider);
-        _showSnack('Event created successfully! 🎉');
-        await Future.delayed(const Duration(seconds: 1));
-        Navigator.of(context).pop(true); // true = signal optionnel pour l'appelant
+        // Event privé : on montre le code d'invitation à partager.
+        if (accessCode != null) {
+          await _showInviteDialog(_titleController.text.trim(), accessCode);
+        } else {
+          _showSnack('Event created successfully! 🎉');
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        if (mounted) {
+          Navigator.of(context).pop(true); // signal optionnel pour l'appelant
+        }
       }
     } catch (e) {
       _showSnack('Error: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// Génère un code d'invitation court et lisible : HPN-XXXXX
+  /// (sans caractères ambigus : ni O/0, ni I/1).
+  String _generateCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rand = Random.secure();
+    final code =
+        List.generate(5, (_) => chars[rand.nextInt(chars.length)]).join();
+    return 'HPN-$code';
+  }
+
+  /// Message prêt à partager avec le code d'invitation.
+  String _inviteText(String title, String code) =>
+      'Join my event “$title” on HAPPYN 🎟️\n'
+      'Open the app → “Have an invite code?” → enter: $code';
+
+  /// Affiche le code après création d'un event privé, avec copie/partage.
+  Future<void> _showInviteDialog(String title, String code) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => Dialog(
+        backgroundColor: const Color(0xFF16122B),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.lock_outline,
+                  color: Color(0xFFC4B5FD), size: 34),
+              const SizedBox(height: 12),
+              Text(
+                'Private event created 🎉',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Only people with this code can find and join your event.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 12.5,
+                  color: Colors.white.withOpacity(0.55),
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 18),
+              // Code
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                      color: const Color(0xFF7C3AED).withOpacity(0.4)),
+                ),
+                child: Center(
+                  child: Text(
+                    code,
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: code));
+                        _showSnack('Code copied ✓');
+                      },
+                      icon: const Icon(Icons.copy,
+                          size: 16, color: Colors.white),
+                      label: Text('Copy code',
+                          style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(
+                            color: Colors.white.withOpacity(0.18)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(
+                            ClipboardData(text: _inviteText(title, code)));
+                        _showSnack('Invite copied — paste it anywhere ✓');
+                      },
+                      icon: const Icon(Icons.ios_share,
+                          size: 16, color: Colors.white),
+                      label: Text('Share',
+                          style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C3AED),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              TextButton(
+                onPressed: () => Navigator.of(dialogCtx).pop(),
+                child: Text('Done',
+                    style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.6))),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showSnack(String msg) {
@@ -732,7 +903,100 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
+
+                      // ── Event privé ────────────────────────────────
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.04),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _isPrivate
+                                ? const Color(0xFF7C3AED).withOpacity(0.5)
+                                : Colors.white.withOpacity(0.07),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            SwitchListTile(
+                              value: _isPrivate,
+                              onChanged: (v) => setState(() => _isPrivate = v),
+                              activeColor: const Color(0xFF7C3AED),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 2),
+                              title: Row(
+                                children: [
+                                  Icon(
+                                    _isPrivate
+                                        ? Icons.lock
+                                        : Icons.public,
+                                    size: 16,
+                                    color: Colors.white.withOpacity(0.7),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Private event',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  _isPrivate
+                                      ? 'Hidden from Discover. Only people with the invite code can join.'
+                                      : 'Listed publicly in Discover for everyone.',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11.5,
+                                    color: Colors.white.withOpacity(0.5),
+                                    height: 1.35,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Mode édition : rappel du code existant
+                            if (_isEditing &&
+                                _isPrivate &&
+                                _existingCode != null)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Invite code: ${_existingCode!}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFFC4B5FD),
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Clipboard.setData(ClipboardData(
+                                            text: _existingCode!));
+                                        _showSnack('Code copied ✓');
+                                      },
+                                      child: Icon(Icons.copy,
+                                          size: 16,
+                                          color: Colors.white
+                                              .withOpacity(0.5)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 28),
 
                       // Submit button
                       GestureDetector(

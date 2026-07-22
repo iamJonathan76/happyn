@@ -5,6 +5,7 @@ import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
+import 'package:happyn/features/events/join_private_event_screen.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -99,13 +100,50 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           // ── Header ──────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Text(
-              'Discover',
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  'Discover',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                const Spacer(),
+                // Accès aux events privés via code d'invitation
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const JoinPrivateEventScreen()),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border:
+                          Border.all(color: Colors.white.withOpacity(0.1)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.vpn_key,
+                            size: 14, color: Color(0xFFC4B5FD)),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Have a code?',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
