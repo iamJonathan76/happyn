@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/core/providers/tickets_provider.dart';
+import 'package:happyn/core/events/event_utils.dart';
 
-class QrTicketScreen extends StatefulWidget {
+class QrTicketScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> ticket;
   final Map<String, dynamic> event;
   final Map<String, dynamic> ticketType;
@@ -25,10 +28,10 @@ class QrTicketScreen extends StatefulWidget {
   });
 
   @override
-  State<QrTicketScreen> createState() => _QrTicketScreenState();
+  ConsumerState<QrTicketScreen> createState() => _QrTicketScreenState();
 }
 
-class _QrTicketScreenState extends State<QrTicketScreen> {
+class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
   // Payload signé renvoyé par l'Edge Function `mint-qr`, valable 5 min.
   // Régénéré automatiquement avant expiration tant que l'écran est ouvert.
   String? _qrPayload;
@@ -420,6 +423,21 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                         ],
                       ),
                     ),
+
+                    // ── Transfert ──────────────────────────────────
+                    if (!cancelled && !isEventPast(ev)) ...[
+                      const SizedBox(height: 14),
+                      _TransferButton(onTap: _openTransferSheet),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Send this ticket to another HAPPYN user by email.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.white.withOpacity(0.4),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -428,6 +446,191 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
         ),
       ),
     );
+  }
+
+  // ── Transfert de billet ────────────────────────────────────────────────────
+  void _openTransferSheet() {
+    final controller = TextEditingController();
+    bool sending = false;
+    String? errorText;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (sheetCtx, setSheet) {
+            Future<void> submit() async {
+              final email = controller.text.trim();
+              if (email.isEmpty || !email.contains('@')) {
+                setSheet(() => errorText = 'Enter a valid email address.');
+                return;
+              }
+              setSheet(() {
+                sending = true;
+                errorText = null;
+              });
+              try {
+                await Supabase.instance.client.rpc('transfer_ticket', params: {
+                  'p_ticket_id': widget.ticket['id'],
+                  'p_recipient_email': email,
+                });
+                // Le billet a changé de propriétaire : rafraîchir "My Tickets".
+                ref.invalidate(myTicketsProvider);
+                if (!sheetCtx.mounted) return;
+                Navigator.of(sheetCtx).pop();
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFF16A34A),
+                    content: Text('Ticket sent to $email 🎟️',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  ),
+                );
+                // On quitte l'écran : ce billet ne nous appartient plus.
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              } catch (e) {
+                setSheet(() {
+                  sending = false;
+                  errorText = _transferError(e);
+                });
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 22,
+                right: 22,
+                top: 20,
+                bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Transfer ticket',
+                    style: GoogleFonts.poppins(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'The recipient must already have a HAPPYN account. '
+                    'Once sent, this ticket leaves your account.',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.5,
+                      color: Colors.white.withOpacity(0.55),
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  TextField(
+                    controller: controller,
+                    enabled: !sending,
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    style: GoogleFonts.inter(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'friend@email.com',
+                      hintStyle: GoogleFonts.inter(
+                          color: Colors.white.withOpacity(0.3)),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.05),
+                      prefixIcon: Icon(Icons.alternate_email,
+                          color: Colors.white.withOpacity(0.4), size: 20),
+                      errorText: errorText,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide:
+                            BorderSide(color: Colors.white.withOpacity(0.09)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFF7C3AED)),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide:
+                            BorderSide(color: Colors.white.withOpacity(0.09)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: sending ? null : submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C3AED),
+                        disabledBackgroundColor:
+                            const Color(0xFF7C3AED).withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: sending
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2.4, color: Colors.white),
+                            )
+                          : Text(
+                              'Send ticket',
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _transferError(Object e) {
+    final msg = e.toString();
+    if (msg.contains('recipient_not_found')) {
+      return 'No HAPPYN account found with that email.';
+    }
+    if (msg.contains('cannot_transfer_self')) {
+      return 'That ticket is already yours.';
+    }
+    if (msg.contains('ticket_not_transferable')) {
+      return 'This ticket can no longer be transferred.';
+    }
+    if (msg.contains('event_cancelled')) {
+      return 'This event was cancelled.';
+    }
+    if (msg.contains('event_ended')) {
+      return 'This event has already ended.';
+    }
+    return 'Transfer failed. Please try again.';
   }
 
   // ── QR (loading / error / code) ────────────────────────────────────────────
@@ -580,6 +783,39 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Bouton « Transfer ticket » (contour discret, ne concurrence pas le QR).
+class _TransferButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _TransferButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.send_outlined, size: 18, color: Colors.white),
+        label: Text(
+          'Transfer ticket',
+          style: GoogleFonts.poppins(
+            fontSize: 14.5,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: Colors.white.withOpacity(0.16)),
+          backgroundColor: Colors.white.withOpacity(0.04),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
       ),
     );
   }

@@ -682,7 +682,10 @@ class _EventTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
-                Row(
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -700,7 +703,6 @@ class _EventTile extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
                     Text(
                       date,
                       style: GoogleFonts.inter(
@@ -719,7 +721,6 @@ class _EventTile extends StatelessWidget {
                                   : (null, Colors.white);
                       if (label == null) return <Widget>[];
                       return [
-                        const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),

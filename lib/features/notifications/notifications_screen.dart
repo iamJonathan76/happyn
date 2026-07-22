@@ -49,6 +49,8 @@ class NotificationsScreen extends ConsumerWidget {
     switch (type) {
       case 'ticket_confirmed':
         return (Icons.confirmation_number, const Color(0xFF34D399));
+      case 'ticket_received':
+        return (Icons.card_giftcard, const Color(0xFF34D399));
       case 'event_cancelled':
         return (Icons.cancel, const Color(0xFFFF4B4B));
       case 'event_updated':
