@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
+import 'package:happyn/core/providers/notifications_provider.dart';
 import 'qr_ticket_screen.dart';
 import 'payment_processing_screen.dart';
 
@@ -94,6 +95,7 @@ class _TicketSelectionScreenState
         if (tickets.isEmpty) throw Exception('no_ticket_created');
 
         ref.invalidate(myTicketsProvider); // My Tickets se rafraîchit
+        ref.invalidate(notificationsProvider); // notif « billet confirmé »
 
         if (mounted) {
           Navigator.of(context).pushReplacement(

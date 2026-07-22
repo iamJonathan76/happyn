@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
+import 'package:happyn/core/providers/notifications_provider.dart';
 import 'qr_ticket_screen.dart';
 
 /// Après un paiement réussi, l'émission du ticket se fait côté serveur (webhook
@@ -61,6 +62,7 @@ class _PaymentProcessingScreenState
       if (list.isNotEmpty) {
         _timer?.cancel();
         ref.invalidate(myTicketsProvider); // My Tickets se rafraîchit
+        ref.invalidate(notificationsProvider); // notif « billet confirmé »
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(

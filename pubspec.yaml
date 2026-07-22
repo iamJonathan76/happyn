@@ -69,6 +69,18 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+  # Génère les icônes d'app (Android + iOS) depuis assets/icon/happyn.png
+  flutter_launcher_icons: ^0.14.1
+
+# Configuration de l'icône d'app
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/happyn.png"
+  # iOS n'accepte pas la transparence : on aplatit sur le fond noir de l'icône.
+  remove_alpha_ios: true
+  background_color_ios: "#000000"
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
