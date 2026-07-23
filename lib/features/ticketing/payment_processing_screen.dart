@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'qr_ticket_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 /// Après un paiement réussi, l'émission du ticket se fait côté serveur (webhook
 /// Stripe), donc de façon asynchrone. Cet écran poll la table `tickets` jusqu'à
@@ -100,6 +101,7 @@ class _PaymentProcessingScreenState
   }
 
   Widget _loadingView() {
+    final l = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -110,7 +112,7 @@ class _PaymentProcessingScreenState
         ),
         const SizedBox(height: 28),
         Text(
-          'Payment received ✓',
+          l.paymentReceived,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -119,7 +121,7 @@ class _PaymentProcessingScreenState
         ),
         const SizedBox(height: 8),
         Text(
-          'Issuing your ticket…',
+          l.issuingTicket,
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 14,
@@ -131,6 +133,7 @@ class _PaymentProcessingScreenState
   }
 
   Widget _timeoutView() {
+    final l = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -138,7 +141,7 @@ class _PaymentProcessingScreenState
             color: Color(0xFFF97316), size: 64),
         const SizedBox(height: 20),
         Text(
-          'Almost there',
+          l.almostThere,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -147,8 +150,7 @@ class _PaymentProcessingScreenState
         ),
         const SizedBox(height: 8),
         Text(
-          'Your payment went through. Your ticket is taking a little longer '
-          'than usual — it will appear in “My Tickets” shortly.',
+          l.paymentDelayBody,
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 14,
@@ -169,7 +171,7 @@ class _PaymentProcessingScreenState
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
-              'Back to Home',
+              l.backToHome,
               style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,

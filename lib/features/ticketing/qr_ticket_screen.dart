@@ -11,6 +11,7 @@ import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/utils/secure_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 class QrTicketScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> ticket;
@@ -114,6 +115,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final ev = widget.event;
     final ticket = widget.ticket;
     final ticketType = widget.ticketType;
@@ -121,7 +123,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
     final accent = categoryColor(cat);
     final cancelled = (ev['status'] ?? 'published') == 'cancelled';
     final priceText = ticketType['price'] == 0 || ticketType['price'] == null
-        ? 'Free'
+        ? l.free
         : '\$${ticketType['price']}';
 
     return Scaffold(
@@ -152,7 +154,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                   ),
                   const SizedBox(width: 14),
                   Text(
-                    'My Ticket',
+                    l.myTicket,
                     style: GoogleFonts.poppins(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
@@ -190,8 +192,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'This event was cancelled by the organizer. '
-                                'This ticket is no longer valid.',
+                                l.ticketCancelledBanner,
                                 style: GoogleFonts.inter(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
@@ -329,11 +330,11 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                               padding: const EdgeInsets.fromLTRB(18, 4, 18, 16),
                               child: Row(
                                 children: [
-                                  _info('DATE',
+                                  _info(l.labelDate,
                                       _formatDate(ev['start_date'] as String?)),
-                                  _info('TYPE',
+                                  _info(l.labelType,
                                       (ticketType['name'] ?? '') as String),
-                                  _info('PRICE', priceText),
+                                  _info(l.labelPrice, priceText),
                                 ],
                               ),
                             ),
@@ -351,7 +352,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                   _qrBox(),
                                   const SizedBox(height: 16),
                                   Text(
-                                    _error ?? 'Scan at entry',
+                                    _error != null ? l.qrLoadError : l.scanAtEntry,
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.poppins(
                                       fontSize: 13,
@@ -371,7 +372,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                                 Colors.white.withOpacity(0.35)),
                                         const SizedBox(width: 5),
                                         Text(
-                                          'Secure code · refreshes automatically',
+                                          l.secureCodeRefreshes,
                                           style: GoogleFonts.inter(
                                             fontSize: 10.5,
                                             color:
@@ -403,7 +404,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ticket Details',
+                            l.ticketDetails,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -412,15 +413,15 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                           ),
                           const SizedBox(height: 12),
                           _detailRow(
-                              'Order ID',
+                              l.orderId,
                               ticket['id']
                                   .toString()
                                   .substring(0, 8)
                                   .toUpperCase()),
-                          _detailRow('Type',
+                          _detailRow(l.typeLabel,
                               (ticketType['name'] ?? '') as String),
-                          _detailRow('Status', 'Valid ✓'),
-                          _detailRow('Venue', (ev['location'] ?? '—') as String),
+                          _detailRow(l.statusLabel, l.statusValid),
+                          _detailRow(l.venueLabel, (ev['location'] ?? '—') as String),
                         ],
                       ),
                     ),
@@ -431,7 +432,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                       _TransferButton(onTap: _openTransferSheet),
                       const SizedBox(height: 4),
                       Text(
-                        'Send this ticket to another HAPPYN user by email.',
+                        l.transferHint,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: 11,
@@ -451,6 +452,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
 
   // ── Transfert de billet ────────────────────────────────────────────────────
   void _openTransferSheet() {
+    final l = AppLocalizations.of(context);
     final controller = TextEditingController();
     bool sending = false;
     String? errorText;
@@ -468,7 +470,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
             Future<void> submit() async {
               final email = controller.text.trim();
               if (email.isEmpty || !email.contains('@')) {
-                setSheet(() => errorText = 'Enter a valid email address.');
+                setSheet(() => errorText = l.errValidEmail);
                 return;
               }
               setSheet(() {
@@ -497,7 +499,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
               } catch (e) {
                 setSheet(() {
                   sending = false;
-                  errorText = _transferError(e);
+                  errorText = _transferError(e, l);
                 });
               }
             }
@@ -525,7 +527,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    'Transfer ticket',
+                    l.transferTicket,
                     style: GoogleFonts.poppins(
                       fontSize: 19,
                       fontWeight: FontWeight.w900,
@@ -534,8 +536,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'The recipient must already have a HAPPYN account. '
-                    'Once sent, this ticket leaves your account.',
+                    l.transferSheetBody,
                     style: GoogleFonts.inter(
                       fontSize: 12.5,
                       color: Colors.white.withOpacity(0.55),
@@ -550,7 +551,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                     autocorrect: false,
                     style: GoogleFonts.inter(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'friend@email.com',
+                      hintText: l.emailHintFriend,
                       hintStyle: GoogleFonts.inter(
                           color: Colors.white.withOpacity(0.3)),
                       filled: true,
@@ -596,7 +597,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                   strokeWidth: 2.4, color: Colors.white),
                             )
                           : Text(
-                              'Send ticket',
+                              l.sendTicket,
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,
@@ -614,24 +615,16 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
     );
   }
 
-  String _transferError(Object e) {
+  String _transferError(Object e, AppLocalizations l) {
     final msg = e.toString();
-    if (msg.contains('recipient_not_found')) {
-      return 'No HAPPYN account found with that email.';
-    }
-    if (msg.contains('cannot_transfer_self')) {
-      return 'That ticket is already yours.';
-    }
+    if (msg.contains('recipient_not_found')) return l.transferErrRecipientNotFound;
+    if (msg.contains('cannot_transfer_self')) return l.transferErrSelf;
     if (msg.contains('ticket_not_transferable')) {
-      return 'This ticket can no longer be transferred.';
+      return l.transferErrNotTransferable;
     }
-    if (msg.contains('event_cancelled')) {
-      return 'This event was cancelled.';
-    }
-    if (msg.contains('event_ended')) {
-      return 'This event has already ended.';
-    }
-    return 'Transfer failed. Please try again.';
+    if (msg.contains('event_cancelled')) return l.transferErrEventCancelled;
+    if (msg.contains('event_ended')) return l.transferErrEventEnded;
+    return l.transferFailed;
   }
 
   // ── QR (loading / error / code) ────────────────────────────────────────────

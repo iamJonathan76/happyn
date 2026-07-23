@@ -1063,6 +1063,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Publish Event'**
   String get publishEvent;
+
+  /// No description provided for @ageBlockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This event is {minAge}+. Your account doesn\'t meet the age requirement, so tickets can\'t be purchased.'**
+  String ageBlockedBody(int minAge);
+
+  /// No description provided for @paymentCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment cancelled'**
+  String get paymentCancelled;
+
+  /// No description provided for @errEventEndedTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'This event has ended — tickets are closed.'**
+  String get errEventEndedTickets;
+
+  /// No description provided for @errLimitPerPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached the limit per person for this ticket.'**
+  String get errLimitPerPerson;
+
+  /// No description provided for @errNotEnoughTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorry, not enough tickets left.'**
+  String get errNotEnoughTickets;
+
+  /// No description provided for @errSignInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in again.'**
+  String get errSignInAgain;
+
+  /// No description provided for @errTicketUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This ticket is no longer available.'**
+  String get errTicketUnavailable;
+
+  /// No description provided for @errPaymentsNotSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments are not set up yet.'**
+  String get errPaymentsNotSetup;
+
+  /// No description provided for @errSomethingWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get errSomethingWrong;
+
+  /// No description provided for @selectTicketType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Ticket Type'**
+  String get selectTicketType;
+
+  /// No description provided for @onlyLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {n} left'**
+  String onlyLeft(int n);
+
+  /// No description provided for @soldOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold Out'**
+  String get soldOut;
+
+  /// No description provided for @quantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get quantity;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @checkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get checkout;
+
+  /// No description provided for @noTicketsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No tickets available yet'**
+  String get noTicketsAvailable;
+
+  /// No description provided for @organizerNoTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'The organizer hasn\'t added tickets yet.'**
+  String get organizerNoTickets;
+
+  /// No description provided for @qrLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your ticket QR. Tap to retry.'**
+  String get qrLoadError;
+
+  /// No description provided for @myTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'My Ticket'**
+  String get myTicket;
+
+  /// No description provided for @ticketCancelledBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This event was cancelled by the organizer. This ticket is no longer valid.'**
+  String get ticketCancelledBanner;
+
+  /// No description provided for @scanAtEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan at entry'**
+  String get scanAtEntry;
+
+  /// No description provided for @secureCodeRefreshes.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure code · refreshes automatically'**
+  String get secureCodeRefreshes;
+
+  /// No description provided for @ticketDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket Details'**
+  String get ticketDetails;
+
+  /// No description provided for @labelDate.
+  ///
+  /// In en, this message translates to:
+  /// **'DATE'**
+  String get labelDate;
+
+  /// No description provided for @labelType.
+  ///
+  /// In en, this message translates to:
+  /// **'TYPE'**
+  String get labelType;
+
+  /// No description provided for @labelPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'PRICE'**
+  String get labelPrice;
+
+  /// No description provided for @orderId.
+  ///
+  /// In en, this message translates to:
+  /// **'Order ID'**
+  String get orderId;
+
+  /// No description provided for @typeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get typeLabel;
+
+  /// No description provided for @statusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusLabel;
+
+  /// No description provided for @statusValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid ✓'**
+  String get statusValid;
+
+  /// No description provided for @venueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get venueLabel;
+
+  /// No description provided for @transferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Send this ticket to another HAPPYN user by email.'**
+  String get transferHint;
+
+  /// No description provided for @errValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get errValidEmail;
+
+  /// No description provided for @ticketSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket sent to {email} 🎟️'**
+  String ticketSentTo(String email);
+
+  /// No description provided for @transferTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer ticket'**
+  String get transferTicket;
+
+  /// No description provided for @transferSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The recipient must already have a HAPPYN account. Once sent, this ticket leaves your account.'**
+  String get transferSheetBody;
+
+  /// No description provided for @emailHintFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'friend@email.com'**
+  String get emailHintFriend;
+
+  /// No description provided for @sendTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Send ticket'**
+  String get sendTicket;
+
+  /// No description provided for @transferErrRecipientNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No HAPPYN account found with that email.'**
+  String get transferErrRecipientNotFound;
+
+  /// No description provided for @transferErrSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'That ticket is already yours.'**
+  String get transferErrSelf;
+
+  /// No description provided for @transferErrNotTransferable.
+  ///
+  /// In en, this message translates to:
+  /// **'This ticket can no longer be transferred.'**
+  String get transferErrNotTransferable;
+
+  /// No description provided for @transferErrEventCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'This event was cancelled.'**
+  String get transferErrEventCancelled;
+
+  /// No description provided for @transferErrEventEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'This event has already ended.'**
+  String get transferErrEventEnded;
+
+  /// No description provided for @transferFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer failed. Please try again.'**
+  String get transferFailed;
+
+  /// No description provided for @myTicketsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Tickets'**
+  String get myTicketsTitle;
+
+  /// No description provided for @tabUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get tabUpcoming;
+
+  /// No description provided for @tabPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Past'**
+  String get tabPast;
+
+  /// No description provided for @noUpcomingTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming tickets'**
+  String get noUpcomingTickets;
+
+  /// No description provided for @noPastTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'No past tickets'**
+  String get noPastTickets;
+
+  /// No description provided for @discoverAndBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover events and buy your first ticket!'**
+  String get discoverAndBuy;
+
+  /// No description provided for @viewQR.
+  ///
+  /// In en, this message translates to:
+  /// **'View QR'**
+  String get viewQR;
+
+  /// No description provided for @welcomeIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome in!'**
+  String get welcomeIn;
+
+  /// No description provided for @scanAlreadyScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'This ticket has already been scanned.'**
+  String get scanAlreadyScanned;
+
+  /// No description provided for @scanExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'The QR code expired. Ask the guest to refresh it.'**
+  String get scanExpired;
+
+  /// No description provided for @scanNotOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not the organizer of this event.'**
+  String get scanNotOrganizer;
+
+  /// No description provided for @scanInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This QR code is not a valid HAPPYN ticket.'**
+  String get scanInvalid;
+
+  /// No description provided for @scanNetworkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Try again.'**
+  String get scanNetworkError;
+
+  /// No description provided for @scanNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan next'**
+  String get scanNext;
+
+  /// No description provided for @scanTicketsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan tickets'**
+  String get scanTicketsTitle;
+
+  /// No description provided for @scanResultAdmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Admitted'**
+  String get scanResultAdmitted;
+
+  /// No description provided for @scanResultAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Already used'**
+  String get scanResultAlreadyUsed;
+
+  /// No description provided for @scanResultExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get scanResultExpired;
+
+  /// No description provided for @scanResultNotAuthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Not authorized'**
+  String get scanResultNotAuthorized;
+
+  /// No description provided for @scanResultInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid'**
+  String get scanResultInvalid;
+
+  /// No description provided for @paymentReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received ✓'**
+  String get paymentReceived;
+
+  /// No description provided for @issuingTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuing your ticket…'**
+  String get issuingTicket;
+
+  /// No description provided for @almostThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost there'**
+  String get almostThere;
+
+  /// No description provided for @paymentDelayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment went through. Your ticket is taking a little longer than usual. It will appear in My Tickets shortly.'**
+  String get paymentDelayBody;
+
+  /// No description provided for @backToHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get backToHome;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -45,6 +46,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _result = _ResultKind.none;
     });
 
+    final l = AppLocalizations.of(context);
     try {
       final res = await Supabase.instance.client.functions.invoke(
         'validate-ticket',
@@ -58,23 +60,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
       switch (status) {
         case 'admitted':
           kind = _ResultKind.admitted;
-          detail = (data['event_title'] as String?) ?? 'Welcome in!';
+          detail = (data['event_title'] as String?) ?? l.welcomeIn;
           break;
         case 'already_used':
           kind = _ResultKind.alreadyUsed;
-          detail = 'This ticket has already been scanned.';
+          detail = l.scanAlreadyScanned;
           break;
         case 'expired':
           kind = _ResultKind.expired;
-          detail = 'The QR code expired. Ask the guest to refresh it.';
+          detail = l.scanExpired;
           break;
         case 'not_authorized':
           kind = _ResultKind.notAuthorized;
-          detail = 'You are not the organizer of this event.';
+          detail = l.scanNotOrganizer;
           break;
         default:
           kind = _ResultKind.invalid;
-          detail = 'This QR code is not a valid HAPPYN ticket.';
+          detail = l.scanInvalid;
       }
 
       if (!mounted) return;
@@ -86,7 +88,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (!mounted) return;
       setState(() {
         _result = _ResultKind.invalid;
-        _resultDetail = 'Network error. Try again.';
+        _resultDetail = l.scanNetworkError;
       });
     } finally {
       if (mounted) setState(() => _processing = false);
@@ -102,6 +104,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
       body: Stack(
@@ -144,7 +147,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text(
-                      'Scan tickets · ${widget.event['title'] ?? ''}',
+                      '${l.scanTicketsTitle} · ${widget.event['title'] ?? ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -176,12 +179,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Widget _resultOverlay() {
+    final l = AppLocalizations.of(context);
     final (color, icon, title) = switch (_result) {
-      _ResultKind.admitted => (const Color(0xFF1DB954), Icons.check_circle, 'Admitted'),
-      _ResultKind.alreadyUsed => (const Color(0xFFF97316), Icons.error, 'Already used'),
-      _ResultKind.expired => (const Color(0xFFF97316), Icons.timer_off, 'Expired'),
-      _ResultKind.notAuthorized => (const Color(0xFFFF4B4B), Icons.block, 'Not authorized'),
-      _ => (const Color(0xFFFF4B4B), Icons.cancel, 'Invalid'),
+      _ResultKind.admitted => (const Color(0xFF1DB954), Icons.check_circle, l.scanResultAdmitted),
+      _ResultKind.alreadyUsed => (const Color(0xFFF97316), Icons.error, l.scanResultAlreadyUsed),
+      _ResultKind.expired => (const Color(0xFFF97316), Icons.timer_off, l.scanResultExpired),
+      _ResultKind.notAuthorized => (const Color(0xFFFF4B4B), Icons.block, l.scanResultNotAuthorized),
+      _ => (const Color(0xFFFF4B4B), Icons.cancel, l.scanResultInvalid),
     };
 
     return Container(
@@ -223,7 +227,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    'Scan next',
+                    l.scanNext,
                     style: GoogleFonts.poppins(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,

@@ -540,4 +540,225 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get publishEvent => 'Publish Event';
+
+  @override
+  String ageBlockedBody(int minAge) {
+    return 'This event is $minAge+. Your account doesn\'t meet the age requirement, so tickets can\'t be purchased.';
+  }
+
+  @override
+  String get paymentCancelled => 'Payment cancelled';
+
+  @override
+  String get errEventEndedTickets =>
+      'This event has ended — tickets are closed.';
+
+  @override
+  String get errLimitPerPerson =>
+      'You reached the limit per person for this ticket.';
+
+  @override
+  String get errNotEnoughTickets => 'Sorry, not enough tickets left.';
+
+  @override
+  String get errSignInAgain => 'Please sign in again.';
+
+  @override
+  String get errTicketUnavailable => 'This ticket is no longer available.';
+
+  @override
+  String get errPaymentsNotSetup => 'Payments are not set up yet.';
+
+  @override
+  String get errSomethingWrong => 'Something went wrong. Please try again.';
+
+  @override
+  String get selectTicketType => 'Select Ticket Type';
+
+  @override
+  String onlyLeft(int n) {
+    return 'Only $n left';
+  }
+
+  @override
+  String get soldOut => 'Sold Out';
+
+  @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get checkout => 'Checkout';
+
+  @override
+  String get noTicketsAvailable => 'No tickets available yet';
+
+  @override
+  String get organizerNoTickets => 'The organizer hasn\'t added tickets yet.';
+
+  @override
+  String get qrLoadError => 'Could not load your ticket QR. Tap to retry.';
+
+  @override
+  String get myTicket => 'My Ticket';
+
+  @override
+  String get ticketCancelledBanner =>
+      'This event was cancelled by the organizer. This ticket is no longer valid.';
+
+  @override
+  String get scanAtEntry => 'Scan at entry';
+
+  @override
+  String get secureCodeRefreshes => 'Secure code · refreshes automatically';
+
+  @override
+  String get ticketDetails => 'Ticket Details';
+
+  @override
+  String get labelDate => 'DATE';
+
+  @override
+  String get labelType => 'TYPE';
+
+  @override
+  String get labelPrice => 'PRICE';
+
+  @override
+  String get orderId => 'Order ID';
+
+  @override
+  String get typeLabel => 'Type';
+
+  @override
+  String get statusLabel => 'Status';
+
+  @override
+  String get statusValid => 'Valid ✓';
+
+  @override
+  String get venueLabel => 'Venue';
+
+  @override
+  String get transferHint =>
+      'Send this ticket to another HAPPYN user by email.';
+
+  @override
+  String get errValidEmail => 'Enter a valid email address.';
+
+  @override
+  String ticketSentTo(String email) {
+    return 'Ticket sent to $email 🎟️';
+  }
+
+  @override
+  String get transferTicket => 'Transfer ticket';
+
+  @override
+  String get transferSheetBody =>
+      'The recipient must already have a HAPPYN account. Once sent, this ticket leaves your account.';
+
+  @override
+  String get emailHintFriend => 'friend@email.com';
+
+  @override
+  String get sendTicket => 'Send ticket';
+
+  @override
+  String get transferErrRecipientNotFound =>
+      'No HAPPYN account found with that email.';
+
+  @override
+  String get transferErrSelf => 'That ticket is already yours.';
+
+  @override
+  String get transferErrNotTransferable =>
+      'This ticket can no longer be transferred.';
+
+  @override
+  String get transferErrEventCancelled => 'This event was cancelled.';
+
+  @override
+  String get transferErrEventEnded => 'This event has already ended.';
+
+  @override
+  String get transferFailed => 'Transfer failed. Please try again.';
+
+  @override
+  String get myTicketsTitle => 'My Tickets';
+
+  @override
+  String get tabUpcoming => 'Upcoming';
+
+  @override
+  String get tabPast => 'Past';
+
+  @override
+  String get noUpcomingTickets => 'No upcoming tickets';
+
+  @override
+  String get noPastTickets => 'No past tickets';
+
+  @override
+  String get discoverAndBuy => 'Discover events and buy your first ticket!';
+
+  @override
+  String get viewQR => 'View QR';
+
+  @override
+  String get welcomeIn => 'Welcome in!';
+
+  @override
+  String get scanAlreadyScanned => 'This ticket has already been scanned.';
+
+  @override
+  String get scanExpired => 'The QR code expired. Ask the guest to refresh it.';
+
+  @override
+  String get scanNotOrganizer => 'You are not the organizer of this event.';
+
+  @override
+  String get scanInvalid => 'This QR code is not a valid HAPPYN ticket.';
+
+  @override
+  String get scanNetworkError => 'Network error. Try again.';
+
+  @override
+  String get scanNext => 'Scan next';
+
+  @override
+  String get scanTicketsTitle => 'Scan tickets';
+
+  @override
+  String get scanResultAdmitted => 'Admitted';
+
+  @override
+  String get scanResultAlreadyUsed => 'Already used';
+
+  @override
+  String get scanResultExpired => 'Expired';
+
+  @override
+  String get scanResultNotAuthorized => 'Not authorized';
+
+  @override
+  String get scanResultInvalid => 'Invalid';
+
+  @override
+  String get paymentReceived => 'Payment received ✓';
+
+  @override
+  String get issuingTicket => 'Issuing your ticket…';
+
+  @override
+  String get almostThere => 'Almost there';
+
+  @override
+  String get paymentDelayBody =>
+      'Your payment went through. Your ticket is taking a little longer than usual. It will appear in My Tickets shortly.';
+
+  @override
+  String get backToHome => 'Back to Home';
 }

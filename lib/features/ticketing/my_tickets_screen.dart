@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'qr_ticket_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 class MyTicketsScreen extends ConsumerStatefulWidget {
   const MyTicketsScreen({super.key});
@@ -32,6 +33,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final ticketsAsync = ref.watch(myTicketsProvider);
 
     return Scaffold(
@@ -46,7 +48,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'My Tickets',
+                l.myTicketsTitle,
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
@@ -62,7 +64,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
-              children: ['Upcoming', 'Past'].asMap().entries.map((e) {
+              children: [l.tabUpcoming, l.tabPast].asMap().entries.map((e) {
                 final isActive = e.key == _selectedTab;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedTab = e.key),
@@ -161,6 +163,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -170,8 +173,8 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
           const SizedBox(height: 16),
           Text(
             _selectedTab == 0
-                ? 'No upcoming tickets'
-                : 'No past tickets',
+                ? l.noUpcomingTickets
+                : l.noPastTickets,
             style: GoogleFonts.inter(
               fontSize: 14,
               color: Colors.white.withOpacity(0.35),
@@ -179,7 +182,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Discover events and buy your first ticket!',
+            l.discoverAndBuy,
             style: GoogleFonts.inter(
               fontSize: 12,
               color: Colors.white.withOpacity(0.2),
@@ -201,6 +204,7 @@ class _TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final event = ticket['events'] as Map<String, dynamic>? ?? {};
     final ticketType = ticket['ticket_types'] as Map<String, dynamic>? ?? {};
     final imageUrl = (event['image_url'] ?? '') as String;
@@ -289,7 +293,7 @@ class _TicketCard extends StatelessWidget {
                           ),
                           child: Text(
                             eventCancelled
-                                ? 'Cancelled'
+                                ? l.statusCancelled
                                 : isValid
                                     ? '✓ Valid'
                                     : status.toUpperCase(),
@@ -402,7 +406,7 @@ class _TicketCard extends StatelessWidget {
                                 color: Colors.white, size: 15),
                             const SizedBox(width: 5),
                             Text(
-                              'View QR',
+                              l.viewQR,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,

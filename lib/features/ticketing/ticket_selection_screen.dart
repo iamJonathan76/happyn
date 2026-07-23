@@ -8,6 +8,7 @@ import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/utils/age.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'qr_ticket_screen.dart';
 import 'payment_processing_screen.dart';
 
@@ -71,12 +72,13 @@ class _TicketSelectionScreenState
   }
 
   void _showAgeBlocked(int minAge) {
+    final l = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFF1A1535),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Age requirement',
+        title: Text(l.ageRequirementLabel,
             style: GoogleFonts.poppins(
                 color: Colors.white, fontWeight: FontWeight.w800)),
         content: Text(
@@ -87,7 +89,7 @@ class _TicketSelectionScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK',
+            child: Text(l.ok,
                 style: GoogleFonts.inter(color: const Color(0xFFA78BFA))),
           ),
         ],
@@ -97,6 +99,7 @@ class _TicketSelectionScreenState
 
   Future<void> _purchaseTicket() async {
     if (_selectedTypeIndex == null) return;
+    final l = AppLocalizations.of(context);
 
     // Soft-gate d'âge : si l'event a une exigence et que l'âge connu est en
     // dessous, on bloque. Âge inconnu (ancien compte) → on laisse passer.
@@ -191,7 +194,7 @@ class _TicketSelectionScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Payment cancelled',
+            content: Text(l.paymentCancelled,
                 style: GoogleFonts.inter(color: Colors.white)),
             backgroundColor: const Color(0xFF1A1535),
             behavior: SnackBarBehavior.floating,
@@ -204,18 +207,18 @@ class _TicketSelectionScreenState
       if (mounted) {
         final msg = e.toString();
         final friendly = msg.contains('event_ended')
-            ? 'This event has ended — tickets are closed.'
+            ? l.errEventEndedTickets
             : msg.contains('exceeds_max_per_order')
-            ? 'You reached the limit per person for this ticket.'
+            ? l.errLimitPerPerson
             : msg.contains('insufficient_stock')
-            ? 'Sorry, not enough tickets left.'
+            ? l.errNotEnoughTickets
             : msg.contains('not_authenticated')
-                ? 'Please sign in again.'
+                ? l.errSignInAgain
                 : msg.contains('ticket_type_not_found')
-                    ? 'This ticket is no longer available.'
+                    ? l.errTicketUnavailable
                     : msg.contains('payments_not_configured')
-                        ? 'Payments are not set up yet.'
-                        : 'Something went wrong. Please try again.';
+                        ? l.errPaymentsNotSetup
+                        : l.errSomethingWrong;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(friendly,
@@ -233,6 +236,7 @@ class _TicketSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final ev = widget.event;
     final imageUrl = (ev['image_url'] ?? '') as String;
 
@@ -329,7 +333,7 @@ class _TicketSelectionScreenState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Select Ticket Type',
+                              l.selectTicketType,
                               style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
@@ -458,7 +462,7 @@ class _TicketSelectionScreenState
 
                                       // Price
                                       Text(
-                                        isSoldOut ? 'Sold Out' : priceText,
+                                        isSoldOut ? l.soldOut : priceText,
                                         style: GoogleFonts.poppins(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w900,
@@ -478,7 +482,7 @@ class _TicketSelectionScreenState
                             // Quantity selector
                             if (_selectedTypeIndex != null) ...[
                               Text(
-                                'Quantity',
+                                l.quantity,
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -539,7 +543,7 @@ class _TicketSelectionScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Total',
+                        l.total,
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: Colors.white.withOpacity(0.38),
@@ -591,7 +595,7 @@ class _TicketSelectionScreenState
                                         color: Colors.white, size: 16),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Checkout',
+                                      l.checkout,
                                       style: GoogleFonts.poppins(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
@@ -612,6 +616,7 @@ class _TicketSelectionScreenState
   }
 
   Widget _buildNoTickets() {
+    final l = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -620,7 +625,7 @@ class _TicketSelectionScreenState
               size: 48, color: Colors.white.withOpacity(0.15)),
           const SizedBox(height: 16),
           Text(
-            'No tickets available yet',
+            l.noTicketsAvailable,
             style: GoogleFonts.inter(
               fontSize: 14,
               color: Colors.white.withOpacity(0.35),
