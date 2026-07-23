@@ -656,6 +656,12 @@ abstract class AppLocalizations {
   /// **'Ended'**
   String get statusEnded;
 
+  /// No description provided for @statusUnpublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpublished'**
+  String get statusUnpublished;
+
   /// No description provided for @ctaUnavailable.
   ///
   /// In en, this message translates to:
@@ -1477,6 +1483,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to Home'**
   String get backToHome;
+
+  /// No description provided for @statEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get statEvents;
+
+  /// No description provided for @favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favorites;
+
+  /// No description provided for @noFavoritesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorites yet'**
+  String get noFavoritesYet;
+
+  /// No description provided for @tapHeartToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the ♥ on an event to save it here.'**
+  String get tapHeartToSave;
+
+  /// No description provided for @noEventsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t created any events yet.'**
+  String get noEventsCreated;
+
+  /// No description provided for @tapPlusToCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button to create your first event!'**
+  String get tapPlusToCreate;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// No description provided for @aboutLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get aboutLocation;
+
+  /// No description provided for @memberSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since'**
+  String get memberSince;
+
+  /// No description provided for @eventDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Event deleted'**
+  String get eventDeleted;
+
+  /// No description provided for @couldNotDeleteEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete this event.'**
+  String get couldNotDeleteEvent;
+
+  /// No description provided for @deleteEventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete event?'**
+  String get deleteEventTitle;
+
+  /// No description provided for @deleteEventBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get deleteEventBody;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @completeYourProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile'**
+  String get completeYourProfile;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @optionalDoLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional — you can do this later in settings.'**
+  String get optionalDoLater;
+
+  /// No description provided for @interestsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Interests'**
+  String get interestsLabel;
+
+  /// No description provided for @cityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get cityLabel;
+
+  /// No description provided for @bioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get bioLabel;
+
+  /// No description provided for @saveAndContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Continue'**
+  String get saveAndContinue;
+
+  /// No description provided for @couldNotSaveLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. You can do it later in settings.'**
+  String get couldNotSaveLater;
+
+  /// No description provided for @cityHintShort.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Ottawa, ON'**
+  String get cityHintShort;
+
+  /// No description provided for @bioHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A few words about you...'**
+  String get bioHint;
+
+  /// No description provided for @yourNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get yourNameHint;
+
+  /// No description provided for @tapToChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to change photo'**
+  String get tapToChangePhoto;
+
+  /// No description provided for @fullNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullNameLabel;
+
+  /// No description provided for @emailChangesSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Email changes are coming soon.'**
+  String get emailChangesSoon;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated ✓'**
+  String get profileUpdated;
+
+  /// No description provided for @couldNotSaveRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Please try again.'**
+  String get couldNotSaveRetry;
+
+  /// No description provided for @joinPrivateEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Join private event'**
+  String get joinPrivateEvent;
+
+  /// No description provided for @gotInviteCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Got an invite code?'**
+  String get gotInviteCode;
+
+  /// No description provided for @joinPrivateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Private events don\'t show up in Discover. Enter the code the organizer shared with you to open it.'**
+  String get joinPrivateBody;
+
+  /// No description provided for @inviteCodePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'HPN-XXXXX'**
+  String get inviteCodePlaceholder;
+
+  /// No description provided for @openEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Open event'**
+  String get openEvent;
+
+  /// No description provided for @errEnterInviteCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the invite code.'**
+  String get errEnterInviteCode;
+
+  /// No description provided for @errNoPrivateEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'No private event found for that code.'**
+  String get errNoPrivateEvent;
+
+  /// No description provided for @errSomethingWrongRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get errSomethingWrongRetry;
 }
 
 class _AppLocalizationsDelegate

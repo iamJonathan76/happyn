@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 
@@ -115,7 +116,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not save. You can do it later in settings.',
+            content: Text(AppLocalizations.of(context).couldNotSaveLater,
                 style: GoogleFonts.inter(color: Colors.white)),
             backgroundColor: const Color(0xFF1A1535),
             behavior: SnackBarBehavior.floating,
@@ -130,6 +131,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final categories = ref.watch(categoryNamesProvider);
 
     return Scaffold(
@@ -144,7 +146,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Complete your profile',
+                    l.completeYourProfile,
                     style: GoogleFonts.poppins(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
@@ -154,7 +156,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   TextButton(
                     onPressed: _saving ? null : _skip,
                     child: Text(
-                      'Skip',
+                      l.skip,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -170,7 +172,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Optional — you can do this later in settings.',
+                  l.optionalDoLater,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: Colors.white.withOpacity(0.4),
@@ -244,17 +246,17 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   const SizedBox(height: 28),
 
                   // City
-                  _label('City'),
+                  _label(l.cityLabel),
                   TextField(
                     controller: _cityController,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration:
-                        _dec('e.g. Ottawa, ON', Icons.location_city_outlined),
+                        _dec(l.cityHintShort, Icons.location_city_outlined),
                   ),
                   const SizedBox(height: 20),
 
                   // Interests
-                  _label('Interests'),
+                  _label(l.interestsLabel),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -311,13 +313,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   const SizedBox(height: 20),
 
                   // Bio
-                  _label('Bio'),
+                  _label(l.bioLabel),
                   TextField(
                     controller: _bioController,
                     maxLines: 3,
                     maxLength: 160,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: _dec('A few words about you...', null)
+                    decoration: _dec(l.bioHint, null)
                         .copyWith(counterStyle: GoogleFonts.inter(
                             color: Colors.white.withOpacity(0.3), fontSize: 10)),
                   ),
@@ -348,7 +350,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                 color: Colors.white, strokeWidth: 2),
                           )
                         : Text(
-                            'Save & Continue',
+                            l.saveAndContinue,
                             style: GoogleFonts.poppins(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,

@@ -313,6 +313,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusEnded => 'Ended';
 
   @override
+  String get statusUnpublished => 'Unpublished';
+
+  @override
   String get ctaUnavailable => 'Unavailable';
 
   @override
@@ -761,4 +764,124 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backToHome => 'Back to Home';
+
+  @override
+  String get statEvents => 'Events';
+
+  @override
+  String get favorites => 'Favorites';
+
+  @override
+  String get noFavoritesYet => 'No favorites yet';
+
+  @override
+  String get tapHeartToSave => 'Tap the ♥ on an event to save it here.';
+
+  @override
+  String get noEventsCreated => 'You haven\'t created any events yet.';
+
+  @override
+  String get tapPlusToCreate => 'Tap the + button to create your first event!';
+
+  @override
+  String get emailLabel => 'Email';
+
+  @override
+  String get aboutLocation => 'Location';
+
+  @override
+  String get memberSince => 'Member since';
+
+  @override
+  String get eventDeleted => 'Event deleted';
+
+  @override
+  String get couldNotDeleteEvent => 'Could not delete this event.';
+
+  @override
+  String get deleteEventTitle => 'Delete event?';
+
+  @override
+  String get deleteEventBody => 'This action cannot be undone.';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get completeYourProfile => 'Complete your profile';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get optionalDoLater => 'Optional — you can do this later in settings.';
+
+  @override
+  String get interestsLabel => 'Interests';
+
+  @override
+  String get cityLabel => 'City';
+
+  @override
+  String get bioLabel => 'Bio';
+
+  @override
+  String get saveAndContinue => 'Save & Continue';
+
+  @override
+  String get couldNotSaveLater =>
+      'Could not save. You can do it later in settings.';
+
+  @override
+  String get cityHintShort => 'e.g. Ottawa, ON';
+
+  @override
+  String get bioHint => 'A few words about you...';
+
+  @override
+  String get yourNameHint => 'Your name';
+
+  @override
+  String get tapToChangePhoto => 'Tap to change photo';
+
+  @override
+  String get fullNameLabel => 'Full Name';
+
+  @override
+  String get emailChangesSoon => 'Email changes are coming soon.';
+
+  @override
+  String get profileUpdated => 'Profile updated ✓';
+
+  @override
+  String get couldNotSaveRetry => 'Could not save. Please try again.';
+
+  @override
+  String get joinPrivateEvent => 'Join private event';
+
+  @override
+  String get gotInviteCode => 'Got an invite code?';
+
+  @override
+  String get joinPrivateBody =>
+      'Private events don\'t show up in Discover. Enter the code the organizer shared with you to open it.';
+
+  @override
+  String get inviteCodePlaceholder => 'HPN-XXXXX';
+
+  @override
+  String get openEvent => 'Open event';
+
+  @override
+  String get errEnterInviteCode => 'Enter the invite code.';
+
+  @override
+  String get errNoPrivateEvent => 'No private event found for that code.';
+
+  @override
+  String get errSomethingWrongRetry =>
+      'Something went wrong. Please try again.';
 }

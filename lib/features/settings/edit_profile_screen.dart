@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 /// Édition du profil : nom + photo (avatar). Stockés dans les user metadata
 /// Supabase (`full_name`, `avatar_url`) et synchronisés dans la table profiles.
@@ -94,9 +95,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _save() async {
+    final l = AppLocalizations.of(context);
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      _snack('Please enter your name');
+      _snack(l.errEnterName);
       return;
     }
 
@@ -120,11 +122,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       });
 
       if (mounted) {
-        _snack('Profile updated ✓');
+        _snack(l.profileUpdated);
         Navigator.of(context).pop(true);
       }
     } catch (e) {
-      _snack('Could not save. Please try again.');
+      _snack(l.couldNotSaveRetry);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -143,6 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final email = _supabase.auth.currentUser?.email ?? '';
 
     return Scaffold(
@@ -156,7 +159,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Edit Profile',
+          l.editProfile,
           style: GoogleFonts.poppins(
             fontSize: 17,
             fontWeight: FontWeight.w800,
@@ -209,7 +212,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 6),
           Center(
             child: Text(
-              'Tap to change photo',
+              l.tapToChangePhoto,
               style: GoogleFonts.inter(
                 fontSize: 11,
                 color: Colors.white.withOpacity(0.35),
@@ -218,34 +221,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 24),
 
-          _label('Full Name'),
+          _label(l.fullNameLabel),
           TextField(
             controller: _nameController,
             onChanged: (_) => setState(() {}), // maj des initiales du placeholder
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec('Your name', Icons.person_outline),
+            decoration: _dec(l.yourNameHint, Icons.person_outline),
           ),
           const SizedBox(height: 16),
-          _label('City'),
+          _label(l.cityLabel),
           TextField(
             controller: _cityController,
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec('e.g. Ottawa, ON', Icons.location_city_outlined),
+            decoration: _dec(l.cityHintShort, Icons.location_city_outlined),
           ),
           const SizedBox(height: 16),
-          _label('Bio'),
+          _label(l.bioLabel),
           TextField(
             controller: _bioController,
             maxLines: 3,
             maxLength: 160,
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec('A few words about you...', null).copyWith(
+            decoration: _dec(l.bioHint, null).copyWith(
               counterStyle: GoogleFonts.inter(
                   color: Colors.white.withOpacity(0.3), fontSize: 10),
             ),
           ),
           const SizedBox(height: 16),
-          _label('Email'),
+          _label(l.emailLabel),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -270,7 +273,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Email changes are coming soon.',
+            l.emailChangesSoon,
             style: GoogleFonts.inter(
               fontSize: 11,
               color: Colors.white.withOpacity(0.3),
@@ -296,7 +299,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: Colors.white, strokeWidth: 2),
                       )
                     : Text(
-                        'Save Changes',
+                        l.saveChanges,
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,

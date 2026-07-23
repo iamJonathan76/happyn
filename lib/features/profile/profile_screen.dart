@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
@@ -67,7 +68,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Event deleted',
+            content: Text(AppLocalizations.of(context).eventDeleted,
                 style: GoogleFonts.inter(color: Colors.white)),
             backgroundColor: const Color(0xFF1A1535),
             behavior: SnackBarBehavior.floating,
@@ -80,7 +81,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         final msg = e.toString().contains('event_has_tickets')
             ? "Can't delete: this event has sold tickets. Cancel it instead."
-            : 'Could not delete this event.';
+            : AppLocalizations.of(context).couldNotDeleteEvent;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
@@ -224,11 +225,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                _statItem('${myEvents.length}', 'Events'),
+                _statItem('${myEvents.length}', AppLocalizations.of(context).statEvents),
                 _divider(),
-                _statItem('0', 'Followers'),
+                _statItem('0', AppLocalizations.of(context).followers),
                 _divider(),
-                _statItem('0', 'Following'),
+                _statItem('0', AppLocalizations.of(context).following),
               ],
             ),
           ),
@@ -293,7 +294,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    'Edit Profile',
+                    AppLocalizations.of(context).editProfile,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -319,9 +320,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                 child: Row(
                   children: [
-                    _tabChip(0, Icons.event_outlined, 'My Events'),
-                    _tabChip(1, Icons.favorite_border, 'Favorites'),
-                    _tabChip(2, Icons.info_outline, 'About'),
+                    _tabChip(0, Icons.event_outlined, AppLocalizations.of(context).myEvents),
+                    _tabChip(1, Icons.favorite_border, AppLocalizations.of(context).favorites),
+                    _tabChip(2, Icons.info_outline, AppLocalizations.of(context).sectionAbout),
                   ],
                 ),
               ),
@@ -406,8 +407,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
     }
     if (favEvents.isEmpty) {
-      return _emptyScrollable(Icons.favorite_border, 'No favorites yet',
-          'Tap the ♥ on an event to save it here.');
+      return _emptyScrollable(Icons.favorite_border, AppLocalizations.of(context).noFavoritesYet,
+          AppLocalizations.of(context).tapHeartToSave);
     }
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -454,8 +455,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (myEvents.isEmpty) {
       return _emptyScrollable(Icons.event_outlined,
-          "You haven't created any events yet.",
-          'Tap the + button to create your first event!');
+          AppLocalizations.of(context).noEventsCreated,
+          AppLocalizations.of(context).tapPlusToCreate);
     }
 
     return ListView.builder(
@@ -492,11 +493,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-          _aboutTile(Icons.mail_outline, 'Email', _userEmail),
+          _aboutTile(Icons.mail_outline, AppLocalizations.of(context).emailLabel, _userEmail),
           if (city.isNotEmpty)
-            _aboutTile(Icons.location_on_outlined, 'Location', city),
+            _aboutTile(Icons.location_on_outlined, AppLocalizations.of(context).aboutLocation, city),
           _aboutTile(
-              Icons.calendar_today_outlined, 'Member since', memberSince),
+              Icons.calendar_today_outlined, AppLocalizations.of(context).memberSince, memberSince),
           const SizedBox(height: 24),
           // Sign out
           GestureDetector(
@@ -517,7 +518,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const Icon(Icons.logout, color: Color(0xFFFF4B4B), size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    'Sign Out',
+                    AppLocalizations.of(context).signOut,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -713,11 +714,14 @@ class _EventTile extends StatelessWidget {
                     ...(() {
                       final st = eventStatus(event);
                       final (label, color) = st == 'cancelled'
-                          ? ('Cancelled', const Color(0xFFFF4B4B))
+                          ? (AppLocalizations.of(context).statusCancelled,
+                              const Color(0xFFFF4B4B))
                           : st == 'draft'
-                              ? ('Unpublished', const Color(0xFFFBBF24))
+                              ? (AppLocalizations.of(context).statusUnpublished,
+                                  const Color(0xFFFBBF24))
                               : isEventPast(event)
-                                  ? ('Ended', Colors.white.withOpacity(0.5))
+                                  ? (AppLocalizations.of(context).statusEnded,
+                                      Colors.white.withOpacity(0.5))
                                   : (null, Colors.white);
                       if (label == null) return <Widget>[];
                       return [
@@ -774,18 +778,18 @@ class _EventTile extends StatelessWidget {
         backgroundColor: const Color(0xFF1A1535),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Delete event?',
+          AppLocalizations.of(context).deleteEventTitle,
           style: GoogleFonts.poppins(
               fontWeight: FontWeight.w700, color: Colors.white),
         ),
         content: Text(
-          'This action cannot be undone.',
+          AppLocalizations.of(context).deleteEventBody,
           style: GoogleFonts.inter(color: Colors.white.withOpacity(0.55)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel',
+            child: Text(AppLocalizations.of(context).cancel,
                 style: GoogleFonts.inter(color: Colors.white.withOpacity(0.5))),
           ),
           TextButton(
@@ -793,7 +797,7 @@ class _EventTile extends StatelessWidget {
               Navigator.pop(context);
               onDelete();
             },
-            child: Text('Delete',
+            child: Text(AppLocalizations.of(context).delete,
                 style: GoogleFonts.inter(
                     color: const Color(0xFFFF4B4B),
                     fontWeight: FontWeight.w700)),

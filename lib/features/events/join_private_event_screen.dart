@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'event_detail_screen.dart';
@@ -30,7 +31,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
   Future<void> _submit() async {
     final code = _controller.text.trim();
     if (code.isEmpty) {
-      setState(() => _error = 'Enter the invite code.');
+      setState(() => _error = AppLocalizations.of(context).errEnterInviteCode);
       return;
     }
     setState(() {
@@ -44,7 +45,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
       if (list.isEmpty) {
         setState(() {
           _loading = false;
-          _error = 'No private event found for that code.';
+          _error = AppLocalizations.of(context).errNoPrivateEvent;
         });
         return;
       }
@@ -57,7 +58,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
     } catch (e) {
       setState(() {
         _loading = false;
-        _error = 'Something went wrong. Please try again.';
+        _error = AppLocalizations.of(context).errSomethingWrongRetry;
       });
     }
   }
@@ -74,7 +75,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Join private event',
+          AppLocalizations.of(context).joinPrivateEvent,
           style: GoogleFonts.poppins(
             fontSize: 17,
             fontWeight: FontWeight.w800,
@@ -104,7 +105,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
               ),
               const SizedBox(height: 18),
               Text(
-                'Got an invite code?',
+                AppLocalizations.of(context).gotInviteCode,
                 style: GoogleFonts.poppins(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
@@ -113,8 +114,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Private events don’t show up in Discover. Enter the code the '
-                'organizer shared with you to open it.',
+                AppLocalizations.of(context).joinPrivateBody,
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   color: Colors.white.withOpacity(0.55),
@@ -136,7 +136,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                   letterSpacing: 3,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'HPN-XXXXX',
+                  hintText: AppLocalizations.of(context).inviteCodePlaceholder,
                   hintStyle: GoogleFonts.poppins(
                     color: Colors.white.withOpacity(0.22),
                     fontSize: 22,
@@ -185,7 +185,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                               strokeWidth: 2.4, color: Colors.white),
                         )
                       : Text(
-                          'Open event',
+                          AppLocalizations.of(context).openEvent,
                           style: GoogleFonts.poppins(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,

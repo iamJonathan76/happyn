@@ -317,6 +317,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statusEnded => 'Terminé';
 
   @override
+  String get statusUnpublished => 'Dépublié';
+
+  @override
   String get ctaUnavailable => 'Indisponible';
 
   @override
@@ -775,4 +778,128 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get backToHome => 'Retour à l\'accueil';
+
+  @override
+  String get statEvents => 'Événements';
+
+  @override
+  String get favorites => 'Favoris';
+
+  @override
+  String get noFavoritesYet => 'Aucun favori pour l\'instant';
+
+  @override
+  String get tapHeartToSave =>
+      'Touche le ♥ d\'un événement pour l\'enregistrer ici.';
+
+  @override
+  String get noEventsCreated => 'Tu n\'as pas encore créé d\'événement.';
+
+  @override
+  String get tapPlusToCreate =>
+      'Touche le bouton + pour créer ton premier événement !';
+
+  @override
+  String get emailLabel => 'E-mail';
+
+  @override
+  String get aboutLocation => 'Emplacement';
+
+  @override
+  String get memberSince => 'Membre depuis';
+
+  @override
+  String get eventDeleted => 'Événement supprimé';
+
+  @override
+  String get couldNotDeleteEvent => 'Impossible de supprimer cet événement.';
+
+  @override
+  String get deleteEventTitle => 'Supprimer l\'événement ?';
+
+  @override
+  String get deleteEventBody => 'Cette action est irréversible.';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get delete => 'Supprimer';
+
+  @override
+  String get completeYourProfile => 'Complète ton profil';
+
+  @override
+  String get skip => 'Passer';
+
+  @override
+  String get optionalDoLater =>
+      'Optionnel — tu peux le faire plus tard dans les réglages.';
+
+  @override
+  String get interestsLabel => 'Centres d\'intérêt';
+
+  @override
+  String get cityLabel => 'Ville';
+
+  @override
+  String get bioLabel => 'Bio';
+
+  @override
+  String get saveAndContinue => 'Enregistrer et continuer';
+
+  @override
+  String get couldNotSaveLater =>
+      'Impossible d\'enregistrer. Tu pourras le faire plus tard dans les réglages.';
+
+  @override
+  String get cityHintShort => 'ex. Ottawa, ON';
+
+  @override
+  String get bioHint => 'Quelques mots sur toi...';
+
+  @override
+  String get yourNameHint => 'Ton nom';
+
+  @override
+  String get tapToChangePhoto => 'Touche pour changer la photo';
+
+  @override
+  String get fullNameLabel => 'Nom complet';
+
+  @override
+  String get emailChangesSoon => 'La modification de l\'e-mail arrive bientôt.';
+
+  @override
+  String get profileUpdated => 'Profil mis à jour ✓';
+
+  @override
+  String get couldNotSaveRetry =>
+      'Impossible d\'enregistrer. Veuillez réessayer.';
+
+  @override
+  String get joinPrivateEvent => 'Rejoindre un événement privé';
+
+  @override
+  String get gotInviteCode => 'Tu as un code d\'invitation ?';
+
+  @override
+  String get joinPrivateBody =>
+      'Les événements privés n\'apparaissent pas dans Découvrir. Entre le code que l\'organisateur t\'a partagé pour l\'ouvrir.';
+
+  @override
+  String get inviteCodePlaceholder => 'HPN-XXXXX';
+
+  @override
+  String get openEvent => 'Ouvrir l\'événement';
+
+  @override
+  String get errEnterInviteCode => 'Entre le code d\'invitation.';
+
+  @override
+  String get errNoPrivateEvent => 'Aucun événement privé trouvé pour ce code.';
+
+  @override
+  String get errSomethingWrongRetry =>
+      'Une erreur est survenue. Veuillez réessayer.';
 }
