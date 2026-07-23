@@ -107,5 +107,16 @@
   "startingFrom": "À partir de",
   "scanTickets": "Scanner les billets",
   "getTickets": "Obtenir des billets",
-  "freeEntry": "Entrée gratuite"
+  "freeEntry": "Entrée gratuite",
+
+  "notificationsTitle": "Notifications",
+  "markAllRead": "Tout marquer comme lu",
+  "viewEvent": "Voir l'événement",
+  "allCaughtUp": "Tu es à jour",
+  "notifEmptyBody": "Les annulations et changements d'événements apparaîtront ici.",
+  "timeNow": "à l'instant",
+  "timeMinutesShort": "{m} min",
+  "timeHoursShort": "{h} h",
+  "timeDaysShort": "{d} j",
+  "timeWeeksShort": "{w} sem"
 }

@@ -335,4 +335,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get freeEntry => 'Free Entry';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get markAllRead => 'Mark all read';
+
+  @override
+  String get viewEvent => 'View event';
+
+  @override
+  String get allCaughtUp => 'You\'re all caught up';
+
+  @override
+  String get notifEmptyBody =>
+      'Cancellations and event changes will show up here.';
+
+  @override
+  String get timeNow => 'now';
+
+  @override
+  String timeMinutesShort(int m) {
+    return '${m}m';
+  }
+
+  @override
+  String timeHoursShort(int h) {
+    return '${h}h';
+  }
+
+  @override
+  String timeDaysShort(int d) {
+    return '${d}d';
+  }
+
+  @override
+  String timeWeeksShort(int w) {
+    return '${w}w';
+  }
 }

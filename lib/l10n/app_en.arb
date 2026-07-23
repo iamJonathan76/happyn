@@ -122,5 +122,20 @@
   "startingFrom": "Starting from",
   "scanTickets": "Scan tickets",
   "getTickets": "Get Tickets",
-  "freeEntry": "Free Entry"
+  "freeEntry": "Free Entry",
+
+  "notificationsTitle": "Notifications",
+  "markAllRead": "Mark all read",
+  "viewEvent": "View event",
+  "allCaughtUp": "You're all caught up",
+  "notifEmptyBody": "Cancellations and event changes will show up here.",
+  "timeNow": "now",
+  "timeMinutesShort": "{m}m",
+  "@timeMinutesShort": { "placeholders": { "m": { "type": "int" } } },
+  "timeHoursShort": "{h}h",
+  "@timeHoursShort": { "placeholders": { "h": { "type": "int" } } },
+  "timeDaysShort": "{d}d",
+  "@timeDaysShort": { "placeholders": { "d": { "type": "int" } } },
+  "timeWeeksShort": "{w}w",
+  "@timeWeeksShort": { "placeholders": { "w": { "type": "int" } } }
 }

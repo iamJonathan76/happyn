@@ -703,6 +703,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Free Entry'**
   String get freeEntry;
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get markAllRead;
+
+  /// No description provided for @viewEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'View event'**
+  String get viewEvent;
+
+  /// No description provided for @allCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up'**
+  String get allCaughtUp;
+
+  /// No description provided for @notifEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellations and event changes will show up here.'**
+  String get notifEmptyBody;
+
+  /// No description provided for @timeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get timeNow;
+
+  /// No description provided for @timeMinutesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{m}m'**
+  String timeMinutesShort(int m);
+
+  /// No description provided for @timeHoursShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{h}h'**
+  String timeHoursShort(int h);
+
+  /// No description provided for @timeDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{d}d'**
+  String timeDaysShort(int d);
+
+  /// No description provided for @timeWeeksShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{w}w'**
+  String timeWeeksShort(int w);
 }
 
 class _AppLocalizationsDelegate

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -60,20 +61,21 @@ class NotificationsScreen extends ConsumerWidget {
     }
   }
 
-  String _ago(String? iso) {
+  String _ago(String? iso, AppLocalizations l) {
     if (iso == null) return '';
     final dt = DateTime.tryParse(iso);
     if (dt == null) return '';
     final d = DateTime.now().difference(dt);
-    if (d.inMinutes < 1) return 'now';
-    if (d.inMinutes < 60) return '${d.inMinutes}m';
-    if (d.inHours < 24) return '${d.inHours}h';
-    if (d.inDays < 7) return '${d.inDays}d';
-    return '${(d.inDays / 7).floor()}w';
+    if (d.inMinutes < 1) return l.timeNow;
+    if (d.inMinutes < 60) return l.timeMinutesShort(d.inMinutes);
+    if (d.inHours < 24) return l.timeHoursShort(d.inHours);
+    if (d.inDays < 7) return l.timeDaysShort(d.inDays);
+    return l.timeWeeksShort((d.inDays / 7).floor());
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final async = ref.watch(notificationsProvider);
     final unread = ref.watch(unreadCountProvider);
 
@@ -88,7 +90,7 @@ class NotificationsScreen extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Notifications',
+          l.notificationsTitle,
           style: GoogleFonts.poppins(
             fontSize: 17,
             fontWeight: FontWeight.w800,
@@ -100,7 +102,7 @@ class NotificationsScreen extends ConsumerWidget {
             TextButton(
               onPressed: () => _markAllRead(ref),
               child: Text(
-                'Mark all read',
+                l.markAllRead,
                 style: GoogleFonts.inter(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -113,9 +115,9 @@ class NotificationsScreen extends ConsumerWidget {
       body: async.when(
         loading: () => const Center(
             child: CircularProgressIndicator(color: Color(0xFF7C3AED))),
-        error: (_, __) => _empty(),
+        error: (_, __) => _empty(l),
         data: (list) {
-          if (list.isEmpty) return _empty();
+          if (list.isEmpty) return _empty(l);
           return RefreshIndicator(
             color: const Color(0xFF7C3AED),
             backgroundColor: const Color(0xFF1A1535),
@@ -138,6 +140,7 @@ class NotificationsScreen extends ConsumerWidget {
 
   Widget _tile(
       BuildContext context, WidgetRef ref, Map<String, dynamic> n) {
+    final l = AppLocalizations.of(context);
     final type = (n['type'] ?? '') as String;
     final (icon, color) = _visual(type);
     final unread = n['read'] == false;
@@ -201,7 +204,7 @@ class NotificationsScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        _ago(n['created_at'] as String?),
+                        _ago(n['created_at'] as String?, l),
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           color: Colors.white.withOpacity(0.4),
@@ -223,7 +226,7 @@ class NotificationsScreen extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          'View event',
+                          l.viewEvent,
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -254,7 +257,7 @@ class NotificationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _empty() => Center(
+  Widget _empty(AppLocalizations l) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -270,7 +273,7 @@ class NotificationsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 18),
             Text(
-              "You're all caught up",
+              l.allCaughtUp,
               style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -279,7 +282,7 @@ class NotificationsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Cancellations and event changes will show up here.',
+              l.notifEmptyBody,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 12,
