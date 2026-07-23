@@ -6,6 +6,7 @@ import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/features/events/join_private_event_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -86,8 +87,23 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     await ref.read(eventsProvider.future);
   }
 
+  /// Libellé affiché d'un filtre (les clés internes restent 'All'/'Tonight'/'Free').
+  String _filterLabel(String f, AppLocalizations l) {
+    switch (f) {
+      case 'All':
+        return l.categoryAll;
+      case 'Tonight':
+        return l.filterTonight;
+      case 'Free':
+        return l.free;
+      default:
+        return f; // nom de catégorie (non traduit)
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final eventsAsync = ref.watch(eventsProvider);
     _filters = ['All', 'Tonight', 'Free', ...ref.watch(categoryNamesProvider)];
 
@@ -103,7 +119,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             child: Row(
               children: [
                 Text(
-                  'Discover',
+                  l.discoverTitle,
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
@@ -132,7 +148,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                             size: 14, color: Color(0xFFC4B5FD)),
                         const SizedBox(width: 6),
                         Text(
-                          'Have a code?',
+                          l.haveACode,
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -176,7 +192,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         fontSize: 13,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Events, venues, artists...',
+                        hintText: l.searchHintDiscover,
                         hintStyle: GoogleFonts.inter(
                           color: Colors.white.withOpacity(0.28),
                           fontSize: 13,
@@ -252,7 +268,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                           : null,
                     ),
                     child: Text(
-                      f,
+                      _filterLabel(f, l),
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -277,7 +293,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               ),
               error: (err, _) => Center(
                 child: Text(
-                  'Could not load events',
+                  l.couldNotLoadEvents,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.35),
@@ -299,7 +315,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         child: Row(
                           children: [
                             Text(
-                              '${filtered.length} event${filtered.length != 1 ? 's' : ''} found',
+                              l.eventsFound(filtered.length),
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -334,6 +350,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l = AppLocalizations.of(context);
     return ListView(
       // ListView (pas Center) pour que le RefreshIndicator marche
       // même quand la liste est vide
@@ -352,8 +369,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 const SizedBox(height: 16),
                 Text(
                   _searchQuery.isNotEmpty
-                      ? 'No results for "$_searchQuery"'
-                      : 'No events in this category yet',
+                      ? l.noResultsFor(_searchQuery)
+                      : l.noEventsInCategory,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.35),
@@ -361,7 +378,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Try a different search or filter',
+                  l.tryDifferentSearch,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: Colors.white.withOpacity(0.2),

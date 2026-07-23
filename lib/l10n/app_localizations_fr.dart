@@ -239,4 +239,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get free => 'Gratuit';
+
+  @override
+  String get discoverTitle => 'Découvrir';
+
+  @override
+  String get haveACode => 'Un code ?';
+
+  @override
+  String get searchHintDiscover => 'Événements, lieux, artistes...';
+
+  @override
+  String get filterTonight => 'Ce soir';
+
+  @override
+  String eventsFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count événements trouvés',
+      one: '1 événement trouvé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noResultsFor(String query) {
+    return 'Aucun résultat pour « $query »';
+  }
+
+  @override
+  String get noEventsInCategory =>
+      'Aucun événement dans cette catégorie pour l\'instant';
+
+  @override
+  String get tryDifferentSearch =>
+      'Essayez une autre recherche ou un autre filtre';
 }

@@ -76,5 +76,14 @@
   "couldNotLoadEvents": "Impossible de charger les événements",
   "noEventsYet": "Aucun événement pour l'instant — crée le premier ! 🎉",
   "categoryAll": "Tout",
-  "free": "Gratuit"
+  "free": "Gratuit",
+
+  "discoverTitle": "Découvrir",
+  "haveACode": "Un code ?",
+  "searchHintDiscover": "Événements, lieux, artistes...",
+  "filterTonight": "Ce soir",
+  "eventsFound": "{count, plural, =1{1 événement trouvé} other{{count} événements trouvés}}",
+  "noResultsFor": "Aucun résultat pour « {query} »",
+  "noEventsInCategory": "Aucun événement dans cette catégorie pour l'instant",
+  "tryDifferentSearch": "Essayez une autre recherche ou un autre filtre"
 }

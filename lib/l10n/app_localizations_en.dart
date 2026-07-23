@@ -237,4 +237,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get free => 'Free';
+
+  @override
+  String get discoverTitle => 'Discover';
+
+  @override
+  String get haveACode => 'Have a code?';
+
+  @override
+  String get searchHintDiscover => 'Events, venues, artists...';
+
+  @override
+  String get filterTonight => 'Tonight';
+
+  @override
+  String eventsFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count events found',
+      one: '1 event found',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noResultsFor(String query) {
+    return 'No results for \"$query\"';
+  }
+
+  @override
+  String get noEventsInCategory => 'No events in this category yet';
+
+  @override
+  String get tryDifferentSearch => 'Try a different search or filter';
 }

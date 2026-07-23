@@ -85,5 +85,20 @@
   "couldNotLoadEvents": "Could not load events",
   "noEventsYet": "No events yet — create the first one! 🎉",
   "categoryAll": "All",
-  "free": "Free"
+  "free": "Free",
+
+  "discoverTitle": "Discover",
+  "haveACode": "Have a code?",
+  "searchHintDiscover": "Events, venues, artists...",
+  "filterTonight": "Tonight",
+  "eventsFound": "{count, plural, =1{1 event found} other{{count} events found}}",
+  "@eventsFound": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "noResultsFor": "No results for \"{query}\"",
+  "@noResultsFor": {
+    "placeholders": { "query": { "type": "String" } }
+  },
+  "noEventsInCategory": "No events in this category yet",
+  "tryDifferentSearch": "Try a different search or filter"
 }

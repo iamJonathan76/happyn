@@ -529,6 +529,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Free'**
   String get free;
+
+  /// No description provided for @discoverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get discoverTitle;
+
+  /// No description provided for @haveACode.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a code?'**
+  String get haveACode;
+
+  /// No description provided for @searchHintDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Events, venues, artists...'**
+  String get searchHintDiscover;
+
+  /// No description provided for @filterTonight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight'**
+  String get filterTonight;
+
+  /// No description provided for @eventsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 event found} other{{count} events found}}'**
+  String eventsFound(int count);
+
+  /// No description provided for @noResultsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{query}\"'**
+  String noResultsFor(String query);
+
+  /// No description provided for @noEventsInCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No events in this category yet'**
+  String get noEventsInCategory;
+
+  /// No description provided for @tryDifferentSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search or filter'**
+  String get tryDifferentSearch;
 }
 
 class _AppLocalizationsDelegate
