@@ -63,5 +63,18 @@
   "errEnterName": "Veuillez entrer votre nom",
   "errEnterDob": "Veuillez entrer votre date de naissance",
   "errMinAccountAge": "Vous devez avoir au moins {age} ans pour utiliser HAPPYN",
-  "accountCreatedCheckEmail": "Compte créé. Vérifiez votre e-mail pour confirmer votre compte."
+  "accountCreatedCheckEmail": "Compte créé. Vérifiez votre e-mail pour confirmer votre compte.",
+
+  "greetingMorning": "Bonjour",
+  "greetingAfternoon": "Bon après-midi",
+  "greetingEvening": "Bonsoir",
+  "searchHint": "Rechercher événements, artistes, lieux...",
+  "eventsToDiscover": "{count, plural, =0{Aucun événement à découvrir} =1{1 événement à découvrir} other{{count} événements à découvrir}}",
+  "forYou": "Pour toi",
+  "popularNearYou": "Populaire près de toi",
+  "seeAll": "Tout voir",
+  "couldNotLoadEvents": "Impossible de charger les événements",
+  "noEventsYet": "Aucun événement pour l'instant — crée le premier ! 🎉",
+  "categoryAll": "Tout",
+  "free": "Gratuit"
 }

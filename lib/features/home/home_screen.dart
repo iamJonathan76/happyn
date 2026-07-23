@@ -13,6 +13,7 @@ import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/notifications/notifications_screen.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 // Note: ConsumerStatefulWidget au lieu de StatefulWidget car on garde
@@ -54,10 +55,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? get avatarUrl => user?.userMetadata?['avatar_url'] as String?;
 
   String get _greeting {
+    final l = AppLocalizations.of(context);
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return l.greetingMorning;
+    if (h < 18) return l.greetingAfternoon;
+    return l.greetingEvening;
   }
 
   List<Map<String, dynamic>> _filterByCategory(
@@ -105,10 +107,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             SliverToBoxAdapter(child: _buildLocation(eventsAsync)),
             SliverToBoxAdapter(child: _buildCategories()),
             SliverToBoxAdapter(
-                child: _buildSectionHeader('For you', seeAll: true)),
+                child: _buildSectionHeader(
+                    AppLocalizations.of(context).forYou, seeAll: true)),
             SliverToBoxAdapter(child: _buildHeroCards(eventsAsync)),
             SliverToBoxAdapter(
-                child: _buildSectionHeader('Popular near you', seeAll: true)),
+                child: _buildSectionHeader(
+                    AppLocalizations.of(context).popularNearYou, seeAll: true)),
             SliverToBoxAdapter(child: _buildCompactList(eventsAsync)),
             const SliverToBoxAdapter(child: SizedBox(height: 90)),
           ],
@@ -275,7 +279,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Search events, artists, venues...',
+                AppLocalizations.of(context).searchHint,
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   color: Colors.white.withOpacity(0.32),
@@ -309,7 +313,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const Icon(Icons.navigation, color: Color(0xFFEC4899), size: 13),
           const SizedBox(width: 5),
           Text(
-            '$count events to discover',
+            AppLocalizations.of(context).eventsToDiscover(count),
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -332,7 +336,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           itemCount: _categories.length,
           itemBuilder: (context, i) {
             final isActive = i == _selectedCat;
-            final label = _categories[i];
+            final label =
+                i == 0 ? AppLocalizations.of(context).categoryAll : _categories[i];
             final color =
                 i == 0 ? const Color(0xFFA78BFA) : categoryColor(label);
 
@@ -416,7 +421,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Row(
                 children: [
                   Text(
-                    'See all',
+                    AppLocalizations.of(context).seeAll,
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -445,7 +450,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         height: 252,
         child: Center(
           child: Text(
-            'Could not load events',
+            AppLocalizations.of(context).couldNotLoadEvents,
             style: GoogleFonts.inter(
               fontSize: 13,
               color: Colors.white.withOpacity(0.35),
@@ -460,7 +465,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             height: 252,
             child: Center(
               child: Text(
-                'No events yet — create the first one! 🎉',
+                AppLocalizations.of(context).noEventsYet,
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   color: Colors.white.withOpacity(0.35),
@@ -524,7 +529,7 @@ class _HeroCard extends ConsumerWidget {
     final color = categoryColor(cat);
     final (mon, day) = _dateParts(ev['start_date'] as String?);
     final priceText = (ev['price'] == 0 || ev['price'] == null)
-        ? 'Free'
+        ? AppLocalizations.of(context).free
         : '\$${ev['price']}';
     final city = (ev['city'] ?? ev['location'] ?? '') as String;
     final favIds = ref.watch(favoritesProvider).asData?.value ?? <String>{};

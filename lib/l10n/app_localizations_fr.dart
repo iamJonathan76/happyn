@@ -193,4 +193,50 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get accountCreatedCheckEmail =>
       'Compte créé. Vérifiez votre e-mail pour confirmer votre compte.';
+
+  @override
+  String get greetingMorning => 'Bonjour';
+
+  @override
+  String get greetingAfternoon => 'Bon après-midi';
+
+  @override
+  String get greetingEvening => 'Bonsoir';
+
+  @override
+  String get searchHint => 'Rechercher événements, artistes, lieux...';
+
+  @override
+  String eventsToDiscover(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count événements à découvrir',
+      one: '1 événement à découvrir',
+      zero: 'Aucun événement à découvrir',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get forYou => 'Pour toi';
+
+  @override
+  String get popularNearYou => 'Populaire près de toi';
+
+  @override
+  String get seeAll => 'Tout voir';
+
+  @override
+  String get couldNotLoadEvents => 'Impossible de charger les événements';
+
+  @override
+  String get noEventsYet =>
+      'Aucun événement pour l\'instant — crée le premier ! 🎉';
+
+  @override
+  String get categoryAll => 'Tout';
+
+  @override
+  String get free => 'Gratuit';
 }

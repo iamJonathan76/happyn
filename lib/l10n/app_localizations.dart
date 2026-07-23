@@ -457,6 +457,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account created. Check your email to confirm your account.'**
   String get accountCreatedCheckEmail;
+
+  /// No description provided for @greetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get greetingMorning;
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get greetingAfternoon;
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get greetingEvening;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search events, artists, venues...'**
+  String get searchHint;
+
+  /// No description provided for @eventsToDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No events to discover} =1{1 event to discover} other{{count} events to discover}}'**
+  String eventsToDiscover(int count);
+
+  /// No description provided for @forYou.
+  ///
+  /// In en, this message translates to:
+  /// **'For you'**
+  String get forYou;
+
+  /// No description provided for @popularNearYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular near you'**
+  String get popularNearYou;
+
+  /// No description provided for @seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get seeAll;
+
+  /// No description provided for @couldNotLoadEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load events'**
+  String get couldNotLoadEvents;
+
+  /// No description provided for @noEventsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No events yet — create the first one! 🎉'**
+  String get noEventsYet;
+
+  /// No description provided for @categoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get categoryAll;
+
+  /// No description provided for @free.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get free;
 }
 
 class _AppLocalizationsDelegate

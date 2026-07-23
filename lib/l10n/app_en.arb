@@ -69,5 +69,21 @@
   "@errMinAccountAge": {
     "placeholders": { "age": { "type": "int" } }
   },
-  "accountCreatedCheckEmail": "Account created. Check your email to confirm your account."
+  "accountCreatedCheckEmail": "Account created. Check your email to confirm your account.",
+
+  "greetingMorning": "Good morning",
+  "greetingAfternoon": "Good afternoon",
+  "greetingEvening": "Good evening",
+  "searchHint": "Search events, artists, venues...",
+  "eventsToDiscover": "{count, plural, =0{No events to discover} =1{1 event to discover} other{{count} events to discover}}",
+  "@eventsToDiscover": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "forYou": "For you",
+  "popularNearYou": "Popular near you",
+  "seeAll": "See all",
+  "couldNotLoadEvents": "Could not load events",
+  "noEventsYet": "No events yet — create the first one! 🎉",
+  "categoryAll": "All",
+  "free": "Free"
 }
