@@ -9,6 +9,7 @@ import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
@@ -48,30 +49,31 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Action failed. Please try again.')),
+          SnackBar(content: Text(AppLocalizations.of(context).actionFailed)),
         );
       }
     }
   }
 
   Widget _organizerMenu() {
+    final l = AppLocalizations.of(context);
     return PopupMenuButton<String>(
       color: const Color(0xFF1A1535),
       shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       position: PopupMenuPosition.under,
       onSelected: (v) {
-        if (v == 'unpublish') _setStatus('draft', 'Event unpublished');
-        if (v == 'publish') _setStatus('published', 'Event published');
+        if (v == 'unpublish') _setStatus('draft', l.eventUnpublishedMsg);
+        if (v == 'publish') _setStatus('published', l.eventPublishedMsg);
         if (v == 'cancel') _confirmCancel();
       },
       itemBuilder: (context) => [
         if (_status == 'published')
-          _menuItem('unpublish', Icons.visibility_off_outlined, 'Unpublish')
+          _menuItem('unpublish', Icons.visibility_off_outlined, l.unpublish)
         else
-          _menuItem('publish', Icons.publish_outlined, 'Publish'),
+          _menuItem('publish', Icons.publish_outlined, l.publish),
         if (_status != 'cancelled')
-          _menuItem('cancel', Icons.cancel_outlined, 'Cancel event',
+          _menuItem('cancel', Icons.cancel_outlined, l.cancelEvent,
               danger: true),
       ],
       child: Container(
@@ -104,31 +106,31 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   }
 
   void _confirmCancel() {
+    final l = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFF1A1535),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Cancel this event?',
+        title: Text(l.cancelEventTitle,
             style: GoogleFonts.poppins(
                 color: Colors.white, fontWeight: FontWeight.w700)),
         content: Text(
-          'Ticket sales close and attendees will see it as cancelled. '
-          'The event and its data are kept. This can be re-published later.',
+          l.cancelEventBody,
           style: GoogleFonts.inter(color: Colors.white.withOpacity(0.6)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Keep',
+            child: Text(l.keep,
                 style: GoogleFonts.inter(color: Colors.white.withOpacity(0.5))),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _setStatus('cancelled', 'Event cancelled');
+              _setStatus('cancelled', l.eventCancelledMsg);
             },
-            child: Text('Cancel event',
+            child: Text(l.cancelEvent,
                 style: GoogleFonts.inter(
                     color: const Color(0xFFFF4B4B),
                     fontWeight: FontWeight.w700)),
@@ -171,10 +173,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final ev = widget.event;
     final imageUrl = (ev['image_url'] ?? '') as String;
     final price = ev['price'];
-    final priceText = (price == null || price == 0) ? 'Free' : '\$$price';
+    final priceText = (price == null || price == 0) ? l.free : '\$$price';
     final cat = (ev['category'] ?? '') as String;
     final catColor = categoryColor(cat);
     final past = isEventPast(ev);
@@ -185,10 +188,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     // Un visiteur ne peut pas acheter un event terminé, annulé ou dépublié.
     final blocked = !isOrganizer && (past || _status != 'published');
     final ctaLabel = cancelled
-        ? 'Event cancelled'
+        ? l.eventCancelledMsg
         : past
-            ? 'Event ended'
-            : 'Unavailable';
+            ? l.eventEnded
+            : l.ctaUnavailable;
 
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
@@ -311,7 +314,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
-                                          content: Text('Sharing — coming soon',
+                                          content: Text(l.sharingSoon,
                                               style: GoogleFonts.inter(
                                                   color: Colors.white)),
                                           backgroundColor:
@@ -446,7 +449,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                     color: Colors.white.withOpacity(0.85)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  cancelled ? 'Cancelled' : 'Ended',
+                                  cancelled ? l.statusCancelled : l.statusEnded,
                                   style: GoogleFonts.inter(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
@@ -521,7 +524,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       if (ev['description'] != null &&
                           (ev['description'] as String).isNotEmpty) ...[
                         Text(
-                          'About this event',
+                          l.aboutThisEvent,
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -548,7 +551,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           _tag(ev['category'] ?? 'Event'),
                           if ((ev['city'] ?? '').toString().isNotEmpty)
                             _tag(ev['city']),
-                          if ((ev['price'] ?? 0) == 0) _tag('Free Entry'),
+                          if ((ev['price'] ?? 0) == 0) _tag(l.freeEntry),
                           if (((ev['min_age'] ?? 0) as int) > 0)
                             _tag('${ev['min_age']}+'),
                         ],
@@ -594,7 +597,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Starting from',
+                          l.startingFrom,
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             color: Colors.white.withOpacity(0.38),
@@ -672,8 +675,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               blocked
                                   ? ctaLabel
                                   : isOrganizer
-                                      ? 'Scan tickets'
-                                      : 'Get Tickets',
+                                      ? l.scanTickets
+                                      : l.getTickets,
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,

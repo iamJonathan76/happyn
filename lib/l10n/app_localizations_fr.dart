@@ -275,4 +275,68 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get tryDifferentSearch =>
       'Essayez une autre recherche ou un autre filtre';
+
+  @override
+  String get actionFailed => 'Échec de l\'action. Veuillez réessayer.';
+
+  @override
+  String get publish => 'Publier';
+
+  @override
+  String get unpublish => 'Dépublier';
+
+  @override
+  String get cancelEvent => 'Annuler l\'événement';
+
+  @override
+  String get cancelEventTitle => 'Annuler cet événement ?';
+
+  @override
+  String get cancelEventBody =>
+      'Les détenteurs de billets seront notifiés et l\'événement sera marqué comme annulé. C\'est irréversible.';
+
+  @override
+  String get keep => 'Conserver';
+
+  @override
+  String get eventCancelledMsg => 'Événement annulé';
+
+  @override
+  String get eventPublishedMsg => 'Événement publié';
+
+  @override
+  String get eventUnpublishedMsg => 'Événement dépublié';
+
+  @override
+  String get tbd => 'À définir';
+
+  @override
+  String get statusCancelled => 'Annulé';
+
+  @override
+  String get statusEnded => 'Terminé';
+
+  @override
+  String get ctaUnavailable => 'Indisponible';
+
+  @override
+  String get eventEnded => 'Événement terminé';
+
+  @override
+  String get sharingSoon => 'Partage — bientôt disponible';
+
+  @override
+  String get aboutThisEvent => 'À propos de l\'événement';
+
+  @override
+  String get startingFrom => 'À partir de';
+
+  @override
+  String get scanTickets => 'Scanner les billets';
+
+  @override
+  String get getTickets => 'Obtenir des billets';
+
+  @override
+  String get freeEntry => 'Entrée gratuite';
 }

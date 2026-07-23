@@ -85,5 +85,27 @@
   "eventsFound": "{count, plural, =1{1 événement trouvé} other{{count} événements trouvés}}",
   "noResultsFor": "Aucun résultat pour « {query} »",
   "noEventsInCategory": "Aucun événement dans cette catégorie pour l'instant",
-  "tryDifferentSearch": "Essayez une autre recherche ou un autre filtre"
+  "tryDifferentSearch": "Essayez une autre recherche ou un autre filtre",
+
+  "actionFailed": "Échec de l'action. Veuillez réessayer.",
+  "publish": "Publier",
+  "unpublish": "Dépublier",
+  "cancelEvent": "Annuler l'événement",
+  "cancelEventTitle": "Annuler cet événement ?",
+  "cancelEventBody": "Les détenteurs de billets seront notifiés et l'événement sera marqué comme annulé. C'est irréversible.",
+  "keep": "Conserver",
+  "eventCancelledMsg": "Événement annulé",
+  "eventPublishedMsg": "Événement publié",
+  "eventUnpublishedMsg": "Événement dépublié",
+  "tbd": "À définir",
+  "statusCancelled": "Annulé",
+  "statusEnded": "Terminé",
+  "ctaUnavailable": "Indisponible",
+  "eventEnded": "Événement terminé",
+  "sharingSoon": "Partage — bientôt disponible",
+  "aboutThisEvent": "À propos de l'événement",
+  "startingFrom": "À partir de",
+  "scanTickets": "Scanner les billets",
+  "getTickets": "Obtenir des billets",
+  "freeEntry": "Entrée gratuite"
 }

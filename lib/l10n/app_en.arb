@@ -100,5 +100,27 @@
     "placeholders": { "query": { "type": "String" } }
   },
   "noEventsInCategory": "No events in this category yet",
-  "tryDifferentSearch": "Try a different search or filter"
+  "tryDifferentSearch": "Try a different search or filter",
+
+  "actionFailed": "Action failed. Please try again.",
+  "publish": "Publish",
+  "unpublish": "Unpublish",
+  "cancelEvent": "Cancel event",
+  "cancelEventTitle": "Cancel this event?",
+  "cancelEventBody": "Ticket holders will be notified and this event will be marked as cancelled. This can't be undone.",
+  "keep": "Keep",
+  "eventCancelledMsg": "Event cancelled",
+  "eventPublishedMsg": "Event published",
+  "eventUnpublishedMsg": "Event unpublished",
+  "tbd": "TBD",
+  "statusCancelled": "Cancelled",
+  "statusEnded": "Ended",
+  "ctaUnavailable": "Unavailable",
+  "eventEnded": "Event ended",
+  "sharingSoon": "Sharing — coming soon",
+  "aboutThisEvent": "About this event",
+  "startingFrom": "Starting from",
+  "scanTickets": "Scan tickets",
+  "getTickets": "Get Tickets",
+  "freeEntry": "Free Entry"
 }

@@ -271,4 +271,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tryDifferentSearch => 'Try a different search or filter';
+
+  @override
+  String get actionFailed => 'Action failed. Please try again.';
+
+  @override
+  String get publish => 'Publish';
+
+  @override
+  String get unpublish => 'Unpublish';
+
+  @override
+  String get cancelEvent => 'Cancel event';
+
+  @override
+  String get cancelEventTitle => 'Cancel this event?';
+
+  @override
+  String get cancelEventBody =>
+      'Ticket holders will be notified and this event will be marked as cancelled. This can\'t be undone.';
+
+  @override
+  String get keep => 'Keep';
+
+  @override
+  String get eventCancelledMsg => 'Event cancelled';
+
+  @override
+  String get eventPublishedMsg => 'Event published';
+
+  @override
+  String get eventUnpublishedMsg => 'Event unpublished';
+
+  @override
+  String get tbd => 'TBD';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get statusEnded => 'Ended';
+
+  @override
+  String get ctaUnavailable => 'Unavailable';
+
+  @override
+  String get eventEnded => 'Event ended';
+
+  @override
+  String get sharingSoon => 'Sharing — coming soon';
+
+  @override
+  String get aboutThisEvent => 'About this event';
+
+  @override
+  String get startingFrom => 'Starting from';
+
+  @override
+  String get scanTickets => 'Scan tickets';
+
+  @override
+  String get getTickets => 'Get Tickets';
+
+  @override
+  String get freeEntry => 'Free Entry';
 }

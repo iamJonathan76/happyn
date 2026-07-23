@@ -577,6 +577,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try a different search or filter'**
   String get tryDifferentSearch;
+
+  /// No description provided for @actionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed. Please try again.'**
+  String get actionFailed;
+
+  /// No description provided for @publish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish'**
+  String get publish;
+
+  /// No description provided for @unpublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpublish'**
+  String get unpublish;
+
+  /// No description provided for @cancelEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel event'**
+  String get cancelEvent;
+
+  /// No description provided for @cancelEventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this event?'**
+  String get cancelEventTitle;
+
+  /// No description provided for @cancelEventBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket holders will be notified and this event will be marked as cancelled. This can\'t be undone.'**
+  String get cancelEventBody;
+
+  /// No description provided for @keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get keep;
+
+  /// No description provided for @eventCancelledMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Event cancelled'**
+  String get eventCancelledMsg;
+
+  /// No description provided for @eventPublishedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Event published'**
+  String get eventPublishedMsg;
+
+  /// No description provided for @eventUnpublishedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Event unpublished'**
+  String get eventUnpublishedMsg;
+
+  /// No description provided for @tbd.
+  ///
+  /// In en, this message translates to:
+  /// **'TBD'**
+  String get tbd;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @statusEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get statusEnded;
+
+  /// No description provided for @ctaUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get ctaUnavailable;
+
+  /// No description provided for @eventEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Event ended'**
+  String get eventEnded;
+
+  /// No description provided for @sharingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing — coming soon'**
+  String get sharingSoon;
+
+  /// No description provided for @aboutThisEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'About this event'**
+  String get aboutThisEvent;
+
+  /// No description provided for @startingFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting from'**
+  String get startingFrom;
+
+  /// No description provided for @scanTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan tickets'**
+  String get scanTickets;
+
+  /// No description provided for @getTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Tickets'**
+  String get getTickets;
+
+  /// No description provided for @freeEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Entry'**
+  String get freeEntry;
 }
 
 class _AppLocalizationsDelegate
