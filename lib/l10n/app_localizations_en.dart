@@ -374,4 +374,170 @@ class AppLocalizationsEn extends AppLocalizations {
   String timeWeeksShort(int w) {
     return '${w}w';
   }
+
+  @override
+  String get createEventTitle => 'Create Event';
+
+  @override
+  String get editEventTitle => 'Edit Event';
+
+  @override
+  String get generalAdmission => 'General Admission';
+
+  @override
+  String get tierNameHint => 'Tier name (e.g. VIP)';
+
+  @override
+  String get qtyHint => 'Qty e.g. 100';
+
+  @override
+  String get priceFreeHint => '0 = free';
+
+  @override
+  String tierSoldInfo(int sold) {
+    return '$sold sold · min quantity $sold';
+  }
+
+  @override
+  String get maxPerPersonHint => 'Max/person (0=∞)';
+
+  @override
+  String mustBeOrganizerAge(int age) {
+    return 'You must be $age+ to organize an event';
+  }
+
+  @override
+  String get errEnterTitle => 'Please enter a title';
+
+  @override
+  String get errEnterLocation => 'Please enter a location';
+
+  @override
+  String get errEnterCity => 'Please enter a city';
+
+  @override
+  String errQtyBelowSold(String name, int sold) {
+    return '\"$name\": quantity can\'t be below $sold sold';
+  }
+
+  @override
+  String get errKeepOneTier => 'Keep at least one ticket tier';
+
+  @override
+  String get errAddOneTier => 'Add at least one ticket tier (name + quantity)';
+
+  @override
+  String get eventUpdated => 'Event updated ✓';
+
+  @override
+  String get eventCreated => 'Event created successfully! 🎉';
+
+  @override
+  String errGeneric(String msg) {
+    return 'Error: $msg';
+  }
+
+  @override
+  String inviteShareText(String title, String code) {
+    return 'Join my event “$title” on HAPPYN 🎟️\nOpen the app → “Have an invite code?” → enter: $code';
+  }
+
+  @override
+  String get privateEventCreated => 'Private event created 🎉';
+
+  @override
+  String get privateEventCreatedBody =>
+      'Only people with this code can find and join your event.';
+
+  @override
+  String get codeCopied => 'Code copied ✓';
+
+  @override
+  String get copyCode => 'Copy code';
+
+  @override
+  String get inviteCopied => 'Invite copied — paste it anywhere ✓';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get eventTitleLabel => 'Event Title *';
+
+  @override
+  String get categoryLabel => 'Category *';
+
+  @override
+  String get descriptionLabel => 'Description';
+
+  @override
+  String get descriptionHint => 'Tell people about your event...';
+
+  @override
+  String get locationLabel => 'Location *';
+
+  @override
+  String get venueHint => 'Venue name or address';
+
+  @override
+  String get cityHint => 'City (e.g. Ottawa, ON)';
+
+  @override
+  String get dateTimeLabel => 'Date & Time *';
+
+  @override
+  String get startLabel => 'Start';
+
+  @override
+  String get endLabel => 'End';
+
+  @override
+  String get ticketTiersLabel => 'Ticket Tiers *';
+
+  @override
+  String get addTier => 'Add tier';
+
+  @override
+  String get coverImageLabel => 'Cover Image';
+
+  @override
+  String get tapToChoosePhoto => 'Tap to choose a cover photo';
+
+  @override
+  String get coverOptional =>
+      'Optional — a default image is used if you skip this.';
+
+  @override
+  String get ageRequirementLabel => 'Age requirement';
+
+  @override
+  String get allAges => 'All Ages';
+
+  @override
+  String get ageRequirementHelp =>
+      'Attendees below the age are blocked at checkout. Final age check is done at the door by the organizer.';
+
+  @override
+  String get privateEventLabel => 'Private event';
+
+  @override
+  String get privateEventOnHelp =>
+      'Hidden from Discover. Only people with the invite code can join.';
+
+  @override
+  String get privateEventOffHelp => 'Listed publicly in Discover for everyone.';
+
+  @override
+  String inviteCodeLabel(String code) {
+    return 'Invite code: $code';
+  }
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get publishEvent => 'Publish Event';
 }

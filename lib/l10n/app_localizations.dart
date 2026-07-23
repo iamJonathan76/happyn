@@ -763,6 +763,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{w}w'**
   String timeWeeksShort(int w);
+
+  /// No description provided for @createEventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Event'**
+  String get createEventTitle;
+
+  /// No description provided for @editEventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Event'**
+  String get editEventTitle;
+
+  /// No description provided for @generalAdmission.
+  ///
+  /// In en, this message translates to:
+  /// **'General Admission'**
+  String get generalAdmission;
+
+  /// No description provided for @tierNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tier name (e.g. VIP)'**
+  String get tierNameHint;
+
+  /// No description provided for @qtyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Qty e.g. 100'**
+  String get qtyHint;
+
+  /// No description provided for @priceFreeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 = free'**
+  String get priceFreeHint;
+
+  /// No description provided for @tierSoldInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'{sold} sold · min quantity {sold}'**
+  String tierSoldInfo(int sold);
+
+  /// No description provided for @maxPerPersonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Max/person (0=∞)'**
+  String get maxPerPersonHint;
+
+  /// No description provided for @mustBeOrganizerAge.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be {age}+ to organize an event'**
+  String mustBeOrganizerAge(int age);
+
+  /// No description provided for @errEnterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a title'**
+  String get errEnterTitle;
+
+  /// No description provided for @errEnterLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a location'**
+  String get errEnterLocation;
+
+  /// No description provided for @errEnterCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a city'**
+  String get errEnterCity;
+
+  /// No description provided for @errQtyBelowSold.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\": quantity can\'t be below {sold} sold'**
+  String errQtyBelowSold(String name, int sold);
+
+  /// No description provided for @errKeepOneTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep at least one ticket tier'**
+  String get errKeepOneTier;
+
+  /// No description provided for @errAddOneTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one ticket tier (name + quantity)'**
+  String get errAddOneTier;
+
+  /// No description provided for @eventUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Event updated ✓'**
+  String get eventUpdated;
+
+  /// No description provided for @eventCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Event created successfully! 🎉'**
+  String get eventCreated;
+
+  /// No description provided for @errGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {msg}'**
+  String errGeneric(String msg);
+
+  /// No description provided for @inviteShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Join my event “{title}” on HAPPYN 🎟️\nOpen the app → “Have an invite code?” → enter: {code}'**
+  String inviteShareText(String title, String code);
+
+  /// No description provided for @privateEventCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Private event created 🎉'**
+  String get privateEventCreated;
+
+  /// No description provided for @privateEventCreatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only people with this code can find and join your event.'**
+  String get privateEventCreatedBody;
+
+  /// No description provided for @codeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied ✓'**
+  String get codeCopied;
+
+  /// No description provided for @copyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get copyCode;
+
+  /// No description provided for @inviteCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite copied — paste it anywhere ✓'**
+  String get inviteCopied;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @eventTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Title *'**
+  String get eventTitleLabel;
+
+  /// No description provided for @categoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category *'**
+  String get categoryLabel;
+
+  /// No description provided for @descriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get descriptionLabel;
+
+  /// No description provided for @descriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell people about your event...'**
+  String get descriptionHint;
+
+  /// No description provided for @locationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location *'**
+  String get locationLabel;
+
+  /// No description provided for @venueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue name or address'**
+  String get venueHint;
+
+  /// No description provided for @cityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'City (e.g. Ottawa, ON)'**
+  String get cityHint;
+
+  /// No description provided for @dateTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date & Time *'**
+  String get dateTimeLabel;
+
+  /// No description provided for @startLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get startLabel;
+
+  /// No description provided for @endLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get endLabel;
+
+  /// No description provided for @ticketTiersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket Tiers *'**
+  String get ticketTiersLabel;
+
+  /// No description provided for @addTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tier'**
+  String get addTier;
+
+  /// No description provided for @coverImageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover Image'**
+  String get coverImageLabel;
+
+  /// No description provided for @tapToChoosePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to choose a cover photo'**
+  String get tapToChoosePhoto;
+
+  /// No description provided for @coverOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional — a default image is used if you skip this.'**
+  String get coverOptional;
+
+  /// No description provided for @ageRequirementLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Age requirement'**
+  String get ageRequirementLabel;
+
+  /// No description provided for @allAges.
+  ///
+  /// In en, this message translates to:
+  /// **'All Ages'**
+  String get allAges;
+
+  /// No description provided for @ageRequirementHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendees below the age are blocked at checkout. Final age check is done at the door by the organizer.'**
+  String get ageRequirementHelp;
+
+  /// No description provided for @privateEventLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Private event'**
+  String get privateEventLabel;
+
+  /// No description provided for @privateEventOnHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden from Discover. Only people with the invite code can join.'**
+  String get privateEventOnHelp;
+
+  /// No description provided for @privateEventOffHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Listed publicly in Discover for everyone.'**
+  String get privateEventOffHelp;
+
+  /// No description provided for @inviteCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code: {code}'**
+  String inviteCodeLabel(String code);
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @publishEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish Event'**
+  String get publishEvent;
 }
 
 class _AppLocalizationsDelegate

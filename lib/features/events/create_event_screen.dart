@@ -10,6 +10,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/utils/age.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
@@ -117,6 +118,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   void _removeTier(int i) => setState(() => _tiers.removeAt(i).dispose());
 
   Widget _tierCard(int i) {
+    final l = AppLocalizations.of(context);
     final tier = _tiers[i];
     return Container(
       margin: const EdgeInsets.only(top: 10),
@@ -135,7 +137,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   controller: tier.nameController,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: _inputDec(
-                      'Tier name (e.g. VIP)', Icons.local_activity_outlined),
+                      l.tierNameHint, Icons.local_activity_outlined),
                 ),
               ),
               // Supprimer : seulement les tiers nouveaux (pas ceux qui existent
@@ -162,7 +164,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                '${tier.quantitySold} sold · min quantity ${tier.quantitySold}',
+                l.tierSoldInfo(tier.quantitySold),
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   color: const Color(0xFFA78BFA),
@@ -178,7 +180,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   controller: tier.priceController,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDec('0 = free', Icons.attach_money),
+                  decoration: _inputDec(l.priceFreeHint, Icons.attach_money),
                 ),
               ),
               const SizedBox(width: 10),
@@ -188,7 +190,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: _inputDec(
-                      'Qty e.g. 100', Icons.confirmation_number_outlined),
+                      l.qtyHint, Icons.confirmation_number_outlined),
                 ),
               ),
               const SizedBox(width: 10),
@@ -198,7 +200,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration:
-                      _inputDec('Max/person (0=∞)', Icons.person_outline),
+                      _inputDec(l.maxPerPersonHint, Icons.person_outline),
                 ),
               ),
             ],
@@ -288,23 +290,24 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Future<void> _createEvent() async {
+    final l = AppLocalizations.of(context);
     // Gate 18+ : organiser un event requiert la majorité. Soft : si l'âge est
     // inconnu (ancien compte sans date de naissance), on laisse passer.
     final age = currentUserAge();
     if (age != null && age < kMinOrganizerAge) {
-      _showSnack('You must be $kMinOrganizerAge+ to organize an event');
+      _showSnack(l.mustBeOrganizerAge(kMinOrganizerAge));
       return;
     }
     if (_titleController.text.trim().isEmpty) {
-      _showSnack('Please enter a title');
+      _showSnack(l.errEnterTitle);
       return;
     }
     if (_locationController.text.trim().isEmpty) {
-      _showSnack('Please enter a location');
+      _showSnack(l.errEnterLocation);
       return;
     }
     if (_cityController.text.trim().isEmpty) {
-      _showSnack('Please enter a city');
+      _showSnack(l.errEnterCity);
       return;
     }
 
@@ -318,13 +321,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         if (name.isEmpty || qty <= 0) continue;
         // Garde-fou : on ne descend pas sous le nombre déjà vendu.
         if (t.id != null && qty < t.quantitySold) {
-          _showSnack('“$name”: quantity can’t be below ${t.quantitySold} sold');
+          _showSnack(l.errQtyBelowSold(name, t.quantitySold));
           return;
         }
         editTiers.add(t);
       }
       if (editTiers.isEmpty) {
-        _showSnack('Keep at least one ticket tier');
+        _showSnack(l.errKeepOneTier);
         return;
       }
       final eventPrice = editTiers
@@ -389,13 +392,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             _existingCode = editCode;
             await _showInviteDialog(_titleController.text.trim(), editCode);
           } else {
-            _showSnack('Event updated ✓');
+            _showSnack(l.eventUpdated);
             await Future.delayed(const Duration(milliseconds: 800));
           }
           if (mounted) Navigator.of(context).pop(true);
         }
       } catch (e) {
-        _showSnack('Error: ${e.toString()}');
+        _showSnack(l.errGeneric(e.toString()));
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -420,7 +423,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       });
     }
     if (tiers.isEmpty) {
-      _showSnack('Add at least one ticket tier (name + quantity)');
+      _showSnack(l.errAddOneTier);
       return;
     }
     // Prix affiché de l'event = le tier le moins cher (« Starting from »)
@@ -477,7 +480,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         if (accessCode != null) {
           await _showInviteDialog(_titleController.text.trim(), accessCode);
         } else {
-          _showSnack('Event created successfully! 🎉');
+          _showSnack(l.eventCreated);
           await Future.delayed(const Duration(seconds: 1));
         }
         if (mounted) {
@@ -485,7 +488,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         }
       }
     } catch (e) {
-      _showSnack('Error: ${e.toString()}');
+      _showSnack(l.errGeneric(e.toString()));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -501,13 +504,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     return 'HPN-$code';
   }
 
-  /// Message prêt à partager avec le code d'invitation.
-  String _inviteText(String title, String code) =>
-      'Join my event “$title” on HAPPYN 🎟️\n'
-      'Open the app → “Have an invite code?” → enter: $code';
-
   /// Affiche le code après création d'un event privé, avec copie/partage.
   Future<void> _showInviteDialog(String title, String code) async {
+    final l = AppLocalizations.of(context);
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -524,7 +523,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   color: Color(0xFFC4B5FD), size: 34),
               const SizedBox(height: 12),
               Text(
-                'Private event created 🎉',
+                l.privateEventCreated,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 17,
@@ -534,7 +533,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Only people with this code can find and join your event.',
+                l.privateEventCreatedBody,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 12.5,
@@ -573,11 +572,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: code));
-                        _showSnack('Code copied ✓');
+                        _showSnack(l.codeCopied);
                       },
                       icon: const Icon(Icons.copy,
                           size: 16, color: Colors.white),
-                      label: Text('Copy code',
+                      label: Text(l.copyCode,
                           style: GoogleFonts.inter(
                               color: Colors.white,
                               fontWeight: FontWeight.w600)),
@@ -594,13 +593,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        Clipboard.setData(
-                            ClipboardData(text: _inviteText(title, code)));
-                        _showSnack('Invite copied — paste it anywhere ✓');
+                        Clipboard.setData(ClipboardData(
+                            text: l.inviteShareText(title, code)));
+                        _showSnack(l.inviteCopied);
                       },
                       icon: const Icon(Icons.ios_share,
                           size: 16, color: Colors.white),
-                      label: Text('Share',
+                      label: Text(l.share,
                           style: GoogleFonts.inter(
                               color: Colors.white,
                               fontWeight: FontWeight.w700)),
@@ -617,7 +616,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               const SizedBox(height: 6),
               TextButton(
                 onPressed: () => Navigator.of(dialogCtx).pop(),
-                child: Text('Done',
+                child: Text(l.done,
                     style: GoogleFonts.inter(
                         color: Colors.white.withOpacity(0.6))),
               ),
@@ -668,6 +667,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final categoryNames = ref.watch(categoryNamesProvider);
     // Fallback tant que la table n'est pas chargée, pour ne pas casser le menu.
     final cats = categoryNames.isEmpty ? [_selectedCategory] : categoryNames;
@@ -708,7 +708,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     ),
                     const SizedBox(width: 14),
                     Text(
-                      _isEditing ? 'Edit Event' : 'Create Event',
+                      _isEditing ? l.editEventTitle : l.createEventTitle,
                       style: GoogleFonts.poppins(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -730,7 +730,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     children: [
 
                       // Title
-                      _label('Event Title *'),
+                      _label(l.eventTitleLabel),
                       TextField(
                         controller: _titleController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
@@ -740,7 +740,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       const SizedBox(height: 16),
 
                       // Category
-                      _label('Category *'),
+                      _label(l.categoryLabel),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
@@ -767,38 +767,38 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       const SizedBox(height: 16),
 
                       // Description
-                      _label('Description'),
+                      _label(l.descriptionLabel),
                       TextField(
                         controller: _descriptionController,
                         maxLines: 3,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('Tell people about your event...', Icons.description_outlined)
+                        decoration: _inputDec(l.descriptionHint, Icons.description_outlined)
                             .copyWith(prefixIcon: null, contentPadding: const EdgeInsets.all(16)),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Location + City
-                      _label('Location *'),
+                      _label(l.locationLabel),
                       TextField(
                         controller: _locationController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('Venue name or address', Icons.location_on_outlined),
+                        decoration: _inputDec(l.venueHint, Icons.location_on_outlined),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: _cityController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('City (e.g. Ottawa, ON)', Icons.location_city_outlined),
+                        decoration: _inputDec(l.cityHint, Icons.location_city_outlined),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Dates
-                      _label('Date & Time *'),
+                      _label(l.dateTimeLabel),
                       Row(
                         children: [
-                          Expanded(child: _dateTile('Start', _startDate, () => _pickDate(isStart: true))),
+                          Expanded(child: _dateTile(l.startLabel, _startDate, () => _pickDate(isStart: true))),
                           const SizedBox(width: 10),
                           Expanded(child: _dateTile('End', _endDate, () => _pickDate(isStart: false))),
                         ],
@@ -812,7 +812,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _label('Ticket Tiers *'),
+                            _label(l.ticketTiersLabel),
                             GestureDetector(
                               onTap: _addTier,
                               child: Row(
@@ -821,7 +821,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       color: Color(0xFFA78BFA), size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Add tier',
+                                    l.addTier,
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
@@ -838,7 +838,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ],
 
                       // Cover image picker
-                      _label('Cover Image'),
+                      _label(l.coverImageLabel),
                       GestureDetector(
                         onTap: _pickImage,
                         child: Container(
@@ -872,7 +872,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                             size: 36),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Tap to choose a cover photo',
+                                          l.tapToChoosePhoto,
                                           style: GoogleFonts.inter(
                                             fontSize: 12,
                                             color: Colors.white.withOpacity(0.4),
@@ -909,7 +909,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Optional — a default image is used if you skip this.',
+                        l.coverOptional,
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: Colors.white.withOpacity(0.3),
@@ -919,12 +919,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       const SizedBox(height: 24),
 
                       // ── Exigence d'âge ─────────────────────────────
-                      _label('Age requirement'),
+                      _label(l.ageRequirementLabel),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          _ageChip(0, 'All Ages'),
+                          _ageChip(0, l.allAges),
                           _ageChip(14, '14+'),
                           _ageChip(16, '16+'),
                           _ageChip(18, '18+'),
@@ -973,7 +973,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Private event',
+                                    l.privateEventLabel,
                                     style: GoogleFonts.poppins(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
@@ -986,8 +986,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
                                   _isPrivate
-                                      ? 'Hidden from Discover. Only people with the invite code can join.'
-                                      : 'Listed publicly in Discover for everyone.',
+                                      ? l.privateEventOnHelp
+                                      : l.privateEventOffHelp,
                                   style: GoogleFonts.inter(
                                     fontSize: 11.5,
                                     color: Colors.white.withOpacity(0.5),
@@ -1007,7 +1007,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        'Invite code: ${_existingCode!}',
+                                        l.inviteCodeLabel(_existingCode!),
                                         style: GoogleFonts.poppins(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
@@ -1020,7 +1020,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       onTap: () {
                                         Clipboard.setData(ClipboardData(
                                             text: _existingCode!));
-                                        _showSnack('Code copied ✓');
+                                        _showSnack(l.codeCopied);
                                       },
                                       child: Icon(Icons.copy,
                                           size: 16,
@@ -1077,8 +1077,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       const SizedBox(width: 8),
                                       Text(
                                         _isEditing
-                                            ? 'Save Changes'
-                                            : 'Publish Event',
+                                            ? l.saveChanges
+                                            : l.publishEvent,
                                         style: GoogleFonts.poppins(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,

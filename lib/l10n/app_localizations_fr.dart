@@ -378,4 +378,172 @@ class AppLocalizationsFr extends AppLocalizations {
   String timeWeeksShort(int w) {
     return '$w sem';
   }
+
+  @override
+  String get createEventTitle => 'Créer un événement';
+
+  @override
+  String get editEventTitle => 'Modifier l\'événement';
+
+  @override
+  String get generalAdmission => 'Admission générale';
+
+  @override
+  String get tierNameHint => 'Nom du tarif (ex. VIP)';
+
+  @override
+  String get qtyHint => 'Qté ex. 100';
+
+  @override
+  String get priceFreeHint => '0 = gratuit';
+
+  @override
+  String tierSoldInfo(int sold) {
+    return '$sold vendus · quantité min $sold';
+  }
+
+  @override
+  String get maxPerPersonHint => 'Max/pers. (0=∞)';
+
+  @override
+  String mustBeOrganizerAge(int age) {
+    return 'Vous devez avoir $age ans ou plus pour organiser un événement';
+  }
+
+  @override
+  String get errEnterTitle => 'Veuillez entrer un titre';
+
+  @override
+  String get errEnterLocation => 'Veuillez entrer un lieu';
+
+  @override
+  String get errEnterCity => 'Veuillez entrer une ville';
+
+  @override
+  String errQtyBelowSold(String name, int sold) {
+    return '« $name » : la quantité ne peut pas être inférieure à $sold vendus';
+  }
+
+  @override
+  String get errKeepOneTier => 'Gardez au moins un tarif de billet';
+
+  @override
+  String get errAddOneTier =>
+      'Ajoutez au moins un tarif de billet (nom + quantité)';
+
+  @override
+  String get eventUpdated => 'Événement mis à jour ✓';
+
+  @override
+  String get eventCreated => 'Événement créé avec succès ! 🎉';
+
+  @override
+  String errGeneric(String msg) {
+    return 'Erreur : $msg';
+  }
+
+  @override
+  String inviteShareText(String title, String code) {
+    return 'Rejoins mon événement « $title » sur HAPPYN 🎟️\nOuvre l\'app → « Un code ? » → entre : $code';
+  }
+
+  @override
+  String get privateEventCreated => 'Événement privé créé 🎉';
+
+  @override
+  String get privateEventCreatedBody =>
+      'Seules les personnes ayant ce code peuvent trouver et rejoindre ton événement.';
+
+  @override
+  String get codeCopied => 'Code copié ✓';
+
+  @override
+  String get copyCode => 'Copier le code';
+
+  @override
+  String get inviteCopied => 'Invitation copiée — colle-la où tu veux ✓';
+
+  @override
+  String get share => 'Partager';
+
+  @override
+  String get done => 'Terminé';
+
+  @override
+  String get eventTitleLabel => 'Titre de l\'événement *';
+
+  @override
+  String get categoryLabel => 'Catégorie *';
+
+  @override
+  String get descriptionLabel => 'Description';
+
+  @override
+  String get descriptionHint => 'Parle de ton événement...';
+
+  @override
+  String get locationLabel => 'Lieu *';
+
+  @override
+  String get venueHint => 'Nom du lieu ou adresse';
+
+  @override
+  String get cityHint => 'Ville (ex. Ottawa, ON)';
+
+  @override
+  String get dateTimeLabel => 'Date et heure *';
+
+  @override
+  String get startLabel => 'Début';
+
+  @override
+  String get endLabel => 'Fin';
+
+  @override
+  String get ticketTiersLabel => 'Tarifs de billets *';
+
+  @override
+  String get addTier => 'Ajouter un tarif';
+
+  @override
+  String get coverImageLabel => 'Image de couverture';
+
+  @override
+  String get tapToChoosePhoto => 'Touchez pour choisir une photo de couverture';
+
+  @override
+  String get coverOptional =>
+      'Optionnel — une image par défaut est utilisée si vous passez.';
+
+  @override
+  String get ageRequirementLabel => 'Exigence d\'âge';
+
+  @override
+  String get allAges => 'Tous âges';
+
+  @override
+  String get ageRequirementHelp =>
+      'Les participants en dessous de l\'âge sont bloqués au paiement. La vérification finale se fait à la porte par l\'organisateur.';
+
+  @override
+  String get privateEventLabel => 'Événement privé';
+
+  @override
+  String get privateEventOnHelp =>
+      'Masqué de Découvrir. Seules les personnes ayant le code d\'invitation peuvent rejoindre.';
+
+  @override
+  String get privateEventOffHelp =>
+      'Listé publiquement dans Découvrir pour tout le monde.';
+
+  @override
+  String inviteCodeLabel(String code) {
+    return 'Code d\'invitation : $code';
+  }
+
+  @override
+  String get saveChanges => 'Enregistrer';
+
+  @override
+  String get publishEvent => 'Publier l\'événement';
 }
