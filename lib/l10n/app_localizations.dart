@@ -379,6 +379,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Forgot password?'**
   String get forgotPassword;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @orEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'or email'**
+  String get orEmail;
+
+  /// No description provided for @appleSignInSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple sign-in coming soon'**
+  String get appleSignInSoon;
+
+  /// No description provided for @passwordResetSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset — coming soon'**
+  String get passwordResetSoon;
+
+  /// No description provided for @bySigningUpAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'By signing up, you agree to our '**
+  String get bySigningUpAgree;
+
+  /// No description provided for @termsWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get termsWord;
+
+  /// No description provided for @andConnector.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get andConnector;
+
+  /// No description provided for @privacyWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyWord;
+
+  /// No description provided for @errFillAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill all required fields'**
+  String get errFillAllFields;
+
+  /// No description provided for @errEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name'**
+  String get errEnterName;
+
+  /// No description provided for @errEnterDob.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your date of birth'**
+  String get errEnterDob;
+
+  /// No description provided for @errMinAccountAge.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be at least {age} to use HAPPYN'**
+  String errMinAccountAge(int age);
+
+  /// No description provided for @accountCreatedCheckEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created. Check your email to confirm your account.'**
+  String get accountCreatedCheckEmail;
 }
 
 class _AppLocalizationsDelegate

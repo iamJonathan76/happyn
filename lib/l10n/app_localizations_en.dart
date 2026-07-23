@@ -150,4 +150,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get orEmail => 'or email';
+
+  @override
+  String get appleSignInSoon => 'Apple sign-in coming soon';
+
+  @override
+  String get passwordResetSoon => 'Password reset — coming soon';
+
+  @override
+  String get bySigningUpAgree => 'By signing up, you agree to our ';
+
+  @override
+  String get termsWord => 'Terms';
+
+  @override
+  String get andConnector => ' and ';
+
+  @override
+  String get privacyWord => 'Privacy Policy';
+
+  @override
+  String get errFillAllFields => 'Please fill all required fields';
+
+  @override
+  String get errEnterName => 'Please enter your name';
+
+  @override
+  String get errEnterDob => 'Please enter your date of birth';
+
+  @override
+  String errMinAccountAge(int age) {
+    return 'You must be at least $age to use HAPPYN';
+  }
+
+  @override
+  String get accountCreatedCheckEmail =>
+      'Account created. Check your email to confirm your account.';
 }

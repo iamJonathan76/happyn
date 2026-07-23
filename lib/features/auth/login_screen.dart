@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/config/auth_config.dart';
 import 'package:happyn/core/utils/age.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/auth/complete_profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -156,29 +157,31 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _authenticate() async {
+    final l = AppLocalizations.of(context);
     try {
-      setState(() => _isLoading = true);
-
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
       if (email.isEmpty || password.isEmpty) {
-        throw Exception('Please fill all required fields');
+        _snack(l.errFillAllFields);
+        return;
       }
-
       if (!_isLogin && _nameController.text.trim().isEmpty) {
-        throw Exception('Please enter your name');
+        _snack(l.errEnterName);
+        return;
       }
-
       if (!_isLogin) {
         if (_dob == null) {
-          throw Exception('Please enter your date of birth');
+          _snack(l.errEnterDob);
+          return;
         }
-        final age = ageFromDob(_dob) ?? 0;
-        if (age < kMinAccountAge) {
-          throw Exception('You must be at least $kMinAccountAge to use HAPPYN');
+        if ((ageFromDob(_dob) ?? 0) < kMinAccountAge) {
+          _snack(l.errMinAccountAge(kMinAccountAge));
+          return;
         }
       }
+
+      setState(() => _isLoading = true);
 
       if (_isLogin) {
         await Supabase.instance.client.auth.signInWithPassword(
@@ -218,11 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Account created. Check your email to confirm your account.',
-              ),
-            ),
+            SnackBar(content: Text(l.accountCreatedCheckEmail)),
           );
         }
       }
@@ -247,6 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -285,7 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 6),
 
                 Text(
-                  _isLogin ? 'Welcome back 👋' : 'Join the experience 🎉',
+                  _isLogin ? l.welcomeBack : l.joinExperience,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: const Color(0xFFF0EEFF).withOpacity(0.42),
@@ -303,7 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: Border.all(color: Colors.white.withOpacity(0.08)),
                   ),
                   child: Row(
-                    children: ['Log In', 'Sign Up'].asMap().entries.map((e) {
+                    children: [l.logIn, l.signUp].asMap().entries.map((e) {
                       final isActive = (e.key == 0) == _isLogin;
                       return Expanded(
                         child: GestureDetector(
@@ -371,7 +371,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     _oauthButton(
                       const Icon(Icons.apple, color: Colors.white, size: 22),
                       'Apple',
-                      () => _snack('Apple sign-in coming soon'),
+                      () => _snack(l.appleSignInSoon),
                     ),
                   ],
                 ),
@@ -390,7 +390,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
-                        'or email',
+                        l.orEmail,
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: Colors.white.withOpacity(0.28),
@@ -414,7 +414,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _nameController,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration: _inputDecoration(
-                      'Full name',
+                      l.fullName,
                       Icons.person_outline,
                     ),
                   ),
@@ -437,9 +437,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.white.withOpacity(0.3), size: 18),
                           const SizedBox(width: 12),
                           Text(
-                            _dob == null
-                                ? 'Date of birth'
-                                : _formatDob(_dob!),
+                            _dob == null ? l.dateOfBirth : _formatDob(_dob!),
                             style: TextStyle(
                               color: _dob == null
                                   ? Colors.white.withOpacity(0.3)
@@ -460,7 +458,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: _inputDecoration(
-                    'Email address',
+                    l.emailAddress,
                     Icons.mail_outline,
                   ),
                 ),
@@ -472,7 +470,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDecoration('Password', Icons.lock_outline)
+                  decoration: _inputDecoration(l.password, Icons.lock_outline)
                       .copyWith(
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -498,7 +496,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Password reset — coming soon',
+                            content: Text(l.passwordResetSoon,
                                 style: GoogleFonts.inter(color: Colors.white)),
                             backgroundColor: const Color(0xFF1A1535),
                             behavior: SnackBarBehavior.floating,
@@ -509,7 +507,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                       child: Text(
-                        'Forgot password?',
+                        l.forgotPassword,
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -544,7 +542,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        _isLogin ? 'Log In' : 'Create Account',
+                        _isLogin ? l.logIn : l.createAccount,
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -565,16 +563,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         fontSize: 11,
                         color: Colors.white.withOpacity(0.28),
                       ),
-                      children: const [
-                        TextSpan(text: 'By signing up, you agree to our '),
+                      children: [
+                        TextSpan(text: l.bySigningUpAgree),
                         TextSpan(
-                          text: 'Terms',
-                          style: TextStyle(color: Color(0xFFA78BFA)),
+                          text: l.termsWord,
+                          style: const TextStyle(color: Color(0xFFA78BFA)),
                         ),
-                        TextSpan(text: ' and '),
+                        TextSpan(text: l.andConnector),
                         TextSpan(
-                          text: 'Privacy Policy',
-                          style: TextStyle(color: Color(0xFFA78BFA)),
+                          text: l.privacyWord,
+                          style: const TextStyle(color: Color(0xFFA78BFA)),
                         ),
                       ],
                     ),

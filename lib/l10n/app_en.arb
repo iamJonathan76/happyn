@@ -53,5 +53,21 @@
   "emailAddress": "Email address",
   "password": "Password",
   "dateOfBirth": "Date of birth",
-  "forgotPassword": "Forgot password?"
+  "forgotPassword": "Forgot password?",
+  "signUp": "Sign Up",
+  "orEmail": "or email",
+  "appleSignInSoon": "Apple sign-in coming soon",
+  "passwordResetSoon": "Password reset — coming soon",
+  "bySigningUpAgree": "By signing up, you agree to our ",
+  "termsWord": "Terms",
+  "andConnector": " and ",
+  "privacyWord": "Privacy Policy",
+  "errFillAllFields": "Please fill all required fields",
+  "errEnterName": "Please enter your name",
+  "errEnterDob": "Please enter your date of birth",
+  "errMinAccountAge": "You must be at least {age} to use HAPPYN",
+  "@errMinAccountAge": {
+    "placeholders": { "age": { "type": "int" } }
+  },
+  "accountCreatedCheckEmail": "Account created. Check your email to confirm your account."
 }
