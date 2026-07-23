@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/providers/auth_provider.dart';
 
 /// Provider central pour la liste de TOUS les events (publics).
 /// Home, Discover, et Profile s'abonnent tous à ce même provider.
@@ -7,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// et les 3 écrans se rafraîchissent automatiquement, sans GlobalKey ni hack.
 final eventsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final client = Supabase.instance.client;
-  final uid = client.auth.currentUser?.id;
+  final uid = ref.watch(currentUserIdProvider);
 
   // On ne récupère que les events publics + les siens (pour que l'organisateur
   // voie ses propres events privés sur son profil). Les events privés des

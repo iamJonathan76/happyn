@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
+import 'package:happyn/core/utils/secure_screen.dart';
 
 class QrTicketScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> ticket;
@@ -45,16 +46,16 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
   @override
   void initState() {
     super.initState();
-    // Block screenshots on this screen
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    // Vrai blocage screenshot + enregistrement d'écran (FLAG_SECURE natif).
+    SecureScreen.enable();
     _mintQr();
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values);
+    // On lève le blocage en quittant l'écran (le reste de l'app reste normal).
+    SecureScreen.disable();
     super.dispose();
   }
 
