@@ -30,6 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Internationalisation (FR/EN)
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   qr_flutter: ^4.1.0
   # QR scanning (organizer)
   mobile_scanner: ^5.2.3
@@ -86,6 +90,9 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
+
+  # Génère les classes de localisation (AppLocalizations) depuis lib/l10n/*.arb
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
