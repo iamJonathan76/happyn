@@ -79,6 +79,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
           'id': user.id,
           'email': user.email,
           'full_name': user.userMetadata?['full_name'],
+          'date_of_birth': user.userMetadata?['date_of_birth'],
           'onboarded': true,
         });
       } catch (_) {}
@@ -101,6 +102,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         'id': user.id,
         'email': user.email,
         'full_name': user.userMetadata?['full_name'],
+        'date_of_birth': user.userMetadata?['date_of_birth'],
         if (avatarUrl != null) 'avatar_url': avatarUrl,
         'city': _cityController.text.trim(),
         'bio': _bioController.text.trim(),

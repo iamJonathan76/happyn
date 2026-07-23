@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/utils/age.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
@@ -40,6 +41,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   bool _isPrivate = false;
   /// Code existant (mode édition) pour ne pas en regénérer un inutilement.
   String? _existingCode;
+  /// Exigence d'âge (0 = All Ages, sinon 14/16/18/21).
+  int _minAge = 0;
 
   bool get _isEditing => widget.event != null;
 
@@ -55,6 +58,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       _selectedCategory = (ev['category'] ?? 'Music') as String;
       _isPrivate = (ev['visibility'] ?? 'public') == 'private';
       _existingCode = ev['access_code'] as String?;
+      _minAge = (ev['min_age'] ?? 0) as int;
       if (ev['start_date'] != null) {
         _startDate = DateTime.parse(ev['start_date'] as String);
       }
@@ -284,6 +288,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Future<void> _createEvent() async {
+    // Gate 18+ : organiser un event requiert la majorité. Soft : si l'âge est
+    // inconnu (ancien compte sans date de naissance), on laisse passer.
+    final age = currentUserAge();
+    if (age != null && age < kMinOrganizerAge) {
+      _showSnack('You must be $kMinOrganizerAge+ to organize an event');
+      return;
+    }
     if (_titleController.text.trim().isEmpty) {
       _showSnack('Please enter a title');
       return;
@@ -345,6 +356,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           if (imageUrl != null) 'image_url': imageUrl,
           'visibility': _isPrivate ? 'private' : 'public',
           'access_code': editCode, // null si repassé en public
+          'min_age': _minAge,
         }).eq('id', eventId);
 
         // Upsert des tiers : update si existant, insert si nouveau.
@@ -445,6 +457,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             'image_url': imageUrl,
             'created_by': user.id,
             'visibility': _isPrivate ? 'private' : 'public',
+            'min_age': _minAge,
             if (accessCode != null) 'access_code': accessCode,
           })
           .select()
@@ -905,6 +918,31 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
                       const SizedBox(height: 24),
 
+                      // ── Exigence d'âge ─────────────────────────────
+                      _label('Age requirement'),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _ageChip(0, 'All Ages'),
+                          _ageChip(14, '14+'),
+                          _ageChip(16, '16+'),
+                          _ageChip(18, '18+'),
+                          _ageChip(21, '21+'),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Attendees below the age are blocked at checkout. Final '
+                        'age check is done at the door by the organizer.',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.white.withOpacity(0.3),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
                       // ── Event privé ────────────────────────────────
                       Container(
                         decoration: BoxDecoration(
@@ -1059,6 +1097,36 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _ageChip(int value, String label) {
+    final selected = _minAge == value;
+    return GestureDetector(
+      onTap: () => setState(() => _minAge = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: selected
+              ? const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)])
+              : null,
+          color: selected ? null : Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: selected
+                  ? Colors.transparent
+                  : Colors.white.withOpacity(0.09)),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: selected ? Colors.white : Colors.white.withOpacity(0.6),
           ),
         ),
       ),

@@ -549,6 +549,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           if ((ev['city'] ?? '').toString().isNotEmpty)
                             _tag(ev['city']),
                           if ((ev['price'] ?? 0) == 0) _tag('Free Entry'),
+                          if (((ev['min_age'] ?? 0) as int) > 0)
+                            _tag('${ev['min_age']}+'),
                         ],
                       ),
                     ],

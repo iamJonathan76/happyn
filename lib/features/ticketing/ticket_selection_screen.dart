@@ -7,6 +7,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
+import 'package:happyn/core/utils/age.dart';
 import 'qr_ticket_screen.dart';
 import 'payment_processing_screen.dart';
 
@@ -69,8 +70,44 @@ class _TicketSelectionScreenState
     return '\$${_totalPrice.toStringAsFixed(2)}';
   }
 
+  void _showAgeBlocked(int minAge) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1535),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Age requirement',
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.w800)),
+        content: Text(
+          'This event is $minAge+. Your account doesn’t meet the age '
+          'requirement, so tickets can’t be purchased.',
+          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.65)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK',
+                style: GoogleFonts.inter(color: const Color(0xFFA78BFA))),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _purchaseTicket() async {
     if (_selectedTypeIndex == null) return;
+
+    // Soft-gate d'âge : si l'event a une exigence et que l'âge connu est en
+    // dessous, on bloque. Âge inconnu (ancien compte) → on laisse passer.
+    final minAge = (widget.event['min_age'] ?? 0) as int;
+    if (minAge > 0) {
+      final age = currentUserAge();
+      if (age != null && age < minAge) {
+        _showAgeBlocked(minAge);
+        return;
+      }
+    }
 
     setState(() => _isPurchasing = true);
 

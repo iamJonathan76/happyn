@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/config/auth_config.dart';
+import 'package:happyn/core/utils/age.dart';
 import 'package:happyn/features/auth/complete_profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  DateTime? _dob; // date de naissance (signup)
   bool _obscurePassword = true;
   bool _isLoading = false;
 
@@ -125,6 +127,34 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  String _formatDob(DateTime d) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return '${months[d.month - 1]} ${d.day}, ${d.year}';
+  }
+
+  Future<void> _pickDob() async {
+    final now = DateTime.now();
+    // Par défaut on ouvre sur ~18 ans en arrière (cas le plus courant).
+    final initial = _dob ?? DateTime(now.year - 18, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(now.year - 100),
+      lastDate: now,
+      helpText: 'Select your date of birth',
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: Color(0xFF7C3AED),
+            surface: Color(0xFF16122B),
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) setState(() => _dob = picked);
+  }
+
   Future<void> _authenticate() async {
     try {
       setState(() => _isLoading = true);
@@ -140,6 +170,16 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('Please enter your name');
       }
 
+      if (!_isLogin) {
+        if (_dob == null) {
+          throw Exception('Please enter your date of birth');
+        }
+        final age = ageFromDob(_dob) ?? 0;
+        if (age < kMinAccountAge) {
+          throw Exception('You must be at least $kMinAccountAge to use HAPPYN');
+        }
+      }
+
       if (_isLogin) {
         await Supabase.instance.client.auth.signInWithPassword(
           email: email,
@@ -151,7 +191,11 @@ class _LoginScreenState extends State<LoginScreen> {
         final res = await Supabase.instance.client.auth.signUp(
           email: email,
           password: password,
-          data: {'full_name': _nameController.text.trim()},
+          data: {
+            'full_name': _nameController.text.trim(),
+            'date_of_birth':
+                _dob!.toIso8601String().split('T').first, // YYYY-MM-DD
+          },
         );
 
         // Si une session est créée direct (confirmation email désactivée),
@@ -372,6 +416,39 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: _inputDecoration(
                       'Full name',
                       Icons.person_outline,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Date of birth (sign up only)
+                  GestureDetector(
+                    onTap: _pickDob,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 15),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(14),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.08)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.cake_outlined,
+                              color: Colors.white.withOpacity(0.3), size: 18),
+                          const SizedBox(width: 12),
+                          Text(
+                            _dob == null
+                                ? 'Date of birth'
+                                : _formatDob(_dob!),
+                            style: TextStyle(
+                              color: _dob == null
+                                  ? Colors.white.withOpacity(0.3)
+                                  : Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
