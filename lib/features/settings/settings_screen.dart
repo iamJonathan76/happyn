@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/settings/legal_page_screen.dart';
+import 'package:happyn/core/providers/legal_provider.dart';
 
 /// Écran Settings complet, suivant la structure du « Account & Settings » doc.
 /// Les items fonctionnels naviguent ; ceux pas encore prêts affichent
 /// « Coming soon » et portent un petit badge.
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   static const String appVersion = '1.0.0';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final legalDocs = ref.watch(legalDocsProvider).asData?.value;
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
       appBar: AppBar(
@@ -71,17 +74,16 @@ class SettingsScreen extends StatelessWidget {
           _soon(context, Icons.support_agent, 'Contact Support'),
           _soon(context, Icons.flag_outlined, 'Report a Problem'),
 
-          // ── Legal ─────────────────────────────────────────────────
+          // ── Legal (piloté par la DB : legal_documents) ────────────
           _section('Legal'),
-          _legal(context, Icons.description_outlined, 'Terms of Service', 'terms'),
-          _legal(context, Icons.privacy_tip_outlined, 'Privacy Policy', 'privacy'),
-          _legal(context, Icons.groups_outlined, 'Community Guidelines', 'community'),
-          _legal(context, Icons.cookie_outlined, 'Cookie Policy', 'cookie'),
-          _legal(context, Icons.copyright, 'Copyright Policy', 'copyright'),
-          _legal(context, Icons.receipt_long_outlined, 'Refund Policy', 'refund'),
-          _legal(context, Icons.shield_outlined, 'Safety Policy', 'safety'),
-          _legal(context, Icons.verified_user_outlined, 'Organizer Standards',
-              'organizer'),
+          ...(legalDocs != null && legalDocs.isNotEmpty
+                  ? legalDocs.map((d) => _legal(
+                      context,
+                      _legalIcon(d['slug'] as String),
+                      (d['title'] ?? 'Document') as String,
+                      d['slug'] as String))
+                  : _fallbackLegalTiles(context))
+              .toList(),
 
           // ── About ─────────────────────────────────────────────────
           _section('About'),
@@ -199,6 +201,50 @@ class SettingsScreen extends StatelessWidget {
           onTap: () => Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => LegalPageScreen(docId: docId))),
           trailing: _chevron());
+
+  /// Icône associée à chaque document légal (par slug).
+  IconData _legalIcon(String slug) {
+    switch (slug) {
+      case 'terms':
+        return Icons.description_outlined;
+      case 'privacy':
+        return Icons.privacy_tip_outlined;
+      case 'community':
+        return Icons.groups_outlined;
+      case 'cookie':
+        return Icons.cookie_outlined;
+      case 'copyright':
+        return Icons.copyright;
+      case 'refund':
+        return Icons.receipt_long_outlined;
+      case 'payments':
+        return Icons.payments_outlined;
+      case 'fraud-prevention':
+        return Icons.gpp_maybe_outlined;
+      case 'safety':
+        return Icons.shield_outlined;
+      case 'organizer':
+        return Icons.verified_user_outlined;
+      case 'data-retention':
+        return Icons.storage_outlined;
+      default:
+        return Icons.article_outlined;
+    }
+  }
+
+  /// Liste embarquée utilisée si la DB est indisponible (hors-ligne).
+  List<Widget> _fallbackLegalTiles(BuildContext context) => [
+        _legal(context, Icons.description_outlined, 'Terms of Service', 'terms'),
+        _legal(context, Icons.privacy_tip_outlined, 'Privacy Policy', 'privacy'),
+        _legal(context, Icons.groups_outlined, 'Community Guidelines',
+            'community'),
+        _legal(context, Icons.cookie_outlined, 'Cookie Policy', 'cookie'),
+        _legal(context, Icons.copyright, 'Copyright Policy', 'copyright'),
+        _legal(context, Icons.receipt_long_outlined, 'Refund Policy', 'refund'),
+        _legal(context, Icons.shield_outlined, 'Safety Policy', 'safety'),
+        _legal(context, Icons.verified_user_outlined, 'Organizer Standards',
+            'organizer'),
+      ];
 
   Widget _soon(BuildContext context, IconData icon, String label) => _row(
         icon,
