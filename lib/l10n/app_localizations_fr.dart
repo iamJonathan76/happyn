@@ -948,4 +948,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get splashTagline => 'TROUVE LES BONS. VIS L\'INSTANT.';
+
+  @override
+  String get getDirections => 'Itinéraire';
+
+  @override
+  String get couldNotOpenMaps => 'Impossible d\'ouvrir une app de cartes.';
 }

@@ -930,4 +930,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get splashTagline => 'FIND THE ONES. BE THE MOMENT.';
+
+  @override
+  String get getDirections => 'Get directions';
+
+  @override
+  String get couldNotOpenMaps => 'Could not open a maps app.';
 }

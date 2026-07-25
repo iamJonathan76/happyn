@@ -303,5 +303,8 @@
   "onbSub3": "Des billets sécurisés en quelques secondes. Check-in par QR. Zéro stress, zéro FOMO. Juste l'expérience.",
   "onbContinue": "Continuer",
   "getStarted": "Commencer",
-  "splashTagline": "TROUVE LES BONS. VIS L'INSTANT."
+  "splashTagline": "TROUVE LES BONS. VIS L'INSTANT.",
+
+  "getDirections": "Itinéraire",
+  "couldNotOpenMaps": "Impossible d'ouvrir une app de cartes."
 }

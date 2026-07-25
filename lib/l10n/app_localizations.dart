@@ -1801,6 +1801,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'FIND THE ONES. BE THE MOMENT.'**
   String get splashTagline;
+
+  /// No description provided for @getDirections.
+  ///
+  /// In en, this message translates to:
+  /// **'Get directions'**
+  String get getDirections;
+
+  /// No description provided for @couldNotOpenMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open a maps app.'**
+  String get couldNotOpenMaps;
 }
 
 class _AppLocalizationsDelegate

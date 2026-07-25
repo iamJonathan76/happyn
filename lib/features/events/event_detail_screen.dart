@@ -12,6 +12,7 @@ import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
+import 'package:happyn/core/utils/maps.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
@@ -140,6 +141,20 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         ],
       ),
     );
+  }
+
+  /// Ouvre l'app Maps sur l'adresse de l'event (lieu + ville).
+  Future<void> _openDirections(Map<String, dynamic> ev) async {
+    final address = [ev['location'], ev['city']]
+        .where((s) => s != null && s.toString().trim().isNotEmpty)
+        .join(', ');
+    final ok = await openInMaps(address);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(AppLocalizations.of(context).couldNotOpenMaps)),
+      );
+    }
   }
 
   String _formatDate(String? dateStr) {
@@ -492,11 +507,38 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Location
+                      // Location — cliquable : ouvre l'app Maps (itinéraire).
                       _infoRow(
                         Icons.location_on_outlined,
                         (ev['location'] ?? 'TBD') as String,
                         (ev['city'] ?? '') as String,
+                        onTap: () => _openDirections(ev),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: AppColors.primary.withOpacity(0.35)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.directions,
+                                  color: AppColors.lavenderLight, size: 15),
+                              const SizedBox(width: 5),
+                              Text(
+                                l.getDirections,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.lavenderLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 24),
@@ -696,8 +738,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     );
   }
 
-  Widget _infoRow(IconData icon, String top, String bottom) {
-    return Container(
+  Widget _infoRow(IconData icon, String top, String bottom,
+      {VoidCallback? onTap, Widget? trailing}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.04),
@@ -745,7 +790,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               ],
             ),
           ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing,
+          ],
         ],
+      ),
       ),
     );
   }

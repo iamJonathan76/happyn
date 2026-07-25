@@ -331,5 +331,8 @@
   "onbSub3": "Secure tickets in seconds. QR check-in. No stress, no FOMO. Just pure experience.",
   "onbContinue": "Continue",
   "getStarted": "Get Started",
-  "splashTagline": "FIND THE ONES. BE THE MOMENT."
+  "splashTagline": "FIND THE ONES. BE THE MOMENT.",
+
+  "getDirections": "Get directions",
+  "couldNotOpenMaps": "Could not open a maps app."
 }
