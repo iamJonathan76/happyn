@@ -5,6 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
 
 /// Carte d'event en ligne (vignette + badge date + titre + lieu + cœur/prix).
 /// Partagée par le Home (« Popular near you ») et Discover. Le cœur est
@@ -13,14 +15,10 @@ class EventListCard extends ConsumerWidget {
   final Map<String, dynamic> event;
   const EventListCard({super.key, required this.event});
 
-  (String, String) _dateParts(String? s) {
-    if (s == null) return ('', '');
-    final dt = DateTime.parse(s);
-    const m = [
-      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
-    ];
-    return (m[dt.month - 1], dt.day.toString());
+  (String, String) _dateParts(BuildContext context, String? s) {
+    final dt = s == null ? null : DateTime.tryParse(s);
+    if (dt == null) return ('', '');
+    return (AppDates.monthBadge(context, s), dt.day.toString());
   }
 
   @override
@@ -29,9 +27,9 @@ class EventListCard extends ConsumerWidget {
     final eventId = ev['id'] as String;
     final cat = (ev['category'] ?? '') as String;
     final color = categoryColor(cat);
-    final (mon, day) = _dateParts(ev['start_date'] as String?);
+    final (mon, day) = _dateParts(context, ev['start_date'] as String?);
     final priceText = (ev['price'] == 0 || ev['price'] == null)
-        ? 'Free'
+        ? AppLocalizations.of(context).free
         : '\$${ev['price']}';
     final city = (ev['city'] ?? '') as String;
     final venue = (ev['location'] ?? '') as String;

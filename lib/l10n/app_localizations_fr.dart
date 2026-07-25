@@ -815,6 +815,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get couldNotDeleteEvent => 'Impossible de supprimer cet événement.';
 
   @override
+  String get cantDeleteHasTickets =>
+      'Suppression impossible : cet événement a des billets vendus. Annule-le plutôt.';
+
+  @override
   String get deleteEventTitle => 'Supprimer l\'événement ?';
 
   @override
@@ -902,4 +906,46 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get errSomethingWrongRetry =>
       'Une erreur est survenue. Veuillez réessayer.';
+
+  @override
+  String get navHome => 'Accueil';
+
+  @override
+  String get navDiscover => 'Découvrir';
+
+  @override
+  String get navTickets => 'Billets';
+
+  @override
+  String get navProfile => 'Profil';
+
+  @override
+  String get onbTitle1 => 'Découvre des événements\nprès de toi';
+
+  @override
+  String get onbSub1 =>
+      'Des clubs underground aux festivals sur les toits — trouve ce qui te fait vibrer, grâce à l\'intelligence locale en temps réel.';
+
+  @override
+  String get onbTitle2 => 'Connecte-toi\nà tes proches';
+
+  @override
+  String get onbSub2 =>
+      'Suis tes amis, rejoins des communautés, et sache toujours qui va où avant de t\'engager.';
+
+  @override
+  String get onbTitle3 => 'Vis l\'instant';
+
+  @override
+  String get onbSub3 =>
+      'Des billets sécurisés en quelques secondes. Check-in par QR. Zéro stress, zéro FOMO. Juste l\'expérience.';
+
+  @override
+  String get onbContinue => 'Continuer';
+
+  @override
+  String get getStarted => 'Commencer';
+
+  @override
+  String get splashTagline => 'TROUVE LES BONS. VIS L\'INSTANT.';
 }

@@ -6,6 +6,7 @@ import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'qr_ticket_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
 
 class MyTicketsScreen extends ConsumerStatefulWidget {
   const MyTicketsScreen({super.key});
@@ -216,11 +217,8 @@ class _TicketCard extends StatelessWidget {
     const bg = Color(0xFF13111C);
 
     String formatDate(String? d) {
-      if (d == null) return 'TBD';
-      final dt = DateTime.parse(d);
-      const months = ['Jan','Feb','Mar','Apr','May','Jun',
-          'Jul','Aug','Sep','Oct','Nov','Dec'];
-      return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+      if (d == null) return l.tbd;
+      return AppDates.dayMonthYear(context, d);
     }
 
     return GestureDetector(

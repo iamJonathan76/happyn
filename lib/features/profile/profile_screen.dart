@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
@@ -80,7 +81,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } catch (e) {
       if (mounted) {
         final msg = e.toString().contains('event_has_tickets')
-            ? "Can't delete: this event has sold tickets. Cancel it instead."
+            ? AppLocalizations.of(context).cantDeleteHasTickets
             : AppLocalizations.of(context).couldNotDeleteEvent;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -472,16 +473,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ── About Tab ──────────────────────────────────────────────────────────────
 
-  String _monthYear(String? iso) {
-    if (iso == null) return '—';
-    final dt = DateTime.tryParse(iso);
-    if (dt == null) return '—';
-    const m = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return '${m[dt.month - 1]} ${dt.year}';
-  }
+  String _monthYear(String? iso) => AppDates.monthYear(context, iso);
 
   Widget _buildAbout() {
     final city =

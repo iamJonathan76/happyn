@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -46,7 +47,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final slide = _slides[_currentSlide];
+    final titles = [l.onbTitle1, l.onbTitle2, l.onbTitle3];
+    final subs = [l.onbSub1, l.onbSub2, l.onbSub3];
 
     return Scaffold(
       backgroundColor: const Color(0xFF08080F),
@@ -102,7 +106,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
                       child: Text(
-                        'Skip',
+                        l.skip,
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -154,7 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   // Title
                   Text(
-                    slide['title'],
+                    titles[_currentSlide],
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
@@ -167,7 +171,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   // Subtitle
                   Text(
-                    slide['sub'],
+                    subs[_currentSlide],
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: const Color(0xFFF0EEFF).withOpacity(0.5),
@@ -231,7 +235,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            _currentSlide < 2 ? 'Continue' : 'Get Started',
+                            _currentSlide < 2 ? l.onbContinue : l.getStarted,
                             style: GoogleFonts.poppins(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,

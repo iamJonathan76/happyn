@@ -799,6 +799,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldNotDeleteEvent => 'Could not delete this event.';
 
   @override
+  String get cantDeleteHasTickets =>
+      'Can\'t delete: this event has sold tickets. Cancel it instead.';
+
+  @override
   String get deleteEventTitle => 'Delete event?';
 
   @override
@@ -884,4 +888,46 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errSomethingWrongRetry =>
       'Something went wrong. Please try again.';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navDiscover => 'Discover';
+
+  @override
+  String get navTickets => 'Tickets';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get onbTitle1 => 'Discover Events\nNear You';
+
+  @override
+  String get onbSub1 =>
+      'From underground clubs to rooftop festivals — find what moves you, powered by real-time local intelligence.';
+
+  @override
+  String get onbTitle2 => 'Connect With\nYour People';
+
+  @override
+  String get onbSub2 =>
+      'Follow friends, join communities, and always know who is going where before you commit.';
+
+  @override
+  String get onbTitle3 => 'Be the Moment';
+
+  @override
+  String get onbSub3 =>
+      'Secure tickets in seconds. QR check-in. No stress, no FOMO. Just pure experience.';
+
+  @override
+  String get onbContinue => 'Continue';
+
+  @override
+  String get getStarted => 'Get Started';
+
+  @override
+  String get splashTagline => 'FIND THE ONES. BE THE MOMENT.';
 }

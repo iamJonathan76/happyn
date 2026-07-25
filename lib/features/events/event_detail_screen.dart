@@ -10,6 +10,7 @@ import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
@@ -141,34 +142,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   }
 
   String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'TBD';
-    final dt = DateTime.parse(dateStr);
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    if (dateStr == null) return AppLocalizations.of(context).tbd;
+    return AppDates.dowDayMonthYear(context, dateStr);
   }
 
   String _formatTime(String? dateStr) {
-    if (dateStr == null) return 'TBD';
-    final dt = DateTime.parse(dateStr);
-    final hour = dt.hour;
-    final minute = dt.minute.toString().padLeft(2, '0');
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    return '$displayHour:$minute $period';
+    if (dateStr == null) return AppLocalizations.of(context).tbd;
+    return AppDates.time(context, dateStr);
   }
 
   @override

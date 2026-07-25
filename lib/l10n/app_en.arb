@@ -285,6 +285,7 @@
   "memberSince": "Member since",
   "eventDeleted": "Event deleted",
   "couldNotDeleteEvent": "Could not delete this event.",
+  "cantDeleteHasTickets": "Can't delete: this event has sold tickets. Cancel it instead.",
   "deleteEventTitle": "Delete event?",
   "deleteEventBody": "This action cannot be undone.",
   "cancel": "Cancel",
@@ -315,5 +316,20 @@
   "openEvent": "Open event",
   "errEnterInviteCode": "Enter the invite code.",
   "errNoPrivateEvent": "No private event found for that code.",
-  "errSomethingWrongRetry": "Something went wrong. Please try again."
+  "errSomethingWrongRetry": "Something went wrong. Please try again.",
+
+  "navHome": "Home",
+  "navDiscover": "Discover",
+  "navTickets": "Tickets",
+  "navProfile": "Profile",
+
+  "onbTitle1": "Discover Events\nNear You",
+  "onbSub1": "From underground clubs to rooftop festivals — find what moves you, powered by real-time local intelligence.",
+  "onbTitle2": "Connect With\nYour People",
+  "onbSub2": "Follow friends, join communities, and always know who is going where before you commit.",
+  "onbTitle3": "Be the Moment",
+  "onbSub3": "Secure tickets in seconds. QR check-in. No stress, no FOMO. Just pure experience.",
+  "onbContinue": "Continue",
+  "getStarted": "Get Started",
+  "splashTagline": "FIND THE ONES. BE THE MOMENT."
 }

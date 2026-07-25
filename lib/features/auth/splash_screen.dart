@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -148,7 +149,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                     // Tagline
                     Text(
-                      'FIND THE ONES. BE THE MOMENT.',
+                      AppLocalizations.of(context).splashTagline,
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,

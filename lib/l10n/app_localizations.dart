@@ -1550,6 +1550,12 @@ abstract class AppLocalizations {
   /// **'Could not delete this event.'**
   String get couldNotDeleteEvent;
 
+  /// No description provided for @cantDeleteHasTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t delete: this event has sold tickets. Cancel it instead.'**
+  String get cantDeleteHasTickets;
+
   /// No description provided for @deleteEventTitle.
   ///
   /// In en, this message translates to:
@@ -1717,6 +1723,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get errSomethingWrongRetry;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get navDiscover;
+
+  /// No description provided for @navTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets'**
+  String get navTickets;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
+
+  /// No description provided for @onbTitle1.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover Events\nNear You'**
+  String get onbTitle1;
+
+  /// No description provided for @onbSub1.
+  ///
+  /// In en, this message translates to:
+  /// **'From underground clubs to rooftop festivals — find what moves you, powered by real-time local intelligence.'**
+  String get onbSub1;
+
+  /// No description provided for @onbTitle2.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect With\nYour People'**
+  String get onbTitle2;
+
+  /// No description provided for @onbSub2.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow friends, join communities, and always know who is going where before you commit.'**
+  String get onbSub2;
+
+  /// No description provided for @onbTitle3.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the Moment'**
+  String get onbTitle3;
+
+  /// No description provided for @onbSub3.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure tickets in seconds. QR check-in. No stress, no FOMO. Just pure experience.'**
+  String get onbSub3;
+
+  /// No description provided for @onbContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get onbContinue;
+
+  /// No description provided for @getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get getStarted;
+
+  /// No description provided for @splashTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'FIND THE ONES. BE THE MOMENT.'**
+  String get splashTagline;
 }
 
 class _AppLocalizationsDelegate

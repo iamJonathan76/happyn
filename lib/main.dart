@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/locale_provider.dart';
 import 'core/theme/app_theme.dart';
@@ -15,6 +16,9 @@ import 'package:happyn/features/main_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Données de formatage des dates (mois/jours localisés FR/EN).
+  await initializeDateFormatting();
 
   await Supabase.initialize(
     url: 'https://jvjvuozvlzqqmcjanvnh.supabase.co',

@@ -12,6 +12,7 @@ import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/utils/secure_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
 
 class QrTicketScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> ticket;
@@ -107,10 +108,8 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
   }
 
   String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'TBD';
-    final dt = DateTime.parse(dateStr);
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    if (dateStr == null) return AppLocalizations.of(context).tbd;
+    return AppDates.dayMonthYear(context, dateStr);
   }
 
   @override

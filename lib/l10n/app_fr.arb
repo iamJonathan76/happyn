@@ -257,6 +257,7 @@
   "memberSince": "Membre depuis",
   "eventDeleted": "Événement supprimé",
   "couldNotDeleteEvent": "Impossible de supprimer cet événement.",
+  "cantDeleteHasTickets": "Suppression impossible : cet événement a des billets vendus. Annule-le plutôt.",
   "deleteEventTitle": "Supprimer l'événement ?",
   "deleteEventBody": "Cette action est irréversible.",
   "cancel": "Annuler",
@@ -287,5 +288,20 @@
   "openEvent": "Ouvrir l'événement",
   "errEnterInviteCode": "Entre le code d'invitation.",
   "errNoPrivateEvent": "Aucun événement privé trouvé pour ce code.",
-  "errSomethingWrongRetry": "Une erreur est survenue. Veuillez réessayer."
+  "errSomethingWrongRetry": "Une erreur est survenue. Veuillez réessayer.",
+
+  "navHome": "Accueil",
+  "navDiscover": "Découvrir",
+  "navTickets": "Billets",
+  "navProfile": "Profil",
+
+  "onbTitle1": "Découvre des événements\nprès de toi",
+  "onbSub1": "Des clubs underground aux festivals sur les toits — trouve ce qui te fait vibrer, grâce à l'intelligence locale en temps réel.",
+  "onbTitle2": "Connecte-toi\nà tes proches",
+  "onbSub2": "Suis tes amis, rejoins des communautés, et sache toujours qui va où avant de t'engager.",
+  "onbTitle3": "Vis l'instant",
+  "onbSub3": "Des billets sécurisés en quelques secondes. Check-in par QR. Zéro stress, zéro FOMO. Juste l'expérience.",
+  "onbContinue": "Continuer",
+  "getStarted": "Commencer",
+  "splashTagline": "TROUVE LES BONS. VIS L'INSTANT."
 }

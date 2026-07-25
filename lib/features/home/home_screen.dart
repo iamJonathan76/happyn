@@ -14,6 +14,7 @@ import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/notifications/notifications_screen.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 // Note: ConsumerStatefulWidget au lieu de StatefulWidget car on garde
@@ -511,14 +512,10 @@ class _HeroCard extends ConsumerWidget {
   final Map<String, dynamic> event;
   const _HeroCard({required this.event});
 
-  (String, String) _dateParts(String? s) {
-    if (s == null) return ('', '');
-    final dt = DateTime.parse(s);
-    const m = [
-      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
-    ];
-    return (m[dt.month - 1], dt.day.toString());
+  (String, String) _dateParts(BuildContext context, String? s) {
+    final dt = s == null ? null : DateTime.tryParse(s);
+    if (dt == null) return ('', '');
+    return (AppDates.monthBadge(context, s), dt.day.toString());
   }
 
   @override
@@ -527,7 +524,7 @@ class _HeroCard extends ConsumerWidget {
     final eventId = ev['id'] as String;
     final cat = (ev['category'] ?? '') as String;
     final color = categoryColor(cat);
-    final (mon, day) = _dateParts(ev['start_date'] as String?);
+    final (mon, day) = _dateParts(context, ev['start_date'] as String?);
     final priceText = (ev['price'] == 0 || ev['price'] == null)
         ? AppLocalizations.of(context).free
         : '\$${ev['price']}';

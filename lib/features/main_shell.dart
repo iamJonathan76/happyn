@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/home/home_screen.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
@@ -51,12 +52,13 @@ class _MainShellState extends State<MainShell> {
   }
 
   Widget _buildBottomNav() {
+    final l = AppLocalizations.of(context);
     final items = [
-      {'icon': Icons.home_rounded, 'label': 'Home'},
-      {'icon': Icons.explore_outlined, 'label': 'Discover'},
+      {'icon': Icons.home_rounded, 'label': l.navHome},
+      {'icon': Icons.explore_outlined, 'label': l.navDiscover},
       {'icon': Icons.add, 'label': ''},
-      {'icon': Icons.confirmation_number_outlined, 'label': 'Tickets'},
-      {'icon': Icons.person_outline, 'label': 'Profile'},
+      {'icon': Icons.confirmation_number_outlined, 'label': l.navTickets},
+      {'icon': Icons.person_outline, 'label': l.navProfile},
     ];
 
     return Container(
