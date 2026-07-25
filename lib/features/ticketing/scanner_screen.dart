@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -106,7 +107,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // Caméra
@@ -120,7 +121,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               height: 250,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF7C3AED), width: 3),
+                border: Border.all(color: AppColors.primary, width: 3),
               ),
             ),
           ),
@@ -167,7 +168,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             Container(
               color: Colors.black.withOpacity(0.6),
               child: const Center(
-                child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             ),
 
@@ -181,11 +182,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Widget _resultOverlay() {
     final l = AppLocalizations.of(context);
     final (color, icon, title) = switch (_result) {
-      _ResultKind.admitted => (const Color(0xFF1DB954), Icons.check_circle, l.scanResultAdmitted),
-      _ResultKind.alreadyUsed => (const Color(0xFFF97316), Icons.error, l.scanResultAlreadyUsed),
-      _ResultKind.expired => (const Color(0xFFF97316), Icons.timer_off, l.scanResultExpired),
-      _ResultKind.notAuthorized => (const Color(0xFFFF4B4B), Icons.block, l.scanResultNotAuthorized),
-      _ => (const Color(0xFFFF4B4B), Icons.cancel, l.scanResultInvalid),
+      _ResultKind.admitted => (AppColors.success, Icons.check_circle, l.scanResultAdmitted),
+      _ResultKind.alreadyUsed => (AppColors.warning, Icons.error, l.scanResultAlreadyUsed),
+      _ResultKind.expired => (AppColors.warning, Icons.timer_off, l.scanResultExpired),
+      _ResultKind.notAuthorized => (AppColors.error, Icons.block, l.scanResultNotAuthorized),
+      _ => (AppColors.error, Icons.cancel, l.scanResultInvalid),
     };
 
     return Container(
@@ -222,7 +223,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                      colors: [AppColors.primary, AppColors.pink],
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),

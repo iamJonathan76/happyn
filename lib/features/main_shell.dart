@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/home/home_screen.dart';
@@ -42,7 +43,7 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: IndexedStack(
         index: _currentIndex == 2 ? 0 : _currentIndex,
         children: _pages,
@@ -63,7 +64,7 @@ class _MainShellState extends State<MainShell> {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF08080F).withOpacity(0.96),
+        color: AppColors.background.withOpacity(0.96),
         border: Border(top: BorderSide(color: Colors.white.withOpacity(0.07))),
       ),
       padding: EdgeInsets.only(
@@ -95,14 +96,14 @@ class _MainShellState extends State<MainShell> {
                 height: 48,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    colors: [AppColors.primary, AppColors.pink],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7C3AED).withOpacity(0.55),
+                      color: AppColors.primary.withOpacity(0.55),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -135,7 +136,7 @@ class _MainShellState extends State<MainShell> {
                   item['icon'] as IconData,
                   size: 22,
                   color: isActive
-                      ? const Color(0xFFA78BFA)
+                      ? AppColors.lavender
                       : Colors.white.withOpacity(0.32),
                 ),
                 const SizedBox(height: 2),
@@ -145,7 +146,7 @@ class _MainShellState extends State<MainShell> {
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
                     color: isActive
-                        ? const Color(0xFFA78BFA)
+                        ? AppColors.lavender
                         : Colors.white.withOpacity(0.3),
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -92,10 +93,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _categories = ['All', ..._catData.map((c) => c['name'] as String)];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: RefreshIndicator(
-        color: const Color(0xFF7C3AED),
-        backgroundColor: const Color(0xFF1A1535),
+        color: AppColors.primary,
+        backgroundColor: AppColors.card,
         onRefresh: _refresh,
         child: CustomScrollView(
           controller: widget.scrollController,
@@ -137,7 +138,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFFF0EEFF).withOpacity(0.5),
+                      color: AppColors.textLight.withOpacity(0.5),
                     ),
                   ),
                   TextSpan(
@@ -185,10 +186,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           padding: const EdgeInsets.all(4),
                           constraints: const BoxConstraints(minWidth: 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEC4899),
+                            color: AppColors.pink,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                                color: const Color(0xFF08080F), width: 1.5),
+                                color: AppColors.background, width: 1.5),
                           ),
                           child: Text(
                             '${ref.watch(unreadCountProvider)}',
@@ -211,14 +212,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 height: 36,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    colors: [AppColors.primary, AppColors.pink],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7C3AED).withOpacity(0.55),
+                      color: AppColors.primary.withOpacity(0.55),
                       blurRadius: 12,
                     ),
                   ],
@@ -291,10 +292,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C3AED).withOpacity(0.18),
+                color: AppColors.primary.withOpacity(0.18),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.tune, color: Color(0xFFA78BFA), size: 14),
+              child: const Icon(Icons.tune, color: AppColors.lavender, size: 14),
             ),
             ],
           ),
@@ -311,14 +312,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
       child: Row(
         children: [
-          const Icon(Icons.navigation, color: Color(0xFFEC4899), size: 13),
+          const Icon(Icons.navigation, color: AppColors.pink, size: 13),
           const SizedBox(width: 5),
           Text(
             AppLocalizations.of(context).eventsToDiscover(count),
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFFF0EEFF).withOpacity(0.45),
+              color: AppColors.textLight.withOpacity(0.45),
             ),
           ),
         ],
@@ -340,7 +341,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final label =
                 i == 0 ? AppLocalizations.of(context).categoryAll : _categories[i];
             final color =
-                i == 0 ? const Color(0xFFA78BFA) : categoryColor(label);
+                i == 0 ? AppColors.lavender : categoryColor(label);
 
             return GestureDetector(
               onTap: () => setState(() => _selectedCat = i),
@@ -389,7 +390,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         fontWeight: FontWeight.w600,
                         color: isActive
                             ? Colors.white
-                            : const Color(0xFFF0EEFF).withOpacity(0.5),
+                            : AppColors.textLight.withOpacity(0.5),
                       ),
                     ),
                   ],
@@ -426,11 +427,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFFA78BFA),
+                      color: AppColors.lavender,
                     ),
                   ),
                   const Icon(Icons.chevron_right,
-                      color: Color(0xFFA78BFA), size: 14),
+                      color: AppColors.lavender, size: 14),
                 ],
               ),
             ),
@@ -444,7 +445,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       loading: () => const SizedBox(
         height: 252,
         child: Center(
-          child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       ),
       error: (err, _) => SizedBox(
@@ -540,7 +541,7 @@ class _HeroCard extends ConsumerWidget {
         width: 290,
         margin: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF13111C),
+          color: AppColors.cardDark,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: Colors.white.withOpacity(0.06)),
           boxShadow: [
@@ -566,12 +567,12 @@ class _HeroCard extends ConsumerWidget {
                       imageUrl: (ev['image_url'] ?? '') as String,
                       fit: BoxFit.cover,
                       placeholder: (_, _) =>
-                          Container(color: const Color(0xFF1A0F3D)),
+                          Container(color: AppColors.imagePlaceholder),
                       errorWidget: (_, _, _) => Container(
-                        color: const Color(0xFF1A0F3D),
+                        color: AppColors.imagePlaceholder,
                         child: Center(
                           child: Icon(categoryIcon(cat),
-                              color: const Color(0xFF7C3AED), size: 38),
+                              color: AppColors.primary, size: 38),
                         ),
                       ),
                     ),
@@ -592,14 +593,14 @@ class _HeroCard extends ConsumerWidget {
                               style: GoogleFonts.inter(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w800,
-                                color: const Color(0xFFEC4899),
+                                color: AppColors.pink,
                                 letterSpacing: 0.5,
                               )),
                           Text(day,
                               style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
-                                color: const Color(0xFF08080F),
+                                color: AppColors.background,
                                 height: 1,
                               )),
                         ],
@@ -623,7 +624,7 @@ class _HeroCard extends ConsumerWidget {
                         ),
                         child: Icon(
                           isFav ? Icons.favorite : Icons.favorite_border,
-                          color: isFav ? const Color(0xFFEC4899) : Colors.white,
+                          color: isFav ? AppColors.pink : Colors.white,
                           size: 16,
                         ),
                       ),

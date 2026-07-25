@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +91,7 @@ class _PaymentProcessingScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -108,7 +109,7 @@ class _PaymentProcessingScreenState
         const SizedBox(
           width: 56,
           height: 56,
-          child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
         const SizedBox(height: 28),
         Text(
@@ -138,7 +139,7 @@ class _PaymentProcessingScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         const Icon(Icons.hourglass_bottom,
-            color: Color(0xFFF97316), size: 64),
+            color: AppColors.warning, size: 64),
         const SizedBox(height: 20),
         Text(
           l.almostThere,
@@ -166,7 +167,7 @@ class _PaymentProcessingScreenState
                 const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                colors: [AppColors.primary, AppColors.pink],
               ),
               borderRadius: BorderRadius.circular(16),
             ),

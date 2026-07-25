@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/core/providers/events_provider.dart';
@@ -108,7 +109,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     _filters = ['All', 'Tonight', 'Free', ...ref.watch(categoryNamesProvider)];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
@@ -145,7 +146,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     child: Row(
                       children: [
                         const Icon(Icons.vpn_key,
-                            size: 14, color: Color(0xFFC4B5FD)),
+                            size: 14, color: AppColors.lavenderLight),
                         const SizedBox(width: 6),
                         Text(
                           l.haveACode,
@@ -246,7 +247,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     decoration: BoxDecoration(
                       gradient: isActive
                           ? const LinearGradient(
-                              colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                              colors: [AppColors.primary, AppColors.pink],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             )
@@ -259,9 +260,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       boxShadow: isActive
                           ? [
                               BoxShadow(
-                                color: const Color(
-                                  0xFF7C3AED,
-                                ).withOpacity(0.55),
+                                color: AppColors.primary.withOpacity(0.55),
                                 blurRadius: 10,
                               ),
                             ]
@@ -289,7 +288,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           Expanded(
             child: eventsAsync.when(
               loading: () => const Center(
-                child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
               error: (err, _) => Center(
                 child: Text(
@@ -303,8 +302,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               data: (allEvents) {
                 final filtered = _applyFilters(allEvents);
                 return RefreshIndicator(
-                  color: const Color(0xFF7C3AED),
-                  backgroundColor: const Color(0xFF1A1535),
+                  color: AppColors.primary,
+                  backgroundColor: AppColors.card,
                   onRefresh: _refresh,
                   child: Column(
                     children: [

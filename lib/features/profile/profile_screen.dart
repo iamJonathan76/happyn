@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -71,7 +72,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           SnackBar(
             content: Text(AppLocalizations.of(context).eventDeleted,
                 style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
+            backgroundColor: AppColors.card,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12)),
@@ -86,7 +87,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
+            backgroundColor: AppColors.card,
             behavior: SnackBarBehavior.floating,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -107,7 +108,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isLoading = eventsAsync.isLoading;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: NestedScrollView(
         headerSliverBuilder: (context, _) => [
           SliverToBoxAdapter(
@@ -126,7 +127,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   height: 120,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF4C1D95), Color(0xFF7C3AED), Color(0xFFEC4899)],
+                      colors: [Color(0xFF4C1D95), AppColors.primary, AppColors.pink],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -166,7 +167,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
-                            colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                            colors: [AppColors.primary, AppColors.pink],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -289,7 +290,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 height: 46,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    colors: [AppColors.primary, AppColors.pink],
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -317,7 +318,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             pinned: true,
             delegate: _SliverTabBar(
               child: Container(
-                color: const Color(0xFF08080F),
+                color: AppColors.background,
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                 child: Row(
                   children: [
@@ -331,8 +332,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ],
         body: RefreshIndicator(
-          color: const Color(0xFF7C3AED),
-          backgroundColor: const Color(0xFF1A1535),
+          color: AppColors.primary,
+          backgroundColor: AppColors.card,
           onRefresh: () async {
             ref.invalidate(eventsProvider);
             ref.invalidate(favoritesProvider);
@@ -363,7 +364,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           decoration: BoxDecoration(
             gradient: isActive
                 ? const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    colors: [AppColors.primary, AppColors.pink],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   )
@@ -404,7 +405,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (loading && favEvents.isEmpty) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
     if (favEvents.isEmpty) {
@@ -450,7 +451,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildMyEvents(bool isLoading, List<Map<String, dynamic>> myEvents) {
     if (isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
@@ -498,23 +499,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               width: double.infinity,
               height: 50,
               decoration: BoxDecoration(
-                color: const Color(0xFFFF4B4B).withOpacity(0.12),
+                color: AppColors.error.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: const Color(0xFFFF4B4B).withOpacity(0.3),
+                  color: AppColors.error.withOpacity(0.3),
                 ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.logout, color: Color(0xFFFF4B4B), size: 18),
+                  const Icon(Icons.logout, color: AppColors.error, size: 18),
                   const SizedBox(width: 8),
                   Text(
                     AppLocalizations.of(context).signOut,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFFFF4B4B),
+                      color: AppColors.error,
                     ),
                   ),
                 ],
@@ -528,7 +529,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _initialsAvatar() => Container(
         width: 78,
         height: 78,
-        color: const Color(0xFF1A1535),
+        color: AppColors.card,
         child: Center(
           child: Text(
             _userInitials,
@@ -584,7 +585,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFFA78BFA), size: 18),
+          Icon(icon, color: AppColors.lavender, size: 18),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -651,10 +652,10 @@ class _EventTile extends StatelessWidget {
               height: 60,
               fit: BoxFit.cover,
               placeholder: (_, _) =>
-                  Container(color: const Color(0xFF1A1535)),
+                  Container(color: AppColors.card),
               errorWidget: (_, _, _) => Container(
-                color: const Color(0xFF1A1535),
-                child: const Icon(Icons.event, color: Color(0xFF7C3AED)),
+                color: AppColors.card,
+                child: const Icon(Icons.event, color: AppColors.primary),
               ),
             ),
           ),
@@ -684,7 +685,7 @@ class _EventTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C3AED).withOpacity(0.2),
+                        color: AppColors.primary.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -692,7 +693,7 @@ class _EventTile extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFFA78BFA),
+                          color: AppColors.lavender,
                         ),
                       ),
                     ),
@@ -707,10 +708,10 @@ class _EventTile extends StatelessWidget {
                       final st = eventStatus(event);
                       final (label, color) = st == 'cancelled'
                           ? (AppLocalizations.of(context).statusCancelled,
-                              const Color(0xFFFF4B4B))
+                              AppColors.error)
                           : st == 'draft'
                               ? (AppLocalizations.of(context).statusUnpublished,
-                                  const Color(0xFFFBBF24))
+                                  AppColors.amber)
                               : isEventPast(event)
                                   ? (AppLocalizations.of(context).statusEnded,
                                       Colors.white.withOpacity(0.5))
@@ -747,12 +748,12 @@ class _EventTile extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF4B4B).withOpacity(0.1),
+                color: AppColors.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
                 Icons.delete_outline,
-                color: Color(0xFFFF4B4B),
+                color: AppColors.error,
                 size: 16,
               ),
             ),
@@ -767,7 +768,7 @@ class _EventTile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           AppLocalizations.of(context).deleteEventTitle,
@@ -791,7 +792,7 @@ class _EventTile extends StatelessWidget {
             },
             child: Text(AppLocalizations.of(context).delete,
                 style: GoogleFonts.inter(
-                    color: const Color(0xFFFF4B4B),
+                    color: AppColors.error,
                     fontWeight: FontWeight.w700)),
           ),
         ],

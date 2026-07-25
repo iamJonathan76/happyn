@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/l10n/app_localizations.dart';
@@ -20,7 +21,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
   bool _loading = false;
   String? _error;
 
-  static const _page = Color(0xFF08080F);
+  static const _page = AppColors.background;
 
   @override
   void dispose() {
@@ -97,11 +98,11 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C3AED).withOpacity(0.15),
+                  color: AppColors.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Icon(Icons.lock_open,
-                    color: Color(0xFFC4B5FD), size: 26),
+                    color: AppColors.lavenderLight, size: 26),
               ),
               const SizedBox(height: 18),
               Text(
@@ -153,7 +154,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: Color(0xFF7C3AED)),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -170,9 +171,9 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C3AED),
+                    backgroundColor: AppColors.primary,
                     disabledBackgroundColor:
-                        const Color(0xFF7C3AED).withOpacity(0.5),
+                        AppColors.primary.withOpacity(0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),

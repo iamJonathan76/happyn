@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -49,15 +50,15 @@ class NotificationsScreen extends ConsumerWidget {
   (IconData, Color) _visual(String type) {
     switch (type) {
       case 'ticket_confirmed':
-        return (Icons.confirmation_number, const Color(0xFF34D399));
+        return (Icons.confirmation_number, AppColors.green);
       case 'ticket_received':
-        return (Icons.card_giftcard, const Color(0xFF34D399));
+        return (Icons.card_giftcard, AppColors.green);
       case 'event_cancelled':
-        return (Icons.cancel, const Color(0xFFFF4B4B));
+        return (Icons.cancel, AppColors.error);
       case 'event_updated':
-        return (Icons.edit_calendar, const Color(0xFFFBBF24));
+        return (Icons.edit_calendar, AppColors.amber);
       default:
-        return (Icons.notifications, const Color(0xFFA78BFA));
+        return (Icons.notifications, AppColors.lavender);
     }
   }
 
@@ -80,9 +81,9 @@ class NotificationsScreen extends ConsumerWidget {
     final unread = ref.watch(unreadCountProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF08080F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
@@ -106,7 +107,7 @@ class NotificationsScreen extends ConsumerWidget {
                 style: GoogleFonts.inter(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFFA78BFA),
+                  color: AppColors.lavender,
                 ),
               ),
             ),
@@ -114,13 +115,13 @@ class NotificationsScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C3AED))),
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (_, __) => _empty(l),
         data: (list) {
           if (list.isEmpty) return _empty(l);
           return RefreshIndicator(
-            color: const Color(0xFF7C3AED),
-            backgroundColor: const Color(0xFF1A1535),
+            color: AppColors.primary,
+            backgroundColor: AppColors.card,
             onRefresh: () async {
               ref.invalidate(notificationsProvider);
               await ref.read(notificationsProvider.future);

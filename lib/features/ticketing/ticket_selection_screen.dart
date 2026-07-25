@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -76,7 +77,7 @@ class _TicketSelectionScreenState
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(l.ageRequirementLabel,
             style: GoogleFonts.poppins(
@@ -90,7 +91,7 @@ class _TicketSelectionScreenState
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l.ok,
-                style: GoogleFonts.inter(color: const Color(0xFFA78BFA))),
+                style: GoogleFonts.inter(color: AppColors.lavender)),
           ),
         ],
       ),
@@ -196,7 +197,7 @@ class _TicketSelectionScreenState
           SnackBar(
             content: Text(l.paymentCancelled,
                 style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
+            backgroundColor: AppColors.card,
             behavior: SnackBarBehavior.floating,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -223,7 +224,7 @@ class _TicketSelectionScreenState
           SnackBar(
             content: Text(friendly,
                 style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
+            backgroundColor: AppColors.card,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -241,7 +242,7 @@ class _TicketSelectionScreenState
     final imageUrl = (ev['image_url'] ?? '') as String;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           // ── Header ──────────────────────────────────────────────
@@ -253,15 +254,15 @@ class _TicketSelectionScreenState
                 CachedNetworkImage(
                   imageUrl: imageUrl,
                   fit: BoxFit.cover,
-                  placeholder: (_, _) => Container(color: const Color(0xFF1A0F3D)),
-                  errorWidget: (_, _, _) => Container(color: const Color(0xFF1A0F3D)),
+                  placeholder: (_, _) => Container(color: AppColors.imagePlaceholder),
+                  errorWidget: (_, _, _) => Container(color: AppColors.imagePlaceholder),
                 ),
                 Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Color(0x44080F0F), Color(0xFF08080F)],
+                      colors: [Color(0x44080F0F), AppColors.background],
                     ),
                   ),
                 ),
@@ -302,7 +303,7 @@ class _TicketSelectionScreenState
                       Row(
                         children: [
                           const Icon(Icons.location_on,
-                              color: Color(0xFFA78BFA), size: 12),
+                              color: AppColors.lavender, size: 12),
                           const SizedBox(width: 4),
                           Text(
                             (ev['location'] ?? '') as String,
@@ -324,7 +325,7 @@ class _TicketSelectionScreenState
           Expanded(
             child: _isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF7C3AED)))
+                    child: CircularProgressIndicator(color: AppColors.primary))
                 : _ticketTypes.isEmpty
                     ? _buildNoTickets()
                     : SingleChildScrollView(
@@ -366,12 +367,12 @@ class _TicketSelectionScreenState
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? const Color(0xFF7C3AED).withOpacity(0.12)
+                                        ? AppColors.primary.withOpacity(0.12)
                                         : Colors.white.withOpacity(0.04),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: isSelected
-                                          ? const Color(0xFF7C3AED)
+                                          ? AppColors.primary
                                           : Colors.white.withOpacity(0.08),
                                       width: isSelected ? 1.5 : 1,
                                     ),
@@ -386,7 +387,7 @@ class _TicketSelectionScreenState
                                           shape: BoxShape.circle,
                                           border: Border.all(
                                             color: isSelected
-                                                ? const Color(0xFF7C3AED)
+                                                ? AppColors.primary
                                                 : Colors.white.withOpacity(0.3),
                                             width: 2,
                                           ),
@@ -398,7 +399,7 @@ class _TicketSelectionScreenState
                                                   height: 10,
                                                   decoration: const BoxDecoration(
                                                     shape: BoxShape.circle,
-                                                    color: Color(0xFF7C3AED),
+                                                    color: AppColors.primary,
                                                   ),
                                                 ),
                                               )
@@ -429,7 +430,7 @@ class _TicketSelectionScreenState
                                                     padding: const EdgeInsets.symmetric(
                                                         horizontal: 6, vertical: 2),
                                                     decoration: BoxDecoration(
-                                                      color: const Color(0xFFEC4899)
+                                                      color: AppColors.pink
                                                           .withOpacity(0.2),
                                                       borderRadius:
                                                           BorderRadius.circular(6),
@@ -439,7 +440,7 @@ class _TicketSelectionScreenState
                                                       style: GoogleFonts.inter(
                                                         fontSize: 9,
                                                         fontWeight: FontWeight.w700,
-                                                        color: const Color(0xFFEC4899),
+                                                        color: AppColors.pink,
                                                       ),
                                                     ),
                                                   ),
@@ -468,7 +469,7 @@ class _TicketSelectionScreenState
                                           fontWeight: FontWeight.w900,
                                           color: isSoldOut
                                               ? Colors.white.withOpacity(0.3)
-                                              : const Color(0xFFC4B5FD),
+                                              : AppColors.lavenderLight,
                                         ),
                                       ),
                                     ],
@@ -567,14 +568,14 @@ class _TicketSelectionScreenState
                         height: 56,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                            colors: [AppColors.primary, AppColors.pink],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF7C3AED).withOpacity(0.55),
+                              color: AppColors.primary.withOpacity(0.55),
                               blurRadius: 20,
                               offset: const Offset(0, 6),
                             ),

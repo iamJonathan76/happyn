@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -118,7 +119,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
           SnackBar(
             content: Text(AppLocalizations.of(context).couldNotSaveLater,
                 style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
+            backgroundColor: AppColors.card,
             behavior: SnackBarBehavior.floating,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -135,7 +136,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     final categories = ref.watch(categoryNamesProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -160,7 +161,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFFA78BFA),
+                        color: AppColors.lavender,
                       ),
                     ),
                   ),
@@ -198,7 +199,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
-                                colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                                colors: [AppColors.primary, AppColors.pink],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -210,7 +211,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                   : Container(
                                       width: 98,
                                       height: 98,
-                                      color: const Color(0xFF1A1535),
+                                      color: AppColors.card,
                                       child: Center(
                                         child: Text(
                                           _initials,
@@ -230,10 +231,10 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7C3AED),
+                                color: AppColors.primary,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: const Color(0xFF08080F), width: 2),
+                                    color: AppColors.background, width: 2),
                               ),
                               child: const Icon(Icons.camera_alt,
                                   color: Colors.white, size: 14),
@@ -337,7 +338,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   height: 54,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                      colors: [AppColors.primary, AppColors.pink],
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -398,7 +399,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -71,8 +72,8 @@ class _SplashScreenState extends State<SplashScreen>
             radius: 1.2,
             colors: [
               Color(0xFF3B0764),
-              Color(0xFF1A0F3D),
-              Color(0xFF08080F),
+              AppColors.imagePlaceholder,
+              AppColors.background,
             ],
             stops: [0.0, 0.45, 0.80],
           ),
@@ -88,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 260,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF7C3AED).withOpacity(0.28),
+                  color: AppColors.primary.withOpacity(0.28),
                 ),
               ),
             ),
@@ -101,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFEC4899).withOpacity(0.22),
+                  color: AppColors.pink.withOpacity(0.22),
                 ),
               ),
             ),
@@ -114,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 140,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFF97316).withOpacity(0.18),
+                  color: AppColors.warning.withOpacity(0.18),
                 ),
               ),
             ),
@@ -129,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen>
                     // HAPPYN logo with gradient
                     ShaderMask(
                       shaderCallback: (bounds) => const LinearGradient(
-                        colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                        colors: [AppColors.primary, AppColors.pink],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ).createShader(bounds),
@@ -153,7 +154,7 @@ class _SplashScreenState extends State<SplashScreen>
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFFF0EEFF).withOpacity(0.38),
+                        color: AppColors.textLight.withOpacity(0.38),
                         letterSpacing: 3.2,
                       ),
                     ),
@@ -183,8 +184,8 @@ class _SplashScreenState extends State<SplashScreen>
                                     shape: BoxShape.circle,
                                     gradient: LinearGradient(
                                       colors: [
-                                        Color(0xFF7C3AED),
-                                        Color(0xFFEC4899),
+                                        AppColors.primary,
+                                        AppColors.pink,
                                       ],
                                     ),
                                   ),

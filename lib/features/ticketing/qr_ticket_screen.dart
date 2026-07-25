@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,8 +43,8 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
   String? _error;
   Timer? _refreshTimer;
 
-  static const _bg = Color(0xFF13111C);
-  static const _page = Color(0xFF08080F);
+  static const _bg = AppColors.cardDark;
+  static const _page = AppColors.background;
 
   @override
   void initState() {
@@ -179,15 +180,15 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF4B4B).withOpacity(0.15),
+                          color: AppColors.error.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: const Color(0xFFFF4B4B).withOpacity(0.5)),
+                              color: AppColors.error.withOpacity(0.5)),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.cancel,
-                                color: Color(0xFFFF4B4B), size: 18),
+                                color: AppColors.error, size: 18),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -210,15 +211,15 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C3AED).withOpacity(0.15),
+                          color: AppColors.primary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: const Color(0xFF7C3AED).withOpacity(0.4)),
+                              color: AppColors.primary.withOpacity(0.4)),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.confirmation_number,
-                                color: Color(0xFFC4B5FD), size: 16),
+                                color: AppColors.lavenderLight, size: 16),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -260,11 +261,11 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                     imageUrl: (ev['image_url'] ?? '') as String,
                                     fit: BoxFit.cover,
                                     placeholder: (_, _) => Container(
-                                        color: const Color(0xFF1A0F3D)),
+                                        color: AppColors.imagePlaceholder),
                                     errorWidget: (_, _, _) => Container(
-                                      color: const Color(0xFF1A0F3D),
+                                      color: AppColors.imagePlaceholder,
                                       child: Icon(categoryIcon(cat),
-                                          color: const Color(0xFF7C3AED),
+                                          color: AppColors.primary,
                                           size: 40),
                                     ),
                                   ),
@@ -565,7 +566,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: Color(0xFF7C3AED)),
+                        borderSide: const BorderSide(color: AppColors.primary),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -581,9 +582,9 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                     child: ElevatedButton(
                       onPressed: sending ? null : submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C3AED),
+                        backgroundColor: AppColors.primary,
                         disabledBackgroundColor:
-                            const Color(0xFF7C3AED).withOpacity(0.5),
+                            AppColors.primary.withOpacity(0.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -644,7 +645,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                   width: 30,
                   height: 30,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2.6, color: Color(0xFF7C3AED)),
+                      strokeWidth: 2.6, color: AppColors.primary),
                 ),
               )
             : _error != null

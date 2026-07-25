@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -63,11 +64,11 @@ class EventListCard extends ConsumerWidget {
                       imageUrl: (ev['image_url'] ?? '') as String,
                       fit: BoxFit.cover,
                       placeholder: (_, _) =>
-                          Container(color: const Color(0xFF1A0F3D)),
+                          Container(color: AppColors.imagePlaceholder),
                       errorWidget: (_, _, _) => Container(
-                        color: const Color(0xFF1A0F3D),
+                        color: AppColors.imagePlaceholder,
                         child: Icon(categoryIcon(cat),
-                            color: const Color(0xFF7C3AED), size: 22),
+                            color: AppColors.primary, size: 22),
                       ),
                     ),
                   ),
@@ -156,7 +157,7 @@ class EventListCard extends ConsumerWidget {
                   child: Icon(
                     isFav ? Icons.favorite : Icons.favorite_border,
                     color: isFav
-                        ? const Color(0xFFEC4899)
+                        ? AppColors.pink
                         : Colors.white.withOpacity(0.35),
                     size: 18,
                   ),
@@ -167,7 +168,7 @@ class EventListCard extends ConsumerWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFFC4B5FD),
+                    color: AppColors.lavenderLight,
                   ),
                 ),
               ],

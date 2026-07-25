@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -42,7 +43,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(toast, style: GoogleFonts.inter(color: Colors.white)),
-          backgroundColor: const Color(0xFF1A1535),
+          backgroundColor: AppColors.card,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -59,7 +60,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   Widget _organizerMenu() {
     final l = AppLocalizations.of(context);
     return PopupMenuButton<String>(
-      color: const Color(0xFF1A1535),
+      color: AppColors.card,
       shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       position: PopupMenuPosition.under,
@@ -92,7 +93,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
 
   PopupMenuItem<String> _menuItem(String value, IconData icon, String label,
       {bool danger = false}) {
-    final c = danger ? const Color(0xFFFF4B4B) : Colors.white;
+    final c = danger ? AppColors.error : Colors.white;
     return PopupMenuItem<String>(
       value: value,
       child: Row(
@@ -111,7 +112,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(l.cancelEventTitle,
             style: GoogleFonts.poppins(
@@ -133,7 +134,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             },
             child: Text(l.cancelEvent,
                 style: GoogleFonts.inter(
-                    color: const Color(0xFFFF4B4B),
+                    color: AppColors.error,
                     fontWeight: FontWeight.w700)),
           ),
         ],
@@ -174,7 +175,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             : l.ctaUnavailable;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // ── Scrollable Content ───────────────────────────────────
@@ -192,13 +193,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
                         placeholder: (_, _) =>
-                            Container(color: const Color(0xFF1A0F3D)),
+                            Container(color: AppColors.imagePlaceholder),
                         errorWidget: (_, _, _) => Container(
-                          color: const Color(0xFF1A0F3D),
+                          color: AppColors.imagePlaceholder,
                           child: const Center(
                             child: Icon(
                               Icons.event,
-                              color: Color(0xFF7C3AED),
+                              color: AppColors.primary,
                               size: 48,
                             ),
                           ),
@@ -215,7 +216,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               Color(0x66080F0F),
                               Colors.transparent,
                               Color(0xCC08080F),
-                              Color(0xFF08080F),
+                              AppColors.background,
                             ],
                             stops: [0.0, 0.35, 0.78, 1.0],
                           ),
@@ -298,7 +299,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                               style: GoogleFonts.inter(
                                                   color: Colors.white)),
                                           backgroundColor:
-                                              const Color(0xFF1A1535),
+                                              AppColors.card,
                                           behavior: SnackBarBehavior.floating,
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -361,7 +362,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                                 ? Icons.favorite
                                                 : Icons.favorite_border,
                                             color: isFav
-                                                ? const Color(0xFFEC4899)
+                                                ? AppColors.pink
                                                 : Colors.white,
                                             size: 16,
                                           ),
@@ -387,7 +388,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFFEC4899), Color(0xFFF97316)],
+                              colors: [AppColors.pink, AppColors.warning],
                             ),
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -412,7 +413,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                 horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: cancelled
-                                  ? const Color(0xFFFF4B4B).withOpacity(0.9)
+                                  ? AppColors.error.withOpacity(0.9)
                                   : Colors.black.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
@@ -560,8 +561,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFF08080F).withOpacity(0),
-                    const Color(0xFF08080F),
+                    AppColors.background.withOpacity(0),
+                    AppColors.background,
                   ],
                 ),
               ),
@@ -617,8 +618,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               ? null
                               : const LinearGradient(
                                   colors: [
-                                    Color(0xFF7C3AED),
-                                    Color(0xFFEC4899)
+                                    AppColors.primary,
+                                    AppColors.pink
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -629,7 +630,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               ? null
                               : [
                                   BoxShadow(
-                                    color: const Color(0xFF7C3AED)
+                                    color: AppColors.primary
                                         .withOpacity(0.55),
                                     blurRadius: 20,
                                     offset: const Offset(0, 6),
@@ -703,10 +704,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF7C3AED).withOpacity(0.15),
+              color: AppColors.primary.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: const Color(0xFFC4B5FD), size: 18),
+            child: Icon(icon, color: AppColors.lavenderLight, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -747,16 +748,16 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF7C3AED).withOpacity(0.13),
+        color: AppColors.primary.withOpacity(0.13),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF7C3AED).withOpacity(0.28)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.28)),
       ),
       child: Text(
         '#$label',
         style: GoogleFonts.inter(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFFC4B5FD),
+          color: AppColors.lavenderLight,
         ),
       ),
     );

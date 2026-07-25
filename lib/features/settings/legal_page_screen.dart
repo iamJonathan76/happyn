@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/core/legal/legal_content.dart';
@@ -40,9 +41,9 @@ class LegalPageScreen extends ConsumerWidget {
     final loading = docsAsync.isLoading && sections == null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF08080F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
@@ -60,7 +61,7 @@ class LegalPageScreen extends ConsumerWidget {
       ),
       body: loading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF7C3AED)))
+              child: CircularProgressIndicator(color: AppColors.primary))
           : sections == null
               ? Center(
                   child: Text('Document not found',
@@ -113,7 +114,7 @@ class LegalPageScreen extends ConsumerWidget {
                                   width: 5,
                                   height: 5,
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFFA78BFA),
+                                    color: AppColors.lavender,
                                     shape: BoxShape.circle,
                                   ),
                                 ),

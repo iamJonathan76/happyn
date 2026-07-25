@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -51,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
@@ -146,8 +147,8 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.dark(
-            primary: Color(0xFF7C3AED),
-            surface: Color(0xFF16122B),
+            primary: AppColors.primary,
+            surface: AppColors.sheet,
           ),
         ),
         child: child!,
@@ -253,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: RadialGradient(
             center: Alignment(0, -1.0),
             radius: 1.2,
-            colors: [Color(0xFF2D1B69), Color(0xFF08080F)],
+            colors: [Color(0xFF2D1B69), AppColors.background],
             stops: [0.0, 0.55],
           ),
         ),
@@ -267,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Logo
                 ShaderMask(
                   shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    colors: [AppColors.primary, AppColors.pink],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ).createShader(bounds),
@@ -288,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   _isLogin ? l.welcomeBack : l.joinExperience,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: const Color(0xFFF0EEFF).withOpacity(0.42),
+                    color: AppColors.textLight.withOpacity(0.42),
                   ),
                 ),
 
@@ -315,8 +316,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               gradient: isActive
                                   ? const LinearGradient(
                                       colors: [
-                                        Color(0xFF7C3AED),
-                                        Color(0xFFEC4899),
+                                        AppColors.primary,
+                                        AppColors.pink,
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
@@ -326,9 +327,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               boxShadow: isActive
                                   ? [
                                       BoxShadow(
-                                        color: const Color(
-                                          0xFF7C3AED,
-                                        ).withOpacity(0.55),
+                                        color: AppColors.primary.withOpacity(0.55),
                                         blurRadius: 16,
                                       ),
                                     ]
@@ -498,7 +497,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           SnackBar(
                             content: Text(l.passwordResetSoon,
                                 style: GoogleFonts.inter(color: Colors.white)),
-                            backgroundColor: const Color(0xFF1A1535),
+                            backgroundColor: AppColors.card,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
@@ -511,7 +510,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFFA78BFA),
+                          color: AppColors.lavender,
                         ),
                       ),
                     ),
@@ -527,14 +526,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 56,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                        colors: [AppColors.primary, AppColors.pink],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF7C3AED).withOpacity(0.55),
+                          color: AppColors.primary.withOpacity(0.55),
                           blurRadius: 20,
                           offset: const Offset(0, 6),
                         ),
@@ -567,12 +566,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextSpan(text: l.bySigningUpAgree),
                         TextSpan(
                           text: l.termsWord,
-                          style: const TextStyle(color: Color(0xFFA78BFA)),
+                          style: const TextStyle(color: AppColors.lavender),
                         ),
                         TextSpan(text: l.andConnector),
                         TextSpan(
                           text: l.privacyWord,
-                          style: const TextStyle(color: Color(0xFFA78BFA)),
+                          style: const TextStyle(color: AppColors.lavender),
                         ),
                       ],
                     ),

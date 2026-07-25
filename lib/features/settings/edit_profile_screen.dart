@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -136,7 +137,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -149,9 +150,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final email = _supabase.auth.currentUser?.email ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF08080F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
@@ -183,7 +184,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                        colors: [AppColors.primary, AppColors.pink],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -196,10 +197,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C3AED),
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: const Color(0xFF08080F), width: 2),
+                            color: AppColors.background, width: 2),
                       ),
                       child: const Icon(Icons.camera_alt,
                           color: Colors.white, size: 14),
@@ -286,7 +287,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               height: 54,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                  colors: [AppColors.primary, AppColors.pink],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -334,7 +335,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _initialsCircle() => Container(
         width: 98,
         height: 98,
-        color: const Color(0xFF1A1535),
+        color: AppColors.card,
         child: Center(
           child: Text(
             _initials,
@@ -378,7 +379,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       );
 }

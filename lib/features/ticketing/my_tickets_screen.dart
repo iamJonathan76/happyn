@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,7 +39,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
     final ticketsAsync = ref.watch(myTicketsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
@@ -77,7 +78,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
                     decoration: BoxDecoration(
                       gradient: isActive
                           ? const LinearGradient(
-                              colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                              colors: [AppColors.primary, AppColors.pink],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             )
@@ -110,13 +111,13 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
           Expanded(
             child: ticketsAsync.when(
               loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF7C3AED))),
+                  child: CircularProgressIndicator(color: AppColors.primary)),
               error: (_, __) => _buildEmptyState(),
               data: (all) {
                 final filtered = _filtered(all);
                 return RefreshIndicator(
-                  color: const Color(0xFF7C3AED),
-                  backgroundColor: const Color(0xFF1A1535),
+                  color: AppColors.primary,
+                  backgroundColor: AppColors.card,
                   onRefresh: () async {
                     ref.invalidate(myTicketsProvider);
                     await ref.read(myTicketsProvider.future);
@@ -214,7 +215,7 @@ class _TicketCard extends StatelessWidget {
     final cat = (event['category'] ?? '') as String;
     final accent = categoryColor(cat);
     final isValid = status == 'valid' && !eventCancelled;
-    const bg = Color(0xFF13111C);
+    const bg = AppColors.cardDark;
 
     String formatDate(String? d) {
       if (d == null) return l.tbd;
@@ -253,11 +254,11 @@ class _TicketCard extends StatelessWidget {
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
                         placeholder: (_, _) =>
-                            Container(color: const Color(0xFF1A0F3D)),
+                            Container(color: AppColors.imagePlaceholder),
                         errorWidget: (_, _, _) => Container(
-                          color: const Color(0xFF1A0F3D),
+                          color: AppColors.imagePlaceholder,
                           child: Icon(categoryIcon(cat),
-                              color: const Color(0xFF7C3AED), size: 34),
+                              color: AppColors.primary, size: 34),
                         ),
                       ),
                       Container(
@@ -283,9 +284,9 @@ class _TicketCard extends StatelessWidget {
                               horizontal: 9, vertical: 4),
                           decoration: BoxDecoration(
                             color: eventCancelled
-                                ? const Color(0xFFFF4B4B)
+                                ? AppColors.error
                                 : isValid
-                                    ? const Color(0xFF1DB954)
+                                    ? AppColors.success
                                     : Colors.black.withOpacity(0.55),
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -390,8 +391,8 @@ class _TicketCard extends StatelessWidget {
                           gradient: isValid
                               ? const LinearGradient(
                                   colors: [
-                                    Color(0xFF7C3AED),
-                                    Color(0xFFEC4899)
+                                    AppColors.primary,
+                                    AppColors.pink
                                   ],
                                 )
                               : null,
@@ -427,7 +428,7 @@ class _TicketCard extends StatelessWidget {
 
   // Bande de perforation : encoches sur les côtés + pointillés (look billet).
   Widget _perforation(Color bg) {
-    const notchColor = Color(0xFF08080F);
+    const notchColor = AppColors.background;
     return Container(
       color: bg,
       height: 22,

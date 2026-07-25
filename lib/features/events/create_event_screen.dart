@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -149,11 +150,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF4B4B).withOpacity(0.1),
+                      color: AppColors.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.close,
-                        color: Color(0xFFFF4B4B), size: 18),
+                        color: AppColors.error, size: 18),
                   ),
                 ),
               ],
@@ -167,7 +168,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 l.tierSoldInfo(tier.quantitySold),
                 style: GoogleFonts.inter(
                   fontSize: 10,
-                  color: const Color(0xFFA78BFA),
+                  color: AppColors.lavender,
                 ),
               ),
             ),
@@ -220,8 +221,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         return Theme(
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF7C3AED),
-              surface: Color(0xFF1A1535),
+              primary: AppColors.primary,
+              surface: AppColors.card,
             ),
           ),
           child: child!,
@@ -236,8 +237,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           return Theme(
             data: ThemeData.dark().copyWith(
               colorScheme: const ColorScheme.dark(
-                primary: Color(0xFF7C3AED),
-                surface: Color(0xFF1A1535),
+                primary: AppColors.primary,
+                surface: AppColors.card,
               ),
             ),
             child: child!,
@@ -511,7 +512,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogCtx) => Dialog(
-        backgroundColor: const Color(0xFF16122B),
+        backgroundColor: AppColors.sheet,
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         child: Padding(
@@ -520,7 +521,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.lock_outline,
-                  color: Color(0xFFC4B5FD), size: 34),
+                  color: AppColors.lavenderLight, size: 34),
               const SizedBox(height: 12),
               Text(
                 l.privateEventCreated,
@@ -551,7 +552,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   color: Colors.white.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                      color: const Color(0xFF7C3AED).withOpacity(0.4)),
+                      color: AppColors.primary.withOpacity(0.4)),
                 ),
                 child: Center(
                   child: Text(
@@ -604,7 +605,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                               color: Colors.white,
                               fontWeight: FontWeight.w700)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C3AED),
+                        backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
@@ -631,7 +632,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -655,7 +656,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
@@ -675,13 +676,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         cats.contains(_selectedCategory) ? _selectedCategory : cats.first;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Container(
         decoration: const BoxDecoration(
           gradient: RadialGradient(
             center: Alignment(0, -1.0),
             radius: 1.2,
-            colors: [Color(0xFF1A0F3D), Color(0xFF08080F)],
+            colors: [AppColors.imagePlaceholder, AppColors.background],
             stops: [0.0, 0.6],
           ),
         ),
@@ -752,7 +753,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           child: DropdownButton<String>(
                             value: dropdownValue,
                             isExpanded: true,
-                            dropdownColor: const Color(0xFF1A1535),
+                            dropdownColor: AppColors.card,
                             style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
                             icon: Icon(Icons.keyboard_arrow_down, color: Colors.white.withOpacity(0.4)),
                             items: cats.map((cat) => DropdownMenuItem(
@@ -818,14 +819,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                               child: Row(
                                 children: [
                                   const Icon(Icons.add,
-                                      color: Color(0xFFA78BFA), size: 16),
+                                      color: AppColors.lavender, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
                                     l.addTier,
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: const Color(0xFFA78BFA),
+                                      color: AppColors.lavender,
                                     ),
                                   ),
                                 ],
@@ -950,7 +951,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: _isPrivate
-                                ? const Color(0xFF7C3AED).withOpacity(0.5)
+                                ? AppColors.primary.withOpacity(0.5)
                                 : Colors.white.withOpacity(0.07),
                           ),
                         ),
@@ -959,7 +960,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             SwitchListTile(
                               value: _isPrivate,
                               onChanged: (v) => setState(() => _isPrivate = v),
-                              activeColor: const Color(0xFF7C3AED),
+                              activeColor: AppColors.primary,
                               contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 2),
                               title: Row(
@@ -1011,7 +1012,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                         style: GoogleFonts.poppins(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
-                                          color: const Color(0xFFC4B5FD),
+                                          color: AppColors.lavenderLight,
                                           letterSpacing: 1,
                                         ),
                                       ),
@@ -1044,14 +1045,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           height: 56,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                              colors: [AppColors.primary, AppColors.pink],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF7C3AED).withOpacity(0.55),
+                                color: AppColors.primary.withOpacity(0.55),
                                 blurRadius: 20,
                                 offset: const Offset(0, 6),
                               ),
@@ -1112,7 +1113,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         decoration: BoxDecoration(
           gradient: selected
               ? const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)])
+                  colors: [AppColors.primary, AppColors.pink])
               : null,
           color: selected ? null : Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),

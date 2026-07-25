@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -21,9 +22,9 @@ class SettingsScreen extends ConsumerWidget {
     final legalDocs = ref.watch(legalDocsProvider).asData?.value;
     final l = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF08080F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
@@ -120,7 +121,7 @@ class SettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Delete Account',
             style: GoogleFonts.poppins(
@@ -134,7 +135,7 @@ class SettingsScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('OK',
-                style: GoogleFonts.inter(color: const Color(0xFFA78BFA))),
+                style: GoogleFonts.inter(color: AppColors.lavender)),
           ),
         ],
       ),
@@ -145,7 +146,7 @@ class SettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('HAPPYN',
             style: GoogleFonts.poppins(
@@ -159,7 +160,7 @@ class SettingsScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('Close',
-                style: GoogleFonts.inter(color: const Color(0xFFA78BFA))),
+                style: GoogleFonts.inter(color: AppColors.lavender)),
           ),
         ],
       ),
@@ -171,7 +172,7 @@ class SettingsScreen extends ConsumerWidget {
       SnackBar(
         content: Text(AppLocalizations.of(context).comingSoon(label),
             style: GoogleFonts.inter(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 1),
@@ -189,7 +190,7 @@ class SettingsScreen extends ConsumerWidget {
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 1,
-            color: const Color(0xFFA78BFA),
+            color: AppColors.lavender,
           ),
         ),
       );
@@ -237,7 +238,7 @@ class SettingsScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref, AppLocalizations l) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF16122B),
+      backgroundColor: AppColors.sheet,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -250,7 +251,7 @@ class SettingsScreen extends ConsumerWidget {
                 style: GoogleFonts.inter(
                     color: Colors.white, fontWeight: FontWeight.w600)),
             trailing: selected
-                ? const Icon(Icons.check_circle, color: Color(0xFF7C3AED))
+                ? const Icon(Icons.check_circle, color: AppColors.primary)
                 : null,
             onTap: () {
               ref.read(localeProvider.notifier).setLocale(Locale(code));
@@ -371,20 +372,20 @@ class SettingsScreen extends ConsumerWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFFFF4B4B).withOpacity(0.08),
+            color: AppColors.error.withOpacity(0.08),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFFF4B4B).withOpacity(0.2)),
+            border: Border.all(color: AppColors.error.withOpacity(0.2)),
           ),
           child: Row(
             children: [
-              Icon(icon, color: const Color(0xFFFF4B4B), size: 18),
+              Icon(icon, color: AppColors.error, size: 18),
               const SizedBox(width: 12),
               Text(
                 label,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFFFF4B4B),
+                  color: AppColors.error,
                 ),
               ),
             ],
