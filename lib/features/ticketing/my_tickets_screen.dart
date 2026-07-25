@@ -363,11 +363,15 @@ class _TicketCard extends StatelessWidget {
                                 Icon(Icons.calendar_today_outlined,
                                     color: accent, size: 12),
                                 const SizedBox(width: 5),
-                                Text(
-                                  formatDate(event['start_date'] as String?),
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11.5,
-                                    color: AppColors.textMed,
+                                Flexible(
+                                  child: Text(
+                                    formatDate(event['start_date'] as String?),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11.5,
+                                      color: AppColors.textMed,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -375,6 +379,8 @@ class _TicketCard extends StatelessWidget {
                             const SizedBox(height: 5),
                             Text(
                               (ticketType['name'] ?? 'Ticket') as String,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,

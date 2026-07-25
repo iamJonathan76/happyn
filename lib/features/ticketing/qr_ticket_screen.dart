@@ -371,12 +371,16 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                             color:
                                                 AppColors.textLow),
                                         const SizedBox(width: 5),
-                                        Text(
-                                          l.secureCodeRefreshes,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 10.5,
-                                            color:
-                                                AppColors.textLow,
+                                        Flexible(
+                                          child: Text(
+                                            l.secureCodeRefreshes,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 10.5,
+                                              color:
+                                                  AppColors.textLow,
+                                            ),
                                           ),
                                         ),
                                       ],

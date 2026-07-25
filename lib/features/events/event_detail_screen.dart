@@ -652,18 +652,24 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               size: 18,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              blocked
-                                  ? ctaLabel
-                                  : isOrganizer
-                                      ? l.scanTickets
-                                      : l.getTickets,
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: blocked
-                                    ? AppColors.textMed
-                                    : Colors.white,
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  blocked
+                                      ? ctaLabel
+                                      : isOrganizer
+                                          ? l.scanTickets
+                                          : l.getTickets,
+                                  maxLines: 1,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: blocked
+                                        ? AppColors.textMed
+                                        : Colors.white,
+                                  ),
+                                ),
                               ),
                             ),
                             if (!blocked) ...[

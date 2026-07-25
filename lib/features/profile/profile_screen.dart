@@ -204,6 +204,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ),
                               Text(
                                 _userHandle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
                                   color: AppColors.textLow,
@@ -383,13 +385,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   color:
                       isActive ? Colors.white : AppColors.textLow),
               const SizedBox(width: 5),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color:
-                      isActive ? Colors.white : AppColors.textLow,
+              // Flexible + FittedBox : le libellé se réduit pour tenir dans
+              // l'onglet plutôt que déborder (utile en FR, mots plus longs).
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color:
+                          isActive ? Colors.white : AppColors.textLow,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -432,14 +442,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 Icon(icon, size: 48, color: AppColors.textFaint),
                 const SizedBox(height: 12),
-                Text(title,
-                    style: GoogleFonts.inter(
-                        fontSize: 14, color: AppColors.textLow)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(title,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                          fontSize: 14, color: AppColors.textLow)),
+                ),
                 const SizedBox(height: 8),
-                Text(subtitle,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                        fontSize: 12, color: AppColors.textFaint)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(subtitle,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                          fontSize: 12, color: AppColors.textFaint)),
+                ),
               ],
             ),
           ),
@@ -554,11 +571,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               color: Colors.white,
             ),
           ),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: AppColors.textLow,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: AppColors.textLow,
+              ),
             ),
           ),
         ],
@@ -587,25 +609,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Icon(icon, color: AppColors.lavender, size: 18),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  color: AppColors.textLow,
+          // Expanded + ellipsis : un long email ou libellé FR ne déborde pas.
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: AppColors.textLow,
+                  ),
                 ),
-              ),
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
