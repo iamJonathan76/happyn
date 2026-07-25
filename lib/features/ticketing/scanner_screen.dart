@@ -213,7 +213,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.7),
+                  color: AppColors.textMed,
                 ),
               ),
               const SizedBox(height: 32),

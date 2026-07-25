@@ -208,7 +208,7 @@ class NotificationsScreen extends ConsumerWidget {
                         _ago(n['created_at'] as String?, l),
                         style: GoogleFonts.inter(
                           fontSize: 10,
-                          color: Colors.white.withOpacity(0.4),
+                          color: AppColors.textLow,
                         ),
                       ),
                     ],
@@ -219,7 +219,7 @@ class NotificationsScreen extends ConsumerWidget {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       height: 1.45,
-                      color: Colors.white.withOpacity(0.62),
+                      color: AppColors.textMed,
                     ),
                   ),
                   if (eventId != null) ...[
@@ -270,7 +270,7 @@ class NotificationsScreen extends ConsumerWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.notifications_none,
-                  size: 42, color: Colors.white.withOpacity(0.25)),
+                  size: 42, color: AppColors.textFaint),
             ),
             const SizedBox(height: 18),
             Text(
@@ -278,7 +278,7 @@ class NotificationsScreen extends ConsumerWidget {
               style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: Colors.white.withOpacity(0.7),
+                color: AppColors.textMed,
               ),
             ),
             const SizedBox(height: 6),
@@ -287,7 +287,7 @@ class NotificationsScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: Colors.white.withOpacity(0.3),
+                color: AppColors.textLow,
               ),
             ),
           ],

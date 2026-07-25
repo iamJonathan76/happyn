@@ -119,13 +119,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 color: Colors.white, fontWeight: FontWeight.w700)),
         content: Text(
           l.cancelEventBody,
-          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.6)),
+          style: GoogleFonts.inter(color: AppColors.textMed),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l.keep,
-                style: GoogleFonts.inter(color: Colors.white.withOpacity(0.5))),
+                style: GoogleFonts.inter(color: AppColors.textMed)),
           ),
           TextButton(
             onPressed: () {
@@ -417,7 +417,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                   : Colors.black.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.2)),
+                                  color: AppColors.textFaint),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -427,14 +427,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                         ? Icons.cancel
                                         : Icons.event_busy,
                                     size: 12,
-                                    color: Colors.white.withOpacity(0.85)),
+                                    color: AppColors.textHigh),
                                 const SizedBox(width: 4),
                                 Text(
                                   cancelled ? l.statusCancelled : l.statusEnded,
                                   style: GoogleFonts.inter(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: AppColors.textHigh,
                                   ),
                                 ),
                               ],
@@ -517,7 +517,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           ev['description'] as String,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.55),
+                            color: AppColors.textMed,
                             height: 1.6,
                           ),
                         ),
@@ -581,7 +581,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           l.startingFrom,
                           style: GoogleFonts.inter(
                             fontSize: 11,
-                            color: Colors.white.withOpacity(0.38),
+                            color: AppColors.textLow,
                           ),
                         ),
                         Text(
@@ -647,7 +647,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                       ? Icons.qr_code_scanner
                                       : Icons.confirmation_number_outlined,
                               color: blocked
-                                  ? Colors.white.withOpacity(0.5)
+                                  ? AppColors.textMed
                                   : Colors.white,
                               size: 18,
                             ),
@@ -662,7 +662,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: blocked
-                                    ? Colors.white.withOpacity(0.5)
+                                    ? AppColors.textMed
                                     : Colors.white,
                               ),
                             ),
@@ -730,7 +730,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     bottom,
                     style: GoogleFonts.inter(
                       fontSize: 11.5,
-                      color: Colors.white.withOpacity(0.5),
+                      color: AppColors.textMed,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

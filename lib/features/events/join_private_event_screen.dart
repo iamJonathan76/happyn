@@ -118,7 +118,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                 AppLocalizations.of(context).joinPrivateBody,
                 style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: Colors.white.withOpacity(0.55),
+                  color: AppColors.textMed,
                   height: 1.45,
                 ),
               ),
@@ -139,7 +139,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context).inviteCodePlaceholder,
                   hintStyle: GoogleFonts.poppins(
-                    color: Colors.white.withOpacity(0.22),
+                    color: AppColors.textFaint,
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 3,

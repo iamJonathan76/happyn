@@ -122,7 +122,7 @@ class EventListCard extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.inter(
                             fontSize: 11,
-                            color: Colors.white.withOpacity(0.55),
+                            color: AppColors.textMed,
                           ),
                         ),
                       ),
@@ -136,7 +136,7 @@ class EventListCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         fontSize: 10,
-                        color: Colors.white.withOpacity(0.38),
+                        color: AppColors.textLow,
                       ),
                     ),
                   ],
@@ -158,7 +158,7 @@ class EventListCard extends ConsumerWidget {
                     isFav ? Icons.favorite : Icons.favorite_border,
                     color: isFav
                         ? AppColors.pink
-                        : Colors.white.withOpacity(0.35),
+                        : AppColors.textLow,
                     size: 18,
                   ),
                 ),

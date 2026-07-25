@@ -277,14 +277,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Row(
           children: [
             const SizedBox(width: 14),
-            Icon(Icons.search, color: Colors.white.withOpacity(0.35), size: 18),
+            Icon(Icons.search, color: AppColors.textLow, size: 18),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 AppLocalizations.of(context).searchHint,
                 style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: Colors.white.withOpacity(0.32),
+                  color: AppColors.textLow,
                 ),
               ),
             ),
@@ -455,7 +455,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             AppLocalizations.of(context).couldNotLoadEvents,
             style: GoogleFonts.inter(
               fontSize: 13,
-              color: Colors.white.withOpacity(0.35),
+              color: AppColors.textLow,
             ),
           ),
         ),
@@ -470,7 +470,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 AppLocalizations.of(context).noEventsYet,
                 style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: Colors.white.withOpacity(0.35),
+                  color: AppColors.textLow,
                 ),
               ),
             ),
@@ -672,7 +672,7 @@ class _HeroCard extends ConsumerWidget {
                             children: [
                               Icon(Icons.location_on,
                                   size: 12,
-                                  color: Colors.white.withOpacity(0.4)),
+                                  color: AppColors.textLow),
                               const SizedBox(width: 3),
                               Expanded(
                                 child: Text(
@@ -681,7 +681,7 @@ class _HeroCard extends ConsumerWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.inter(
                                     fontSize: 11,
-                                    color: Colors.white.withOpacity(0.55),
+                                    color: AppColors.textMed,
                                   ),
                                 ),
                               ),

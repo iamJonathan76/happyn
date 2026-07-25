@@ -196,7 +196,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white.withOpacity(0.85),
+                                  color: AppColors.textHigh,
                                 ),
                               ),
                             ),
@@ -227,7 +227,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: AppColors.textHigh,
                                 ),
                               ),
                             ),
@@ -357,7 +357,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
-                                      color: Colors.white.withOpacity(0.85),
+                                      color: AppColors.textHigh,
                                     ),
                                   ),
                                   const SizedBox(height: 6),
@@ -369,14 +369,14 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                         Icon(Icons.lock_outline,
                                             size: 12,
                                             color:
-                                                Colors.white.withOpacity(0.35)),
+                                                AppColors.textLow),
                                         const SizedBox(width: 5),
                                         Text(
                                           l.secureCodeRefreshes,
                                           style: GoogleFonts.inter(
                                             fontSize: 10.5,
                                             color:
-                                                Colors.white.withOpacity(0.35),
+                                                AppColors.textLow,
                                           ),
                                         ),
                                       ],
@@ -436,7 +436,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: 11,
-                          color: Colors.white.withOpacity(0.4),
+                          color: AppColors.textLow,
                         ),
                       ),
                     ],
@@ -520,7 +520,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: AppColors.textFaint,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -539,7 +539,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                     l.transferSheetBody,
                     style: GoogleFonts.inter(
                       fontSize: 12.5,
-                      color: Colors.white.withOpacity(0.55),
+                      color: AppColors.textMed,
                       height: 1.4,
                     ),
                   ),
@@ -553,11 +553,11 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                     decoration: InputDecoration(
                       hintText: l.emailHintFriend,
                       hintStyle: GoogleFonts.inter(
-                          color: Colors.white.withOpacity(0.3)),
+                          color: AppColors.textLow),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.05),
                       prefixIcon: Icon(Icons.alternate_email,
-                          color: Colors.white.withOpacity(0.4), size: 20),
+                          color: AppColors.textLow, size: 20),
                       errorText: errorText,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -699,7 +699,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                   (_) => Container(
                     width: 6,
                     height: 1.5,
-                    color: Colors.white.withOpacity(0.15),
+                    color: AppColors.textFaint,
                   ),
                 ),
               ),
@@ -731,7 +731,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
             style: GoogleFonts.inter(
               fontSize: 9,
               fontWeight: FontWeight.w700,
-              color: Colors.white.withOpacity(0.4),
+              color: AppColors.textLow,
               letterSpacing: 1,
             ),
           ),
@@ -761,7 +761,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
             label,
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.4),
+              color: AppColors.textLow,
             ),
           ),
           Flexible(
@@ -804,7 +804,7 @@ class _TransferButton extends StatelessWidget {
           ),
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.white.withOpacity(0.16)),
+          side: BorderSide(color: AppColors.textFaint),
           backgroundColor: Colors.white.withOpacity(0.04),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),

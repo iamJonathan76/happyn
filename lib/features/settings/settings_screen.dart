@@ -129,7 +129,7 @@ class SettingsScreen extends ConsumerWidget {
         content: Text(
           'To permanently delete your account and data, please contact '
           'support@happyn.com. Self-service deletion is coming soon.',
-          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.6)),
+          style: GoogleFonts.inter(color: AppColors.textMed),
         ),
         actions: [
           TextButton(
@@ -154,7 +154,7 @@ class SettingsScreen extends ConsumerWidget {
         content: Text(
           'Find the ones. Be the moment.\n\nDiscover, create, and attend events. '
           'Version $appVersion.',
-          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.6)),
+          style: GoogleFonts.inter(color: AppColors.textMed),
         ),
         actions: [
           TextButton(
@@ -226,7 +226,7 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           Text(label,
               style: GoogleFonts.inter(
-                  fontSize: 13, color: Colors.white.withOpacity(0.4))),
+                  fontSize: 13, color: AppColors.textLow)),
           const SizedBox(width: 4),
           _chevron(),
         ],
@@ -344,7 +344,7 @@ class SettingsScreen extends ConsumerWidget {
             style: GoogleFonts.inter(
               fontSize: 9,
               fontWeight: FontWeight.w700,
-              color: Colors.white.withOpacity(0.4),
+              color: AppColors.textLow,
             ),
           ),
         ),
@@ -359,7 +359,7 @@ class SettingsScreen extends ConsumerWidget {
           value,
           style: GoogleFonts.inter(
             fontSize: 13,
-            color: Colors.white.withOpacity(0.4),
+            color: AppColors.textLow,
           ),
         ),
       );
@@ -427,5 +427,5 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _chevron() => Icon(Icons.chevron_right,
-      color: Colors.white.withOpacity(0.3), size: 18);
+      color: AppColors.textLow, size: 18);
 }

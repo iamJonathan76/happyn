@@ -36,10 +36,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return InputDecoration(
       hintText: hint,
       hintStyle: GoogleFonts.inter(
-        color: Colors.white.withOpacity(0.25),
+        color: AppColors.textFaint,
         fontSize: 14,
       ),
-      prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
+      prefixIcon: Icon(icon, color: AppColors.textLow, size: 18),
       filled: true,
       fillColor: Colors.white.withOpacity(0.055),
       border: OutlineInputBorder(
@@ -341,7 +341,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontWeight: FontWeight.w700,
                                 color: isActive
                                     ? Colors.white
-                                    : Colors.white.withOpacity(0.38),
+                                    : AppColors.textLow,
                               ),
                             ),
                           ),
@@ -392,7 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         l.orEmail,
                         style: GoogleFonts.inter(
                           fontSize: 11,
-                          color: Colors.white.withOpacity(0.28),
+                          color: AppColors.textFaint,
                         ),
                       ),
                     ),
@@ -433,13 +433,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Row(
                         children: [
                           Icon(Icons.cake_outlined,
-                              color: Colors.white.withOpacity(0.3), size: 18),
+                              color: AppColors.textLow, size: 18),
                           const SizedBox(width: 12),
                           Text(
                             _dob == null ? l.dateOfBirth : _formatDob(_dob!),
                             style: TextStyle(
                               color: _dob == null
-                                  ? Colors.white.withOpacity(0.3)
+                                  ? AppColors.textLow
                                   : Colors.white,
                               fontSize: 14,
                             ),
@@ -476,7 +476,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             _obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
-                            color: Colors.white.withOpacity(0.3),
+                            color: AppColors.textLow,
                             size: 18,
                           ),
                           onPressed: () => setState(
@@ -560,7 +560,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     text: TextSpan(
                       style: GoogleFonts.inter(
                         fontSize: 11,
-                        color: Colors.white.withOpacity(0.28),
+                        color: AppColors.textFaint,
                       ),
                       children: [
                         TextSpan(text: l.bySigningUpAgree),

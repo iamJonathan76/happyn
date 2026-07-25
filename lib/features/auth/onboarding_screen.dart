@@ -103,7 +103,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.15),
+                          color: AppColors.textFaint,
                         ),
                       ),
                       child: Text(
@@ -111,7 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white.withOpacity(0.6),
+                          color: AppColors.textMed,
                         ),
                       ),
                     ),
@@ -203,7 +203,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               : null,
                           color: isActive
                               ? null
-                              : Colors.white.withOpacity(0.18),
+                              : AppColors.textFaint,
                         ),
                       );
                     }),

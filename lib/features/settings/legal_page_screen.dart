@@ -74,7 +74,7 @@ class LegalPageScreen extends ConsumerWidget {
                       versionLabel,
                       style: GoogleFonts.inter(
                         fontSize: 11,
-                        color: Colors.white.withOpacity(0.35),
+                        color: AppColors.textLow,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -96,7 +96,7 @@ class LegalPageScreen extends ConsumerWidget {
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             height: 1.6,
-                            color: Colors.white.withOpacity(0.7),
+                            color: AppColors.textMed,
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -125,7 +125,7 @@ class LegalPageScreen extends ConsumerWidget {
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
                                     height: 1.5,
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: AppColors.textMed,
                                   ),
                                 ),
                               ),

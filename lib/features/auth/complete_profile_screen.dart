@@ -176,7 +176,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   l.optionalDoLater,
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.4),
+                    color: AppColors.textLow,
                   ),
                 ),
               ),
@@ -293,7 +293,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                   size: 13,
                                   color: selected
                                       ? color
-                                      : Colors.white.withOpacity(0.5)),
+                                      : AppColors.textMed),
                               const SizedBox(width: 5),
                               Text(
                                 c,
@@ -302,7 +302,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                   fontWeight: FontWeight.w600,
                                   color: selected
                                       ? Colors.white
-                                      : Colors.white.withOpacity(0.55),
+                                      : AppColors.textMed,
                                 ),
                               ),
                             ],
@@ -322,7 +322,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration: _dec(l.bioHint, null)
                         .copyWith(counterStyle: GoogleFonts.inter(
-                            color: Colors.white.withOpacity(0.3), fontSize: 10)),
+                            color: AppColors.textLow, fontSize: 10)),
                   ),
                 ],
               ),
@@ -375,7 +375,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.6),
+            color: AppColors.textMed,
           ),
         ),
       );
@@ -383,10 +383,10 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.inter(
-            color: Colors.white.withOpacity(0.25), fontSize: 14),
+            color: AppColors.textFaint, fontSize: 14),
         prefixIcon: icon == null
             ? null
-            : Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
+            : Icon(icon, color: AppColors.textLow, size: 18),
         filled: true,
         fillColor: Colors.white.withOpacity(0.055),
         border: OutlineInputBorder(

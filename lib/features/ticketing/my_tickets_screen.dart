@@ -96,7 +96,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
                         fontWeight: FontWeight.w700,
                         color: isActive
                             ? Colors.white
-                            : Colors.white.withOpacity(0.45),
+                            : AppColors.textLow,
                       ),
                     ),
                   ),
@@ -171,7 +171,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.confirmation_number_outlined,
-              size: 52, color: Colors.white.withOpacity(0.15)),
+              size: 52, color: AppColors.textFaint),
           const SizedBox(height: 16),
           Text(
             _selectedTab == 0
@@ -179,7 +179,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
                 : l.noPastTickets,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.white.withOpacity(0.35),
+              color: AppColors.textLow,
             ),
           ),
           const SizedBox(height: 8),
@@ -187,7 +187,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
             l.discoverAndBuy,
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.textFaint,
             ),
           ),
         ],
@@ -367,7 +367,7 @@ class _TicketCard extends StatelessWidget {
                                   formatDate(event['start_date'] as String?),
                                   style: GoogleFonts.inter(
                                     fontSize: 11.5,
-                                    color: Colors.white.withOpacity(0.65),
+                                    color: AppColors.textMed,
                                   ),
                                 ),
                               ],

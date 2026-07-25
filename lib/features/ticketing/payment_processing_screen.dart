@@ -126,7 +126,7 @@ class _PaymentProcessingScreenState
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: Colors.white.withOpacity(0.5),
+            color: AppColors.textMed,
           ),
         ),
       ],
@@ -155,7 +155,7 @@ class _PaymentProcessingScreenState
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: Colors.white.withOpacity(0.5),
+            color: AppColors.textMed,
           ),
         ),
         const SizedBox(height: 28),

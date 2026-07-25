@@ -216,7 +216,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               l.tapToChangePhoto,
               style: GoogleFonts.inter(
                 fontSize: 11,
-                color: Colors.white.withOpacity(0.35),
+                color: AppColors.textLow,
               ),
             ),
           ),
@@ -245,7 +245,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: _dec(l.bioHint, null).copyWith(
               counterStyle: GoogleFonts.inter(
-                  color: Colors.white.withOpacity(0.3), fontSize: 10),
+                  color: AppColors.textLow, fontSize: 10),
             ),
           ),
           const SizedBox(height: 16),
@@ -260,13 +260,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Row(
               children: [
                 Icon(Icons.mail_outline,
-                    color: Colors.white.withOpacity(0.3), size: 18),
+                    color: AppColors.textLow, size: 18),
                 const SizedBox(width: 12),
                 Text(
                   email,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.5),
+                    color: AppColors.textMed,
                   ),
                 ),
               ],
@@ -277,7 +277,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             l.emailChangesSoon,
             style: GoogleFonts.inter(
               fontSize: 11,
-              color: Colors.white.withOpacity(0.3),
+              color: AppColors.textLow,
             ),
           ),
           const SizedBox(height: 32),
@@ -355,7 +355,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.6),
+            color: AppColors.textMed,
           ),
         ),
       );
@@ -363,10 +363,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
         hintText: hint,
         hintStyle:
-            GoogleFonts.inter(color: Colors.white.withOpacity(0.25), fontSize: 14),
+            GoogleFonts.inter(color: AppColors.textFaint, fontSize: 14),
         prefixIcon: icon == null
             ? null
-            : Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
+            : Icon(icon, color: AppColors.textLow, size: 18),
         filled: true,
         fillColor: Colors.white.withOpacity(0.055),
         border: OutlineInputBorder(

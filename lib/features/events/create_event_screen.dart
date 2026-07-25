@@ -538,7 +538,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 12.5,
-                  color: Colors.white.withOpacity(0.55),
+                  color: AppColors.textMed,
                   height: 1.4,
                 ),
               ),
@@ -584,7 +584,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(
-                            color: Colors.white.withOpacity(0.18)),
+                            color: AppColors.textFaint),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
@@ -619,7 +619,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 onPressed: () => Navigator.of(dialogCtx).pop(),
                 child: Text(l.done,
                     style: GoogleFonts.inter(
-                        color: Colors.white.withOpacity(0.6))),
+                        color: AppColors.textMed)),
               ),
             ],
           ),
@@ -642,8 +642,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   InputDecoration _inputDec(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.inter(color: Colors.white.withOpacity(0.25), fontSize: 14),
-      prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
+      hintStyle: GoogleFonts.inter(color: AppColors.textFaint, fontSize: 14),
+      prefixIcon: Icon(icon, color: AppColors.textLow, size: 18),
       filled: true,
       fillColor: Colors.white.withOpacity(0.055),
       border: OutlineInputBorder(
@@ -755,7 +755,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             isExpanded: true,
                             dropdownColor: AppColors.card,
                             style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
-                            icon: Icon(Icons.keyboard_arrow_down, color: Colors.white.withOpacity(0.4)),
+                            icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textLow),
                             items: cats.map((cat) => DropdownMenuItem(
                               value: cat,
                               child: Text(cat),
@@ -869,14 +869,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       children: [
                                         Icon(
                                             Icons.add_photo_alternate_outlined,
-                                            color: Colors.white.withOpacity(0.4),
+                                            color: AppColors.textLow,
                                             size: 36),
                                         const SizedBox(height: 8),
                                         Text(
                                           l.tapToChoosePhoto,
                                           style: GoogleFonts.inter(
                                             fontSize: 12,
-                                            color: Colors.white.withOpacity(0.4),
+                                            color: AppColors.textLow,
                                           ),
                                         ),
                                       ],
@@ -913,7 +913,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         l.coverOptional,
                         style: GoogleFonts.inter(
                           fontSize: 11,
-                          color: Colors.white.withOpacity(0.3),
+                          color: AppColors.textLow,
                         ),
                       ),
 
@@ -938,7 +938,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         'age check is done at the door by the organizer.',
                         style: GoogleFonts.inter(
                           fontSize: 11,
-                          color: Colors.white.withOpacity(0.3),
+                          color: AppColors.textLow,
                         ),
                       ),
 
@@ -970,7 +970,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                         ? Icons.lock
                                         : Icons.public,
                                     size: 16,
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: AppColors.textMed,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
@@ -991,7 +991,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       : l.privateEventOffHelp,
                                   style: GoogleFonts.inter(
                                     fontSize: 11.5,
-                                    color: Colors.white.withOpacity(0.5),
+                                    color: AppColors.textMed,
                                     height: 1.35,
                                   ),
                                 ),
@@ -1127,7 +1127,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: selected ? Colors.white : Colors.white.withOpacity(0.6),
+            color: selected ? Colors.white : AppColors.textMed,
           ),
         ),
       ),
@@ -1142,7 +1142,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         style: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Colors.white.withOpacity(0.6),
+          color: AppColors.textMed,
           letterSpacing: 0.3,
         ),
       ),
@@ -1166,7 +1166,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               label,
               style: GoogleFonts.inter(
                 fontSize: 10,
-                color: Colors.white.withOpacity(0.4),
+                color: AppColors.textLow,
                 fontWeight: FontWeight.w600,
               ),
             ),

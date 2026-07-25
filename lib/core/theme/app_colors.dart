@@ -56,6 +56,19 @@ class AppColors {
   /// Blanc cassé (texte sur fond sombre).
   static const Color textLight = Color(0xFFF0EEFF);
 
+  // ── Tokens sémantiques de foreground (texte/icônes sur fond sombre) ────────
+  // 4 niveaux d'emphase. Aujourd'hui basés sur du blanc translucide ; le jour
+  // où on ajoute un mode clair, ce sont ces tokens qui s'inverseront (via une
+  // ThemeExtension) sans toucher aux écrans.
+  /// Emphase haute (≈ blanc plein). Titres, valeurs importantes.
+  static const Color textHigh = Color(0xFFFFFFFF);
+  /// Emphase moyenne. Corps de texte secondaire.
+  static final Color textMed = Colors.white.withOpacity(0.65);
+  /// Emphase basse. Légendes, méta.
+  static final Color textLow = Colors.white.withOpacity(0.40);
+  /// Emphase très basse. Placeholders, hints.
+  static final Color textFaint = Colors.white.withOpacity(0.25);
+
   // ── Divers ───────────────────────────────────────────────────────────────
   static const Color border = Color(0xFF2A2448);
 }

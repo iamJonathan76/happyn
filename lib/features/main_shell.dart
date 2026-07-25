@@ -137,7 +137,7 @@ class _MainShellState extends State<MainShell> {
                   size: 22,
                   color: isActive
                       ? AppColors.lavender
-                      : Colors.white.withOpacity(0.32),
+                      : AppColors.textLow,
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -147,7 +147,7 @@ class _MainShellState extends State<MainShell> {
                     fontWeight: FontWeight.w600,
                     color: isActive
                         ? AppColors.lavender
-                        : Colors.white.withOpacity(0.3),
+                        : AppColors.textLow,
                   ),
                 ),
               ],

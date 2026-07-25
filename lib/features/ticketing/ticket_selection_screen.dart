@@ -85,7 +85,7 @@ class _TicketSelectionScreenState
         content: Text(
           'This event is $minAge+. Your account doesn’t meet the age '
           'requirement, so tickets can’t be purchased.',
-          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.65)),
+          style: GoogleFonts.inter(color: AppColors.textMed),
         ),
         actions: [
           TextButton(
@@ -309,7 +309,7 @@ class _TicketSelectionScreenState
                             (ev['location'] ?? '') as String,
                             style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: Colors.white.withOpacity(0.6),
+                              color: AppColors.textMed,
                             ),
                           ),
                         ],
@@ -388,7 +388,7 @@ class _TicketSelectionScreenState
                                           border: Border.all(
                                             color: isSelected
                                                 ? AppColors.primary
-                                                : Colors.white.withOpacity(0.3),
+                                                : AppColors.textLow,
                                             width: 2,
                                           ),
                                         ),
@@ -420,7 +420,7 @@ class _TicketSelectionScreenState
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w700,
                                                     color: isSoldOut
-                                                        ? Colors.white.withOpacity(0.3)
+                                                        ? AppColors.textLow
                                                         : Colors.white,
                                                   ),
                                                 ),
@@ -453,7 +453,7 @@ class _TicketSelectionScreenState
                                                 (t['perks'] as List).join(' · '),
                                                 style: GoogleFonts.inter(
                                                   fontSize: 11,
-                                                  color: Colors.white.withOpacity(0.4),
+                                                  color: AppColors.textLow,
                                                 ),
                                               ),
                                             ],
@@ -468,7 +468,7 @@ class _TicketSelectionScreenState
                                           fontSize: 15,
                                           fontWeight: FontWeight.w900,
                                           color: isSoldOut
-                                              ? Colors.white.withOpacity(0.3)
+                                              ? AppColors.textLow
                                               : AppColors.lavenderLight,
                                         ),
                                       ),
@@ -547,7 +547,7 @@ class _TicketSelectionScreenState
                         l.total,
                         style: GoogleFonts.inter(
                           fontSize: 11,
-                          color: Colors.white.withOpacity(0.38),
+                          color: AppColors.textLow,
                         ),
                       ),
                       Text(
@@ -623,13 +623,13 @@ class _TicketSelectionScreenState
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.confirmation_number_outlined,
-              size: 48, color: Colors.white.withOpacity(0.15)),
+              size: 48, color: AppColors.textFaint),
           const SizedBox(height: 16),
           Text(
             l.noTicketsAvailable,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.white.withOpacity(0.35),
+              color: AppColors.textLow,
             ),
           ),
           const SizedBox(height: 8),
@@ -637,7 +637,7 @@ class _TicketSelectionScreenState
             'The organizer hasn\'t added tickets yet.',
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.textFaint,
             ),
           ),
         ],

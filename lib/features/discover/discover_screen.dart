@@ -153,7 +153,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white.withOpacity(0.8),
+                            color: AppColors.textHigh,
                           ),
                         ),
                       ],
@@ -181,7 +181,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   const SizedBox(width: 14),
                   Icon(
                     Icons.search,
-                    color: Colors.white.withOpacity(0.38),
+                    color: AppColors.textLow,
                     size: 18,
                   ),
                   const SizedBox(width: 10),
@@ -195,7 +195,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       decoration: InputDecoration(
                         hintText: l.searchHintDiscover,
                         hintStyle: GoogleFonts.inter(
-                          color: Colors.white.withOpacity(0.28),
+                          color: AppColors.textFaint,
                           fontSize: 13,
                         ),
                         border: InputBorder.none,
@@ -213,7 +213,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         padding: const EdgeInsets.only(right: 12),
                         child: Icon(
                           Icons.close,
-                          color: Colors.white.withOpacity(0.38),
+                          color: AppColors.textLow,
                           size: 16,
                         ),
                       ),
@@ -273,7 +273,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         fontWeight: FontWeight.w700,
                         color: isActive
                             ? Colors.white
-                            : Colors.white.withOpacity(0.42),
+                            : AppColors.textLow,
                       ),
                     ),
                   ),
@@ -295,7 +295,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   l.couldNotLoadEvents,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.35),
+                    color: AppColors.textLow,
                   ),
                 ),
               ),
@@ -318,7 +318,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white.withOpacity(0.4),
+                                color: AppColors.textLow,
                               ),
                             ),
                           ],
@@ -363,7 +363,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 Icon(
                   Icons.search_off,
                   size: 52,
-                  color: Colors.white.withOpacity(0.15),
+                  color: AppColors.textFaint,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -372,7 +372,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       : l.noEventsInCategory,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.35),
+                    color: AppColors.textLow,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -380,7 +380,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   l.tryDifferentSearch,
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.textFaint,
                   ),
                 ),
               ],

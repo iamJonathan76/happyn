@@ -206,7 +206,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 _userHandle,
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
-                                  color: Colors.white.withOpacity(0.45),
+                                  color: AppColors.textLow,
                                 ),
                               ),
                             ],
@@ -247,13 +247,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Row(
                       children: [
                         Icon(Icons.location_on,
-                            size: 13, color: Colors.white.withOpacity(0.4)),
+                            size: 13, color: AppColors.textLow),
                         const SizedBox(width: 4),
                         Text(
                           city,
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: Colors.white.withOpacity(0.5),
+                            color: AppColors.textMed,
                           ),
                         ),
                       ],
@@ -265,7 +265,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         height: 1.5,
-                        color: Colors.white.withOpacity(0.7),
+                        color: AppColors.textMed,
                       ),
                     ),
                   ],
@@ -381,7 +381,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Icon(icon,
                   size: 14,
                   color:
-                      isActive ? Colors.white : Colors.white.withOpacity(0.45)),
+                      isActive ? Colors.white : AppColors.textLow),
               const SizedBox(width: 5),
               Text(
                 label,
@@ -389,7 +389,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   color:
-                      isActive ? Colors.white : Colors.white.withOpacity(0.45),
+                      isActive ? Colors.white : AppColors.textLow,
                 ),
               ),
             ],
@@ -430,16 +430,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 48, color: Colors.white.withOpacity(0.2)),
+                Icon(icon, size: 48, color: AppColors.textFaint),
                 const SizedBox(height: 12),
                 Text(title,
                     style: GoogleFonts.inter(
-                        fontSize: 14, color: Colors.white.withOpacity(0.35))),
+                        fontSize: 14, color: AppColors.textLow)),
                 const SizedBox(height: 8),
                 Text(subtitle,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
-                        fontSize: 12, color: Colors.white.withOpacity(0.25))),
+                        fontSize: 12, color: AppColors.textFaint)),
               ],
             ),
           ),
@@ -558,7 +558,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             label,
             style: GoogleFonts.inter(
               fontSize: 11,
-              color: Colors.white.withOpacity(0.4),
+              color: AppColors.textLow,
             ),
           ),
         ],
@@ -594,7 +594,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 label,
                 style: GoogleFonts.inter(
                   fontSize: 10,
-                  color: Colors.white.withOpacity(0.38),
+                  color: AppColors.textLow,
                 ),
               ),
               Text(
@@ -701,7 +701,7 @@ class _EventTile extends StatelessWidget {
                       date,
                       style: GoogleFonts.inter(
                         fontSize: 10,
-                        color: Colors.white.withOpacity(0.4),
+                        color: AppColors.textLow,
                       ),
                     ),
                     ...(() {
@@ -714,7 +714,7 @@ class _EventTile extends StatelessWidget {
                                   AppColors.amber)
                               : isEventPast(event)
                                   ? (AppLocalizations.of(context).statusEnded,
-                                      Colors.white.withOpacity(0.5))
+                                      AppColors.textMed)
                                   : (null, Colors.white);
                       if (label == null) return <Widget>[];
                       return [
@@ -777,13 +777,13 @@ class _EventTile extends StatelessWidget {
         ),
         content: Text(
           AppLocalizations.of(context).deleteEventBody,
-          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.55)),
+          style: GoogleFonts.inter(color: AppColors.textMed),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(AppLocalizations.of(context).cancel,
-                style: GoogleFonts.inter(color: Colors.white.withOpacity(0.5))),
+                style: GoogleFonts.inter(color: AppColors.textMed)),
           ),
           TextButton(
             onPressed: () {
