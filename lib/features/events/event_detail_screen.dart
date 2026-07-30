@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,14 +42,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       if (!mounted) return;
       setState(() => _status = newStatus);
       ref.invalidate(eventsProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(toast, style: AppText.body.copyWith(color: Colors.white)),
-          backgroundColor: AppColors.card,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      showAppSnack(context, toast);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

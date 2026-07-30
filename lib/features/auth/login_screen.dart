@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -32,36 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: AppText.body.copyWith(color: AppColors.textFaint),
-      prefixIcon: Icon(icon, color: AppColors.textLow, size: 18),
-      filled: true,
-      fillColor: Colors.white.withOpacity(0.055),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    );
-  }
-
-  void _snack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg, style: AppText.body.copyWith(color: Colors.white))),
-    );
-  }
-
-  /// Après auth : si le profil n'est pas encore « onboardé », on propose
+      /// Après auth : si le profil n'est pas encore « onboardé », on propose
   /// l'écran « Complete your profile » ; sinon on va direct au Home.
   Future<void> _routeAfterAuth() async {
     final user = Supabase.instance.client.auth.currentUser;
@@ -90,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
   /// puis on l'échange contre une vraie session Supabase (signInWithIdToken).
   Future<void> _signInWithGoogle() async {
     if (!AuthConfig.isGoogleConfigured) {
-      _snack('Google sign-in is not set up yet');
+      showAppSnack(context, 'Google sign-in is not set up yet');
       return;
     }
     try {
@@ -118,9 +90,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) await _routeAfterAuth();
     } on AuthException catch (e) {
-      if (mounted) _snack(e.message);
+      if (mounted) showAppSnack(context, e.message);
     } catch (_) {
-      if (mounted) _snack('Google sign-in failed. Please try again.');
+      if (mounted) showAppSnack(context, 'Google sign-in failed. Please try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -161,20 +133,20 @@ class _LoginScreenState extends State<LoginScreen> {
       final password = _passwordController.text;
 
       if (email.isEmpty || password.isEmpty) {
-        _snack(l.errFillAllFields);
+        showAppSnack(context, l.errFillAllFields);
         return;
       }
       if (!_isLogin && _nameController.text.trim().isEmpty) {
-        _snack(l.errEnterName);
+        showAppSnack(context, l.errEnterName);
         return;
       }
       if (!_isLogin) {
         if (_dob == null) {
-          _snack(l.errEnterDob);
+          showAppSnack(context, l.errEnterDob);
           return;
         }
         if ((ageFromDob(_dob) ?? 0) < kMinAccountAge) {
-          _snack(l.errMinAccountAge(kMinAccountAge));
+          showAppSnack(context, l.errMinAccountAge(kMinAccountAge));
           return;
         }
       }
@@ -351,7 +323,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     _oauthButton(
                       const Icon(Icons.apple, color: Colors.white, size: 22),
                       'Apple',
-                      () => _snack(l.appleSignInSoon),
+                      () => showAppSnack(context, l.appleSignInSoon),
                     ),
                   ],
                 ),
@@ -390,10 +362,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: _nameController,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: _inputDecoration(
-                      l.fullName,
-                      Icons.person_outline,
-                    ),
+                    decoration: appInputDecoration(l.fullName, icon: Icons.person_outline, radius: 16, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                   ),
                   const SizedBox(height: 10),
                   // Date of birth (sign up only)
@@ -434,10 +403,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDecoration(
-                    l.emailAddress,
-                    Icons.mail_outline,
-                  ),
+                  decoration: appInputDecoration(l.emailAddress, icon: Icons.mail_outline, radius: 16, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                 ),
 
                 const SizedBox(height: 10),
@@ -447,7 +413,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDecoration(l.password, Icons.lock_outline)
+                  decoration: appInputDecoration(l.password, icon: Icons.lock_outline, radius: 16, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16))
                       .copyWith(
                         suffixIcon: IconButton(
                           icon: Icon(

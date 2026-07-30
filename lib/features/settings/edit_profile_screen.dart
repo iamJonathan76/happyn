@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
@@ -99,7 +100,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final l = AppLocalizations.of(context);
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      _snack(l.errEnterName);
+      showAppSnack(context, l.errEnterName);
       return;
     }
 
@@ -123,28 +124,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       });
 
       if (mounted) {
-        _snack(l.profileUpdated);
+        showAppSnack(context, l.profileUpdated);
         Navigator.of(context).pop(true);
       }
     } catch (e) {
-      _snack(l.couldNotSaveRetry);
+      showAppSnack(context, l.couldNotSaveRetry);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  void _snack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: AppText.body.copyWith(color: Colors.white)),
-        backgroundColor: AppColors.card,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  @override
+    @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final email = _supabase.auth.currentUser?.email ?? '';
@@ -215,33 +205,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 24),
 
-          _label(l.fullNameLabel),
+          AppLabel(l.fullNameLabel),
           TextField(
             controller: _nameController,
             onChanged: (_) => setState(() {}), // maj des initiales du placeholder
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec(l.yourNameHint, Icons.person_outline),
+            decoration: appInputDecoration(l.yourNameHint, icon: Icons.person_outline),
           ),
           const SizedBox(height: 16),
-          _label(l.cityLabel),
+          AppLabel(l.cityLabel),
           TextField(
             controller: _cityController,
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec(l.cityHintShort, Icons.location_city_outlined),
+            decoration: appInputDecoration(l.cityHintShort, icon: Icons.location_city_outlined),
           ),
           const SizedBox(height: 16),
-          _label(l.bioLabel),
+          AppLabel(l.bioLabel),
           TextField(
             controller: _bioController,
             maxLines: 3,
             maxLength: 160,
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec(l.bioHint, null).copyWith(
+            decoration: appInputDecoration(l.bioHint).copyWith(
               counterStyle: AppText.micro,
             ),
           ),
           const SizedBox(height: 16),
-          _label(l.emailLabel),
+          AppLabel(l.emailLabel),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -326,34 +316,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
 
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          text,
-          style: AppText.captionBold.copyWith(color: AppColors.textMed),
-        ),
-      );
-
-  InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
-        hintText: hint,
-        hintStyle:
-            AppText.body.copyWith(color: AppColors.textFaint),
-        prefixIcon: icon == null
-            ? null
-            : Icon(icon, color: AppColors.textLow, size: 18),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.055),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-      );
-}
+    }

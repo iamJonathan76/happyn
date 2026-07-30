@@ -46,6 +46,8 @@ class AppColors {
   static const Color green = Color(0xFF34D399);
   /// Vert « validé » plus saturé.
   static const Color success = Color(0xFF1DB954);
+  /// Vert foncé pour les bandeaux de confirmation.
+  static const Color successDark = Color(0xFF16A34A);
   /// Bleu (accents ponctuels).
   static const Color blue = Color(0xFF60A5FA);
 

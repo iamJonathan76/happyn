@@ -12,6 +12,7 @@ import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/utils/secure_screen.dart';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
 
@@ -456,15 +457,8 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                 if (!sheetCtx.mounted) return;
                 Navigator.of(sheetCtx).pop();
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFF16A34A),
-                    content: Text(l.ticketSentTo(email),
-                        style: AppText.body.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white)),
-                  ),
-                );
+                showAppSnack(context, l.ticketSentTo(email),
+                    background: AppColors.successDark);
                 // On quitte l'écran : ce billet ne nous appartient plus.
                 Navigator.of(context).popUntil((route) => route.isFirst);
               } catch (e) {

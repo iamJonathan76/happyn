@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'dart:math';
@@ -137,8 +138,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 child: TextField(
                   controller: tier.nameController,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDec(
-                      l.tierNameHint, Icons.local_activity_outlined),
+                  decoration: appInputDecoration(l.tierNameHint, icon: Icons.local_activity_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                 ),
               ),
               // Supprimer : seulement les tiers nouveaux (pas ceux qui existent
@@ -178,7 +178,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   controller: tier.priceController,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDec(l.priceFreeHint, Icons.attach_money),
+                  decoration: appInputDecoration(l.priceFreeHint, icon: Icons.attach_money, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -187,8 +187,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   controller: tier.quantityController,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDec(
-                      l.qtyHint, Icons.confirmation_number_outlined),
+                  decoration: appInputDecoration(l.qtyHint, icon: Icons.confirmation_number_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -198,7 +197,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration:
-                      _inputDec(l.maxPerPersonHint, Icons.person_outline),
+                      appInputDecoration(l.maxPerPersonHint, icon: Icons.person_outline, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                 ),
               ),
             ],
@@ -293,19 +292,19 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     // inconnu (ancien compte sans date de naissance), on laisse passer.
     final age = currentUserAge();
     if (age != null && age < kMinOrganizerAge) {
-      _showSnack(l.mustBeOrganizerAge(kMinOrganizerAge));
+      showAppSnack(context, l.mustBeOrganizerAge(kMinOrganizerAge));
       return;
     }
     if (_titleController.text.trim().isEmpty) {
-      _showSnack(l.errEnterTitle);
+      showAppSnack(context, l.errEnterTitle);
       return;
     }
     if (_locationController.text.trim().isEmpty) {
-      _showSnack(l.errEnterLocation);
+      showAppSnack(context, l.errEnterLocation);
       return;
     }
     if (_cityController.text.trim().isEmpty) {
-      _showSnack(l.errEnterCity);
+      showAppSnack(context, l.errEnterCity);
       return;
     }
 
@@ -319,13 +318,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         if (name.isEmpty || qty <= 0) continue;
         // Garde-fou : on ne descend pas sous le nombre déjà vendu.
         if (t.id != null && qty < t.quantitySold) {
-          _showSnack(l.errQtyBelowSold(name, t.quantitySold));
+          showAppSnack(context, l.errQtyBelowSold(name, t.quantitySold));
           return;
         }
         editTiers.add(t);
       }
       if (editTiers.isEmpty) {
-        _showSnack(l.errKeepOneTier);
+        showAppSnack(context, l.errKeepOneTier);
         return;
       }
       final eventPrice = editTiers
@@ -390,13 +389,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             _existingCode = editCode;
             await _showInviteDialog(_titleController.text.trim(), editCode);
           } else {
-            _showSnack(l.eventUpdated);
+            showAppSnack(context, l.eventUpdated);
             await Future.delayed(const Duration(milliseconds: 800));
           }
           if (mounted) Navigator.of(context).pop(true);
         }
       } catch (e) {
-        _showSnack(l.errGeneric(e.toString()));
+        showAppSnack(context, l.errGeneric(e.toString()));
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -421,7 +420,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       });
     }
     if (tiers.isEmpty) {
-      _showSnack(l.errAddOneTier);
+      showAppSnack(context, l.errAddOneTier);
       return;
     }
     // Prix affiché de l'event = le tier le moins cher (« Starting from »)
@@ -478,7 +477,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         if (accessCode != null) {
           await _showInviteDialog(_titleController.text.trim(), accessCode);
         } else {
-          _showSnack(l.eventCreated);
+          showAppSnack(context, l.eventCreated);
           await Future.delayed(const Duration(seconds: 1));
         }
         if (mounted) {
@@ -486,7 +485,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         }
       }
     } catch (e) {
-      _showSnack(l.errGeneric(e.toString()));
+      showAppSnack(context, l.errGeneric(e.toString()));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -557,7 +556,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: code));
-                        _showSnack(l.codeCopied);
+                        showAppSnack(context, l.codeCopied);
                       },
                       icon: const Icon(Icons.copy,
                           size: 16, color: Colors.white),
@@ -578,7 +577,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       onPressed: () {
                         Clipboard.setData(ClipboardData(
                             text: l.inviteShareText(title, code)));
-                        _showSnack(l.inviteCopied);
+                        showAppSnack(context, l.inviteCopied);
                       },
                       icon: const Icon(Icons.ios_share,
                           size: 16, color: Colors.white),
@@ -607,41 +606,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
   }
 
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: AppText.body.copyWith(color: Colors.white)),
-        backgroundColor: AppColors.card,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  InputDecoration _inputDec(String hint, IconData icon) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: AppText.body.copyWith(color: AppColors.textFaint),
-      prefixIcon: Icon(icon, color: AppColors.textLow, size: 18),
-      filled: true,
-      fillColor: Colors.white.withOpacity(0.055),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    );
-  }
-
-  String _formatDate(DateTime dt) {
+      String _formatDate(DateTime dt) {
     return '${dt.day}/${dt.month}/${dt.year} at ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
   }
 
@@ -706,17 +671,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     children: [
 
                       // Title
-                      _label(l.eventTitleLabel),
+                      AppLabel(l.eventTitleLabel),
                       TextField(
                         controller: _titleController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('e.g. Afro Vibes Party', Icons.title),
+                        decoration: appInputDecoration('e.g. Afro Vibes Party', icon: Icons.title, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Category
-                      _label(l.categoryLabel),
+                      AppLabel(l.categoryLabel),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
@@ -743,35 +708,35 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       const SizedBox(height: 16),
 
                       // Description
-                      _label(l.descriptionLabel),
+                      AppLabel(l.descriptionLabel),
                       TextField(
                         controller: _descriptionController,
                         maxLines: 3,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec(l.descriptionHint, Icons.description_outlined)
+                        decoration: appInputDecoration(l.descriptionHint, icon: Icons.description_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16))
                             .copyWith(prefixIcon: null, contentPadding: const EdgeInsets.all(16)),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Location + City
-                      _label(l.locationLabel),
+                      AppLabel(l.locationLabel),
                       TextField(
                         controller: _locationController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec(l.venueHint, Icons.location_on_outlined),
+                        decoration: appInputDecoration(l.venueHint, icon: Icons.location_on_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: _cityController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec(l.cityHint, Icons.location_city_outlined),
+                        decoration: appInputDecoration(l.cityHint, icon: Icons.location_city_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Dates
-                      _label(l.dateTimeLabel),
+                      AppLabel(l.dateTimeLabel),
                       Row(
                         children: [
                           Expanded(child: _dateTile(l.startLabel, _startDate, () => _pickDate(isStart: true))),
@@ -788,7 +753,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _label(l.ticketTiersLabel),
+                            AppLabel(l.ticketTiersLabel),
                             GestureDetector(
                               onTap: _addTier,
                               child: Row(
@@ -810,7 +775,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ],
 
                       // Cover image picker
-                      _label(l.coverImageLabel),
+                      AppLabel(l.coverImageLabel),
                       GestureDetector(
                         onTap: _pickImage,
                         child: Container(
@@ -885,7 +850,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       const SizedBox(height: 24),
 
                       // ── Exigence d'âge ─────────────────────────────
-                      _label(l.ageRequirementLabel),
+                      AppLabel(l.ageRequirementLabel),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -970,7 +935,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       onTap: () {
                                         Clipboard.setData(ClipboardData(
                                             text: _existingCode!));
-                                        _showSnack(l.codeCopied);
+                                        showAppSnack(context, l.codeCopied);
                                       },
                                       child: Icon(Icons.copy,
                                           size: 16,
@@ -1075,17 +1040,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
   }
 
-  Widget _label(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: AppText.captionBold.copyWith(color: AppColors.textMed, letterSpacing: 0.3),
-      ),
-    );
-  }
-
-  Widget _dateTile(String label, DateTime dt, VoidCallback onTap) {
+    Widget _dateTile(String label, DateTime dt, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

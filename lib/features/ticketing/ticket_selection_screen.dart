@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,7 +69,7 @@ class _TicketSelectionScreenState
   }
 
   String get _priceText {
-    if (_totalPrice == 0) return 'Free';
+    if (_totalPrice == 0) return AppLocalizations.of(context).free;
     return '\$${_totalPrice.toStringAsFixed(2)}';
   }
 
@@ -191,16 +192,7 @@ class _TicketSelectionScreenState
     } on StripeException catch (_) {
       // Annulation ou échec côté Stripe : on reste sur l'écran, message discret.
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l.paymentCancelled,
-                style: AppText.body.copyWith(color: Colors.white)),
-            backgroundColor: AppColors.card,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+        showAppSnack(context, l.paymentCancelled);
       }
     } catch (e) {
       if (mounted) {
@@ -218,15 +210,7 @@ class _TicketSelectionScreenState
                     : msg.contains('payments_not_configured')
                         ? l.errPaymentsNotSetup
                         : l.errSomethingWrong;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(friendly,
-                style: AppText.body.copyWith(color: Colors.white)),
-            backgroundColor: AppColors.card,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+        showAppSnack(context, friendly);
       }
     } finally {
       if (mounted) setState(() => _isPurchasing = false);

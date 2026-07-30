@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,31 +69,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       // se rafraîchissent tous automatiquement, sans rien faire de plus.
       ref.invalidate(eventsProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).eventDeleted,
-                style: AppText.body.copyWith(color: Colors.white)),
-            backgroundColor: AppColors.card,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+        showAppSnack(context, AppLocalizations.of(context).eventDeleted);
       }
     } catch (e) {
       if (mounted) {
         final msg = e.toString().contains('event_has_tickets')
             ? AppLocalizations.of(context).cantDeleteHasTickets
             : AppLocalizations.of(context).couldNotDeleteEvent;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(msg, style: AppText.body.copyWith(color: Colors.white)),
-            backgroundColor: AppColors.card,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+        showAppSnack(context, msg);
       }
     }
   }

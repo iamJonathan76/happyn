@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
@@ -115,16 +116,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       if (mounted) _goHome();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).couldNotSaveLater,
-                style: AppText.body.copyWith(color: Colors.white)),
-            backgroundColor: AppColors.card,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+        showAppSnack(context, AppLocalizations.of(context).couldNotSaveLater);
         setState(() => _saving = false);
       }
     }
@@ -232,17 +224,17 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   const SizedBox(height: 28),
 
                   // City
-                  _label(l.cityLabel),
+                  AppLabel(l.cityLabel),
                   TextField(
                     controller: _cityController,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration:
-                        _dec(l.cityHintShort, Icons.location_city_outlined),
+                        appInputDecoration(l.cityHintShort, icon: Icons.location_city_outlined),
                   ),
                   const SizedBox(height: 20),
 
                   // Interests
-                  _label(l.interestsLabel),
+                  AppLabel(l.interestsLabel),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -295,13 +287,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   const SizedBox(height: 20),
 
                   // Bio
-                  _label(l.bioLabel),
+                  AppLabel(l.bioLabel),
                   TextField(
                     controller: _bioController,
                     maxLines: 3,
                     maxLength: 160,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: _dec(l.bioHint, null)
+                    decoration: appInputDecoration(l.bioHint)
                         .copyWith(counterStyle: AppText.micro),
                   ),
                 ],
@@ -344,33 +336,4 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     );
   }
 
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          text,
-          style: AppText.captionBold.copyWith(color: AppColors.textMed),
-        ),
-      );
-
-  InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
-        hintText: hint,
-        hintStyle: AppText.body.copyWith(color: AppColors.textFaint),
-        prefixIcon: icon == null
-            ? null
-            : Icon(icon, color: AppColors.textLow, size: 18),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.055),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-      );
-}
+    }
