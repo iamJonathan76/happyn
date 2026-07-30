@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Couleur de fond de l'écran de démarrage natif, alignée sur
+  AppColors.background (lib/core/theme/app_colors.dart).
+
+  L'app est sombre en toutes circonstances (AppTheme.darkTheme, sans thème
+  clair) : cette couleur ne doit donc PAS suivre le réglage système, sinon le
+  démarrage clignote en clair avant la première frame de Flutter.
+-->
+<resources>
+    <color name="happyn_background">#0A0817</color>
+</resources>
