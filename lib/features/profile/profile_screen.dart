@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/l10n/app_localizations.dart';
@@ -71,7 +71,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context).eventDeleted,
-                style: GoogleFonts.inter(color: Colors.white)),
+                style: AppText.body.copyWith(color: Colors.white)),
             backgroundColor: AppColors.card,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -86,7 +86,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             : AppLocalizations.of(context).couldNotDeleteEvent;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
+            content: Text(msg, style: AppText.body.copyWith(color: Colors.white)),
             backgroundColor: AppColors.card,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -196,20 +196,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 _userName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
+                                style: AppText.h1.copyWith(fontSize: 19, color: Colors.white),
                               ),
                               Text(
                                 _userHandle,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: AppColors.textLow,
-                                ),
+                                style: AppText.caption.copyWith(color: AppColors.textLow),
                               ),
                             ],
                           ),
@@ -253,10 +246,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         const SizedBox(width: 4),
                         Text(
                           city,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: AppColors.textMed,
-                          ),
+                          style: AppText.caption,
                         ),
                       ],
                     ),
@@ -264,11 +254,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     if (city.isNotEmpty) const SizedBox(height: 8),
                     Text(
                       bio,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        height: 1.5,
-                        color: AppColors.textMed,
-                      ),
+                      style: AppText.bodySm.copyWith(height: 1.5),
                     ),
                   ],
                 ],
@@ -299,11 +285,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Center(
                   child: Text(
                     AppLocalizations.of(context).editProfile,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h4.copyWith(color: Colors.white),
                   ),
                 ),
               ),
@@ -393,12 +375,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: Text(
                     label,
                     maxLines: 1,
-                    style: GoogleFonts.inter(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color:
-                          isActive ? Colors.white : AppColors.textLow,
-                    ),
+                    style: AppText.smallBold.copyWith(fontSize: 11.5, color: isActive ? Colors.white : AppColors.textLow),
                   ),
                 ),
               ),
@@ -446,16 +423,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(title,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                          fontSize: 14, color: AppColors.textLow)),
+                      style: AppText.body.copyWith(color: AppColors.textLow)),
                 ),
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(subtitle,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                          fontSize: 12, color: AppColors.textFaint)),
+                      style: AppText.caption.copyWith(color: AppColors.textFaint)),
                 ),
               ],
             ),
@@ -529,11 +504,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(width: 8),
                   Text(
                     AppLocalizations.of(context).signOut,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.error,
-                    ),
+                    style: AppText.h4.copyWith(color: AppColors.error),
                   ),
                 ],
               ),
@@ -550,11 +521,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         child: Center(
           child: Text(
             _userInitials,
-            style: GoogleFonts.poppins(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
+            style: AppText.display.copyWith(fontSize: 28, color: Colors.white),
           ),
         ),
       );
@@ -565,11 +532,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Text(
             value,
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
+            style: AppText.h1.copyWith(color: Colors.white),
           ),
           FittedBox(
             fit: BoxFit.scaleDown,
@@ -577,10 +540,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               label,
               maxLines: 1,
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: AppColors.textLow,
-              ),
+              style: AppText.small,
             ),
           ),
         ],
@@ -618,20 +578,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: AppColors.textLow,
-                  ),
+                  style: AppText.micro,
                 ),
                 Text(
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                  style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
                 ),
               ],
             ),
@@ -697,11 +650,7 @@ class _EventTile extends StatelessWidget {
               children: [
                 Text(
                   event['title'] as String,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: AppText.h5.copyWith(color: Colors.white),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
@@ -719,19 +668,12 @@ class _EventTile extends StatelessWidget {
                       ),
                       child: Text(
                         event['category'] as String,
-                        style: GoogleFonts.inter(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.lavender,
-                        ),
+                        style: AppText.microBold.copyWith(color: AppColors.lavender),
                       ),
                     ),
                     Text(
                       date,
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        color: AppColors.textLow,
-                      ),
+                      style: AppText.micro,
                     ),
                     ...(() {
                       final st = eventStatus(event);
@@ -756,11 +698,7 @@ class _EventTile extends StatelessWidget {
                           ),
                           child: Text(
                             label,
-                            style: GoogleFonts.inter(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              color: color,
-                            ),
+                            style: AppText.microBold.copyWith(color: color),
                           ),
                         ),
                       ];
@@ -801,18 +739,17 @@ class _EventTile extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           AppLocalizations.of(context).deleteEventTitle,
-          style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w700, color: Colors.white),
+          style: AppText.h4.copyWith(color: Colors.white),
         ),
         content: Text(
           AppLocalizations.of(context).deleteEventBody,
-          style: GoogleFonts.inter(color: AppColors.textMed),
+          style: AppText.body,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(AppLocalizations.of(context).cancel,
-                style: GoogleFonts.inter(color: AppColors.textMed)),
+                style: AppText.body),
           ),
           TextButton(
             onPressed: () {
@@ -820,9 +757,7 @@ class _EventTile extends StatelessWidget {
               onDelete();
             },
             child: Text(AppLocalizations.of(context).delete,
-                style: GoogleFonts.inter(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700)),
+                style: AppText.body.copyWith(fontWeight: FontWeight.w700, color: AppColors.error)),
           ),
         ],
       ),

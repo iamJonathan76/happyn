@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -77,11 +77,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
         ),
         title: Text(
           AppLocalizations.of(context).joinPrivateEvent,
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          style: AppText.h2.copyWith(color: Colors.white),
         ),
       ),
       body: SafeArea(
@@ -107,20 +103,12 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
               const SizedBox(height: 18),
               Text(
                 AppLocalizations.of(context).gotInviteCode,
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
+                style: AppText.display.copyWith(fontSize: 22, color: Colors.white),
               ),
               const SizedBox(height: 6),
               Text(
                 AppLocalizations.of(context).joinPrivateBody,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppColors.textMed,
-                  height: 1.45,
-                ),
+                style: AppText.bodySm.copyWith(height: 1.45),
               ),
               const SizedBox(height: 26),
               TextField(
@@ -130,20 +118,10 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                 textCapitalization: TextCapitalization.characters,
                 textAlign: TextAlign.center,
                 inputFormatters: [UpperCaseFormatter()],
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 3,
-                ),
+                style: AppText.display.copyWith(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 3),
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context).inviteCodePlaceholder,
-                  hintStyle: GoogleFonts.poppins(
-                    color: AppColors.textFaint,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 3,
-                  ),
+                  hintStyle: AppText.display.copyWith(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textFaint, letterSpacing: 3),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.05),
                   errorText: _error,
@@ -187,11 +165,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                         )
                       : Text(
                           AppLocalizations.of(context).openEvent,
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                          style: AppText.h3.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                         ),
                 ),
               ),

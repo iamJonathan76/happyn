@@ -1,9 +1,9 @@
 import 'dart:async';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
@@ -114,20 +114,13 @@ class _PaymentProcessingScreenState
         const SizedBox(height: 28),
         Text(
           l.paymentReceived,
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          style: AppText.h2.copyWith(fontSize: 18, color: Colors.white),
         ),
         const SizedBox(height: 8),
         Text(
           l.issuingTicket,
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: AppColors.textMed,
-          ),
+          style: AppText.body,
         ),
       ],
     );
@@ -143,20 +136,13 @@ class _PaymentProcessingScreenState
         const SizedBox(height: 20),
         Text(
           l.almostThere,
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          style: AppText.h2.copyWith(fontSize: 18, color: Colors.white),
         ),
         const SizedBox(height: 8),
         Text(
           l.paymentDelayBody,
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: AppColors.textMed,
-          ),
+          style: AppText.body,
         ),
         const SizedBox(height: 28),
         GestureDetector(
@@ -173,11 +159,7 @@ class _PaymentProcessingScreenState
             ),
             child: Text(
               l.backToHome,
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+              style: AppText.h3.copyWith(color: Colors.white),
             ),
           ),
         ),

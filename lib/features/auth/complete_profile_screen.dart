@@ -1,9 +1,9 @@
 import 'dart:io';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/l10n/app_localizations.dart';
@@ -118,7 +118,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context).couldNotSaveLater,
-                style: GoogleFonts.inter(color: Colors.white)),
+                style: AppText.body.copyWith(color: Colors.white)),
             backgroundColor: AppColors.card,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -148,21 +148,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                 children: [
                   Text(
                     l.completeYourProfile,
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h1.copyWith(color: Colors.white),
                   ),
                   TextButton(
                     onPressed: _saving ? null : _skip,
                     child: Text(
                       l.skip,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lavender,
-                      ),
+                      style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.lavender),
                     ),
                   ),
                 ],
@@ -174,10 +166,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   l.optionalDoLater,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppColors.textLow,
-                  ),
+                  style: AppText.caption.copyWith(color: AppColors.textLow),
                 ),
               ),
             ),
@@ -215,11 +204,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                       child: Center(
                                         child: Text(
                                           _initials,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                          ),
+                                          style: AppText.display.copyWith(fontSize: 32, color: Colors.white),
                                         ),
                                       ),
                                     ),
@@ -297,13 +282,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                               const SizedBox(width: 5),
                               Text(
                                 c,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: selected
+                                style: AppText.captionBold.copyWith(color: selected
                                       ? Colors.white
-                                      : AppColors.textMed,
-                                ),
+                                      : AppColors.textMed),
                               ),
                             ],
                           ),
@@ -321,8 +302,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     maxLength: 160,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration: _dec(l.bioHint, null)
-                        .copyWith(counterStyle: GoogleFonts.inter(
-                            color: AppColors.textLow, fontSize: 10)),
+                        .copyWith(counterStyle: AppText.micro),
                   ),
                 ],
               ),
@@ -352,11 +332,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                           )
                         : Text(
                             l.saveAndContinue,
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                            style: AppText.h3.copyWith(color: Colors.white),
                           ),
                   ),
                 ),
@@ -372,18 +348,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(
           text,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textMed,
-          ),
+          style: AppText.captionBold.copyWith(color: AppColors.textMed),
         ),
       );
 
   InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
         hintText: hint,
-        hintStyle: GoogleFonts.inter(
-            color: AppColors.textFaint, fontSize: 14),
+        hintStyle: AppText.body.copyWith(color: AppColors.textFaint),
         prefixIcon: icon == null
             ? null
             : Icon(icon, color: AppColors.textLow, size: 18),

@@ -936,4 +936,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couldNotOpenMaps => 'Could not open a maps app.';
+
+  @override
+  String get documentNotFound => 'Document not found';
+
+  @override
+  String get deleteAccountBody =>
+      'To permanently delete your account and data, please contact support@happyn.com. Self-service deletion is coming soon.';
+
+  @override
+  String aboutHappynBody(String version) {
+    return 'Find the ones. Be the moment.\n\nDiscover, create, and attend events. Version $version.';
+  }
+
+  @override
+  String get selectDateOfBirth => 'Select your date of birth';
 }

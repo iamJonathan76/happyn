@@ -1,8 +1,8 @@
 import 'dart:io';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -136,7 +136,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _snack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
+        content: Text(msg, style: AppText.body.copyWith(color: Colors.white)),
         backgroundColor: AppColors.card,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -161,11 +161,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         title: Text(
           l.editProfile,
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          style: AppText.h2.copyWith(color: Colors.white),
         ),
       ),
       body: ListView(
@@ -214,10 +210,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           Center(
             child: Text(
               l.tapToChangePhoto,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: AppColors.textLow,
-              ),
+              style: AppText.small,
             ),
           ),
           const SizedBox(height: 24),
@@ -244,8 +237,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             maxLength: 160,
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: _dec(l.bioHint, null).copyWith(
-              counterStyle: GoogleFonts.inter(
-                  color: AppColors.textLow, fontSize: 10),
+              counterStyle: AppText.micro,
             ),
           ),
           const SizedBox(height: 16),
@@ -264,10 +256,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 const SizedBox(width: 12),
                 Text(
                   email,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.textMed,
-                  ),
+                  style: AppText.body,
                 ),
               ],
             ),
@@ -275,10 +264,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 6),
           Text(
             l.emailChangesSoon,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: AppColors.textLow,
-            ),
+            style: AppText.small,
           ),
           const SizedBox(height: 32),
           GestureDetector(
@@ -301,11 +287,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       )
                     : Text(
                         l.saveChanges,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                        style: AppText.h3.copyWith(color: Colors.white),
                       ),
               ),
             ),
@@ -339,11 +321,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Center(
           child: Text(
             _initials,
-            style: GoogleFonts.poppins(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
+            style: AppText.display.copyWith(fontSize: 32, color: Colors.white),
           ),
         ),
       );
@@ -352,18 +330,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(
           text,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textMed,
-          ),
+          style: AppText.captionBold.copyWith(color: AppColors.textMed),
         ),
       );
 
   InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
         hintText: hint,
         hintStyle:
-            GoogleFonts.inter(color: AppColors.textFaint, fontSize: 14),
+            AppText.body.copyWith(color: AppColors.textFaint),
         prefixIcon: icon == null
             ? null
             : Icon(icon, color: AppColors.textLow, size: 18),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
@@ -92,11 +92,7 @@ class NotificationsScreen extends ConsumerWidget {
         ),
         title: Text(
           l.notificationsTitle,
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          style: AppText.h2.copyWith(color: Colors.white),
         ),
         actions: [
           if (unread > 0)
@@ -104,11 +100,7 @@ class NotificationsScreen extends ConsumerWidget {
               onPressed: () => _markAllRead(ref),
               child: Text(
                 l.markAllRead,
-                style: GoogleFonts.inter(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.lavender,
-                ),
+                style: AppText.captionBold.copyWith(fontSize: 12.5, color: AppColors.lavender),
               ),
             ),
         ],
@@ -197,30 +189,19 @@ class NotificationsScreen extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           (n['title'] ?? '') as String,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                          style: AppText.h4.copyWith(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
                         ),
                       ),
                       Text(
                         _ago(n['created_at'] as String?, l),
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          color: AppColors.textLow,
-                        ),
+                        style: AppText.micro,
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     (n['body'] ?? '') as String,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      height: 1.45,
-                      color: AppColors.textMed,
-                    ),
+                    style: AppText.caption.copyWith(height: 1.45),
                   ),
                   if (eventId != null) ...[
                     const SizedBox(height: 8),
@@ -228,11 +209,7 @@ class NotificationsScreen extends ConsumerWidget {
                       children: [
                         Text(
                           l.viewEvent,
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: color,
-                          ),
+                          style: AppText.smallBold.copyWith(color: color),
                         ),
                         Icon(Icons.chevron_right, size: 14, color: color),
                       ],
@@ -275,20 +252,13 @@ class NotificationsScreen extends ConsumerWidget {
             const SizedBox(height: 18),
             Text(
               l.allCaughtUp,
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textMed,
-              ),
+              style: AppText.h3.copyWith(color: AppColors.textMed),
             ),
             const SizedBox(height: 6),
             Text(
               l.notifEmptyBody,
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: AppColors.textLow,
-              ),
+              style: AppText.caption.copyWith(color: AppColors.textLow),
             ),
           ],
         ),

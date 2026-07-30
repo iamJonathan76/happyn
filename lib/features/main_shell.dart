@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/home/home_screen.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
@@ -142,13 +142,9 @@ class _MainShellState extends State<MainShell> {
                 const SizedBox(height: 2),
                 Text(
                   item['label'] as String,
-                  style: GoogleFonts.inter(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: isActive
+                  style: AppText.microBold.copyWith(fontWeight: FontWeight.w600, color: isActive
                         ? AppColors.lavender
-                        : AppColors.textLow,
-                  ),
+                        : AppColors.textLow),
                 ),
               ],
             ),

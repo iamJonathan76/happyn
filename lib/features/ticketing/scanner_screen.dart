@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/l10n/app_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -151,11 +151,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       '${l.scanTicketsTitle} · ${widget.event['title'] ?? ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                      style: AppText.h2.copyWith(fontSize: 16, color: Colors.white),
                     ),
                   ),
                 ],
@@ -201,20 +197,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
               const SizedBox(height: 20),
               Text(
                 title,
-                style: GoogleFonts.poppins(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: color,
-                ),
+                style: AppText.display.copyWith(fontSize: 28, color: color),
               ),
               const SizedBox(height: 10),
               Text(
                 _resultDetail,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppColors.textMed,
-                ),
+                style: AppText.body,
               ),
               const SizedBox(height: 32),
               GestureDetector(
@@ -229,11 +218,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ),
                   child: Text(
                     l.scanNext,
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h3.copyWith(color: Colors.white),
                   ),
                 ),
               ),

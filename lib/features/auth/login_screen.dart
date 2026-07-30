@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/config/auth_config.dart';
@@ -35,10 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
   InputDecoration _inputDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.inter(
-        color: AppColors.textFaint,
-        fontSize: 14,
-      ),
+      hintStyle: AppText.body.copyWith(color: AppColors.textFaint),
       prefixIcon: Icon(icon, color: AppColors.textLow, size: 18),
       filled: true,
       fillColor: Colors.white.withOpacity(0.055),
@@ -60,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _snack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg, style: GoogleFonts.inter(color: Colors.white))),
+      SnackBar(content: Text(msg, style: AppText.body.copyWith(color: Colors.white))),
     );
   }
 
@@ -143,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
       initialDate: initial,
       firstDate: DateTime(now.year - 100),
       lastDate: now,
-      helpText: 'Select your date of birth',
+      helpText: AppLocalizations.of(context).selectDateOfBirth,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.dark(
@@ -274,12 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ).createShader(bounds),
                   child: Text(
                     'HAPPYN',
-                    style: GoogleFonts.poppins(
-                      fontSize: 38,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
+                    style: AppText.display.copyWith(fontSize: 38, color: Colors.white, letterSpacing: -0.5),
                   ),
                 ),
 
@@ -287,10 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 Text(
                   _isLogin ? l.welcomeBack : l.joinExperience,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.textLight.withOpacity(0.42),
-                  ),
+                  style: AppText.body.copyWith(color: AppColors.textLight.withOpacity(0.42)),
                 ),
 
                 const SizedBox(height: 28),
@@ -336,13 +325,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Text(
                               e.value,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: isActive
+                              style: AppText.h5.copyWith(color: isActive
                                     ? Colors.white
-                                    : AppColors.textLow,
-                              ),
+                                    : AppColors.textLow),
                             ),
                           ),
                         ),
@@ -358,11 +343,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     _oauthButton(
                       Text('G',
-                          style: GoogleFonts.poppins(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          )),
+                          style: AppText.h2.copyWith(fontWeight: FontWeight.w900, color: Colors.white)),
                       'Google',
                       _signInWithGoogle,
                     ),
@@ -390,10 +371,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
                         l.orEmail,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: AppColors.textFaint,
-                        ),
+                        style: AppText.small.copyWith(color: AppColors.textFaint),
                       ),
                     ),
                     Expanded(
@@ -496,7 +474,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(l.passwordResetSoon,
-                                style: GoogleFonts.inter(color: Colors.white)),
+                                style: AppText.body.copyWith(color: Colors.white)),
                             backgroundColor: AppColors.card,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
@@ -507,11 +485,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: Text(
                         l.forgotPassword,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lavender,
-                        ),
+                        style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: AppColors.lavender),
                       ),
                     ),
                   ),
@@ -542,11 +516,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Center(
                       child: Text(
                         _isLogin ? l.logIn : l.createAccount,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                        style: AppText.h3.copyWith(color: Colors.white),
                       ),
                     ),
                   ),
@@ -558,10 +528,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        color: AppColors.textFaint,
-                      ),
+                      style: AppText.small.copyWith(color: AppColors.textFaint),
                       children: [
                         TextSpan(text: l.bySigningUpAgree),
                         TextSpan(
@@ -605,11 +572,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+                style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
               ),
             ],
           ),

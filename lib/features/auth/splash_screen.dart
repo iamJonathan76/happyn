@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -136,13 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ).createShader(bounds),
                       child: Text(
                         'HAPPYN',
-                        style: GoogleFonts.poppins(
-                          fontSize: 72,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: -1,
-                          height: 1,
-                        ),
+                        style: AppText.display.copyWith(fontSize: 72, color: Colors.white, height: 1, letterSpacing: -1),
                       ),
                     ),
 
@@ -151,12 +145,7 @@ class _SplashScreenState extends State<SplashScreen>
                     // Tagline
                     Text(
                       AppLocalizations.of(context).splashTagline,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textLight.withOpacity(0.38),
-                        letterSpacing: 3.2,
-                      ),
+                      style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: AppColors.textLight.withOpacity(0.38), letterSpacing: 3.2),
                     ),
 
                     const SizedBox(height: 48),

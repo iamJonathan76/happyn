@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
@@ -51,11 +51,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 l.myTicketsTitle,
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
+                style: AppText.display.copyWith(color: Colors.white),
               ),
             ),
           ),
@@ -91,13 +87,9 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
                     ),
                     child: Text(
                       e.value,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
+                      style: AppText.caption.copyWith(fontWeight: FontWeight.w700, color: isActive
                             ? Colors.white
-                            : AppColors.textLow,
-                      ),
+                            : AppColors.textLow),
                     ),
                   ),
                 );
@@ -177,18 +169,12 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
             _selectedTab == 0
                 ? l.noUpcomingTickets
                 : l.noPastTickets,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColors.textLow,
-            ),
+            style: AppText.body.copyWith(color: AppColors.textLow),
           ),
           const SizedBox(height: 8),
           Text(
             l.discoverAndBuy,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: AppColors.textFaint,
-            ),
+            style: AppText.caption.copyWith(color: AppColors.textFaint),
           ),
         ],
       ),
@@ -296,11 +282,7 @@ class _TicketCard extends StatelessWidget {
                                 : isValid
                                     ? '✓ Valid'
                                     : status.toUpperCase(),
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
+                            style: AppText.micro.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                           ),
                         ),
                       ),
@@ -319,11 +301,7 @@ class _TicketCard extends StatelessWidget {
                                 const SizedBox(width: 5),
                                 Text(
                                   cat,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: accent,
-                                  ),
+                                  style: AppText.micro.copyWith(fontWeight: FontWeight.w700, color: accent),
                                 ),
                               ],
                             ),
@@ -332,11 +310,7 @@ class _TicketCard extends StatelessWidget {
                               (event['title'] ?? '') as String,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                              ),
+                              style: AppText.h2.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
                             ),
                           ],
                         ),
@@ -368,10 +342,7 @@ class _TicketCard extends StatelessWidget {
                                     formatDate(event['start_date'] as String?),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 11.5,
-                                      color: AppColors.textMed,
-                                    ),
+                                    style: AppText.caption.copyWith(fontSize: 11.5),
                                   ),
                                 ),
                               ],
@@ -381,11 +352,7 @@ class _TicketCard extends StatelessWidget {
                               (ticketType['name'] ?? 'Ticket') as String,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                              style: AppText.h5.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                             ),
                           ],
                         ),
@@ -412,11 +379,7 @@ class _TicketCard extends StatelessWidget {
                             const SizedBox(width: 5),
                             Text(
                               l.viewQR,
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                              style: AppText.caption.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                             ),
                           ],
                         ),

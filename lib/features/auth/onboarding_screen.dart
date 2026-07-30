@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
@@ -108,11 +108,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       child: Text(
                         l.skip,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textMed,
-                        ),
+                        style: AppText.captionBold.copyWith(color: AppColors.textMed),
                       ),
                     ),
                   ),
@@ -160,12 +156,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Title
                   Text(
                     titles[_currentSlide],
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      height: 1.2,
-                    ),
+                    style: AppText.display.copyWith(color: Colors.white, height: 1.2),
                   ),
 
                   const SizedBox(height: 10),
@@ -173,11 +164,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Subtitle
                   Text(
                     subs[_currentSlide],
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: AppColors.textLight.withOpacity(0.5),
-                      height: 1.6,
-                    ),
+                    style: AppText.body.copyWith(color: AppColors.textLight.withOpacity(0.5), height: 1.6),
                   ),
 
                   const Spacer(),
@@ -237,11 +224,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         children: [
                           Text(
                             _currentSlide < 2 ? l.onbContinue : l.getStarted,
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                            style: AppText.h3.copyWith(color: Colors.white),
                           ),
                           const SizedBox(width: 8),
                           const Icon(Icons.arrow_forward,

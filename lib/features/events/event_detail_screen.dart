@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/events_provider.dart';
@@ -43,7 +43,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       ref.invalidate(eventsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(toast, style: GoogleFonts.inter(color: Colors.white)),
+          content: Text(toast, style: AppText.body.copyWith(color: Colors.white)),
           backgroundColor: AppColors.card,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -102,7 +102,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           Icon(icon, size: 18, color: c),
           const SizedBox(width: 10),
           Text(label,
-              style: GoogleFonts.inter(color: c, fontWeight: FontWeight.w600)),
+              style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: c)),
         ],
       ),
     );
@@ -116,17 +116,16 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(l.cancelEventTitle,
-            style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w700)),
+            style: AppText.h4.copyWith(color: Colors.white)),
         content: Text(
           l.cancelEventBody,
-          style: GoogleFonts.inter(color: AppColors.textMed),
+          style: AppText.body,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l.keep,
-                style: GoogleFonts.inter(color: AppColors.textMed)),
+                style: AppText.body),
           ),
           TextButton(
             onPressed: () {
@@ -134,9 +133,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               _setStatus('cancelled', l.eventCancelledMsg);
             },
             child: Text(l.cancelEvent,
-                style: GoogleFonts.inter(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700)),
+                style: AppText.body.copyWith(fontWeight: FontWeight.w700, color: AppColors.error)),
           ),
         ],
       ),
@@ -311,8 +308,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(l.sharingSoon,
-                                              style: GoogleFonts.inter(
-                                                  color: Colors.white)),
+                                              style: AppText.body.copyWith(color: Colors.white)),
                                           backgroundColor:
                                               AppColors.card,
                                           behavior: SnackBarBehavior.floating,
@@ -409,11 +405,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           ),
                           child: Text(
                             '🔥 ${(ev['category'] ?? 'Event') as String}',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                            style: AppText.micro.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
                           ),
                         ),
                       ),
@@ -446,11 +438,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                 const SizedBox(width: 4),
                                 Text(
                                   cancelled ? l.statusCancelled : l.statusEnded,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textHigh,
-                                  ),
+                                  style: AppText.micro.copyWith(fontWeight: FontWeight.w700, color: AppColors.textHigh),
                                 ),
                               ],
                             ),
@@ -471,12 +459,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       // Title
                       Text(
                         (ev['title'] ?? '') as String,
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          height: 1.2,
-                        ),
+                        style: AppText.display.copyWith(color: Colors.white, height: 1.2),
                       ),
 
                       const SizedBox(height: 6),
@@ -488,11 +471,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           const SizedBox(width: 6),
                           Text(
                             cat,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: catColor,
-                            ),
+                            style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: catColor),
                           ),
                         ],
                       ),
@@ -530,11 +509,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               const SizedBox(width: 5),
                               Text(
                                 l.getDirections,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.lavenderLight,
-                                ),
+                                style: AppText.smallBold.copyWith(color: AppColors.lavenderLight),
                               ),
                             ],
                           ),
@@ -548,20 +523,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           (ev['description'] as String).isNotEmpty) ...[
                         Text(
                           l.aboutThisEvent,
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                          style: AppText.h2.copyWith(fontSize: 16, color: Colors.white),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           ev['description'] as String,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: AppColors.textMed,
-                            height: 1.6,
-                          ),
+                          style: AppText.body.copyWith(height: 1.6),
                         ),
                         const SizedBox(height: 20),
                       ],
@@ -621,18 +588,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       children: [
                         Text(
                           l.startingFrom,
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: AppColors.textLow,
-                          ),
+                          style: AppText.small,
                         ),
                         Text(
                           priceText,
-                          style: GoogleFonts.poppins(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
+                          style: AppText.display.copyWith(fontSize: 26, color: Colors.white),
                         ),
                       ],
                     ),
@@ -704,13 +664,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                           ? l.scanTickets
                                           : l.getTickets,
                                   maxLines: 1,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: blocked
+                                  style: AppText.h3.copyWith(color: blocked
                                         ? AppColors.textMed
-                                        : Colors.white,
-                                  ),
+                                        : Colors.white),
                                 ),
                               ),
                             ),
@@ -767,11 +723,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               children: [
                 Text(
                   top,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: AppText.bodySm.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -779,10 +731,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   const SizedBox(height: 2),
                   Text(
                     bottom,
-                    style: GoogleFonts.inter(
-                      fontSize: 11.5,
-                      color: AppColors.textMed,
-                    ),
+                    style: AppText.caption.copyWith(fontSize: 11.5),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -810,11 +759,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       ),
       child: Text(
         '#$label',
-        style: GoogleFonts.inter(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: AppColors.lavenderLight,
-        ),
+        style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: AppColors.lavenderLight),
       ),
     );
   }

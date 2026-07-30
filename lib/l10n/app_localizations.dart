@@ -1813,6 +1813,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open a maps app.'**
   String get couldNotOpenMaps;
+
+  /// No description provided for @documentNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Document not found'**
+  String get documentNotFound;
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To permanently delete your account and data, please contact support@happyn.com. Self-service deletion is coming soon.'**
+  String get deleteAccountBody;
+
+  /// No description provided for @aboutHappynBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the ones. Be the moment.\n\nDiscover, create, and attend events. Version {version}.'**
+  String aboutHappynBody(String version);
+
+  /// No description provided for @selectDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your date of birth'**
+  String get selectDateOfBirth;
 }
 
 class _AppLocalizationsDelegate

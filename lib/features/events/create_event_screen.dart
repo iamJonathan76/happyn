@@ -1,11 +1,11 @@
 import 'dart:io';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -166,10 +166,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 l.tierSoldInfo(tier.quantitySold),
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  color: AppColors.lavender,
-                ),
+                style: AppText.micro.copyWith(color: AppColors.lavender),
               ),
             ),
           ],
@@ -526,21 +523,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               Text(
                 l.privateEventCreated,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+                style: AppText.h2.copyWith(color: Colors.white),
               ),
               const SizedBox(height: 6),
               Text(
                 l.privateEventCreatedBody,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 12.5,
-                  color: AppColors.textMed,
-                  height: 1.4,
-                ),
+                style: AppText.bodySm.copyWith(fontSize: 12.5, height: 1.4),
               ),
               const SizedBox(height: 18),
               // Code
@@ -557,12 +546,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 child: Center(
                   child: Text(
                     code,
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: 2,
-                    ),
+                    style: AppText.display.copyWith(color: Colors.white, letterSpacing: 2),
                   ),
                 ),
               ),
@@ -578,9 +562,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       icon: const Icon(Icons.copy,
                           size: 16, color: Colors.white),
                       label: Text(l.copyCode,
-                          style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600)),
+                          style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(
@@ -601,9 +583,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       icon: const Icon(Icons.ios_share,
                           size: 16, color: Colors.white),
                       label: Text(l.share,
-                          style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700)),
+                          style: AppText.body.copyWith(fontWeight: FontWeight.w700, color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -618,8 +598,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               TextButton(
                 onPressed: () => Navigator.of(dialogCtx).pop(),
                 child: Text(l.done,
-                    style: GoogleFonts.inter(
-                        color: AppColors.textMed)),
+                    style: AppText.body),
               ),
             ],
           ),
@@ -631,7 +610,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
+        content: Text(msg, style: AppText.body.copyWith(color: Colors.white)),
         backgroundColor: AppColors.card,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -642,7 +621,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   InputDecoration _inputDec(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.inter(color: AppColors.textFaint, fontSize: 14),
+      hintStyle: AppText.body.copyWith(color: AppColors.textFaint),
       prefixIcon: Icon(icon, color: AppColors.textLow, size: 18),
       filled: true,
       fillColor: Colors.white.withOpacity(0.055),
@@ -710,11 +689,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     const SizedBox(width: 14),
                     Text(
                       _isEditing ? l.editEventTitle : l.createEventTitle,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
+                      style: AppText.h1.copyWith(color: Colors.white),
                     ),
                   ],
                 ),
@@ -754,7 +729,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             value: dropdownValue,
                             isExpanded: true,
                             dropdownColor: AppColors.card,
-                            style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                            style: AppText.body.copyWith(color: Colors.white),
                             icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textLow),
                             items: cats.map((cat) => DropdownMenuItem(
                               value: cat,
@@ -823,11 +798,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                   const SizedBox(width: 4),
                                   Text(
                                     l.addTier,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.lavender,
-                                    ),
+                                    style: AppText.caption.copyWith(fontWeight: FontWeight.w700, color: AppColors.lavender),
                                   ),
                                 ],
                               ),
@@ -874,10 +845,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                         const SizedBox(height: 8),
                                         Text(
                                           l.tapToChoosePhoto,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 12,
-                                            color: AppColors.textLow,
-                                          ),
+                                          style: AppText.caption.copyWith(color: AppColors.textLow),
                                         ),
                                       ],
                                     ))
@@ -911,10 +879,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       const SizedBox(height: 8),
                       Text(
                         l.coverOptional,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: AppColors.textLow,
-                        ),
+                        style: AppText.small,
                       ),
 
                       const SizedBox(height: 24),
@@ -936,10 +901,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       Text(
                         'Attendees below the age are blocked at checkout. Final '
                         'age check is done at the door by the organizer.',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: AppColors.textLow,
-                        ),
+                        style: AppText.small,
                       ),
 
                       const SizedBox(height: 24),
@@ -975,11 +937,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     l.privateEventLabel,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
+                                    style: AppText.h4.copyWith(color: Colors.white),
                                   ),
                                 ],
                               ),
@@ -989,11 +947,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                   _isPrivate
                                       ? l.privateEventOnHelp
                                       : l.privateEventOffHelp,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11.5,
-                                    color: AppColors.textMed,
-                                    height: 1.35,
-                                  ),
+                                  style: AppText.caption.copyWith(fontSize: 11.5, height: 1.35),
                                 ),
                               ),
                             ),
@@ -1009,12 +963,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                     Expanded(
                                       child: Text(
                                         l.inviteCodeLabel(_existingCode!),
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.lavenderLight,
-                                          letterSpacing: 1,
-                                        ),
+                                        style: AppText.h5.copyWith(color: AppColors.lavenderLight, letterSpacing: 1),
                                       ),
                                     ),
                                     GestureDetector(
@@ -1080,11 +1029,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                         _isEditing
                                             ? l.saveChanges
                                             : l.publishEvent,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
+                                        style: AppText.h3.copyWith(color: Colors.white),
                                       ),
                                     ],
                                   ),
@@ -1124,11 +1069,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         ),
         child: Text(
           label,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: selected ? Colors.white : AppColors.textMed,
-          ),
+          style: AppText.bodySm.copyWith(fontWeight: FontWeight.w700, color: selected ? Colors.white : AppColors.textMed),
         ),
       ),
     );
@@ -1139,12 +1080,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         text,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textMed,
-          letterSpacing: 0.3,
-        ),
+        style: AppText.captionBold.copyWith(color: AppColors.textMed, letterSpacing: 0.3),
       ),
     );
   }
@@ -1164,20 +1100,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           children: [
             Text(
               label,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                color: AppColors.textLow,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppText.micro.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
             Text(
               _formatDate(dt),
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
             ),
           ],
         ),

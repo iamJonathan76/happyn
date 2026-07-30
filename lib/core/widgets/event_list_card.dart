@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
@@ -82,11 +82,7 @@ class EventListCard extends ConsumerWidget {
                       child: Text(
                         '$mon $day',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
+                        style: AppText.microBold.copyWith(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white),
                       ),
                     ),
                   ),
@@ -104,11 +100,7 @@ class EventListCard extends ConsumerWidget {
                     (ev['title'] ?? '') as String,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h5.copyWith(color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -120,10 +112,7 @@ class EventListCard extends ConsumerWidget {
                           venue.isNotEmpty ? venue : cat,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: AppColors.textMed,
-                          ),
+                          style: AppText.small.copyWith(color: AppColors.textMed),
                         ),
                       ),
                     ],
@@ -134,10 +123,7 @@ class EventListCard extends ConsumerWidget {
                       city,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        color: AppColors.textLow,
-                      ),
+                      style: AppText.micro,
                     ),
                   ],
                 ],
@@ -165,11 +151,7 @@ class EventListCard extends ConsumerWidget {
                 const SizedBox(height: 10),
                 Text(
                   priceText,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.lavenderLight,
-                  ),
+                  style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.lavenderLight),
                 ),
               ],
             ),

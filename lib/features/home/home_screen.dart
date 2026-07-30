@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
@@ -135,19 +135,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   TextSpan(
                     text: '$_greeting,\n',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textLight.withOpacity(0.5),
-                    ),
+                    style: AppText.caption.copyWith(fontWeight: FontWeight.w500, color: AppColors.textLight.withOpacity(0.5)),
                   ),
                   TextSpan(
                     text: '$userName 👋',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h1.copyWith(color: Colors.white),
                   ),
                 ],
               ),
@@ -194,12 +186,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: Text(
                             '${ref.watch(unreadCountProvider)}',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              fontSize: 8,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1,
-                            ),
+                            style: AppText.microBold.copyWith(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white, height: 1),
                           ),
                         ),
                       ),
@@ -235,22 +222,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           errorWidget: (_, _, _) => Center(
                             child: Text(
                               userInitials,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                              ),
+                              style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
                             ),
                           ),
                         )
                       : Center(
                           child: Text(
                             userInitials,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
+                            style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
                           ),
                         ),
                 ),
@@ -282,10 +261,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Expanded(
               child: Text(
                 AppLocalizations.of(context).searchHint,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppColors.textLow,
-                ),
+                style: AppText.bodySm.copyWith(color: AppColors.textLow),
               ),
             ),
             Container(
@@ -316,11 +292,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(width: 5),
           Text(
             AppLocalizations.of(context).eventsToDiscover(count),
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textLight.withOpacity(0.45),
-            ),
+            style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: AppColors.textLight.withOpacity(0.45)),
           ),
         ],
       ),
@@ -385,13 +357,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: isActive
+                      style: AppText.micro.copyWith(fontWeight: FontWeight.w600, color: isActive
                             ? Colors.white
-                            : AppColors.textLight.withOpacity(0.5),
-                      ),
+                            : AppColors.textLight.withOpacity(0.5)),
                     ),
                   ],
                 ),
@@ -416,11 +384,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
+              style: AppText.h3.copyWith(fontWeight: FontWeight.w900, color: Colors.white),
             ),
           ),
           if (seeAll)
@@ -430,11 +394,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   Text(
                     AppLocalizations.of(context).seeAll,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.lavender,
-                    ),
+                    style: AppText.smallBold.copyWith(color: AppColors.lavender),
                   ),
                   const Icon(Icons.chevron_right,
                       color: AppColors.lavender, size: 14),
@@ -459,10 +419,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: Center(
           child: Text(
             AppLocalizations.of(context).couldNotLoadEvents,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: AppColors.textLow,
-            ),
+            style: AppText.bodySm.copyWith(color: AppColors.textLow),
           ),
         ),
       ),
@@ -474,10 +431,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Center(
               child: Text(
                 AppLocalizations.of(context).noEventsYet,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppColors.textLow,
-                ),
+                style: AppText.bodySm.copyWith(color: AppColors.textLow),
               ),
             ),
           );
@@ -596,19 +550,9 @@ class _HeroCard extends ConsumerWidget {
                       child: Column(
                         children: [
                           Text(mon,
-                              style: GoogleFonts.inter(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.pink,
-                                letterSpacing: 0.5,
-                              )),
+                              style: AppText.microBold.copyWith(fontWeight: FontWeight.w800, color: AppColors.pink, letterSpacing: 0.5)),
                           Text(day,
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.background,
-                                height: 1,
-                              )),
+                              style: AppText.h2.copyWith(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.background, height: 1)),
                         ],
                       ),
                     ),
@@ -648,11 +592,7 @@ class _HeroCard extends ConsumerWidget {
                       (ev['title'] ?? '') as String,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                      style: AppText.h3.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                     ),
                     const SizedBox(height: 3),
                     Row(
@@ -661,11 +601,7 @@ class _HeroCard extends ConsumerWidget {
                         const SizedBox(width: 5),
                         Text(
                           cat,
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: color,
-                          ),
+                          style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: color),
                         ),
                       ],
                     ),
@@ -685,10 +621,7 @@ class _HeroCard extends ConsumerWidget {
                                   city,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    color: AppColors.textMed,
-                                  ),
+                                  style: AppText.small.copyWith(color: AppColors.textMed),
                                 ),
                               ),
                             ],
@@ -697,11 +630,7 @@ class _HeroCard extends ConsumerWidget {
                         const SizedBox(width: 8),
                         Text(
                           priceText,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
+                          style: AppText.h4.copyWith(fontWeight: FontWeight.w900, color: Colors.white),
                         ),
                       ],
                     ),

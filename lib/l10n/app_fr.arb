@@ -306,5 +306,10 @@
   "splashTagline": "TROUVE LES BONS. VIS L'INSTANT.",
 
   "getDirections": "Itinéraire",
-  "couldNotOpenMaps": "Impossible d'ouvrir une app de cartes."
+  "couldNotOpenMaps": "Impossible d'ouvrir une app de cartes.",
+
+  "documentNotFound": "Document introuvable",
+  "deleteAccountBody": "Pour supprimer définitivement ton compte et tes données, contacte support@happyn.com. La suppression en libre-service arrive bientôt.",
+  "aboutHappynBody": "Trouve les bons. Vis l'instant.\n\nDécouvre, crée et participe à des événements. Version {version}.",
+  "selectDateOfBirth": "Sélectionne ta date de naissance"
 }

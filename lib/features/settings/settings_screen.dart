@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/settings/legal_page_screen.dart';
@@ -33,11 +33,7 @@ class SettingsScreen extends ConsumerWidget {
         ),
         title: Text(
           l.settingsTitle,
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          style: AppText.h2.copyWith(color: Colors.white),
         ),
       ),
       body: ListView(
@@ -123,19 +119,17 @@ class SettingsScreen extends ConsumerWidget {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Delete Account',
-            style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w700)),
+        title: Text(AppLocalizations.of(context).deleteAccount,
+            style: AppText.h4.copyWith(color: Colors.white)),
         content: Text(
-          'To permanently delete your account and data, please contact '
-          'support@happyn.com. Self-service deletion is coming soon.',
-          style: GoogleFonts.inter(color: AppColors.textMed),
+          AppLocalizations.of(context).deleteAccountBody,
+          style: AppText.body,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK',
-                style: GoogleFonts.inter(color: AppColors.lavender)),
+            child: Text(AppLocalizations.of(context).ok,
+                style: AppText.body.copyWith(color: AppColors.lavender)),
           ),
         ],
       ),
@@ -149,18 +143,16 @@ class SettingsScreen extends ConsumerWidget {
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('HAPPYN',
-            style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w800)),
+            style: AppText.h4.copyWith(fontWeight: FontWeight.w800, color: Colors.white)),
         content: Text(
-          'Find the ones. Be the moment.\n\nDiscover, create, and attend events. '
-          'Version $appVersion.',
-          style: GoogleFonts.inter(color: AppColors.textMed),
+          AppLocalizations.of(context).aboutHappynBody(appVersion),
+          style: AppText.body,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close',
-                style: GoogleFonts.inter(color: AppColors.lavender)),
+            child: Text(AppLocalizations.of(context).close,
+                style: AppText.body.copyWith(color: AppColors.lavender)),
           ),
         ],
       ),
@@ -171,7 +163,7 @@ class SettingsScreen extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppLocalizations.of(context).comingSoon(label),
-            style: GoogleFonts.inter(color: Colors.white)),
+            style: AppText.body.copyWith(color: Colors.white)),
         backgroundColor: AppColors.card,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -186,12 +178,7 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(4, 22, 4, 10),
         child: Text(
           title.toUpperCase(),
-          style: GoogleFonts.inter(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1,
-            color: AppColors.lavender,
-          ),
+          style: AppText.smallBold.copyWith(color: AppColors.lavender, letterSpacing: 1),
         ),
       );
 
@@ -225,8 +212,7 @@ class SettingsScreen extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(label,
-              style: GoogleFonts.inter(
-                  fontSize: 13, color: AppColors.textLow)),
+              style: AppText.bodySm.copyWith(color: AppColors.textLow)),
           const SizedBox(width: 4),
           _chevron(),
         ],
@@ -248,8 +234,7 @@ class SettingsScreen extends ConsumerWidget {
           final selected = current == code;
           return ListTile(
             title: Text(name,
-                style: GoogleFonts.inter(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+                style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
             trailing: selected
                 ? const Icon(Icons.check_circle, color: AppColors.primary)
                 : null,
@@ -269,10 +254,7 @@ class SettingsScreen extends ConsumerWidget {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(l.chooseLanguage,
-                      style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800)),
+                      style: AppText.h2.copyWith(fontSize: 16, color: Colors.white)),
                 ),
               ),
               option('en', l.languageEnglish),
@@ -341,11 +323,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           child: Text(
             AppLocalizations.of(context).soon,
-            style: GoogleFonts.inter(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textLow,
-            ),
+            style: AppText.microBold.copyWith(color: AppColors.textLow),
           ),
         ),
         dimmed: true,
@@ -357,10 +335,7 @@ class SettingsScreen extends ConsumerWidget {
         onTap: null,
         trailing: Text(
           value,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: AppColors.textLow,
-          ),
+          style: AppText.bodySm.copyWith(color: AppColors.textLow),
         ),
       );
 
@@ -382,11 +357,7 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               Text(
                 label,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.error,
-                ),
+                style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.error),
               ),
             ],
           ),
@@ -413,10 +384,7 @@ class SettingsScreen extends ConsumerWidget {
             Expanded(
               child: Text(
                 label,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(dimmed ? 0.55 : 1),
-                ),
+                style: AppText.body.copyWith(color: Colors.white.withOpacity(dimmed ? 0.55 : 1)),
               ),
             ),
             if (trailing != null) trailing,

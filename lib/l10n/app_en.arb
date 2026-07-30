@@ -334,5 +334,11 @@
   "splashTagline": "FIND THE ONES. BE THE MOMENT.",
 
   "getDirections": "Get directions",
-  "couldNotOpenMaps": "Could not open a maps app."
+  "couldNotOpenMaps": "Could not open a maps app.",
+
+  "documentNotFound": "Document not found",
+  "deleteAccountBody": "To permanently delete your account and data, please contact support@happyn.com. Self-service deletion is coming soon.",
+  "aboutHappynBody": "Find the ones. Be the moment.\n\nDiscover, create, and attend events. Version {version}.",
+  "@aboutHappynBody": { "placeholders": { "version": { "type": "String" } } },
+  "selectDateOfBirth": "Select your date of birth"
 }

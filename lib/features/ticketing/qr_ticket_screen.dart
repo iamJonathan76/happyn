@@ -1,10 +1,10 @@
 import 'dart:async';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -155,11 +155,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                   const SizedBox(width: 14),
                   Text(
                     l.myTicket,
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h1.copyWith(color: Colors.white),
                   ),
                 ],
               ),
@@ -193,11 +189,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                             Expanded(
                               child: Text(
                                 l.ticketCancelledBanner,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textHigh,
-                                ),
+                                style: AppText.captionBold.copyWith(fontSize: 11.5),
                               ),
                             ),
                           ],
@@ -224,11 +216,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                             Expanded(
                               child: Text(
                                 'Ticket 1 of ${widget.totalTickets} · all ${widget.totalTickets} are in “My Tickets”',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textHigh,
-                                ),
+                                style: AppText.captionBold.copyWith(fontSize: 11.5),
                               ),
                             ),
                           ],
@@ -298,11 +286,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                             const SizedBox(width: 5),
                                             Text(
                                               cat,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
-                                                color: accent,
-                                              ),
+                                              style: AppText.smallBold.copyWith(color: accent),
                                             ),
                                           ],
                                         ),
@@ -311,11 +295,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                           (ev['title'] ?? '') as String,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 19,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                          ),
+                                          style: AppText.h1.copyWith(fontSize: 19, color: Colors.white),
                                         ),
                                       ],
                                     ),
@@ -354,11 +334,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                   Text(
                                     _error != null ? l.qrLoadError : l.scanAtEntry,
                                     textAlign: TextAlign.center,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textHigh,
-                                    ),
+                                    style: AppText.h5,
                                   ),
                                   const SizedBox(height: 6),
                                   if (_error == null)
@@ -376,11 +352,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                                             l.secureCodeRefreshes,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.inter(
-                                              fontSize: 10.5,
-                                              color:
-                                                  AppColors.textLow,
-                                            ),
+                                            style: AppText.small.copyWith(fontSize: 10.5),
                                           ),
                                         ),
                                       ],
@@ -409,11 +381,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                         children: [
                           Text(
                             l.ticketDetails,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
+                            style: AppText.h4.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                           ),
                           const SizedBox(height: 12),
                           _detailRow(
@@ -438,10 +406,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                       Text(
                         l.transferHint,
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: AppColors.textLow,
-                        ),
+                        style: AppText.small,
                       ),
                     ],
                   ],
@@ -494,8 +459,10 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: const Color(0xFF16A34A),
-                    content: Text('Ticket sent to $email 🎟️',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                    content: Text(l.ticketSentTo(email),
+                        style: AppText.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white)),
                   ),
                 );
                 // On quitte l'écran : ce billet ne nous appartient plus.
@@ -532,20 +499,12 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                   const SizedBox(height: 18),
                   Text(
                     l.transferTicket,
-                    style: GoogleFonts.poppins(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h1.copyWith(fontSize: 19, color: Colors.white),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     l.transferSheetBody,
-                    style: GoogleFonts.inter(
-                      fontSize: 12.5,
-                      color: AppColors.textMed,
-                      height: 1.4,
-                    ),
+                    style: AppText.bodySm.copyWith(fontSize: 12.5, height: 1.4),
                   ),
                   const SizedBox(height: 18),
                   TextField(
@@ -553,11 +512,10 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                     enabled: !sending,
                     keyboardType: TextInputType.emailAddress,
                     autocorrect: false,
-                    style: GoogleFonts.inter(color: Colors.white),
+                    style: AppText.body.copyWith(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: l.emailHintFriend,
-                      hintStyle: GoogleFonts.inter(
-                          color: AppColors.textLow),
+                      hintStyle: AppText.body.copyWith(color: AppColors.textLow),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.05),
                       prefixIcon: Icon(Icons.alternate_email,
@@ -602,11 +560,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                             )
                           : Text(
                               l.sendTicket,
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                              style: AppText.h3.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                             ),
                     ),
                   ),
@@ -732,23 +686,14 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textLow,
-              letterSpacing: 1,
-            ),
+            style: AppText.microBold.copyWith(color: AppColors.textLow, letterSpacing: 1),
           ),
           const SizedBox(height: 2),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-            ),
+            style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
           ),
         ],
       ),
@@ -763,21 +708,14 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: AppColors.textLow,
-            ),
+            style: AppText.caption.copyWith(color: AppColors.textLow),
           ),
           Flexible(
             child: Text(
               value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+              style: AppText.caption.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
             ),
           ),
         ],
@@ -801,11 +739,7 @@ class _TransferButton extends StatelessWidget {
         icon: const Icon(Icons.send_outlined, size: 18, color: Colors.white),
         label: Text(
           'Transfer ticket',
-          style: GoogleFonts.poppins(
-            fontSize: 14.5,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          style: AppText.h3.copyWith(fontSize: 14.5, fontWeight: FontWeight.w800, color: Colors.white),
         ),
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: AppColors.textFaint),

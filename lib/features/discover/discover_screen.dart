@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
@@ -121,11 +121,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               children: [
                 Text(
                   l.discoverTitle,
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
+                  style: AppText.display.copyWith(color: Colors.white),
                 ),
                 const Spacer(),
                 // Accès aux events privés via code d'invitation
@@ -150,11 +146,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         const SizedBox(width: 6),
                         Text(
                           l.haveACode,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textHigh,
-                          ),
+                          style: AppText.captionBold,
                         ),
                       ],
                     ),
@@ -188,16 +180,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   Expanded(
                     child: TextField(
                       controller: _searchController,
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
+                      style: AppText.bodySm.copyWith(color: Colors.white),
                       decoration: InputDecoration(
                         hintText: l.searchHintDiscover,
-                        hintStyle: GoogleFonts.inter(
-                          color: AppColors.textFaint,
-                          fontSize: 13,
-                        ),
+                        hintStyle: AppText.bodySm.copyWith(color: AppColors.textFaint),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -268,13 +254,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
                     child: Text(
                       _filterLabel(f, l),
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
+                      style: AppText.smallBold.copyWith(color: isActive
                             ? Colors.white
-                            : AppColors.textLow,
-                      ),
+                            : AppColors.textLow),
                     ),
                   ),
                 );
@@ -293,10 +275,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               error: (err, _) => Center(
                 child: Text(
                   l.couldNotLoadEvents,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.textLow,
-                  ),
+                  style: AppText.body.copyWith(color: AppColors.textLow),
                 ),
               ),
               data: (allEvents) {
@@ -315,11 +294,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                           children: [
                             Text(
                               l.eventsFound(filtered.length),
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textLow,
-                              ),
+                              style: AppText.captionBold.copyWith(color: AppColors.textLow),
                             ),
                           ],
                         ),
@@ -370,18 +345,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   _searchQuery.isNotEmpty
                       ? l.noResultsFor(_searchQuery)
                       : l.noEventsInCategory,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.textLow,
-                  ),
+                  style: AppText.body.copyWith(color: AppColors.textLow),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   l.tryDifferentSearch,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppColors.textFaint,
-                  ),
+                  style: AppText.caption.copyWith(color: AppColors.textFaint),
                 ),
               ],
             ),
