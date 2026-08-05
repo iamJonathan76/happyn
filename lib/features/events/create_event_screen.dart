@@ -12,6 +12,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/utils/age.dart';
+import 'widgets/ticket_tier.dart';
+import 'widgets/ticket_tier_card.dart';
+import 'widgets/invite_code_dialog.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 
@@ -31,7 +34,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _cityController = TextEditingController();
   // Tiers de billets : 1 par défaut (« General Admission »), l'organisateur
   // peut en ajouter d'autres (VIP, Early Bird…).
-  final List<_TicketTier> _tiers = [_TicketTier(name: 'General Admission')];
+  final List<TicketTier> _tiers = [TicketTier(name: 'General Admission')];
 
   XFile? _pickedImage;
 
@@ -88,7 +91,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         }
         _tiers
           ..clear()
-          ..addAll(list.map((t) => _TicketTier(
+          ..addAll(list.map((t) => TicketTier(
                 id: t['id'] as String,
                 name: (t['name'] ?? '') as String,
                 price: (t['price'] ?? 0).toString(),
@@ -115,99 +118,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     super.dispose();
   }
 
-  void _addTier() => setState(() => _tiers.add(_TicketTier()));
+  void _addTier() => setState(() => _tiers.add(TicketTier()));
 
   void _removeTier(int i) => setState(() => _tiers.removeAt(i).dispose());
 
-  Widget _tierCard(int i) {
-    final l = AppLocalizations.of(context);
-    final tier = _tiers[i];
-    return Container(
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.09)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: tier.nameController,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: appInputDecoration(l.tierNameHint, icon: Icons.local_activity_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-                ),
-              ),
-              // Supprimer : seulement les tiers nouveaux (pas ceux qui existent
-              // déjà en base, pour ne pas casser des ventes).
-              if (tier.id == null && _tiers.length > 1) ...[
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _removeTier(i),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.close,
-                        color: AppColors.error, size: 18),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          if (tier.quantitySold > 0) ...[
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                l.tierSoldInfo(tier.quantitySold),
-                style: AppText.micro.copyWith(color: AppColors.lavender),
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: tier.priceController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: appInputDecoration(l.priceFreeHint, icon: Icons.attach_money, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  controller: tier.quantityController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: appInputDecoration(l.qtyHint, icon: Icons.confirmation_number_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  controller: tier.maxPerOrderController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration:
-                      appInputDecoration(l.maxPerPersonHint, icon: Icons.person_outline, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _pickDate({required bool isStart}) async {
+    Future<void> _pickDate({required bool isStart}) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: isStart ? _startDate : _endDate,
@@ -311,7 +226,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     // ── Mode ÉDITION : infos de l'event + tiers (update/insert) ─────────────
     if (_isEditing) {
       // Construit et valide les tiers
-      final editTiers = <_TicketTier>[];
+      final editTiers = <TicketTier>[];
       for (final t in _tiers) {
         final name = t.nameController.text.trim();
         final qty = int.tryParse(t.quantityController.text) ?? 0;
@@ -387,7 +302,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           // Si on vient de passer l'event en privé, on montre le code.
           if (editCode != null && _existingCode == null) {
             _existingCode = editCode;
-            await _showInviteDialog(_titleController.text.trim(), editCode);
+            await showInviteCodeDialog(context,
+                eventTitle: _titleController.text.trim(), code: editCode);
           } else {
             showAppSnack(context, l.eventUpdated);
             await Future.delayed(const Duration(milliseconds: 800));
@@ -475,7 +391,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         ref.invalidate(eventsProvider);
         // Event privé : on montre le code d'invitation à partager.
         if (accessCode != null) {
-          await _showInviteDialog(_titleController.text.trim(), accessCode);
+          await showInviteCodeDialog(context,
+                eventTitle: _titleController.text.trim(), code: accessCode);
         } else {
           showAppSnack(context, l.eventCreated);
           await Future.delayed(const Duration(seconds: 1));
@@ -502,111 +419,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   /// Affiche le code après création d'un event privé, avec copie/partage.
-  Future<void> _showInviteDialog(String title, String code) async {
-    final l = AppLocalizations.of(context);
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => Dialog(
-        backgroundColor: AppColors.sheet,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(22, 24, 22, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.lock_outline,
-                  color: AppColors.lavenderLight, size: 34),
-              const SizedBox(height: 12),
-              Text(
-                l.privateEventCreated,
-                textAlign: TextAlign.center,
-                style: AppText.h2.copyWith(color: Colors.white),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                l.privateEventCreatedBody,
-                textAlign: TextAlign.center,
-                style: AppText.bodySm.copyWith(fontSize: 12.5, height: 1.4),
-              ),
-              const SizedBox(height: 18),
-              // Code
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                      color: AppColors.primary.withOpacity(0.4)),
-                ),
-                child: Center(
-                  child: Text(
-                    code,
-                    style: AppText.display.copyWith(color: Colors.white, letterSpacing: 2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: code));
-                        showAppSnack(context, l.codeCopied);
-                      },
-                      icon: const Icon(Icons.copy,
-                          size: 16, color: Colors.white),
-                      label: Text(l.copyCode,
-                          style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(
-                            color: AppColors.textFaint),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(
-                            text: l.inviteShareText(title, code)));
-                        showAppSnack(context, l.inviteCopied);
-                      },
-                      icon: const Icon(Icons.ios_share,
-                          size: 16, color: Colors.white),
-                      label: Text(l.share,
-                          style: AppText.body.copyWith(fontWeight: FontWeight.w700, color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              TextButton(
-                onPressed: () => Navigator.of(dialogCtx).pop(),
-                child: Text(l.done,
-                    style: AppText.body),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-      String _formatDate(DateTime dt) {
+        String _formatDate(DateTime dt) {
     return '${dt.day}/${dt.month}/${dt.year} at ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
   }
 
@@ -770,7 +583,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             ),
                           ],
                         ),
-                        ...List.generate(_tiers.length, (i) => _tierCard(i)),
+                        ...List.generate(
+                          _tiers.length,
+                          (i) => TicketTierCard(
+                            tier: _tiers[i],
+                            canRemove: _tiers[i].id == null &&
+                                _tiers.length > 1,
+                            onRemove: () => _removeTier(i),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                       ],
 
@@ -1070,34 +891,3 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 }
 
 /// Un tier de billet en cours d'édition dans Create Event (nom, prix, quantité).
-class _TicketTier {
-  /// id du ticket_type existant (null = nouveau tier à créer).
-  final String? id;
-
-  /// Nombre déjà vendu (garde-fou : on ne descend pas la quantité en dessous).
-  final int quantitySold;
-
-  final TextEditingController nameController;
-  final TextEditingController priceController;
-  final TextEditingController quantityController;
-  final TextEditingController maxPerOrderController;
-
-  _TicketTier({
-    String name = '',
-    this.id,
-    this.quantitySold = 0,
-    String price = '',
-    String quantity = '100',
-    String maxPerOrder = '10',
-  })  : nameController = TextEditingController(text: name),
-        priceController = TextEditingController(text: price),
-        quantityController = TextEditingController(text: quantity),
-        maxPerOrderController = TextEditingController(text: maxPerOrder);
-
-  void dispose() {
-    nameController.dispose();
-    priceController.dispose();
-    quantityController.dispose();
-    maxPerOrderController.dispose();
-  }
-}
