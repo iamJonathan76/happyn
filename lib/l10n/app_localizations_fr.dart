@@ -959,14 +959,81 @@ class AppLocalizationsFr extends AppLocalizations {
   String get documentNotFound => 'Document introuvable';
 
   @override
-  String get deleteAccountBody =>
-      'Pour supprimer définitivement ton compte et tes données, contacte support@happyn.com. La suppression en libre-service arrive bientôt.';
-
-  @override
   String aboutHappynBody(String version) {
     return 'Trouve les bons. Vis l\'instant.\n\nDécouvre, crée et participe à des événements. Version $version.';
   }
 
   @override
   String get selectDateOfBirth => 'Sélectionne ta date de naissance';
+
+  @override
+  String get deleteAccountWarning =>
+      'C\'est définitif et irréversible. Ton profil, ta photo, tes favoris et tes notifications seront supprimés.';
+
+  @override
+  String get deleteAccountRetention =>
+      'Les billets et événements passés sont conservés pour des raisons légales et comptables, mais détachés de ton profil. Tes événements passés afficheront « Organisateur supprimé ».';
+
+  @override
+  String get deleteAccountWhatHappens => 'Ce qui va se passer';
+
+  @override
+  String deleteAccountTicketsCancelled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count billets à venir seront annulés',
+      one: '1 billet à venir sera annulé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteAccountEventsCancelled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count événements à venir seront annulés et leurs participants notifiés',
+      one: '1 événement à venir sera annulé et ses participants notifiés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteAccountEventsDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count événements à venir sans participant seront supprimés',
+      one: '1 événement à venir sans participant sera supprimé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAccountNothingPending =>
+      'Tu n\'as rien en cours — ton compte peut être supprimé immédiatement.';
+
+  @override
+  String get deleteAccountBlocked =>
+      'Tu as des ventes de billets payants sur un événement à venir. Annule-le ou rembourse d\'abord, ou écris à support@happyn.com.';
+
+  @override
+  String get deleteAccountConfirmEmail =>
+      'Saisis ton adresse e-mail pour confirmer';
+
+  @override
+  String get deleteAccountEmailMismatch =>
+      'Cela ne correspond pas à ton adresse e-mail.';
+
+  @override
+  String get deleteMyAccount => 'Supprimer mon compte';
+
+  @override
+  String get accountDeleted => 'Ton compte a été supprimé.';
+
+  @override
+  String get deletionFailed =>
+      'La suppression a échoué. Réessaie ou écris à support@happyn.com.';
 }

@@ -337,8 +337,24 @@
   "couldNotOpenMaps": "Could not open a maps app.",
 
   "documentNotFound": "Document not found",
-  "deleteAccountBody": "To permanently delete your account and data, please contact support@happyn.com. Self-service deletion is coming soon.",
   "aboutHappynBody": "Find the ones. Be the moment.\n\nDiscover, create, and attend events. Version {version}.",
   "@aboutHappynBody": { "placeholders": { "version": { "type": "String" } } },
-  "selectDateOfBirth": "Select your date of birth"
+  "selectDateOfBirth": "Select your date of birth",
+
+  "deleteAccountWarning": "This is permanent and cannot be undone. Your profile, photo, favourites and notifications will be deleted.",
+  "deleteAccountRetention": "Past tickets and past events are kept for legal and accounting reasons, but are detached from your profile. Your past events will show “Organizer deleted”.",
+  "deleteAccountWhatHappens": "What will happen",
+  "deleteAccountTicketsCancelled": "{count, plural, =1{1 upcoming ticket will be cancelled} other{{count} upcoming tickets will be cancelled}}",
+  "@deleteAccountTicketsCancelled": { "placeholders": { "count": { "type": "int" } } },
+  "deleteAccountEventsCancelled": "{count, plural, =1{1 upcoming event will be cancelled and its attendees notified} other{{count} upcoming events will be cancelled and their attendees notified}}",
+  "@deleteAccountEventsCancelled": { "placeholders": { "count": { "type": "int" } } },
+  "deleteAccountEventsDeleted": "{count, plural, =1{1 upcoming event with no attendee will be deleted} other{{count} upcoming events with no attendee will be deleted}}",
+  "@deleteAccountEventsDeleted": { "placeholders": { "count": { "type": "int" } } },
+  "deleteAccountNothingPending": "You have nothing pending — your account can be deleted right away.",
+  "deleteAccountBlocked": "You have paid ticket sales on an upcoming event. Cancel or refund it first, or contact support@happyn.com.",
+  "deleteAccountConfirmEmail": "Type your email address to confirm",
+  "deleteAccountEmailMismatch": "That doesn't match your email address.",
+  "deleteMyAccount": "Delete my account",
+  "accountDeleted": "Your account has been deleted.",
+  "deletionFailed": "Deletion failed. Please try again or contact support@happyn.com."
 }

@@ -941,14 +941,80 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentNotFound => 'Document not found';
 
   @override
-  String get deleteAccountBody =>
-      'To permanently delete your account and data, please contact support@happyn.com. Self-service deletion is coming soon.';
-
-  @override
   String aboutHappynBody(String version) {
     return 'Find the ones. Be the moment.\n\nDiscover, create, and attend events. Version $version.';
   }
 
   @override
   String get selectDateOfBirth => 'Select your date of birth';
+
+  @override
+  String get deleteAccountWarning =>
+      'This is permanent and cannot be undone. Your profile, photo, favourites and notifications will be deleted.';
+
+  @override
+  String get deleteAccountRetention =>
+      'Past tickets and past events are kept for legal and accounting reasons, but are detached from your profile. Your past events will show “Organizer deleted”.';
+
+  @override
+  String get deleteAccountWhatHappens => 'What will happen';
+
+  @override
+  String deleteAccountTicketsCancelled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count upcoming tickets will be cancelled',
+      one: '1 upcoming ticket will be cancelled',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteAccountEventsCancelled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count upcoming events will be cancelled and their attendees notified',
+      one: '1 upcoming event will be cancelled and its attendees notified',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteAccountEventsDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count upcoming events with no attendee will be deleted',
+      one: '1 upcoming event with no attendee will be deleted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAccountNothingPending =>
+      'You have nothing pending — your account can be deleted right away.';
+
+  @override
+  String get deleteAccountBlocked =>
+      'You have paid ticket sales on an upcoming event. Cancel or refund it first, or contact support@happyn.com.';
+
+  @override
+  String get deleteAccountConfirmEmail => 'Type your email address to confirm';
+
+  @override
+  String get deleteAccountEmailMismatch =>
+      'That doesn\'t match your email address.';
+
+  @override
+  String get deleteMyAccount => 'Delete my account';
+
+  @override
+  String get accountDeleted => 'Your account has been deleted.';
+
+  @override
+  String get deletionFailed =>
+      'Deletion failed. Please try again or contact support@happyn.com.';
 }

@@ -1820,12 +1820,6 @@ abstract class AppLocalizations {
   /// **'Document not found'**
   String get documentNotFound;
 
-  /// No description provided for @deleteAccountBody.
-  ///
-  /// In en, this message translates to:
-  /// **'To permanently delete your account and data, please contact support@happyn.com. Self-service deletion is coming soon.'**
-  String get deleteAccountBody;
-
   /// No description provided for @aboutHappynBody.
   ///
   /// In en, this message translates to:
@@ -1837,6 +1831,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select your date of birth'**
   String get selectDateOfBirth;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This is permanent and cannot be undone. Your profile, photo, favourites and notifications will be deleted.'**
+  String get deleteAccountWarning;
+
+  /// No description provided for @deleteAccountRetention.
+  ///
+  /// In en, this message translates to:
+  /// **'Past tickets and past events are kept for legal and accounting reasons, but are detached from your profile. Your past events will show “Organizer deleted”.'**
+  String get deleteAccountRetention;
+
+  /// No description provided for @deleteAccountWhatHappens.
+  ///
+  /// In en, this message translates to:
+  /// **'What will happen'**
+  String get deleteAccountWhatHappens;
+
+  /// No description provided for @deleteAccountTicketsCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 upcoming ticket will be cancelled} other{{count} upcoming tickets will be cancelled}}'**
+  String deleteAccountTicketsCancelled(int count);
+
+  /// No description provided for @deleteAccountEventsCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 upcoming event will be cancelled and its attendees notified} other{{count} upcoming events will be cancelled and their attendees notified}}'**
+  String deleteAccountEventsCancelled(int count);
+
+  /// No description provided for @deleteAccountEventsDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 upcoming event with no attendee will be deleted} other{{count} upcoming events with no attendee will be deleted}}'**
+  String deleteAccountEventsDeleted(int count);
+
+  /// No description provided for @deleteAccountNothingPending.
+  ///
+  /// In en, this message translates to:
+  /// **'You have nothing pending — your account can be deleted right away.'**
+  String get deleteAccountNothingPending;
+
+  /// No description provided for @deleteAccountBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'You have paid ticket sales on an upcoming event. Cancel or refund it first, or contact support@happyn.com.'**
+  String get deleteAccountBlocked;
+
+  /// No description provided for @deleteAccountConfirmEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your email address to confirm'**
+  String get deleteAccountConfirmEmail;
+
+  /// No description provided for @deleteAccountEmailMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t match your email address.'**
+  String get deleteAccountEmailMismatch;
+
+  /// No description provided for @deleteMyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my account'**
+  String get deleteMyAccount;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been deleted.'**
+  String get accountDeleted;
+
+  /// No description provided for @deletionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion failed. Please try again or contact support@happyn.com.'**
+  String get deletionFailed;
 }
 
 class _AppLocalizationsDelegate

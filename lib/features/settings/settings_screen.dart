@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/settings/legal_page_screen.dart';
+import 'package:happyn/features/settings/delete_account_screen.dart';
 import 'package:happyn/core/providers/legal_provider.dart';
 import 'package:happyn/core/providers/locale_provider.dart';
 import 'package:happyn/l10n/app_localizations.dart';
@@ -112,28 +113,8 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _deleteAccount(BuildContext context) {
-    // Placeholder : la vraie suppression (PIPEDA, droit à l'effacement) sera
-    // une Edge Function dédiée. Pour l'instant on oriente vers le support.
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(AppLocalizations.of(context).deleteAccount,
-            style: AppText.h4.copyWith(color: Colors.white)),
-        content: Text(
-          AppLocalizations.of(context).deleteAccountBody,
-          style: AppText.body,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context).ok,
-                style: AppText.body.copyWith(color: AppColors.lavender)),
-          ),
-        ],
-      ),
-    );
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => const DeleteAccountScreen()));
   }
 
   void _showAbout(BuildContext context) {
