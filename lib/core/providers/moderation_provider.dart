@@ -17,6 +17,22 @@ final blockedUsersProvider = FutureProvider<Set<String>>((ref) async {
       .toSet();
 });
 
+/// Comptes bloqués avec leur nom et leur avatar, pour l'écran de gestion.
+///
+/// Passe par une fonction SECURITY DEFINER qui ne renvoie que ces deux champs :
+/// lire directement `profiles` exposerait aussi l'email et la date de naissance
+/// du compte bloqué (la RLS agit sur la ligne entière, pas colonne par colonne).
+final blockedUsersDetailsProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null) return [];
+  // Se recalcule aussi quand on bloque/débloque.
+  await ref.watch(blockedUsersProvider.future);
+  final data =
+      await Supabase.instance.client.rpc('blocked_users_details');
+  return List<Map<String, dynamic>>.from(data as List);
+});
+
 /// Bloque un compte. Ses événements disparaissent des fils de l'utilisateur.
 Future<void> blockUser(String blockedId) async {
   final uid = Supabase.instance.client.auth.currentUser?.id;

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/providers/events_provider.dart';
@@ -7,18 +8,19 @@ import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
-/// Liste des comptes bloqués, avec possibilité de débloquer.
+/// Liste des comptes bloqués (nom + avatar), avec déblocage.
 ///
-/// Note : la RLS de `profiles` ne permet de lire que son propre profil, donc on
-/// ne peut pas afficher le nom du compte bloqué — seulement un libellé
-/// générique. Le déblocage fonctionne indépendamment.
+/// Les détails viennent de la fonction `blocked_users_details()`, en
+/// SECURITY DEFINER : elle ne renvoie que le nom et l'avatar des comptes que
+/// l'appelant a lui-même bloqués. On évite ainsi d'ouvrir la RLS de `profiles`,
+/// qui aurait exposé l'email et la date de naissance au passage.
 class BlockedUsersScreen extends ConsumerWidget {
   const BlockedUsersScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final blockedAsync = ref.watch(blockedUsersProvider);
+    final blockedAsync = ref.watch(blockedUsersDetailsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -35,17 +37,19 @@ class BlockedUsersScreen extends ConsumerWidget {
       body: blockedAsync.when(
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (e, _) => Center(
-          child: Text(l.couldNotLoadEvents,
-              style: AppText.body.copyWith(color: AppColors.textLow)),
-        ),
-        data: (blocked) {
-          if (blocked.isEmpty) return _empty(l);
-          final ids = blocked.toList();
+        error: (e, _) {
+          debugPrint('blockedUsersDetailsProvider error: $e');
+          return Center(
+            child: Text(l.couldNotLoadEvents,
+                style: AppText.body.copyWith(color: AppColors.textLow)),
+          );
+        },
+        data: (users) {
+          if (users.isEmpty) return _empty(l);
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
-            itemCount: ids.length,
-            itemBuilder: (context, i) => _row(context, ref, l, ids[i]),
+            itemCount: users.length,
+            itemBuilder: (context, i) => _row(context, ref, l, users[i]),
           );
         },
       ),
@@ -53,10 +57,16 @@ class BlockedUsersScreen extends ConsumerWidget {
   }
 
   Widget _row(BuildContext context, WidgetRef ref, AppLocalizations l,
-      String userId) {
+      Map<String, dynamic> user) {
+    final id = user['id'] as String;
+    final name = (user['full_name'] as String?)?.trim();
+    final avatarUrl = (user['avatar_url'] as String?) ?? '';
+    // Un compte peut ne pas avoir renseigné son nom.
+    final label = (name == null || name.isEmpty) ? l.blockedAccount : name;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.04),
         borderRadius: BorderRadius.circular(14),
@@ -64,33 +74,20 @@ class BlockedUsersScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.block, color: AppColors.error, size: 18),
-          ),
+          _avatar(avatarUrl, label),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l.blockedAccount,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.bodySm.copyWith(color: Colors.white)),
-                Text(userId.substring(0, 8).toUpperCase(),
-                    style: AppText.micro),
-              ],
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.bodySm.copyWith(color: Colors.white),
             ),
           ),
           const SizedBox(width: 8),
           TextButton(
             onPressed: () async {
-              await unblockUser(userId);
+              await unblockUser(id);
               ref.invalidate(blockedUsersProvider);
               ref.invalidate(eventsProvider); // ses events réapparaissent
               if (context.mounted) showAppSnack(context, l.userUnblocked);
@@ -100,6 +97,32 @@ class BlockedUsersScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _avatar(String url, String label) {
+    final initial = label.isNotEmpty ? label[0].toUpperCase() : '?';
+    final fallback = Container(
+      width: 44,
+      height: 44,
+      alignment: Alignment.center,
+      color: AppColors.primary.withOpacity(0.18),
+      child: Text(initial,
+          style: AppText.h4.copyWith(color: AppColors.lavenderLight)),
+    );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: url.isEmpty
+          ? fallback
+          : CachedNetworkImage(
+              imageUrl: url,
+              width: 44,
+              height: 44,
+              fit: BoxFit.cover,
+              placeholder: (_, _) => fallback,
+              errorWidget: (_, _, _) => fallback,
+            ),
     );
   }
 
