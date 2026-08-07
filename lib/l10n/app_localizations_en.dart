@@ -1019,6 +1019,81 @@ class AppLocalizationsEn extends AppLocalizations {
       'Deletion failed. Please try again or contact support@happyn.com.';
 
   @override
+  String get feedDiscover => 'Discover';
+
+  @override
+  String get feedFollowing => 'Following';
+
+  @override
+  String get feedEmpty => 'Nothing here yet';
+
+  @override
+  String get feedEmptyBody => 'Be the first to share a moment.';
+
+  @override
+  String get feedFollowingEmpty => 'Your feed is quiet';
+
+  @override
+  String get feedFollowingEmptyBody => 'Follow people to see their posts here.';
+
+  @override
+  String get onNow => 'Happening soon';
+
+  @override
+  String get newPost => 'New post';
+
+  @override
+  String get postCaptionHint => 'Say something about it...';
+
+  @override
+  String get attachEvent => 'Attach an event';
+
+  @override
+  String get noEventAttached => 'No event';
+
+  @override
+  String get postShare => 'Share';
+
+  @override
+  String get postCreated => 'Posted';
+
+  @override
+  String get postFailed => 'Could not publish. Please try again.';
+
+  @override
+  String get postNeedsContent => 'Add a photo or a few words.';
+
+  @override
+  String get reportPost => 'Report this post';
+
+  @override
+  String get deletePost => 'Delete post';
+
+  @override
+  String get deletePostConfirm => 'Delete this post? This cannot be undone.';
+
+  @override
+  String get postDeleted => 'Post deleted';
+
+  @override
+  String get follow => 'Follow';
+
+  @override
+  String get unfollow => 'Following';
+
+  @override
+  String get postsCount => 'Posts';
+
+  @override
+  String get createEventChoice => 'Event';
+
+  @override
+  String get createPostChoice => 'Post';
+
+  @override
+  String get createWhat => 'What do you want to create?';
+
+  @override
   String get report => 'Report';
 
   @override

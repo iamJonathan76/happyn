@@ -1910,6 +1910,156 @@ abstract class AppLocalizations {
   /// **'Deletion failed. Please try again or contact support@happyn.com.'**
   String get deletionFailed;
 
+  /// No description provided for @feedDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get feedDiscover;
+
+  /// No description provided for @feedFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Following'**
+  String get feedFollowing;
+
+  /// No description provided for @feedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get feedEmpty;
+
+  /// No description provided for @feedEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the first to share a moment.'**
+  String get feedEmptyBody;
+
+  /// No description provided for @feedFollowingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feed is quiet'**
+  String get feedFollowingEmpty;
+
+  /// No description provided for @feedFollowingEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow people to see their posts here.'**
+  String get feedFollowingEmptyBody;
+
+  /// No description provided for @onNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Happening soon'**
+  String get onNow;
+
+  /// No description provided for @newPost.
+  ///
+  /// In en, this message translates to:
+  /// **'New post'**
+  String get newPost;
+
+  /// No description provided for @postCaptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Say something about it...'**
+  String get postCaptionHint;
+
+  /// No description provided for @attachEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach an event'**
+  String get attachEvent;
+
+  /// No description provided for @noEventAttached.
+  ///
+  /// In en, this message translates to:
+  /// **'No event'**
+  String get noEventAttached;
+
+  /// No description provided for @postShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get postShare;
+
+  /// No description provided for @postCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted'**
+  String get postCreated;
+
+  /// No description provided for @postFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not publish. Please try again.'**
+  String get postFailed;
+
+  /// No description provided for @postNeedsContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo or a few words.'**
+  String get postNeedsContent;
+
+  /// No description provided for @reportPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Report this post'**
+  String get reportPost;
+
+  /// No description provided for @deletePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete post'**
+  String get deletePost;
+
+  /// No description provided for @deletePostConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this post? This cannot be undone.'**
+  String get deletePostConfirm;
+
+  /// No description provided for @postDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Post deleted'**
+  String get postDeleted;
+
+  /// No description provided for @follow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get follow;
+
+  /// No description provided for @unfollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Following'**
+  String get unfollow;
+
+  /// No description provided for @postsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get postsCount;
+
+  /// No description provided for @createEventChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get createEventChoice;
+
+  /// No description provided for @createPostChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get createPostChoice;
+
+  /// No description provided for @createWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to create?'**
+  String get createWhat;
+
   /// No description provided for @report.
   ///
   /// In en, this message translates to:

@@ -1038,6 +1038,83 @@ class AppLocalizationsFr extends AppLocalizations {
       'La suppression a échoué. Réessaie ou écris à support@happyn.com.';
 
   @override
+  String get feedDiscover => 'Découvrir';
+
+  @override
+  String get feedFollowing => 'Abonnements';
+
+  @override
+  String get feedEmpty => 'Rien ici pour l\'instant';
+
+  @override
+  String get feedEmptyBody => 'Sois le premier à partager un moment.';
+
+  @override
+  String get feedFollowingEmpty => 'Ton fil est calme';
+
+  @override
+  String get feedFollowingEmptyBody =>
+      'Abonne-toi à des comptes pour voir leurs publications ici.';
+
+  @override
+  String get onNow => 'Bientôt';
+
+  @override
+  String get newPost => 'Nouvelle publication';
+
+  @override
+  String get postCaptionHint => 'Dis-en un mot...';
+
+  @override
+  String get attachEvent => 'Rattacher un événement';
+
+  @override
+  String get noEventAttached => 'Aucun événement';
+
+  @override
+  String get postShare => 'Partager';
+
+  @override
+  String get postCreated => 'Publié';
+
+  @override
+  String get postFailed => 'Impossible de publier. Réessaie.';
+
+  @override
+  String get postNeedsContent => 'Ajoute une photo ou quelques mots.';
+
+  @override
+  String get reportPost => 'Signaler cette publication';
+
+  @override
+  String get deletePost => 'Supprimer la publication';
+
+  @override
+  String get deletePostConfirm =>
+      'Supprimer cette publication ? C\'est irréversible.';
+
+  @override
+  String get postDeleted => 'Publication supprimée';
+
+  @override
+  String get follow => 'Suivre';
+
+  @override
+  String get unfollow => 'Abonné';
+
+  @override
+  String get postsCount => 'Publications';
+
+  @override
+  String get createEventChoice => 'Événement';
+
+  @override
+  String get createPostChoice => 'Publication';
+
+  @override
+  String get createWhat => 'Que veux-tu créer ?';
+
+  @override
   String get report => 'Signaler';
 
   @override
