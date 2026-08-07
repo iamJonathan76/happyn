@@ -309,7 +309,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             await ref.read(eventsProvider.future);
           },
           child: _selectedTab == 0
-              ? _buildMyEvents(isLoading, myEvents)
+              ? _buildMyEvents(isLoading, myEvents,
+                  failed: eventsAsync.hasError)
               : _selectedTab == 1
                   ? _buildFavorites()
                   : _buildAbout(),
@@ -424,11 +425,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildMyEvents(bool isLoading, List<Map<String, dynamic>> myEvents) {
+  Widget _buildMyEvents(bool isLoading, List<Map<String, dynamic>> myEvents,
+      {bool failed = false}) {
     if (isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
       );
+    }
+
+    // Une requête en échec et une liste vide se ressemblent à l'écran :
+    // on distingue les deux, sinon un bug backend passe pour « rien à afficher ».
+    if (failed) {
+      return _emptyScrollable(
+          Icons.cloud_off,
+          AppLocalizations.of(context).couldNotLoadEvents,
+          AppLocalizations.of(context).tryDifferentSearch);
     }
 
     if (myEvents.isEmpty) {

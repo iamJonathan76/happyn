@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
@@ -36,6 +37,12 @@ final myEventsProvider = Provider<List<Map<String, dynamic>>>((ref) {
     data: (events) =>
         events.where((e) => e['created_by'] == user.id).toList(),
     loading: () => [],
-    error: (_, __) => [],
+    // Ne pas avaler l'erreur en silence : une liste vide et un échec de
+    // requête se ressemblent à l'écran, et ça masque les vrais problèmes
+    // (une policy RLS cassée s'affichait comme « aucun événement »).
+    error: (e, _) {
+      debugPrint('myEventsProvider error: $e');
+      return const [];
+    },
   );
 });
