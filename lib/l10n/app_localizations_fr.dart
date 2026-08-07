@@ -1036,4 +1036,72 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get deletionFailed =>
       'La suppression a échoué. Réessaie ou écris à support@happyn.com.';
+
+  @override
+  String get report => 'Signaler';
+
+  @override
+  String get reportEvent => 'Signaler cet événement';
+
+  @override
+  String get reportReason => 'Pourquoi le signales-tu ?';
+
+  @override
+  String get reportReasonSpam => 'Spam ou répétitif';
+
+  @override
+  String get reportReasonInappropriate => 'Inapproprié ou offensant';
+
+  @override
+  String get reportReasonScam => 'Arnaque ou fraude';
+
+  @override
+  String get reportReasonMisleading => 'Information trompeuse';
+
+  @override
+  String get reportReasonOther => 'Autre chose';
+
+  @override
+  String get reportDetailsHint => 'Ajouter des précisions (optionnel)';
+
+  @override
+  String get reportSubmit => 'Envoyer le signalement';
+
+  @override
+  String get reportThanks => 'Merci — notre équipe va examiner ça.';
+
+  @override
+  String get reportFailed => 'Impossible d\'envoyer le signalement. Réessaie.';
+
+  @override
+  String get blockOrganizer => 'Bloquer l\'organisateur';
+
+  @override
+  String get blockConfirmTitle => 'Bloquer cet organisateur ?';
+
+  @override
+  String get blockConfirmBody =>
+      'Tu ne verras plus ses événements. Tu peux le débloquer à tout moment depuis les Paramètres.';
+
+  @override
+  String get block => 'Bloquer';
+
+  @override
+  String get unblock => 'Débloquer';
+
+  @override
+  String get userBlocked => 'Organisateur bloqué.';
+
+  @override
+  String get userUnblocked => 'Organisateur débloqué.';
+
+  @override
+  String get blockedAccount => 'Compte bloqué';
+
+  @override
+  String get blockedUsersEmpty => 'Tu n\'as bloqué personne';
+
+  @override
+  String get blockedUsersEmptyBody =>
+      'Les comptes bloqués et leurs événements n\'apparaîtront pas dans tes fils.';
 }

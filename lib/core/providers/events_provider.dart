@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
+import 'package:happyn/core/providers/moderation_provider.dart';
 
 /// Provider central pour la liste de TOUS les events (publics).
 /// Home, Discover, et Profile s'abonnent tous à ce même provider.
@@ -21,7 +22,12 @@ final eventsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
       : query.or('visibility.eq.public,created_by.eq.$uid');
 
   final data = await filtered.order('created_at', ascending: false);
-  return List<Map<String, dynamic>>.from(data);
+  final list = List<Map<String, dynamic>>.from(data);
+
+  // Les événements des comptes bloqués disparaissent des fils.
+  final blocked = await ref.watch(blockedUsersProvider.future);
+  if (blocked.isEmpty) return list;
+  return list.where((e) => !blocked.contains(e['created_by'])).toList();
 });
 
 /// Provider dérivé : uniquement les events créés par l'utilisateur connecté.

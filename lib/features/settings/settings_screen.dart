@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/settings/legal_page_screen.dart';
 import 'package:happyn/features/settings/delete_account_screen.dart';
+import 'package:happyn/features/settings/blocked_users_screen.dart';
 import 'package:happyn/core/providers/legal_provider.dart';
 import 'package:happyn/core/providers/locale_provider.dart';
 import 'package:happyn/l10n/app_localizations.dart';
@@ -54,7 +55,9 @@ class SettingsScreen extends ConsumerWidget {
           _soon(context, Icons.group_outlined, l.friends),
           _soon(context, Icons.person_add_alt, l.following),
           _soon(context, Icons.people_alt_outlined, l.followers),
-          _soon(context, Icons.block, l.blockedUsers),
+          _tile(context, Icons.block, l.blockedUsers,
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const BlockedUsersScreen()))),
 
           // ── My Activity ───────────────────────────────────────────
           _section(l.sectionMyActivity),

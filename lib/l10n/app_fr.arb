@@ -324,5 +324,29 @@
   "deleteAccountEmailMismatch": "Cela ne correspond pas à ton adresse e-mail.",
   "deleteMyAccount": "Supprimer mon compte",
   "accountDeleted": "Ton compte a été supprimé.",
-  "deletionFailed": "La suppression a échoué. Réessaie ou écris à support@happyn.com."
+  "deletionFailed": "La suppression a échoué. Réessaie ou écris à support@happyn.com.",
+
+  "report": "Signaler",
+  "reportEvent": "Signaler cet événement",
+  "reportReason": "Pourquoi le signales-tu ?",
+  "reportReasonSpam": "Spam ou répétitif",
+  "reportReasonInappropriate": "Inapproprié ou offensant",
+  "reportReasonScam": "Arnaque ou fraude",
+  "reportReasonMisleading": "Information trompeuse",
+  "reportReasonOther": "Autre chose",
+  "reportDetailsHint": "Ajouter des précisions (optionnel)",
+  "reportSubmit": "Envoyer le signalement",
+  "reportThanks": "Merci — notre équipe va examiner ça.",
+  "reportFailed": "Impossible d'envoyer le signalement. Réessaie.",
+
+  "blockOrganizer": "Bloquer l'organisateur",
+  "blockConfirmTitle": "Bloquer cet organisateur ?",
+  "blockConfirmBody": "Tu ne verras plus ses événements. Tu peux le débloquer à tout moment depuis les Paramètres.",
+  "block": "Bloquer",
+  "unblock": "Débloquer",
+  "userBlocked": "Organisateur bloqué.",
+  "userUnblocked": "Organisateur débloqué.",
+  "blockedAccount": "Compte bloqué",
+  "blockedUsersEmpty": "Tu n'as bloqué personne",
+  "blockedUsersEmptyBody": "Les comptes bloqués et leurs événements n'apparaîtront pas dans tes fils."
 }

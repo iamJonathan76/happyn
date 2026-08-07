@@ -356,5 +356,29 @@
   "deleteAccountEmailMismatch": "That doesn't match your email address.",
   "deleteMyAccount": "Delete my account",
   "accountDeleted": "Your account has been deleted.",
-  "deletionFailed": "Deletion failed. Please try again or contact support@happyn.com."
+  "deletionFailed": "Deletion failed. Please try again or contact support@happyn.com.",
+
+  "report": "Report",
+  "reportEvent": "Report this event",
+  "reportReason": "Why are you reporting this?",
+  "reportReasonSpam": "Spam or repetitive",
+  "reportReasonInappropriate": "Inappropriate or offensive",
+  "reportReasonScam": "Scam or fraud",
+  "reportReasonMisleading": "Misleading information",
+  "reportReasonOther": "Something else",
+  "reportDetailsHint": "Add details (optional)",
+  "reportSubmit": "Send report",
+  "reportThanks": "Thanks — our team will review this.",
+  "reportFailed": "Could not send the report. Please try again.",
+
+  "blockOrganizer": "Block organizer",
+  "blockConfirmTitle": "Block this organizer?",
+  "blockConfirmBody": "You will no longer see their events. You can unblock them at any time from Settings.",
+  "block": "Block",
+  "unblock": "Unblock",
+  "userBlocked": "Organizer blocked.",
+  "userUnblocked": "Organizer unblocked.",
+  "blockedAccount": "Blocked account",
+  "blockedUsersEmpty": "You haven't blocked anyone",
+  "blockedUsersEmptyBody": "Blocked accounts and their events won't appear in your feeds."
 }

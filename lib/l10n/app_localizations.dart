@@ -1909,6 +1909,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deletion failed. Please try again or contact support@happyn.com.'**
   String get deletionFailed;
+
+  /// No description provided for @report.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get report;
+
+  /// No description provided for @reportEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Report this event'**
+  String get reportEvent;
+
+  /// No description provided for @reportReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you reporting this?'**
+  String get reportReason;
+
+  /// No description provided for @reportReasonSpam.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam or repetitive'**
+  String get reportReasonSpam;
+
+  /// No description provided for @reportReasonInappropriate.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate or offensive'**
+  String get reportReasonInappropriate;
+
+  /// No description provided for @reportReasonScam.
+  ///
+  /// In en, this message translates to:
+  /// **'Scam or fraud'**
+  String get reportReasonScam;
+
+  /// No description provided for @reportReasonMisleading.
+  ///
+  /// In en, this message translates to:
+  /// **'Misleading information'**
+  String get reportReasonMisleading;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details (optional)'**
+  String get reportDetailsHint;
+
+  /// No description provided for @reportSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get reportSubmit;
+
+  /// No description provided for @reportThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks — our team will review this.'**
+  String get reportThanks;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send the report. Please try again.'**
+  String get reportFailed;
+
+  /// No description provided for @blockOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Block organizer'**
+  String get blockOrganizer;
+
+  /// No description provided for @blockConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block this organizer?'**
+  String get blockConfirmTitle;
+
+  /// No description provided for @blockConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will no longer see their events. You can unblock them at any time from Settings.'**
+  String get blockConfirmBody;
+
+  /// No description provided for @block.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get block;
+
+  /// No description provided for @unblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblock;
+
+  /// No description provided for @userBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizer blocked.'**
+  String get userBlocked;
+
+  /// No description provided for @userUnblocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizer unblocked.'**
+  String get userUnblocked;
+
+  /// No description provided for @blockedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked account'**
+  String get blockedAccount;
+
+  /// No description provided for @blockedUsersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t blocked anyone'**
+  String get blockedUsersEmpty;
+
+  /// No description provided for @blockedUsersEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked accounts and their events won\'t appear in your feeds.'**
+  String get blockedUsersEmptyBody;
 }
 
 class _AppLocalizationsDelegate

@@ -1017,4 +1017,72 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deletionFailed =>
       'Deletion failed. Please try again or contact support@happyn.com.';
+
+  @override
+  String get report => 'Report';
+
+  @override
+  String get reportEvent => 'Report this event';
+
+  @override
+  String get reportReason => 'Why are you reporting this?';
+
+  @override
+  String get reportReasonSpam => 'Spam or repetitive';
+
+  @override
+  String get reportReasonInappropriate => 'Inappropriate or offensive';
+
+  @override
+  String get reportReasonScam => 'Scam or fraud';
+
+  @override
+  String get reportReasonMisleading => 'Misleading information';
+
+  @override
+  String get reportReasonOther => 'Something else';
+
+  @override
+  String get reportDetailsHint => 'Add details (optional)';
+
+  @override
+  String get reportSubmit => 'Send report';
+
+  @override
+  String get reportThanks => 'Thanks — our team will review this.';
+
+  @override
+  String get reportFailed => 'Could not send the report. Please try again.';
+
+  @override
+  String get blockOrganizer => 'Block organizer';
+
+  @override
+  String get blockConfirmTitle => 'Block this organizer?';
+
+  @override
+  String get blockConfirmBody =>
+      'You will no longer see their events. You can unblock them at any time from Settings.';
+
+  @override
+  String get block => 'Block';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String get userBlocked => 'Organizer blocked.';
+
+  @override
+  String get userUnblocked => 'Organizer unblocked.';
+
+  @override
+  String get blockedAccount => 'Blocked account';
+
+  @override
+  String get blockedUsersEmpty => 'You haven\'t blocked anyone';
+
+  @override
+  String get blockedUsersEmptyBody =>
+      'Blocked accounts and their events won\'t appear in your feeds.';
 }

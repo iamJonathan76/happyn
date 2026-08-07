@@ -14,6 +14,7 @@ import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/utils/maps.dart';
+import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
@@ -72,6 +73,46 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         if (_status != 'cancelled')
           _menuItem('cancel', Icons.cancel_outlined, l.cancelEvent,
               danger: true),
+      ],
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.45),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0.12)),
+        ),
+        child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
+  /// Menu du visiteur : signaler l'événement, bloquer l'organisateur.
+  Widget _visitorMenu(Map<String, dynamic> ev) {
+    final l = AppLocalizations.of(context);
+    final organizerId = ev['created_by'] as String?;
+    return PopupMenuButton<String>(
+      color: AppColors.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      position: PopupMenuPosition.under,
+      onSelected: (v) async {
+        if (v == 'report') {
+          await showReportSheet(context,
+              targetType: 'event', targetId: ev['id'] as String);
+        } else if (v == 'block' && organizerId != null) {
+          final blocked =
+              await confirmBlockUser(context, ref, userId: organizerId);
+          if (blocked && mounted) {
+            ref.invalidate(eventsProvider);
+            showAppSnack(context, l.userBlocked);
+            Navigator.of(context).pop(); // on quitte la fiche masquée
+          }
+        }
+      },
+      itemBuilder: (context) => [
+        _menuItem('report', Icons.flag_outlined, l.reportEvent),
+        if (organizerId != null)
+          _menuItem('block', Icons.block, l.blockOrganizer, danger: true),
       ],
       child: Container(
         width: 38,
@@ -375,6 +416,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                       );
                                     },
                                   ),
+                                  // Modération : signaler / bloquer.
+                                  // Exigé par Apple (règle 1.2) dès lors que
+                                  // les utilisateurs publient du contenu.
+                                  if (!isOrganizer) ...[
+                                    const SizedBox(width: 8),
+                                    _visitorMenu(ev),
+                                  ],
                                 ],
                               ),
                             ],
