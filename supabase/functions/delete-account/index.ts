@@ -83,9 +83,13 @@ Deno.serve(async (req) => {
   // 1. Effacement / anonymisation des données métier (sous l'identité du user)
   const { error: rpcErr } = await userClient.rpc("delete_my_account_data");
   if (rpcErr) {
+    console.error("delete_my_account_data failed:", rpcErr);
     const blocked = rpcErr.message?.includes("has_paid_sales");
     return jsonResponse(
-      { error: blocked ? "has_paid_sales" : "deletion_failed" },
+      {
+        error: blocked ? "has_paid_sales" : "deletion_failed",
+        detail: rpcErr.message,
+      },
       blocked ? 409 : 500,
     );
   }
@@ -99,7 +103,13 @@ Deno.serve(async (req) => {
   //    notifications et user_legal_acceptances — les données qu'on voulait
   //    conserver ont déjà été détachées à l'étape 1.
   const { error: delErr } = await admin.auth.admin.deleteUser(user.id);
-  if (delErr) return jsonResponse({ error: "auth_delete_failed" }, 500);
+  if (delErr) {
+    console.error("auth deleteUser failed:", delErr);
+    return jsonResponse(
+      { error: "auth_delete_failed", detail: delErr.message },
+      500,
+    );
+  }
 
   return jsonResponse({ status: "deleted" });
 });

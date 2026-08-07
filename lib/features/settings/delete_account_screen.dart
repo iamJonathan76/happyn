@@ -52,8 +52,16 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
         _preview = Map<String, dynamic>.from(data as Map);
         _loading = false;
       });
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
+    } catch (e) {
+      // Ne pas masquer : si la RPC manque (migration non appliquée), l'écran
+      // afficherait « rien en cours » alors qu'il n'a rien pu lire.
+      debugPrint('DELETE_ACCOUNT preview failed: $e');
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = '${AppLocalizations.of(context).deletionFailed}\n$e';
+        });
+      }
     }
   }
 
@@ -69,20 +77,34 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
     });
     try {
       final res = await _supabase.functions.invoke('delete-account');
-      final status = (res.data as Map?)?['status'];
-      if (status != 'deleted') throw Exception('failed');
+      final body = (res.data as Map?)?.cast<String, dynamic>() ?? {};
+
+      if (body['status'] != 'deleted') {
+        // On remonte le code d'erreur renvoyé par la fonction plutôt que de
+        // le perdre dans une exception générique.
+        final code = body['error'] as String?;
+        final detail = body['detail'] as String?;
+        debugPrint('DELETE_ACCOUNT failed: $code / $detail');
+        if (!mounted) return;
+        setState(() {
+          _deleting = false;
+          _error = code == 'has_paid_sales'
+              ? l.deleteAccountBlocked
+              : '${l.deletionFailed}\n[$code] ${detail ?? ''}';
+        });
+        return;
+      }
 
       await _supabase.auth.signOut();
       if (!mounted) return;
       showAppSnack(context, l.accountDeleted);
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
     } catch (e) {
+      debugPrint('DELETE_ACCOUNT exception: $e');
       if (!mounted) return;
       setState(() {
         _deleting = false;
-        _error = e.toString().contains('has_paid_sales')
-            ? l.deleteAccountBlocked
-            : l.deletionFailed;
+        _error = '${l.deletionFailed}\n$e';
       });
     }
   }
