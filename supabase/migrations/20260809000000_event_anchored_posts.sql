@@ -113,7 +113,16 @@ grant execute on function public.my_attachable_events() to authenticated;
 
 -- ── 6. La vue du fil ne contient plus que du contenu événementiel ───────────
 -- `event_id` étant NOT NULL, la jointure devient stricte.
-create or replace view public.feed_posts as
+--
+-- On DROP avant de recréer : `create or replace view` n'autorise à ajouter des
+-- colonnes qu'à la FIN de la liste existante. Ici on en insère au milieu
+-- (event_start_date, event_image, author_is_organizer), ce que Postgres refuse
+-- avec « cannot change name of view column ». Aucun objet ne dépend de cette
+-- vue, la suppression est donc sans risque — et une vue ne contient pas de
+-- données.
+drop view if exists public.feed_posts;
+
+create view public.feed_posts as
 select
   p.id,
   p.author_id,
