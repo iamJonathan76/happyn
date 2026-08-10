@@ -326,6 +326,8 @@
   "accountDeleted": "Ton compte a été supprimé.",
   "deletionFailed": "La suppression a échoué. Réessaie ou écris à support@happyn.com.",
 
+  "moments": "Moments",
+  "momentsFromEvents": "Ce que les gens vivent en ce moment",
   "feedDiscover": "Découvrir",
   "feedFollowing": "Abonnements",
   "feedEmpty": "Rien ici pour l'instant",

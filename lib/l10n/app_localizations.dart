@@ -1910,6 +1910,18 @@ abstract class AppLocalizations {
   /// **'Deletion failed. Please try again or contact support@happyn.com.'**
   String get deletionFailed;
 
+  /// No description provided for @moments.
+  ///
+  /// In en, this message translates to:
+  /// **'Moments'**
+  String get moments;
+
+  /// No description provided for @momentsFromEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'What people are living right now'**
+  String get momentsFromEvents;
+
   /// No description provided for @feedDiscover.
   ///
   /// In en, this message translates to:

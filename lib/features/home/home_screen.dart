@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/widgets/event_list_card.dart';
+import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
@@ -33,6 +36,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  int _selectedCat = 0;
+  List<String> _categories = const ['All'];
+  List<Map<String, dynamic>> _catData = const [];
+
   // Getter (pas un champ figé) → toujours la valeur à jour après un updateUser.
   User? get user => Supabase.instance.client.auth.currentUser;
 
@@ -54,6 +61,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return l.greetingEvening;
   }
 
+  List<Map<String, dynamic>> _filterByCategory(
+    List<Map<String, dynamic>> events,
+  ) {
+    final upcoming = events.where(isEventVisible).toList();
+    if (_selectedCat <= 0 || _selectedCat >= _categories.length) return upcoming;
+    return upcoming
+        .where((e) => e['category'] == _categories[_selectedCat])
+        .toList();
+  }
+
   /// 0 = Découvrir (tout le monde), 1 = Abonnements.
   /// Découvrir par défaut : au lancement personne ne suit personne, un fil
   /// limité aux abonnements serait vide pour chaque nouvel inscrit.
@@ -73,6 +90,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(eventsProvider);
     ref.watch(authStateProvider); // rebuild au changement de nom/photo
+    _catData = ref.watch(categoriesProvider).maybeWhen(
+          data: (d) => d,
+          orElse: () => const [],
+        );
+    _categories = ['All', ..._catData.map((c) => c['name'] as String)];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -88,12 +110,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             SliverToBoxAdapter(child: _buildHeader()),
             SliverToBoxAdapter(child: _buildSearchBar()),
+            SliverToBoxAdapter(child: _buildLocation(eventsAsync)),
+            SliverToBoxAdapter(child: _buildCategories()),
             // Bandeau d'événements : un aperçu, « Tout voir » mène à Découvrir
             // (qui porte les catégories, filtres et la liste complète).
             SliverToBoxAdapter(
                 child: _buildSectionHeader(
                     AppLocalizations.of(context).onNow, seeAll: true)),
             SliverToBoxAdapter(child: _buildHeroCards(eventsAsync)),
+            SliverToBoxAdapter(
+                child: _buildSectionHeader(
+                    AppLocalizations.of(context).popularNearYou, seeAll: true)),
+            SliverToBoxAdapter(child: _buildCompactList(eventsAsync)),
+            SliverToBoxAdapter(child: _buildMomentsHeader()),
             // Puis le fil social : c'est lui qui donne du contenu à l'app même
             // quand il n'y a que quelques événements.
             SliverToBoxAdapter(child: _buildFeedTabs()),
@@ -262,6 +291,128 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Widget _buildLocation(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
+    final count =
+        (eventsAsync.asData?.value ?? []).where(isEventVisible).length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+      child: Row(
+        children: [
+          const Icon(Icons.navigation, color: AppColors.pink, size: 13),
+          const SizedBox(width: 5),
+          Text(
+            AppLocalizations.of(context).eventsToDiscover(count),
+            style: AppText.small.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textLight.withOpacity(0.45)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategories() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: SizedBox(
+        height: 86,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(left: 20, right: 8),
+          itemCount: _categories.length,
+          itemBuilder: (context, i) {
+            final isActive = i == _selectedCat;
+            final label = i == 0
+                ? AppLocalizations.of(context).categoryAll
+                : _categories[i];
+            final color = i == 0 ? AppColors.lavender : categoryColor(label);
+
+            return GestureDetector(
+              onTap: () => setState(() => _selectedCat = i),
+              child: SizedBox(
+                width: 66,
+                child: Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: isActive ? color : color.withOpacity(0.13),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                            color: color.withOpacity(isActive ? 0 : 0.30)),
+                        boxShadow: isActive
+                            ? [
+                                BoxShadow(
+                                    color: color.withOpacity(0.45),
+                                    blurRadius: 14)
+                              ]
+                            : null,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          i == 0 ? Icons.auto_awesome : categoryIcon(label),
+                          color: isActive ? Colors.white : color,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.micro.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isActive
+                              ? Colors.white
+                              : AppColors.textLight.withOpacity(0.5)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Quelques evenements en liste sous le bandeau. Volontairement court :
+  /// la liste complete vit sur Decouvrir.
+  Widget _buildCompactList(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
+    final events = _filterByCategory(eventsAsync.asData?.value ?? []);
+    if (events.length <= 1) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: events
+            .skip(1)
+            .take(3)
+            .map((ev) => EventListCard(event: ev))
+            .toList(),
+      ),
+    );
+  }
+
+  /// En-tete de la couche sociale. Le titre compte : « Moments » dit que ce
+  /// contenu documente des experiences, la ou « Fil » aurait dit reseau social.
+  Widget _buildMomentsHeader() {
+    final l = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 26, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l.moments, style: AppText.h3.copyWith(fontSize: 17)),
+          const SizedBox(height: 3),
+          Text(l.momentsFromEvents, style: AppText.small),
+        ],
+      ),
+    );
+  }
+
   /// Onglets du fil : Découvrir (tout le monde) / Abonnements.
   Widget _buildFeedTabs() {
     final l = AppLocalizations.of(context);
@@ -300,7 +451,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       child: Row(
         children: [tab(0, l.feedDiscover), tab(1, l.feedFollowing)],
       ),
@@ -428,7 +579,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
       data: (allEvents) {
-        final events = allEvents.where(isEventVisible).toList();
+        final events = _filterByCategory(allEvents);
         if (events.isEmpty) {
           return SizedBox(
             height: 252,

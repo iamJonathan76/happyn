@@ -1019,6 +1019,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Deletion failed. Please try again or contact support@happyn.com.';
 
   @override
+  String get moments => 'Moments';
+
+  @override
+  String get momentsFromEvents => 'What people are living right now';
+
+  @override
   String get feedDiscover => 'Discover';
 
   @override

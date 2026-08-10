@@ -1038,6 +1038,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'La suppression a échoué. Réessaie ou écris à support@happyn.com.';
 
   @override
+  String get moments => 'Moments';
+
+  @override
+  String get momentsFromEvents => 'Ce que les gens vivent en ce moment';
+
+  @override
   String get feedDiscover => 'Découvrir';
 
   @override
