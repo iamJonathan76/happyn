@@ -690,6 +690,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferFailed => 'Transfer failed. Please try again.';
 
   @override
+  String get showImGoing => 'Show connections I am going';
+
+  @override
+  String get showImGoingHelp =>
+      'People you follow each other with will see you on this event. Nothing is posted and nobody is notified.';
+
+  @override
+  String get visibilityUpdated => 'Visibility updated';
+
+  @override
+  String get visibilityFailed => 'Could not update visibility.';
+
+  @override
   String get myTicketsTitle => 'My Tickets';
 
   @override

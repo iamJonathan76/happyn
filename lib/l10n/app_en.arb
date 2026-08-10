@@ -246,6 +246,10 @@
   "transferErrEventEnded": "This event has already ended.",
   "transferFailed": "Transfer failed. Please try again.",
 
+  "showImGoing": "Show connections I am going",
+  "showImGoingHelp": "People you follow each other with will see you on this event. Nothing is posted and nobody is notified.",
+  "visibilityUpdated": "Visibility updated",
+  "visibilityFailed": "Could not update visibility.",
   "myTicketsTitle": "My Tickets",
   "tabUpcoming": "Upcoming",
   "tabPast": "Past",

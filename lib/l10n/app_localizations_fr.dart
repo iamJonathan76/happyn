@@ -701,6 +701,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transferFailed => 'Échec du transfert. Veuillez réessayer.';
 
   @override
+  String get showImGoing => 'Montrer à mes connexions que j\'y vais';
+
+  @override
+  String get showImGoingHelp =>
+      'Les personnes que tu suis mutuellement te verront sur cet événement. Rien n\'est publié et personne n\'est notifié.';
+
+  @override
+  String get visibilityUpdated => 'Visibilité mise à jour';
+
+  @override
+  String get visibilityFailed => 'Impossible de mettre à jour la visibilité.';
+
+  @override
   String get myTicketsTitle => 'Mes billets';
 
   @override

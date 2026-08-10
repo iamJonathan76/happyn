@@ -1334,6 +1334,30 @@ abstract class AppLocalizations {
   /// **'Transfer failed. Please try again.'**
   String get transferFailed;
 
+  /// No description provided for @showImGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Show connections I am going'**
+  String get showImGoing;
+
+  /// No description provided for @showImGoingHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'People you follow each other with will see you on this event. Nothing is posted and nobody is notified.'**
+  String get showImGoingHelp;
+
+  /// No description provided for @visibilityUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility updated'**
+  String get visibilityUpdated;
+
+  /// No description provided for @visibilityFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update visibility.'**
+  String get visibilityFailed;
+
   /// No description provided for @myTicketsTitle.
   ///
   /// In en, this message translates to:

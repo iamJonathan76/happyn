@@ -10,6 +10,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
+import 'package:happyn/core/providers/attendance_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/utils/secure_screen.dart';
 import 'package:happyn/core/widgets/app_form.dart';
@@ -399,6 +400,10 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                       ),
                     ),
 
+                    // Visibilité de la présence : opt-in, par événement.
+                    if (!cancelled && !isEventPast(ev))
+                      _visibilityTile(ev['id'] as String),
+
                     // ── Transfert ──────────────────────────────────
                     if (!cancelled && !isEventPast(ev)) ...[
                       const SizedBox(height: 14),
@@ -416,6 +421,63 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+
+  /// Interrupteur de visibilité de la présence.
+  ///
+  /// Volontairement sobre et accompagné d'une explication : l'utilisateur doit
+  /// comprendre qu'il partage OU on ne le fait pas. Coupé par défaut.
+  Widget _visibilityTile(String eventId) {
+    final l = AppLocalizations.of(context);
+    final async = ref.watch(myAttendanceProvider(eventId));
+    final row = async.asData?.value;
+    if (row == null) return const SizedBox.shrink();
+
+    final visible = row['visible_to_connections'] == true;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.fromLTRB(14, 4, 6, 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.07)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(l.showImGoing,
+                    style: AppText.bodySm.copyWith(color: Colors.white)),
+              ),
+              Switch(
+                value: visible,
+                activeThumbColor: Colors.white,
+                activeTrackColor: AppColors.primary,
+                onChanged: (v) async {
+                  try {
+                    await setAttendanceVisibility(eventId, v);
+                    ref.invalidate(myAttendanceProvider(eventId));
+                    if (mounted) showAppSnack(context, l.visibilityUpdated);
+                  } catch (e) {
+                    debugPrint('setAttendanceVisibility failed: $e');
+                    if (mounted) showAppSnack(context, l.visibilityFailed);
+                  }
+                },
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text(l.showImGoingHelp,
+                style: AppText.small.copyWith(height: 1.4)),
+          ),
+        ],
       ),
     );
   }
