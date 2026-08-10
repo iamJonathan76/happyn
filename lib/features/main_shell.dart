@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/features/social/create_post_screen.dart';
 import 'package:happyn/features/home/home_screen.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
@@ -52,6 +53,64 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
+  /// Le « + » crée désormais deux choses : un événement ou une publication.
+  Future<void> _openCreateSheet() async {
+    final l = AppLocalizations.of(context);
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.sheet,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 18),
+            Text(l.createWhat, style: AppText.h3),
+            const SizedBox(height: 10),
+            _createOption(sheetCtx, Icons.photo_camera_outlined,
+                l.createPostChoice, 'post'),
+            _createOption(sheetCtx, Icons.event_outlined,
+                l.createEventChoice, 'event'),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || choice == null) return;
+    if (choice == 'event') {
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const CreateEventScreen()),
+      );
+    } else {
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+      );
+    }
+    // Les providers concernés sont invalidés par les écrans eux-mêmes ;
+    // on ramène juste l'utilisateur sur l'accueil pour voir le résultat.
+    if (mounted) setState(() => _currentIndex = 0);
+  }
+
+  Widget _createOption(
+          BuildContext ctx, IconData icon, String label, String value) =>
+      ListTile(
+        leading: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: AppColors.lavenderLight, size: 20),
+        ),
+        title: Text(label, style: AppText.bodySm.copyWith(color: Colors.white)),
+        trailing: Icon(Icons.chevron_right, color: AppColors.textLow, size: 18),
+        onTap: () => Navigator.of(ctx).pop(value),
+      );
+
   Widget _buildBottomNav() {
     final l = AppLocalizations.of(context);
     final items = [
@@ -81,16 +140,7 @@ class _MainShellState extends State<MainShell> {
           // FAB center button
           if (i == 2) {
             return GestureDetector(
-              onTap: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const CreateEventScreen()),
-                );
-                // Le provider a déjà été invalidé dans CreateEventScreen.
-                // On bascule juste l'utilisateur sur Home pour voir le résultat.
-                if (mounted) {
-                  setState(() => _currentIndex = 0);
-                }
-              },
+              onTap: _openCreateSheet,
               child: Container(
                 width: 48,
                 height: 48,
