@@ -35,6 +35,12 @@ final discoverFeedProvider =
 });
 
 /// Fil « Abonnements » : publications des comptes suivis (et les siennes).
+///
+/// ⚠️ Plus branché à aucun écran depuis que l'accueil n'a qu'un seul fil.
+/// Conservé le temps de trancher : voir ce que font ses connexions passera
+/// probablement par un filtre sur Découvrir portant sur les ÉVÉNEMENTS
+/// auxquels elles vont, auquel cas ce provider n'aura plus lieu d'être — un
+/// profil public suffit à voir les publications d'une personne.
 final followingFeedProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final uid = ref.watch(currentUserIdProvider);

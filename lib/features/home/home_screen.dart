@@ -71,16 +71,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .toList();
   }
 
-  /// 0 = Découvrir (tout le monde), 1 = Abonnements.
-  /// Découvrir par défaut : au lancement personne ne suit personne, un fil
-  /// limité aux abonnements serait vide pour chaque nouvel inscrit.
-  int _feedTab = 0;
-
   Future<void> _refresh() async {
     ref.invalidate(eventsProvider);
     ref.invalidate(notificationsProvider); // maj du badge cloche
     ref.invalidate(discoverFeedProvider);
-    ref.invalidate(followingFeedProvider);
     // on attend que le nouveau fetch soit terminé pour que le
     // RefreshIndicator se ferme au bon moment
     await ref.read(eventsProvider.future);
@@ -402,56 +396,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// Volontairement leger. Deux gros boutons pleine largeur donneraient au fil
   /// un poids de navigation principale, alors que c'est une couche au-dessus
   /// des evenements.
+    /// En-tete de la couche sociale.
+  ///
+  /// Un seul fil, sans selecteur de mode : c'est ce qui prepare un classement
+  /// par recommandation, ou un bouton « Abonnements » deviendrait redondant.
+  /// Voir ce que font ses connexions passera par un filtre sur Decouvrir, et
+  /// portera sur les EVENEMENTS auxquels elles vont — pas sur leurs
+  /// publications.
   Widget _buildMomentsHeader() {
     final l = AppLocalizations.of(context);
-
-    Widget tab(int index, String label) {
-      final active = index == _feedTab;
-      return GestureDetector(
-        onTap: () => setState(() => _feedTab = index),
-        behavior: HitTestBehavior.opaque,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-          child: Text(
-            label,
-            style: AppText.smallBold.copyWith(
-              fontSize: 12,
-              color: active ? AppColors.lavender : AppColors.textLow,
-            ),
-          ),
-        ),
-      );
-    }
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 26, 20, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(l.moments,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.h3.copyWith(fontSize: 17)),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      tab(0, l.feedDiscover),
-                      Text('·', style: AppText.small),
-                      tab(1, l.feedFollowing),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+          Text(l.moments,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.h3.copyWith(fontSize: 17)),
+          const SizedBox(height: 3),
           Text(l.momentsFromEvents, style: AppText.small),
         ],
       ),
@@ -462,9 +425,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// l'en-tête et le bandeau d'événements.
   Widget _buildFeedSliver() {
     final l = AppLocalizations.of(context);
-    final async = _feedTab == 0
-        ? ref.watch(discoverFeedProvider)
-        : ref.watch(followingFeedProvider);
+    final async = ref.watch(discoverFeedProvider);
 
     return async.when(
       loading: () => const SliverToBoxAdapter(
@@ -483,11 +444,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       data: (posts) {
         if (posts.isEmpty) {
           return SliverToBoxAdapter(
-            child: _feedMessage(
-              Icons.photo_camera_outlined,
-              _feedTab == 0 ? l.feedEmpty : l.feedFollowingEmpty,
-              _feedTab == 0 ? l.feedEmptyBody : l.feedFollowingEmptyBody,
-            ),
+            child: _feedMessage(Icons.photo_camera_outlined,
+                l.feedEmpty, l.feedEmptyBody),
           );
         }
         return SliverPadding(
@@ -496,10 +454,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             itemCount: posts.length,
             itemBuilder: (context, i) => PostCard(
               post: posts[i],
-              onChanged: () {
-                ref.invalidate(discoverFeedProvider);
-                ref.invalidate(followingFeedProvider);
-              },
+              onChanged: () => ref.invalidate(discoverFeedProvider),
             ),
           ),
         );
