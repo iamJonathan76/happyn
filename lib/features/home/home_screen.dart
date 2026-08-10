@@ -122,10 +122,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: _buildSectionHeader(
                     AppLocalizations.of(context).popularNearYou, seeAll: true)),
             SliverToBoxAdapter(child: _buildCompactList(eventsAsync)),
+            // Puis la couche sociale : des moments vecus autour des events.
             SliverToBoxAdapter(child: _buildMomentsHeader()),
-            // Puis le fil social : c'est lui qui donne du contenu à l'app même
-            // quand il n'y a que quelques événements.
-            SliverToBoxAdapter(child: _buildFeedTabs()),
             _buildFeedSliver(),
             const SliverToBoxAdapter(child: SizedBox(height: 90)),
           ],
@@ -398,52 +396,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// En-tete de la couche sociale. Le titre compte : « Moments » dit que ce
   /// contenu documente des experiences, la ou « Fil » aurait dit reseau social.
+    /// Onglets du fil : Découvrir (tout le monde) / Abonnements.
+    /// En-tete de la couche sociale : titre a gauche, bascule discrete a droite.
+  ///
+  /// Volontairement leger. Deux gros boutons pleine largeur donneraient au fil
+  /// un poids de navigation principale, alors que c'est une couche au-dessus
+  /// des evenements.
   Widget _buildMomentsHeader() {
     final l = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 26, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l.moments, style: AppText.h3.copyWith(fontSize: 17)),
-          const SizedBox(height: 3),
-          Text(l.momentsFromEvents, style: AppText.small),
-        ],
-      ),
-    );
-  }
 
-  /// Onglets du fil : Découvrir (tout le monde) / Abonnements.
-  Widget _buildFeedTabs() {
-    final l = AppLocalizations.of(context);
     Widget tab(int index, String label) {
       final active = index == _feedTab;
-      return Expanded(
-        child: GestureDetector(
-          onTap: () => setState(() => _feedTab = index),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(vertical: 9),
-            decoration: BoxDecoration(
-              gradient: active ? AppColors.primaryGradient : null,
-              color: active ? null : Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(14),
-              border: active
-                  ? null
-                  : Border.all(color: Colors.white.withOpacity(0.09)),
-            ),
-            child: Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  style: AppText.smallBold.copyWith(
-                      fontSize: 12,
-                      color: active ? Colors.white : AppColors.textLow),
-                ),
-              ),
+      return GestureDetector(
+        onTap: () => setState(() => _feedTab = index),
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+          child: Text(
+            label,
+            style: AppText.smallBold.copyWith(
+              fontSize: 12,
+              color: active ? AppColors.lavender : AppColors.textLow,
             ),
           ),
         ),
@@ -451,9 +424,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-      child: Row(
-        children: [tab(0, l.feedDiscover), tab(1, l.feedFollowing)],
+      padding: const EdgeInsets.fromLTRB(20, 26, 20, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(l.moments,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.h3.copyWith(fontSize: 17)),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      tab(0, l.feedDiscover),
+                      Text('·', style: AppText.small),
+                      tab(1, l.feedFollowing),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Text(l.momentsFromEvents, style: AppText.small),
+        ],
       ),
     );
   }
