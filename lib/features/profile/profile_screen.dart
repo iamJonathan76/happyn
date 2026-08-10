@@ -13,6 +13,7 @@ import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
+import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/settings/settings_screen.dart';
@@ -53,6 +54,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return _userName.substring(0, 1).toUpperCase();
+  }
+
+  /// Compteurs d'abonnes/abonnements du compte courant, via le meme provider
+  /// que le profil public — une seule source pour les deux ecrans.
+  Map<String, dynamic>? _counts(Map<String, dynamic>? _) {
+    final uid = _supabase.auth.currentUser?.id;
+    if (uid == null) return null;
+    return ref.watch(publicProfileProvider(uid)).asData?.value;
   }
 
   Future<void> _signOut() async {
@@ -208,9 +217,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 _statItem('${myEvents.length}', AppLocalizations.of(context).statEvents),
                 _divider(),
-                _statItem('0', AppLocalizations.of(context).followers),
+                _statItem('${_counts(profileRow)?['followers_count'] ?? 0}',
+                    AppLocalizations.of(context).followers),
                 _divider(),
-                _statItem('0', AppLocalizations.of(context).following),
+                _statItem('${_counts(profileRow)?['following_count'] ?? 0}',
+                    AppLocalizations.of(context).following),
               ],
             ),
           ),

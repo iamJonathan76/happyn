@@ -10,6 +10,7 @@ import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/features/profile/public_profile_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 /// Carte d'une publication du fil.
@@ -194,6 +195,14 @@ class _PostCardState extends ConsumerState<PostCard> {
       padding: const EdgeInsets.fromLTRB(12, 12, 6, 12),
       child: Row(
         children: [
+          // L'auteur mene a son profil : c'est le point d'entree du graphe
+          // social — sans lui, personne ne peut suivre personne.
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) =>
+                    PublicProfileScreen(userId: _p['author_id'] as String))),
+            behavior: HitTestBehavior.opaque,
+            child: Row(children: [
           ClipOval(
             child: avatar.isEmpty
                 ? _initials(label)
@@ -206,17 +215,27 @@ class _PostCardState extends ConsumerState<PostCard> {
                   ),
           ),
           const SizedBox(width: 10),
+            ]),
+          ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.captionBold),
-                Text(AppDates.dayMonthYear(context, _p['created_at'] as String?),
-                    style: AppText.micro),
-              ],
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) =>
+                      PublicProfileScreen(userId: _p['author_id'] as String))),
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.captionBold),
+                  Text(
+                      AppDates.dayMonthYear(
+                          context, _p['created_at'] as String?),
+                      style: AppText.micro),
+                ],
+              ),
             ),
           ),
           PopupMenuButton<String>(
