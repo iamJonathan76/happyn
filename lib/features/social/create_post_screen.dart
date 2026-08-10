@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:happyn/core/events/event_utils.dart';
-import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
@@ -77,15 +75,21 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       showAppSnack(context, l.postNeedsContent);
       return;
     }
+    // Une publication documente toujours une expérience.
+    final eventId = _eventId;
+    if (eventId == null) {
+      showAppSnack(context, l.postNeedsEvent);
+      return;
+    }
 
     setState(() => _saving = true);
     try {
       final uid = Supabase.instance.client.auth.currentUser!.id;
       final imageUrl = await _uploadImage(uid);
       await createPost(
+        eventId: eventId,
         caption: caption,
         imageUrl: imageUrl,
-        eventId: _eventId,
       );
 
       ref.invalidate(discoverFeedProvider);
@@ -106,10 +110,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    // Seuls les événements à venir ont du sens à rattacher.
-    final events = (ref.watch(eventsProvider).asData?.value ?? [])
-        .where(isEventVisible)
-        .toList();
+    // Uniquement les événements que l'utilisateur organise ou pour lesquels il
+    // a un billet. La base applique la même règle (`can_attach_event`).
+    final events = ref.watch(attachableEventsProvider).asData?.value ?? [];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -200,7 +203,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
           ),
           const SizedBox(height: 10),
 
-          AppLabel(l.attachEvent),
+          AppLabel(l.attachEventRequired),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
@@ -218,7 +221,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 items: [
                   DropdownMenuItem<String?>(
                     value: null,
-                    child: Text(l.noEventAttached, style: AppText.bodySm),
+                    child: Text(l.chooseEvent, style: AppText.bodySm),
                   ),
                   ...events.map((e) => DropdownMenuItem<String?>(
                         value: e['id'] as String,

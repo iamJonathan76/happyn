@@ -1064,6 +1064,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postNeedsContent => 'Add a photo or a few words.';
 
   @override
+  String get postNeedsEvent => 'Choose the event this is about.';
+
+  @override
+  String get attachEventRequired => 'Event *';
+
+  @override
+  String get chooseEvent => 'Choose an event';
+
+  @override
+  String get noAttachableEvents =>
+      'You have no event to post about yet. Get a ticket or create an event first.';
+
+  @override
+  String get shareMoment => 'Share a moment';
+
+  @override
   String get reportPost => 'Report this post';
 
   @override

@@ -137,20 +137,36 @@ Future<void> setPostLiked(String postId, bool liked) async {
   }
 }
 
-/// Crée une publication. [imageUrl] et [caption] ne peuvent pas être vides
-/// tous les deux (contrainte en base).
+/// Événements que l'utilisateur peut légitimement documenter : ceux qu'il
+/// organise, et ceux pour lesquels il détient un billet.
+///
+/// Le composeur s'en sert pour ne proposer QUE ces événements. La même règle
+/// est appliquée côté base (`can_attach_event`) : le filtrage ici est du
+/// confort, pas une sécurité.
+final attachableEventsProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null) return [];
+  final data =
+      await Supabase.instance.client.rpc('my_attachable_events');
+  return List<Map<String, dynamic>>.from(data as List);
+});
+
+/// Crée une publication. Toujours rattachée à un événement : Happyn documente
+/// des expériences, pas des humeurs. [imageUrl] et [caption] ne peuvent pas
+/// être vides tous les deux (contrainte en base).
 Future<void> createPost({
+  required String eventId,
   String? caption,
   String? imageUrl,
-  String? eventId,
 }) async {
   final uid = Supabase.instance.client.auth.currentUser?.id;
   if (uid == null) return;
   await Supabase.instance.client.from('posts').insert({
     'author_id': uid,
+    'event_id': eventId,
     if (caption != null && caption.trim().isNotEmpty) 'caption': caption.trim(),
     if (imageUrl != null) 'image_url': imageUrl,
-    if (eventId != null) 'event_id': eventId,
   });
 }
 

@@ -14,6 +14,8 @@ import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/utils/maps.dart';
+import 'package:happyn/features/social/create_post_screen.dart';
+import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
@@ -61,11 +63,15 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       position: PopupMenuPosition.under,
       onSelected: (v) {
+        if (v == 'moment') {
+          _shareMoment(widget.event['id'] as String);
+        }
         if (v == 'unpublish') _setStatus('draft', l.eventUnpublishedMsg);
         if (v == 'publish') _setStatus('published', l.eventPublishedMsg);
         if (v == 'cancel') _confirmCancel();
       },
       itemBuilder: (context) => [
+        _menuItem('moment', Icons.add_a_photo_outlined, l.shareMoment),
         if (_status == 'published')
           _menuItem('unpublish', Icons.visibility_off_outlined, l.unpublish)
         else
@@ -87,7 +93,20 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     );
   }
 
-  /// Menu du visiteur : signaler l'événement, bloquer l'organisateur.
+  /// Peut-on documenter cet événement ? (organisateur ou détenteur de billet)
+  /// Même règle que `can_attach_event` côté base — ici c'est du confort d'UI.
+  bool _canPost(String eventId) {
+    final list = ref.watch(attachableEventsProvider).asData?.value ?? const [];
+    return list.any((e) => e['id'] == eventId);
+  }
+
+  Future<void> _shareMoment(String eventId) async {
+    await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => CreatePostScreen(initialEventId: eventId)));
+    if (mounted) ref.invalidate(discoverFeedProvider);
+  }
+
+  /// Menu du visiteur : partager un moment, signaler, bloquer.
   Widget _visitorMenu(Map<String, dynamic> ev) {
     final l = AppLocalizations.of(context);
     final organizerId = ev['created_by'] as String?;
@@ -96,7 +115,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       position: PopupMenuPosition.under,
       onSelected: (v) async {
-        if (v == 'report') {
+        if (v == 'moment') {
+          await _shareMoment(ev['id'] as String);
+        } else if (v == 'report') {
           await showReportSheet(context,
               targetType: 'event', targetId: ev['id'] as String);
         } else if (v == 'block' && organizerId != null) {
@@ -110,6 +131,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         }
       },
       itemBuilder: (context) => [
+        if (_canPost(ev['id'] as String))
+          _menuItem('moment', Icons.add_a_photo_outlined, l.shareMoment),
         _menuItem('report', Icons.flag_outlined, l.reportEvent),
         if (organizerId != null)
           _menuItem('block', Icons.block, l.blockOrganizer, danger: true),

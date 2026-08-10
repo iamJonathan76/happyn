@@ -2000,6 +2000,36 @@ abstract class AppLocalizations {
   /// **'Add a photo or a few words.'**
   String get postNeedsContent;
 
+  /// No description provided for @postNeedsEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the event this is about.'**
+  String get postNeedsEvent;
+
+  /// No description provided for @attachEventRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Event *'**
+  String get attachEventRequired;
+
+  /// No description provided for @chooseEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an event'**
+  String get chooseEvent;
+
+  /// No description provided for @noAttachableEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no event to post about yet. Get a ticket or create an event first.'**
+  String get noAttachableEvents;
+
+  /// No description provided for @shareMoment.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a moment'**
+  String get shareMoment;
+
   /// No description provided for @reportPost.
   ///
   /// In en, this message translates to:

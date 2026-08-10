@@ -1084,6 +1084,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get postNeedsContent => 'Ajoute une photo ou quelques mots.';
 
   @override
+  String get postNeedsEvent => 'Choisis l\'événement dont il s\'agit.';
+
+  @override
+  String get attachEventRequired => 'Événement *';
+
+  @override
+  String get chooseEvent => 'Choisir un événement';
+
+  @override
+  String get noAttachableEvents =>
+      'Tu n\'as encore aucun événement à raconter. Prends un billet ou crée un événement.';
+
+  @override
+  String get shareMoment => 'Partager un moment';
+
+  @override
   String get reportPost => 'Signaler cette publication';
 
   @override
