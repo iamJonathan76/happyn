@@ -347,6 +347,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'This event is private. Enter your invite code to open it.';
 
   @override
+  String get postsVisibilityLabel => 'Event photos';
+
+  @override
+  String get postsInviteesOnly => 'Invitees only';
+
+  @override
+  String get postsPublicOption => 'Public';
+
+  @override
+  String get postsVisibilityHelp =>
+      'Who can see the photos posted about this event. The event itself stays hidden from Discover either way — no one can join without your code.';
+
+  @override
+  String get onInvitationChip => 'On invitation';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

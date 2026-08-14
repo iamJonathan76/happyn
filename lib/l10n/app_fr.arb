@@ -111,6 +111,11 @@
   "scanTickets": "Scanner les billets",
   "organizerBadge": "Organisateur",
   "privateEventNeedsCode": "Cet événement est privé. Entre ton code d'invitation pour l'ouvrir.",
+  "postsVisibilityLabel": "Photos de l'événement",
+  "postsInviteesOnly": "Entre invités",
+  "postsPublicOption": "Publiques",
+  "postsVisibilityHelp": "Qui peut voir les photos publiées sur cet événement. Dans les deux cas l'événement reste invisible dans Discover — personne ne peut s'y inviter sans ton code.",
+  "onInvitationChip": "Sur invitation",
   "getTickets": "Obtenir des billets",
   "freeEntry": "Entrée gratuite",
 

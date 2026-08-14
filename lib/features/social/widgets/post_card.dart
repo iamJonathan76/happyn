@@ -54,6 +54,11 @@ class _PostCardState extends ConsumerState<PostCard> {
   /// d'une donnée que l'app pourrait interpréter de travers.
   bool get _isOrganizer => _p['author_is_organizer'] as bool? ?? false;
 
+  /// L'événement est privé : on ne peut pas y prendre de billet, seulement y
+  /// être invité. La pastille doit le dire, sinon elle promet une billetterie
+  /// qui n'existe pas et le toucher n'aboutit qu'à une demande de code.
+  bool get _eventIsPrivate => _p['event_visibility'] == 'private';
+
   /// L'événement n'a pas encore eu lieu — il reste donc quelque chose à
   /// réserver. Proposer « Obtenir des billets » sous une photo d'un concert
   /// d'il y a trois mois serait une promesse creuse.
@@ -406,9 +411,11 @@ class _PostCardState extends ConsumerState<PostCard> {
                           .copyWith(color: AppColors.lavenderLight)),
                   const SizedBox(height: 1),
                   Text(
-                    upcoming && date.isNotEmpty
-                        ? '${l.getTickets} · $date'
-                        : l.viewEvent,
+                    _eventIsPrivate
+                        ? l.onInvitationChip
+                        : upcoming && date.isNotEmpty
+                            ? '${l.getTickets} · $date'
+                            : l.viewEvent,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppText.micro,

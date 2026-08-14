@@ -47,6 +47,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   bool _isPrivate = false;
   /// Code existant (mode édition) pour ne pas en regénérer un inutilement.
   String? _existingCode;
+
+  /// Les photos d'un evenement prive sont-elles publiques ?
+  ///
+  /// Faux par defaut : exposer sa soiree doit etre un oui explicite. Un
+  /// evenement public n'a pas la question — tout y est public.
+  bool _postsPublic = false;
   /// Exigence d'âge (0 = All Ages, sinon 14/16/18/21).
   int _minAge = 0;
 
@@ -64,6 +70,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       _selectedCategory = (ev['category'] ?? 'Music') as String;
       _isPrivate = (ev['visibility'] ?? 'public') == 'private';
       _existingCode = ev['access_code'] as String?;
+      _postsPublic = (ev['posts_visibility'] ?? 'public') == 'public';
       _minAge = (ev['min_age'] ?? 0) as int;
       if (ev['start_date'] != null) {
         _startDate = DateTime.parse(ev['start_date'] as String);
@@ -270,6 +277,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           'price': eventPrice,
           if (imageUrl != null) 'image_url': imageUrl,
           'visibility': _isPrivate ? 'private' : 'public',
+          'posts_visibility':
+              (!_isPrivate || _postsPublic) ? 'public' : 'invitees',
           'access_code': editCode, // null si repassé en public
           'min_age': _minAge,
         }).eq('id', eventId);
@@ -373,6 +382,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             'image_url': imageUrl,
             'created_by': user.id,
             'visibility': _isPrivate ? 'private' : 'public',
+            'posts_visibility':
+                (!_isPrivate || _postsPublic) ? 'public' : 'invitees',
             'min_age': _minAge,
             if (accessCode != null) 'access_code': accessCode,
           })
@@ -737,6 +748,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                 ),
                               ),
                             ),
+                            // Le choix n'a de sens que si l'entree est
+                            // fermee : sur un evenement public, tout est
+                            // deja public.
+                            if (_isPrivate) _postsVisibilityChoice(l),
+
                             // Mode édition : rappel du code existant
                             if (_isEditing &&
                                 _isPrivate &&
@@ -884,6 +900,79 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Portée des photos d'un événement privé.
+  ///
+  /// Deux besoins opposés et également légitimes : un lancement veut montrer
+  /// que ça a eu lieu sans laisser personne s'inviter ; un mariage veut que
+  /// les photos restent entre invités. L'app ne peut pas deviner lequel des
+  /// deux — seul l'organisateur le sait, donc on lui demande.
+  Widget _postsVisibilityChoice(AppLocalizations l) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l.postsVisibilityLabel,
+              style: AppText.captionBold.copyWith(color: Colors.white)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _postsOption(l.postsInviteesOnly, Icons.lock_outline, false),
+              const SizedBox(width: 8),
+              _postsOption(l.postsPublicOption, Icons.public, true),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(l.postsVisibilityHelp,
+              style: AppText.caption.copyWith(fontSize: 11.5, height: 1.35)),
+        ],
+      ),
+    );
+  }
+
+  Widget _postsOption(String label, IconData icon, bool value) {
+    final selected = _postsPublic == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _postsPublic = value),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary.withOpacity(0.18)
+                : Colors.white.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected
+                  ? AppColors.primary.withOpacity(0.5)
+                  : Colors.white.withOpacity(0.08),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon,
+                  size: 14,
+                  color: selected ? AppColors.lavenderLight : AppColors.textLow),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.smallBold.copyWith(
+                        color: selected
+                            ? AppColors.lavenderLight
+                            : AppColors.textMed)),
+              ),
+            ],
+          ),
         ),
       ),
     );

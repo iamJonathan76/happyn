@@ -351,6 +351,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cet événement est privé. Entre ton code d\'invitation pour l\'ouvrir.';
 
   @override
+  String get postsVisibilityLabel => 'Photos de l\'événement';
+
+  @override
+  String get postsInviteesOnly => 'Entre invités';
+
+  @override
+  String get postsPublicOption => 'Publiques';
+
+  @override
+  String get postsVisibilityHelp =>
+      'Qui peut voir les photos publiées sur cet événement. Dans les deux cas l\'événement reste invisible dans Discover — personne ne peut s\'y inviter sans ton code.';
+
+  @override
+  String get onInvitationChip => 'Sur invitation';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

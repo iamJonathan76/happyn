@@ -126,6 +126,11 @@
   "scanTickets": "Scan tickets",
   "organizerBadge": "Organizer",
   "privateEventNeedsCode": "This event is private. Enter your invite code to open it.",
+  "postsVisibilityLabel": "Event photos",
+  "postsInviteesOnly": "Invitees only",
+  "postsPublicOption": "Public",
+  "postsVisibilityHelp": "Who can see the photos posted about this event. The event itself stays hidden from Discover either way — no one can join without your code.",
+  "onInvitationChip": "On invitation",
   "getTickets": "Get Tickets",
   "freeEntry": "Free Entry",
 

@@ -722,6 +722,36 @@ abstract class AppLocalizations {
   /// **'This event is private. Enter your invite code to open it.'**
   String get privateEventNeedsCode;
 
+  /// No description provided for @postsVisibilityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Event photos'**
+  String get postsVisibilityLabel;
+
+  /// No description provided for @postsInviteesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitees only'**
+  String get postsInviteesOnly;
+
+  /// No description provided for @postsPublicOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Public'**
+  String get postsPublicOption;
+
+  /// No description provided for @postsVisibilityHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can see the photos posted about this event. The event itself stays hidden from Discover either way — no one can join without your code.'**
+  String get postsVisibilityHelp;
+
+  /// No description provided for @onInvitationChip.
+  ///
+  /// In en, this message translates to:
+  /// **'On invitation'**
+  String get onInvitationChip;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:
