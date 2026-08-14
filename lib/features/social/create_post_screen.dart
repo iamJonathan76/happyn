@@ -204,6 +204,21 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
           const SizedBox(height: 10),
 
           AppLabel(l.attachEventRequired),
+          // Sans billet ni evenement organise, il n'y a rien a raconter :
+          // on le dit clairement plutot que d'afficher une liste vide.
+          if (events.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.10),
+                borderRadius: BorderRadius.circular(14),
+                border:
+                    Border.all(color: AppColors.warning.withOpacity(0.35)),
+              ),
+              child: Text(l.noAttachableEvents,
+                  style: AppText.bodySm.copyWith(height: 1.45)),
+            )
+          else
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(

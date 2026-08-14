@@ -127,25 +127,31 @@ class _PostCardState extends ConsumerState<PostCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _header(l),
+          // Ratio contraint a 4:5. Sans cela une photo en portrait prenait
+          // toute la hauteur de l'ecran et poussait la legende hors du champ.
           if (imageUrl.isNotEmpty)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(0),
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (_, _) => Container(
-                    height: 220, color: AppColors.imagePlaceholder),
-                errorWidget: (_, _, _) => Container(
-                  height: 220,
-                  color: AppColors.imagePlaceholder,
-                  child: Icon(Icons.image_not_supported_outlined,
-                      color: AppColors.textLow),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: AspectRatio(
+                  aspectRatio: 4 / 5,
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (_, _) =>
+                        Container(color: AppColors.imagePlaceholder),
+                    errorWidget: (_, _, _) => Container(
+                      color: AppColors.imagePlaceholder,
+                      child: Icon(Icons.image_not_supported_outlined,
+                          color: AppColors.textLow),
+                    ),
+                  ),
                 ),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -157,26 +163,33 @@ class _PostCardState extends ConsumerState<PostCard> {
                   Text(caption, style: AppText.bodySm.copyWith(height: 1.45)),
                   const SizedBox(height: 10),
                 ],
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: _toggleLike,
-                      behavior: HitTestBehavior.opaque,
-                      child: Row(
-                        children: [
-                          Icon(
+                GestureDetector(
+                  onTap: _toggleLike,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        AnimatedScale(
+                          scale: _liked ? 1.12 : 1,
+                          duration: const Duration(milliseconds: 140),
+                          child: Icon(
                             _liked ? Icons.favorite : Icons.favorite_border,
-                            size: 19,
+                            size: 21,
                             color: _liked ? AppColors.pink : AppColors.textLow,
                           ),
-                          if (_likeCount > 0) ...[
-                            const SizedBox(width: 6),
-                            Text('$_likeCount', style: AppText.small),
-                          ],
+                        ),
+                        if (_likeCount > 0) ...[
+                          const SizedBox(width: 7),
+                          Text('$_likeCount',
+                              style: AppText.smallBold.copyWith(
+                                  color: _liked
+                                      ? AppColors.pink
+                                      : AppColors.textMed)),
                         ],
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
