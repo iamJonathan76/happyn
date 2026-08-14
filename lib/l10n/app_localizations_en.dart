@@ -690,6 +690,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferFailed => 'Transfer failed. Please try again.';
 
   @override
+  String get whosGoing => 'Who\'s going';
+
+  @override
+  String connectionsGoing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people you know are going',
+      one: '1 person you know is going',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get attendedLabel => 'Was there';
+
+  @override
   String get showImGoing => 'Show connections I am going';
 
   @override

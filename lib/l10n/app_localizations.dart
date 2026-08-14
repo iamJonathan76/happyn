@@ -1334,6 +1334,24 @@ abstract class AppLocalizations {
   /// **'Transfer failed. Please try again.'**
   String get transferFailed;
 
+  /// No description provided for @whosGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Who\'s going'**
+  String get whosGoing;
+
+  /// No description provided for @connectionsGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 person you know is going} other{{count} people you know are going}}'**
+  String connectionsGoing(int count);
+
+  /// No description provided for @attendedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Was there'**
+  String get attendedLabel;
+
   /// No description provided for @showImGoing.
   ///
   /// In en, this message translates to:

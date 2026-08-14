@@ -218,6 +218,9 @@
   "transferErrEventEnded": "Cet événement est déjà terminé.",
   "transferFailed": "Échec du transfert. Veuillez réessayer.",
 
+  "whosGoing": "Qui y va",
+  "connectionsGoing": "{count, plural, =1{1 personne que tu connais y va} other{{count} personnes que tu connais y vont}}",
+  "attendedLabel": "Y était",
   "showImGoing": "Montrer à mes connexions que j'y vais",
   "showImGoingHelp": "Les personnes que tu suis mutuellement te verront sur cet événement. Rien n'est publié et personne n'est notifié.",
   "visibilityUpdated": "Visibilité mise à jour",

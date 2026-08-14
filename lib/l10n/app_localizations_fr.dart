@@ -701,6 +701,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transferFailed => 'Échec du transfert. Veuillez réessayer.';
 
   @override
+  String get whosGoing => 'Qui y va';
+
+  @override
+  String connectionsGoing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personnes que tu connais y vont',
+      one: '1 personne que tu connais y va',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get attendedLabel => 'Y était';
+
+  @override
   String get showImGoing => 'Montrer à mes connexions que j\'y vais';
 
   @override

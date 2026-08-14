@@ -14,6 +14,7 @@ import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/utils/maps.dart';
+import 'package:happyn/features/events/widgets/whos_going.dart';
 import 'package:happyn/features/social/create_post_screen.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
@@ -580,6 +581,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           ),
                         ),
                       ),
+
+                      // Preuve sociale, placee au moment de la decision.
+                      WhosGoing(eventId: ev['id'] as String),
 
                       const SizedBox(height: 24),
 

@@ -34,3 +34,20 @@ Future<void> setAttendanceVisibility(String eventId, bool visible) async {
     params: {'p_event': eventId, 'p_visible': visible},
   );
 }
+
+/// Connexions mutuelles ayant rendu leur présence visible sur cet événement.
+///
+/// Passe par une fonction SECURITY DEFINER : `event_attendance` n'est jamais
+/// lisible directement, et `tickets` n'est jamais consultée — détenir un billet
+/// n'est pas une déclaration publique de présence.
+final whoIsGoingProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>(
+        (ref, eventId) async {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null) return [];
+  // Se recalcule quand on suit quelqu'un ou qu'on change sa propre visibilité.
+  ref.watch(myAttendanceProvider(eventId));
+  final data = await Supabase.instance.client
+      .rpc('who_is_going', params: {'p_event': eventId});
+  return List<Map<String, dynamic>>.from(data as List);
+});
