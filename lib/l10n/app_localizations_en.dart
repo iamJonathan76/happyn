@@ -343,6 +343,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get organizerBadge => 'Organizer';
 
   @override
+  String get privateEventNeedsCode =>
+      'This event is private. Enter your invite code to open it.';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

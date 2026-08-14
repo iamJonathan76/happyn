@@ -10,6 +10,7 @@ import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/features/events/join_private_event_screen.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
@@ -90,7 +91,18 @@ class _PostCardState extends ConsumerState<PostCard> {
           (e) => e?['id'] == eventId,
           orElse: () => null,
         );
-    if (!mounted || ev == null) return;
+    if (!mounted) return;
+
+    // Introuvable = la RLS nous le cache, donc c'est un evenement prive
+    // auquel on n'a pas acces. On ne peut pas ouvrir la fiche, mais rester
+    // muet serait pire : la pastille dirait « voir l'evenement » et ne ferait
+    // rien. On explique, et on emmene la ou le code se saisit.
+    if (ev == null) {
+      showAppSnack(context, AppLocalizations.of(context).privateEventNeedsCode);
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const JoinPrivateEventScreen()));
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => EventDetailScreen(event: ev)),
     );

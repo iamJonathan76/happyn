@@ -716,6 +716,12 @@ abstract class AppLocalizations {
   /// **'Organizer'**
   String get organizerBadge;
 
+  /// No description provided for @privateEventNeedsCode.
+  ///
+  /// In en, this message translates to:
+  /// **'This event is private. Enter your invite code to open it.'**
+  String get privateEventNeedsCode;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

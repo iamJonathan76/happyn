@@ -125,6 +125,7 @@
   "startingFrom": "Starting from",
   "scanTickets": "Scan tickets",
   "organizerBadge": "Organizer",
+  "privateEventNeedsCode": "This event is private. Enter your invite code to open it.",
   "getTickets": "Get Tickets",
   "freeEntry": "Free Entry",
 

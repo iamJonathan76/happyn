@@ -110,6 +110,7 @@
   "startingFrom": "À partir de",
   "scanTickets": "Scanner les billets",
   "organizerBadge": "Organisateur",
+  "privateEventNeedsCode": "Cet événement est privé. Entre ton code d'invitation pour l'ouvrir.",
   "getTickets": "Obtenir des billets",
   "freeEntry": "Entrée gratuite",
 
