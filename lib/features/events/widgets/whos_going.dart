@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/providers/attendance_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
-import 'package:happyn/features/profile/public_profile_screen.dart';
+import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 /// Section « Qui y va » sur la fiche d'un événement.
@@ -150,7 +150,7 @@ class WhosGoing extends ConsumerWidget {
                       Navigator.of(sheetCtx).pop();
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) =>
-                              PublicProfileScreen(userId: p['id'] as String)));
+                              ProfileScreen(userId: p['id'] as String)));
                     },
                   );
                 },

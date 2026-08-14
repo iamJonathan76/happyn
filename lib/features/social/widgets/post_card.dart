@@ -10,7 +10,7 @@ import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
-import 'package:happyn/features/profile/public_profile_screen.dart';
+import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 /// Carte d'une publication du fil.
@@ -213,7 +213,7 @@ class _PostCardState extends ConsumerState<PostCard> {
           GestureDetector(
             onTap: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) =>
-                    PublicProfileScreen(userId: _p['author_id'] as String))),
+                    ProfileScreen(userId: _p['author_id'] as String))),
             behavior: HitTestBehavior.opaque,
             child: Row(children: [
           ClipOval(
@@ -234,7 +234,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             child: GestureDetector(
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) =>
-                      PublicProfileScreen(userId: _p['author_id'] as String))),
+                      ProfileScreen(userId: _p['author_id'] as String))),
               behavior: HitTestBehavior.opaque,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -14,12 +14,21 @@ import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
+import 'package:happyn/features/social/widgets/post_card.dart';
+import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/settings/settings_screen.dart';
 
+/// Profil — le sien ou celui de quelqu'un d'autre.
+///
+/// Un SEUL ecran pour les deux : deux ecrans distincts donnaient l'impression
+/// d'avoir deux profils pour un meme compte. Seules les ACTIONS changent
+/// (reglages et edition chez soi, suivre et signaler ailleurs).
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+  /// null = le compte connecte.
+  final String? userId;
+  const ProfileScreen({super.key, this.userId});
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
@@ -27,16 +36,31 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _supabase = Supabase.instance.client;
-  int _selectedTab = 0; // 0 = events, 1 = about
+  // 0 = evenements, 1 = moments, 2 = favoris (soi), 3 = a propos
+  int _selectedTab = 0;
+
+  String get _uid =>
+      widget.userId ?? _supabase.auth.currentUser?.id ?? '';
+
+  bool get _isMe =>
+      widget.userId == null || widget.userId == _supabase.auth.currentUser?.id;
+
+  /// Profil public : nom, avatar, bio, ville — jamais email ni date de
+  /// naissance. Sert aux deux cas, pour que les deux affichages coincident.
+  Map<String, dynamic>? get _pub =>
+      ref.watch(publicProfileProvider(_uid)).asData?.value;
 
   String get _userName {
-    final user = _supabase.auth.currentUser;
-    return user?.userMetadata?['full_name'] ?? 'User';
+    if (_isMe) {
+      final meta = _supabase.auth.currentUser?.userMetadata?['full_name'];
+      if (meta is String && meta.trim().isNotEmpty) return meta;
+    }
+    final n = (_pub?['full_name'] as String?)?.trim();
+    return (n == null || n.isEmpty) ? 'User' : n;
   }
 
-  String get _userEmail {
-    return _supabase.auth.currentUser?.email ?? '';
-  }
+  String get _userEmail =>
+      _isMe ? (_supabase.auth.currentUser?.email ?? '') : '';
 
   String get _userHandle {
     final e = _userEmail;
@@ -45,8 +69,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return n.isEmpty ? '@user' : '@$n';
   }
 
-  String? get _avatarUrl =>
-      _supabase.auth.currentUser?.userMetadata?['avatar_url'] as String?;
+  String? get _avatarUrl {
+    if (_isMe) {
+      final meta = _supabase.auth.currentUser?.userMetadata?['avatar_url'];
+      if (meta is String && meta.isNotEmpty) return meta;
+    }
+    return _pub?['avatar_url'] as String?;
+  }
 
   String get _userInitials {
     final parts = _userName.trim().split(' ');
@@ -93,11 +122,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(eventsProvider);
-    final myEvents = ref.watch(myEventsProvider);
     ref.watch(authStateProvider); // rebuild au changement de nom/photo
-    final profileRow = ref.watch(userProfileProvider).asData?.value;
-    final bio = (profileRow?['bio'] ?? '') as String;
-    final city = (profileRow?['city'] ?? '') as String;
+    // Les evenements organises par la personne regardee. Pour un autre compte,
+    // `eventsProvider` ne contient que ses evenements publics.
+    final myEvents = (eventsAsync.asData?.value ?? [])
+        .where((e) => e['created_by'] == _uid)
+        .toList();
+    final profileRow =
+        _isMe ? ref.watch(userProfileProvider).asData?.value : _pub;
+    final bio = (profileRow?['bio'] ?? _pub?['bio'] ?? '') as String;
+    final city = (profileRow?['city'] ?? _pub?['city'] ?? '') as String;
     final isLoading = eventsAsync.isLoading;
 
     return Scaffold(
@@ -131,8 +165,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   top: 8,
                   left: 16,
                   child: GestureDetector(
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const SettingsScreen())),
+                    onTap: () => _isMe
+                        ? Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => const SettingsScreen()))
+                        : Navigator.of(context).pop(),
                     child: Container(
                       width: 38,
                       height: 38,
@@ -140,11 +176,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         color: Colors.black.withOpacity(0.35),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.settings_outlined,
-                          color: Colors.white, size: 18),
+                      child: Icon(
+                          _isMe
+                              ? Icons.settings_outlined
+                              : Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                          size: _isMe ? 18 : 15),
                     ),
                   ),
                 ),
+                if (!_isMe)
+                  Positioned(top: 8, right: 12, child: _moreMenu()),
                 // Avatar (anneau dégradé) + nom + @handle
                 Positioned(
                   left: 20,
@@ -258,10 +300,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           const SizedBox(height: 16),
 
-          // ── Edit Profile ──────────────────────────────────────────
+          // ── Action : editer (soi) ou suivre (autre) ───────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: GestureDetector(
+            child: _isMe
+                ? GestureDetector(
               onTap: () async {
                 await Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const EditProfileScreen()));
@@ -284,7 +327,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
               ),
-            ),
+            )
+                : _followButton(),
           ),
 
           const SizedBox(height: 16),
@@ -301,9 +345,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                 child: Row(
                   children: [
-                    _tabChip(0, Icons.event_outlined, AppLocalizations.of(context).myEvents),
-                    _tabChip(1, Icons.favorite_border, AppLocalizations.of(context).favorites),
-                    _tabChip(2, Icons.info_outline, AppLocalizations.of(context).sectionAbout),
+                    _tabChip(0, Icons.event_outlined,
+                        AppLocalizations.of(context).myEvents),
+                    _tabChip(1, Icons.photo_camera_outlined,
+                        AppLocalizations.of(context).moments),
+                    // Les favoris sont prives : jamais sur le profil d'autrui.
+                    if (_isMe)
+                      _tabChip(2, Icons.favorite_border,
+                          AppLocalizations.of(context).favorites),
+                    _tabChip(3, Icons.info_outline,
+                        AppLocalizations.of(context).sectionAbout),
                   ],
                 ),
               ),
@@ -319,18 +370,135 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ref.invalidate(userProfileProvider);
             await ref.read(eventsProvider.future);
           },
-          child: _selectedTab == 0
-              ? _buildMyEvents(isLoading, myEvents,
-                  failed: eventsAsync.hasError)
-              : _selectedTab == 1
-                  ? _buildFavorites()
-                  : _buildAbout(),
+          child: switch (_selectedTab) {
+            0 => _buildMyEvents(isLoading, myEvents,
+                failed: eventsAsync.hasError),
+            1 => _buildMoments(),
+            2 when _isMe => _buildFavorites(),
+            _ => _buildAbout(),
+          },
         ),
       ),
     );
   }
 
   // ── My Events Tab ──────────────────────────────────────────────────────────
+
+  /// Publications de la personne. Toutes rattachees a un evenement, donc cet
+  /// onglet raconte ce qu'elle a vecu.
+  Widget _buildMoments() {
+    final l = AppLocalizations.of(context);
+    final posts = ref.watch(userPostsProvider(_uid)).asData?.value ?? const [];
+    if (posts.isEmpty) {
+      return _emptyScrollable(
+          Icons.photo_camera_outlined, l.feedEmpty, l.feedEmptyBody);
+    }
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: posts
+          .map((p) => PostCard(
+                post: p,
+                onChanged: () => ref.invalidate(userPostsProvider(_uid)),
+              ))
+          .toList(),
+    );
+  }
+
+  /// Suivre / Abonne. Le suivi reciproque conditionne la visibilite des
+  /// presences, d'ou un bouton bien visible.
+  Widget _followButton() {
+    final l = AppLocalizations.of(context);
+    final following =
+        ref.watch(followingProvider).asData?.value ?? const <String>{};
+    final isFollowing = following.contains(_uid);
+
+    Future<void> toggle() async {
+      isFollowing ? await unfollowUser(_uid) : await followUser(_uid);
+      ref.invalidate(followingProvider);
+      ref.invalidate(publicProfileProvider(_uid));
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      height: 46,
+      child: isFollowing
+          ? OutlinedButton.icon(
+              onPressed: toggle,
+              icon: const Icon(Icons.check, size: 17, color: Colors.white),
+              label: Text(l.unfollow,
+                  style: AppText.h4.copyWith(color: Colors.white)),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+            )
+          : DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: TextButton(
+                onPressed: toggle,
+                style: TextButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                ),
+                child: Text(l.follow,
+                    style: AppText.h4.copyWith(color: Colors.white)),
+              ),
+            ),
+    );
+  }
+
+  Widget _moreMenu() {
+    final l = AppLocalizations.of(context);
+    return PopupMenuButton<String>(
+      color: AppColors.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      position: PopupMenuPosition.under,
+      icon: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.35),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
+      ),
+      onSelected: (v) async {
+        if (v == 'report') {
+          await showReportSheet(context, targetType: 'user', targetId: _uid);
+        } else if (v == 'block') {
+          final blocked = await confirmBlockUser(context, ref, userId: _uid);
+          if (blocked && mounted) {
+            ref.invalidate(discoverFeedProvider);
+            showAppSnack(context, l.userBlocked);
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'report',
+          child: Row(children: [
+            const Icon(Icons.flag_outlined, size: 18, color: Colors.white),
+            const SizedBox(width: 10),
+            Text(l.report, style: AppText.body),
+          ]),
+        ),
+        PopupMenuItem(
+          value: 'block',
+          child: Row(children: [
+            const Icon(Icons.block, size: 18, color: AppColors.error),
+            const SizedBox(width: 10),
+            Text(l.block, style: AppText.body.copyWith(color: AppColors.error)),
+          ]),
+        ),
+      ],
+    );
+  }
 
   Widget _tabChip(int index, IconData icon, String label) {
     final isActive = index == _selectedTab;
@@ -484,14 +652,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-          _aboutTile(Icons.mail_outline, AppLocalizations.of(context).emailLabel, _userEmail),
+          if (_isMe)
+            _aboutTile(Icons.mail_outline,
+                AppLocalizations.of(context).emailLabel, _userEmail),
           if (city.isNotEmpty)
             _aboutTile(Icons.location_on_outlined, AppLocalizations.of(context).aboutLocation, city),
           _aboutTile(
               Icons.calendar_today_outlined, AppLocalizations.of(context).memberSince, memberSince),
           const SizedBox(height: 24),
-          // Sign out
-          GestureDetector(
+          // Sign out — uniquement sur son propre profil
+          if (_isMe) GestureDetector(
             onTap: _signOut,
             child: Container(
               width: double.infinity,
