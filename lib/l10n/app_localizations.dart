@@ -710,6 +710,12 @@ abstract class AppLocalizations {
   /// **'Scan tickets'**
   String get scanTickets;
 
+  /// No description provided for @organizerBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizer'**
+  String get organizerBadge;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

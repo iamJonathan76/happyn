@@ -344,6 +344,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get scanTickets => 'Scanner les billets';
 
   @override
+  String get organizerBadge => 'Organisateur';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

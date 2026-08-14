@@ -340,6 +340,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanTickets => 'Scan tickets';
 
   @override
+  String get organizerBadge => 'Organizer';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

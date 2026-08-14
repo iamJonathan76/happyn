@@ -46,6 +46,22 @@ class _PostCardState extends ConsumerState<PostCard> {
   bool get _isMine =>
       _p['author_id'] == Supabase.instance.client.auth.currentUser?.id;
 
+  /// L'auteur est l'organisateur de l'événement rattaché.
+  ///
+  /// Calculé par la vue `feed_posts` (`e.created_by = p.author_id`), jamais
+  /// par le client : c'est un signe de confiance, il ne doit pas dépendre
+  /// d'une donnée que l'app pourrait interpréter de travers.
+  bool get _isOrganizer => _p['author_is_organizer'] as bool? ?? false;
+
+  /// L'événement n'a pas encore eu lieu — il reste donc quelque chose à
+  /// réserver. Proposer « Obtenir des billets » sous une photo d'un concert
+  /// d'il y a trois mois serait une promesse creuse.
+  bool get _eventUpcoming {
+    final raw = _p['event_start_date'] as String?;
+    final date = raw == null ? null : DateTime.tryParse(raw);
+    return date != null && date.isAfter(DateTime.now());
+  }
+
   Future<void> _toggleLike() async {
     final next = !_liked;
     setState(() {
@@ -156,7 +172,7 @@ class _PostCardState extends ConsumerState<PostCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (eventTitle != null) ...[
-                  _eventChip(eventTitle),
+                  _eventChip(eventTitle, l),
                   const SizedBox(height: 10),
                 ],
                 if (caption.isNotEmpty) ...[
@@ -239,10 +255,20 @@ class _PostCardState extends ConsumerState<PostCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppText.captionBold),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppText.captionBold),
+                      ),
+                      if (_isOrganizer) ...[
+                        const SizedBox(width: 6),
+                        _organizerBadge(l),
+                      ],
+                    ],
+                  ),
                   Text(
                       AppDates.dayMonthYear(
                           context, _p['created_at'] as String?),
@@ -303,34 +329,86 @@ class _PostCardState extends ConsumerState<PostCard> {
             style: AppText.captionBold.copyWith(color: AppColors.lavenderLight)),
       );
 
-  /// Pastille « événement » : c'est elle qui transforme une publication en
-  /// point d'entrée vers la billetterie.
-  Widget _eventChip(String title) => GestureDetector(
-        onTap: _openEvent,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.primary.withOpacity(0.35)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.confirmation_number_outlined,
-                  size: 14, color: AppColors.lavenderLight),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.smallBold
-                        .copyWith(color: AppColors.lavenderLight)),
-              ),
-              const Icon(Icons.chevron_right,
-                  size: 16, color: AppColors.lavenderLight),
-            ],
-          ),
+  /// Pastille « organisateur ».
+  ///
+  /// Dire qui parle depuis la scène plutôt que depuis la foule : sans elle,
+  /// l'annonce officielle d'un organisateur a exactement le même poids visuel
+  /// que la photo floue d'un inconnu.
+  Widget _organizerBadge(AppLocalizations l) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.18),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.verified_outlined,
+                size: 11, color: AppColors.lavenderLight),
+            const SizedBox(width: 4),
+            Text(l.organizerBadge,
+                style: AppText.micro.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.lavenderLight)),
+          ],
         ),
       );
+
+  /// Pastille « événement » : c'est elle qui transforme une publication en
+  /// point d'entrée vers la billetterie.
+  ///
+  /// Deux versions volontairement différentes. Événement à venir : l'action
+  /// est nommée (« Obtenir des billets ») et la date rappelée, parce qu'il
+  /// reste quelque chose à faire. Événement passé : la pastille redevient
+  /// discrète et dit seulement « Voir l'événement » — promettre des billets
+  /// pour une soirée déjà finie ne serait pas une incitation mais un mensonge.
+  Widget _eventChip(String title, AppLocalizations l) {
+    final upcoming = _eventUpcoming;
+    final date = AppDates.dayMonthYear(context, _p['event_start_date'] as String?);
+
+    return GestureDetector(
+      onTap: _openEvent,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(upcoming ? 0.18 : 0.10),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+              color: AppColors.primary.withOpacity(upcoming ? 0.45 : 0.25)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.confirmation_number_outlined,
+                size: 14, color: AppColors.lavenderLight),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.smallBold
+                          .copyWith(color: AppColors.lavenderLight)),
+                  const SizedBox(height: 1),
+                  Text(
+                    upcoming && date.isNotEmpty
+                        ? '${l.getTickets} · $date'
+                        : l.viewEvent,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.micro,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right,
+                size: 16, color: AppColors.lavenderLight),
+          ],
+        ),
+      ),
+    );
+  }
 }
