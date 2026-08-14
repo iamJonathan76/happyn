@@ -30,6 +30,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionLegal => 'Legal';
 
   @override
+  String get profileTabEvents => 'Events';
+
+  @override
+  String get profileTabPosts => 'Posts';
+
+  @override
   String get sectionAbout => 'About';
 
   @override

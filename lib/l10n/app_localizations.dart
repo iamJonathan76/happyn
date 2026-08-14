@@ -140,6 +140,18 @@ abstract class AppLocalizations {
   /// **'Legal'**
   String get sectionLegal;
 
+  /// No description provided for @profileTabEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get profileTabEvents;
+
+  /// No description provided for @profileTabPosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get profileTabPosts;
+
   /// No description provided for @sectionAbout.
   ///
   /// In en, this message translates to:

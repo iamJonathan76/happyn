@@ -39,8 +39,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // 0 = evenements, 1 = moments, 2 = favoris (soi), 3 = a propos
   int _selectedTab = 0;
 
-  String get _uid =>
-      widget.userId ?? _supabase.auth.currentUser?.id ?? '';
+  String get _uid => widget.userId ?? _supabase.auth.currentUser?.id ?? '';
 
   bool get _isMe =>
       widget.userId == null || widget.userId == _supabase.auth.currentUser?.id;
@@ -128,8 +127,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final myEvents = (eventsAsync.asData?.value ?? [])
         .where((e) => e['created_by'] == _uid)
         .toList();
-    final profileRow =
-        _isMe ? ref.watch(userProfileProvider).asData?.value : _pub;
+    final profileRow = _isMe
+        ? ref.watch(userProfileProvider).asData?.value
+        : _pub;
     final bio = (profileRow?['bio'] ?? _pub?['bio'] ?? '') as String;
     final city = (profileRow?['city'] ?? _pub?['city'] ?? '') as String;
     final isLoading = eventsAsync.isLoading;
@@ -143,196 +143,221 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 SizedBox(height: MediaQuery.of(context).padding.top),
 
-          // ── Banner + avatar + gear ───────────────────────────────
-          SizedBox(
-            height: 168,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Bannière (dégradé)
-                Container(
-                  height: 120,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF4C1D95), AppColors.primary, AppColors.pink],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                ),
-                // Gear par-dessus la bannière
-                Positioned(
-                  top: 8,
-                  left: 16,
-                  child: GestureDetector(
-                    onTap: () => _isMe
-                        ? Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => const SettingsScreen()))
-                        : Navigator.of(context).pop(),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.35),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                          _isMe
-                              ? Icons.settings_outlined
-                              : Icons.arrow_back_ios_new,
-                          color: Colors.white,
-                          size: _isMe ? 18 : 15),
-                    ),
-                  ),
-                ),
-                if (!_isMe)
-                  Positioned(top: 8, right: 12, child: _moreMenu()),
-                // Avatar (anneau dégradé) + nom + @handle
-                Positioned(
-                  left: 20,
-                  right: 20,
-                  top: 78,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                // ── Banner + avatar + gear ───────────────────────────────
+                SizedBox(
+                  height: 168,
+                  child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
+                      // Bannière (dégradé)
                       Container(
-                        width: 84,
-                        height: 84,
-                        padding: const EdgeInsets.all(3),
+                        height: 120,
                         decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
                           gradient: LinearGradient(
-                            colors: [AppColors.primary, AppColors.pink],
+                            colors: [
+                              Color(0xFF4C1D95),
+                              AppColors.primary,
+                              AppColors.pink,
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                         ),
-                        child: ClipOval(
-                          child: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
-                              ? CachedNetworkImage(
-                                  imageUrl: _avatarUrl!,
-                                  width: 78,
-                                  height: 78,
-                                  fit: BoxFit.cover,
-                                  errorWidget: (_, _, _) => _initialsAvatar(),
+                      ),
+                      // Gear par-dessus la bannière
+                      Positioned(
+                        top: 8,
+                        left: 16,
+                        child: GestureDetector(
+                          onTap: () => _isMe
+                              ? Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const SettingsScreen(),
+                                  ),
                                 )
-                              : _initialsAvatar(),
+                              : Navigator.of(context).pop(),
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.35),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              _isMe
+                                  ? Icons.settings_outlined
+                                  : Icons.arrow_back_ios_new,
+                              color: Colors.white,
+                              size: _isMe ? 18 : 15,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _userName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppText.h1.copyWith(fontSize: 19, color: Colors.white),
+                      if (!_isMe)
+                        Positioned(top: 8, right: 12, child: _moreMenu()),
+                      // Avatar (anneau dégradé) + nom + @handle
+                      Positioned(
+                        left: 20,
+                        right: 20,
+                        top: 78,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Container(
+                              width: 84,
+                              height: 84,
+                              padding: const EdgeInsets.all(3),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [AppColors.primary, AppColors.pink],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
                               ),
-                              Text(
-                                _userHandle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppText.caption.copyWith(color: AppColors.textLow),
+                              child: ClipOval(
+                                child:
+                                    (_avatarUrl != null &&
+                                        _avatarUrl!.isNotEmpty)
+                                    ? CachedNetworkImage(
+                                        imageUrl: _avatarUrl!,
+                                        width: 78,
+                                        height: 78,
+                                        fit: BoxFit.cover,
+                                        errorWidget: (_, _, _) =>
+                                            _initialsAvatar(),
+                                      )
+                                    : _initialsAvatar(),
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _userName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppText.h1.copyWith(
+                                        fontSize: 19,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      _userHandle,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppText.caption.copyWith(
+                                        color: AppColors.textLow,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
 
-          const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-          // ── Stats ─────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                _statItem('${myEvents.length}', AppLocalizations.of(context).statEvents),
-                _divider(),
-                _statItem('${_counts(profileRow)?['followers_count'] ?? 0}',
-                    AppLocalizations.of(context).followers),
-                _divider(),
-                _statItem('${_counts(profileRow)?['following_count'] ?? 0}',
-                    AppLocalizations.of(context).following),
-              ],
-            ),
-          ),
+                // ── Stats ─────────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      _statItem(
+                        '${myEvents.length}',
+                        AppLocalizations.of(context).statEvents,
+                      ),
+                      _divider(),
+                      _statItem(
+                        '${_counts(profileRow)?['followers_count'] ?? 0}',
+                        AppLocalizations.of(context).followers,
+                      ),
+                      _divider(),
+                      _statItem(
+                        '${_counts(profileRow)?['following_count'] ?? 0}',
+                        AppLocalizations.of(context).following,
+                      ),
+                    ],
+                  ),
+                ),
 
-          // ── Ville + Bio ───────────────────────────────────────────
-          if (city.isNotEmpty || bio.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (city.isNotEmpty)
-                    Row(
+                // ── Ville + Bio ───────────────────────────────────────────
+                if (city.isNotEmpty || bio.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.location_on,
-                            size: 13, color: AppColors.textLow),
-                        const SizedBox(width: 4),
-                        Text(
-                          city,
-                          style: AppText.caption,
-                        ),
+                        if (city.isNotEmpty)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 13,
+                                color: AppColors.textLow,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(city, style: AppText.caption),
+                            ],
+                          ),
+                        if (bio.isNotEmpty) ...[
+                          if (city.isNotEmpty) const SizedBox(height: 8),
+                          Text(
+                            bio,
+                            style: AppText.bodySm.copyWith(height: 1.5),
+                          ),
+                        ],
                       ],
                     ),
-                  if (bio.isNotEmpty) ...[
-                    if (city.isNotEmpty) const SizedBox(height: 8),
-                    Text(
-                      bio,
-                      style: AppText.bodySm.copyWith(height: 1.5),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-          const SizedBox(height: 16),
-
-          // ── Action : editer (soi) ou suivre (autre) ───────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: _isMe
-                ? GestureDetector(
-              onTap: () async {
-                await Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const EditProfileScreen()));
-                ref.invalidate(userProfileProvider); // ville/bio
-                if (mounted) setState(() {}); // nom/photo
-              },
-              child: Container(
-                width: double.infinity,
-                height: 46,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.pink],
                   ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Center(
-                  child: Text(
-                    AppLocalizations.of(context).editProfile,
-                    style: AppText.h4.copyWith(color: Colors.white),
-                  ),
-                ),
-              ),
-            )
-                : _followButton(),
-          ),
 
-          const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
+                // ── Action : editer (soi) ou suivre (autre) ───────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _isMe
+                      ? GestureDetector(
+                          onTap: () async {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const EditProfileScreen(),
+                              ),
+                            );
+                            ref.invalidate(userProfileProvider); // ville/bio
+                            if (mounted) setState(() {}); // nom/photo
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [AppColors.primary, AppColors.pink],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Center(
+                              child: Text(
+                                AppLocalizations.of(context).editProfile,
+                                style: AppText.h4.copyWith(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        )
+                      : _followButton(),
+                ),
+
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -345,16 +370,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                 child: Row(
                   children: [
-                    _tabChip(0, Icons.event_outlined,
-                        AppLocalizations.of(context).myEvents),
-                    _tabChip(1, Icons.photo_camera_outlined,
-                        AppLocalizations.of(context).moments),
+                    _tabChip(
+                      0,
+                      Icons.event_outlined,
+                      AppLocalizations.of(context).profileTabEvents,
+                    ),
+                    _tabChip(
+                      1,
+                      Icons.photo_camera_outlined,
+                      AppLocalizations.of(context).profileTabPosts,
+                    ),
+                    _tabChip(
+                      3,
+                      Icons.info_outline,
+                      AppLocalizations.of(context).sectionAbout,
+                    ),
                     // Les favoris sont prives : jamais sur le profil d'autrui.
                     if (_isMe)
-                      _tabChip(2, Icons.favorite_border,
-                          AppLocalizations.of(context).favorites),
-                    _tabChip(3, Icons.info_outline,
-                        AppLocalizations.of(context).sectionAbout),
+                      _tabChip(
+                        2,
+                        Icons.favorite_border,
+                        AppLocalizations.of(context).favorites,
+                      ),
                   ],
                 ),
               ),
@@ -371,8 +408,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             await ref.read(eventsProvider.future);
           },
           child: switch (_selectedTab) {
-            0 => _buildMyEvents(isLoading, myEvents,
-                failed: eventsAsync.hasError),
+            0 => _buildMyEvents(
+              isLoading,
+              myEvents,
+              failed: eventsAsync.hasError,
+            ),
             1 => _buildMoments(),
             2 when _isMe => _buildFavorites(),
             _ => _buildAbout(),
@@ -391,16 +431,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final posts = ref.watch(userPostsProvider(_uid)).asData?.value ?? const [];
     if (posts.isEmpty) {
       return _emptyScrollable(
-          Icons.photo_camera_outlined, l.feedEmpty, l.feedEmptyBody);
+        Icons.photo_camera_outlined,
+        l.feedEmpty,
+        l.feedEmptyBody,
+      );
     }
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: posts
-          .map((p) => PostCard(
-                post: p,
-                onChanged: () => ref.invalidate(userPostsProvider(_uid)),
-              ))
+          .map(
+            (p) => PostCard(
+              post: p,
+              onChanged: () => ref.invalidate(userPostsProvider(_uid)),
+            ),
+          )
           .toList(),
     );
   }
@@ -426,12 +471,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ? OutlinedButton.icon(
               onPressed: toggle,
               icon: const Icon(Icons.check, size: 17, color: Colors.white),
-              label: Text(l.unfollow,
-                  style: AppText.h4.copyWith(color: Colors.white)),
+              label: Text(
+                l.unfollow,
+                style: AppText.h4.copyWith(color: Colors.white),
+              ),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: Colors.white.withOpacity(0.2)),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             )
           : DecoratedBox(
@@ -443,10 +491,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 onPressed: toggle,
                 style: TextButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
-                child: Text(l.follow,
-                    style: AppText.h4.copyWith(color: Colors.white)),
+                child: Text(
+                  l.follow,
+                  style: AppText.h4.copyWith(color: Colors.white),
+                ),
               ),
             ),
     );
@@ -482,19 +533,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       itemBuilder: (context) => [
         PopupMenuItem(
           value: 'report',
-          child: Row(children: [
-            const Icon(Icons.flag_outlined, size: 18, color: Colors.white),
-            const SizedBox(width: 10),
-            Text(l.report, style: AppText.body),
-          ]),
+          child: Row(
+            children: [
+              const Icon(Icons.flag_outlined, size: 18, color: Colors.white),
+              const SizedBox(width: 10),
+              Text(l.report, style: AppText.body),
+            ],
+          ),
         ),
         PopupMenuItem(
           value: 'block',
-          child: Row(children: [
-            const Icon(Icons.block, size: 18, color: AppColors.error),
-            const SizedBox(width: 10),
-            Text(l.block, style: AppText.body.copyWith(color: AppColors.error)),
-          ]),
+          child: Row(
+            children: [
+              const Icon(Icons.block, size: 18, color: AppColors.error),
+              const SizedBox(width: 10),
+              Text(
+                l.block,
+                style: AppText.body.copyWith(color: AppColors.error),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -503,47 +561,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _tabChip(int index, IconData icon, String label) {
     final isActive = index == _selectedTab;
     return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedTab = index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          decoration: BoxDecoration(
-            gradient: isActive
-                ? const LinearGradient(
-                    colors: [AppColors.primary, AppColors.pink],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            color: isActive ? null : Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(14),
-            border: isActive
-                ? null
-                : Border.all(color: Colors.white.withOpacity(0.09)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon,
-                  size: 14,
-                  color:
-                      isActive ? Colors.white : AppColors.textLow),
-              const SizedBox(width: 5),
-              // Flexible + FittedBox : le libellé se réduit pour tenir dans
-              // l'onglet plutôt que déborder (utile en FR, mots plus longs).
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    style: AppText.smallBold.copyWith(fontSize: 11.5, color: isActive ? Colors.white : AppColors.textLow),
-                  ),
+      child: Tooltip(
+        message: label,
+        child: Semantics(
+          label: label,
+          selected: isActive,
+          button: true,
+          child: GestureDetector(
+            onTap: () => setState(() => _selectedTab = index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              decoration: BoxDecoration(
+                gradient: isActive
+                    ? const LinearGradient(
+                        colors: [AppColors.primary, AppColors.pink],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                color: isActive ? null : Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(14),
+                border: isActive
+                    ? null
+                    : Border.all(color: Colors.white.withOpacity(0.09)),
+              ),
+              // Icone seule : les libelles rendaient la barre chargee et sautaient
+              // de largeur entre FR et EN. Le libelle reste expose aux lecteurs
+              // d'ecran via Semantics, et en info-bulle sur appui long.
+              child: Center(
+                child: Icon(
+                  icon,
+                  size: 19,
+                  color: isActive ? Colors.white : AppColors.textLow,
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -560,8 +614,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
     }
     if (favEvents.isEmpty) {
-      return _emptyScrollable(Icons.favorite_border, AppLocalizations.of(context).noFavoritesYet,
-          AppLocalizations.of(context).tapHeartToSave);
+      return _emptyScrollable(
+        Icons.favorite_border,
+        AppLocalizations.of(context).noFavoritesYet,
+        AppLocalizations.of(context).tapHeartToSave,
+      );
     }
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -585,16 +642,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(title,
-                      textAlign: TextAlign.center,
-                      style: AppText.body.copyWith(color: AppColors.textLow)),
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: AppText.body.copyWith(color: AppColors.textLow),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Text(subtitle,
-                      textAlign: TextAlign.center,
-                      style: AppText.caption.copyWith(color: AppColors.textFaint)),
+                  child: Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: AppText.caption.copyWith(color: AppColors.textFaint),
+                  ),
                 ),
               ],
             ),
@@ -604,8 +665,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildMyEvents(bool isLoading, List<Map<String, dynamic>> myEvents,
-      {bool failed = false}) {
+  Widget _buildMyEvents(
+    bool isLoading,
+    List<Map<String, dynamic>> myEvents, {
+    bool failed = false,
+  }) {
     if (isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
@@ -616,15 +680,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     // on distingue les deux, sinon un bug backend passe pour « rien à afficher ».
     if (failed) {
       return _emptyScrollable(
-          Icons.cloud_off,
-          AppLocalizations.of(context).couldNotLoadEvents,
-          AppLocalizations.of(context).tryDifferentSearch);
+        Icons.cloud_off,
+        AppLocalizations.of(context).couldNotLoadEvents,
+        AppLocalizations.of(context).tryDifferentSearch,
+      );
     }
 
     if (myEvents.isEmpty) {
-      return _emptyScrollable(Icons.event_outlined,
-          AppLocalizations.of(context).noEventsCreated,
-          AppLocalizations.of(context).tapPlusToCreate);
+      return _emptyScrollable(
+        Icons.event_outlined,
+        AppLocalizations.of(context).noEventsCreated,
+        AppLocalizations.of(context).tapPlusToCreate,
+      );
     }
 
     return ListView.builder(
@@ -645,23 +712,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildAbout() {
     final city =
         (ref.watch(userProfileProvider).asData?.value?['city'] ?? '') as String;
-    final memberSince =
-        _monthYear(_supabase.auth.currentUser?.createdAt);
+    final memberSince = _monthYear(_supabase.auth.currentUser?.createdAt);
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-          if (_isMe)
-            _aboutTile(Icons.mail_outline,
-                AppLocalizations.of(context).emailLabel, _userEmail),
-          if (city.isNotEmpty)
-            _aboutTile(Icons.location_on_outlined, AppLocalizations.of(context).aboutLocation, city),
+        if (_isMe)
           _aboutTile(
-              Icons.calendar_today_outlined, AppLocalizations.of(context).memberSince, memberSince),
-          const SizedBox(height: 24),
-          // Sign out — uniquement sur son propre profil
-          if (_isMe) GestureDetector(
+            Icons.mail_outline,
+            AppLocalizations.of(context).emailLabel,
+            _userEmail,
+          ),
+        if (city.isNotEmpty)
+          _aboutTile(
+            Icons.location_on_outlined,
+            AppLocalizations.of(context).aboutLocation,
+            city,
+          ),
+        _aboutTile(
+          Icons.calendar_today_outlined,
+          AppLocalizations.of(context).memberSince,
+          memberSince,
+        ),
+        const SizedBox(height: 24),
+        // Sign out — uniquement sur son propre profil
+        if (_isMe)
+          GestureDetector(
             onTap: _signOut,
             child: Container(
               width: double.infinity,
@@ -669,9 +746,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               decoration: BoxDecoration(
                 color: AppColors.error.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: AppColors.error.withOpacity(0.3),
-                ),
+                border: Border.all(color: AppColors.error.withOpacity(0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -686,30 +761,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
           ),
-        ],
+      ],
     );
   }
 
   Widget _initialsAvatar() => Container(
-        width: 78,
-        height: 78,
-        color: AppColors.card,
-        child: Center(
-          child: Text(
-            _userInitials,
-            style: AppText.display.copyWith(fontSize: 28, color: Colors.white),
-          ),
-        ),
-      );
+    width: 78,
+    height: 78,
+    color: AppColors.card,
+    child: Center(
+      child: Text(
+        _userInitials,
+        style: AppText.display.copyWith(fontSize: 28, color: Colors.white),
+      ),
+    ),
+  );
 
   Widget _statItem(String value, String label) {
     return Expanded(
       child: Column(
         children: [
-          Text(
-            value,
-            style: AppText.h1.copyWith(color: Colors.white),
-          ),
+          Text(value, style: AppText.h1.copyWith(color: Colors.white)),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -760,7 +832,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
+                  style: AppText.bodySm.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),
@@ -769,9 +844,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
-
 }
 
-
 // Header épinglé pour les onglets du profil (reste en haut quand on scrolle).
-
