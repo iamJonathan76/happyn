@@ -14,6 +14,7 @@ import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/utils/maps.dart';
+import 'package:happyn/features/events/widgets/event_moments.dart';
 import 'package:happyn/features/events/widgets/whos_going.dart';
 import 'package:happyn/features/social/create_post_screen.dart';
 import 'package:happyn/core/providers/social_provider.dart';
@@ -104,7 +105,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   Future<void> _shareMoment(String eventId) async {
     await Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => CreatePostScreen(initialEventId: eventId)));
-    if (mounted) ref.invalidate(discoverFeedProvider);
+    if (!mounted) return;
+    ref.invalidate(discoverFeedProvider);
+    // Sans ca la section « Moments » de cette fiche resterait vide juste apres
+    // qu'on vient d'y publier.
+    ref.invalidate(eventPostsProvider(eventId));
   }
 
   /// Menu du visiteur : partager un moment, signaler, bloquer.
@@ -584,6 +589,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
 
                       // Preuve sociale, placee au moment de la decision.
                       WhosGoing(eventId: ev['id'] as String),
+
+                      // Preuve visuelle : ce que l'evenement a donne.
+                      EventMoments(eventId: ev['id'] as String),
 
                       const SizedBox(height: 24),
 

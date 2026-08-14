@@ -68,6 +68,23 @@ final userPostsProvider =
   return List<Map<String, dynamic>>.from(data);
 });
 
+/// Publications rattachées à UN événement, du plus récent au plus ancien.
+///
+/// Sert la section « Moments » de la fiche événement. Les comptes bloqués sont
+/// retirés comme partout ailleurs : la fiche d'un événement ne doit pas être
+/// une porte dérobée pour revoir quelqu'un qu'on a bloqué.
+final eventPostsProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>(
+        (ref, eventId) async {
+  final data = await Supabase.instance.client
+      .from('feed_posts')
+      .select()
+      .eq('event_id', eventId)
+      .order('created_at', ascending: false)
+      .limit(_kFeedLimit);
+  return _withoutBlocked(ref, data);
+});
+
 /// Profil public + compteurs d'abonnés/abonnements.
 final publicProfileProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, userId) async {
