@@ -205,6 +205,26 @@ réponse. Apple (guideline 1.2) attend une modération effective sous 24 h pour 
 contenu généré par les utilisateurs. Le minimum viable : une vue admin, ou même
 une alerte e-mail à chaque insertion.
 
+### 6.3 bis BLOQUANT — le service de courriel est celui du developpement
+
+Verifie le 2026-08-14 : **2 courriels par heure pour tout le projet**, tous
+utilisateurs confondus. C'est le plafond que Supabase impose au service
+integre, et le champ ne devient modifiable qu'apres configuration d'un SMTP
+externe — c'est leur facon de dire que ce service n'est pas fait pour la
+production.
+
+Consequence concrete : le troisieme inscrit d'une soiree ne recoit rien. Et
+quelqu'un qui perd son mot de passe sans jamais recevoir le lien perd ses
+billets — le bloquant qu'on vient de refermer cote code reste donc ouvert cote
+infrastructure.
+
+S'ajoute la delivrabilite : le service integre envoie depuis un domaine
+partage, une bonne part des messages finit en indesirables.
+
+Correction : SMTP externe (Resend, gratuit jusqu'a 3 000 courriels/mois), dans
+Project Settings > Authentication > SMTP Settings. **Depend de l'achat du
+domaine** : on ne peut pas envoyer depuis une adresse Gmail.
+
 ### 6.4 À traiter avant publication
 
 - **Relire l'intégralité du recueil légal**, en détail — jalon bloquant déjà
@@ -212,8 +232,9 @@ une alerte e-mail à chaque insertion.
 - **Décrire la suppression de compte** dans les documents légaux (le mécanisme
   existe, le texte non).
 - **Protéger `main`** sur GitHub maintenant que le dépôt est partagé.
-- **Réinitialisation du mot de passe** : impossible sans le site web (lien de
-  redirection). Un utilisateur qui perd son mot de passe perd ses billets.
+- **Le domaine** est devenu le jalon central : il debloque d'un coup le SMTP
+  (§6.3 bis), une adresse de contact propre, et une URL presentable.
+  Aujourd'hui le site vit sur happynca.netlify.app et le contact sur un Gmail.
 - **Limitation de débit** : rien n'empêche aujourd'hui de marteler
   `unlock_private_event` pour deviner un code d'invitation. Vérifier la longueur
   et l'entropie du code, et envisager une temporisation.
