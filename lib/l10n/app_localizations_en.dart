@@ -370,6 +370,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'No event from your connections yet. Follow each other, and events they choose to share will show up here.';
 
   @override
+  String supportNoMailApp(String email) {
+    return 'No email app found. Write to us at $email';
+  }
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

@@ -374,6 +374,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun événement de tes connexions pour l\'instant. Suivez-vous mutuellement, et les événements qu\'elles choisissent de partager apparaîtront ici.';
 
   @override
+  String supportNoMailApp(String email) {
+    return 'Aucune app de courriel trouvée. Écris-nous à $email';
+  }
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

@@ -13,8 +13,10 @@ const HAPPYN = {
   supabaseUrl: 'https://jvjvuozvlzqqmcjanvnh.supabase.co',
   supabaseAnonKey: 'sb_publishable_wkRU0rXDmrPaDyhP2b5Mdw_rkbXBrmO',
 
-  // TODO(domaine) : remplacer une fois le domaine acheté et les stores prêts.
-  supportEmail: 'support@happyn.com',
+  // Adresse de contact réelle, qui reçoit vraiment. À remplacer par une adresse
+  // sur le domaine (contact@…) le jour où il est acheté — mais jamais par une
+  // adresse qui n'existe pas : un lien de contact mort est pire que pas de lien.
+  supportEmail: 'contact.happyn@gmail.com',
   appStoreUrl: null, // null => badge « Bientôt disponible »
   playStoreUrl: null,
 };

@@ -133,6 +133,8 @@
   "onInvitationChip": "On invitation",
   "filterMyConnections": "My connections",
   "noConnectionEvents": "No event from your connections yet. Follow each other, and events they choose to share will show up here.",
+  "supportNoMailApp": "No email app found. Write to us at {email}",
+  "@supportNoMailApp": {"placeholders": {"email": {"type": "String"}}},
   "getTickets": "Get Tickets",
   "freeEntry": "Free Entry",
 

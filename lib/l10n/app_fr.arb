@@ -118,6 +118,8 @@
   "onInvitationChip": "Sur invitation",
   "filterMyConnections": "Mes connexions",
   "noConnectionEvents": "Aucun événement de tes connexions pour l'instant. Suivez-vous mutuellement, et les événements qu'elles choisissent de partager apparaîtront ici.",
+  "supportNoMailApp": "Aucune app de courriel trouvée. Écris-nous à {email}",
+  "@supportNoMailApp": {"placeholders": {"email": {"type": "String"}}},
   "getTickets": "Obtenir des billets",
   "freeEntry": "Entrée gratuite",
 

@@ -764,6 +764,12 @@ abstract class AppLocalizations {
   /// **'No event from your connections yet. Follow each other, and events they choose to share will show up here.'**
   String get noConnectionEvents;
 
+  /// No description provided for @supportNoMailApp.
+  ///
+  /// In en, this message translates to:
+  /// **'No email app found. Write to us at {email}'**
+  String supportNoMailApp(String email);
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

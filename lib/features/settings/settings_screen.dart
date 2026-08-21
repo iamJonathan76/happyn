@@ -3,6 +3,8 @@ import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/utils/support.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/ticketing/my_tickets_screen.dart';
 import 'package:happyn/features/settings/legal_page_screen.dart';
@@ -67,6 +69,13 @@ class SettingsScreen extends ConsumerWidget {
           _tile(context, Icons.confirmation_number_outlined, l.myTicketsTitle,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const MyTicketsScreen()))),
+
+          // ── Assistance ────────────────────────────────────────────
+          // Une seule ligne, qui ouvre vraiment un courriel. Apple veut un
+          // moyen de contact joignable ; un centre d'aide vide n'en est pas un.
+          _section(l.sectionSupport),
+          _tile(context, Icons.support_agent, l.contactSupport,
+              onTap: () => _contactSupport(context, l)),
 
           // ── Legal (piloté par la DB : legal_documents) ────────────
           _section(l.sectionLegal),
@@ -134,6 +143,17 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   // ── Widgets ──────────────────────────────────────────────────────────────
+
+  /// Ouvre l'app de courriel. Si le telephone n'en a aucune, on affiche
+  /// l'adresse en clair : laisser l'utilisateur sans rien serait le pire des
+  /// deux mondes — on lui a promis un contact et il ne l'obtient pas.
+  Future<void> _contactSupport(
+      BuildContext context, AppLocalizations l) async {
+    final ok = await contactSupport(subject: 'HAPPYN — ${l.contactSupport}');
+    if (!ok && context.mounted) {
+      showAppSnack(context, l.supportNoMailApp(kSupportEmail));
+    }
+  }
 
   Widget _section(String title) => Padding(
         padding: const EdgeInsets.fromLTRB(4, 22, 4, 10),
