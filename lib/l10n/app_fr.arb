@@ -116,6 +116,8 @@
   "postsPublicOption": "Publiques",
   "postsVisibilityHelp": "Qui peut voir les photos publiées sur cet événement. Dans les deux cas l'événement reste invisible dans Discover — personne ne peut s'y inviter sans ton code.",
   "onInvitationChip": "Sur invitation",
+  "filterMyConnections": "Mes connexions",
+  "noConnectionEvents": "Aucun événement de tes connexions pour l'instant. Suivez-vous mutuellement, et les événements qu'elles choisissent de partager apparaîtront ici.",
   "getTickets": "Obtenir des billets",
   "freeEntry": "Entrée gratuite",
 

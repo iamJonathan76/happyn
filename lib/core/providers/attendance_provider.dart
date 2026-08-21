@@ -35,6 +35,19 @@ Future<void> setAttendanceVisibility(String eventId, bool visible) async {
   );
 }
 
+/// Identifiants des événements où au moins une connexion mutuelle va.
+///
+/// Alimente le filtre « Mes connexions » de Découvrir. Ne renvoie que des
+/// identifiants : l'écran les croise avec les événements qu'il a déjà le droit
+/// de lire, donc un événement privé inaccessible ne peut pas apparaître.
+final connectionEventIdsProvider = FutureProvider<Set<String>>((ref) async {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null) return <String>{};
+  final data =
+      await Supabase.instance.client.rpc('events_from_connections');
+  return List<dynamic>.from(data as List).map((e) => e as String).toSet();
+});
+
 /// Connexions mutuelles ayant rendu leur présence visible sur cet événement.
 ///
 /// Passe par une fonction SECURITY DEFINER : `event_attendance` n'est jamais

@@ -131,6 +131,8 @@
   "postsPublicOption": "Public",
   "postsVisibilityHelp": "Who can see the photos posted about this event. The event itself stays hidden from Discover either way — no one can join without your code.",
   "onInvitationChip": "On invitation",
+  "filterMyConnections": "My connections",
+  "noConnectionEvents": "No event from your connections yet. Follow each other, and events they choose to share will show up here.",
   "getTickets": "Get Tickets",
   "freeEntry": "Free Entry",
 

@@ -367,6 +367,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onInvitationChip => 'Sur invitation';
 
   @override
+  String get filterMyConnections => 'Mes connexions';
+
+  @override
+  String get noConnectionEvents =>
+      'Aucun événement de tes connexions pour l\'instant. Suivez-vous mutuellement, et les événements qu\'elles choisissent de partager apparaîtront ici.';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

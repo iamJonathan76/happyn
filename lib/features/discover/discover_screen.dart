@@ -3,6 +3,7 @@ import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/providers/attendance_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
@@ -57,7 +58,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
     // Category/quick filter
     if (_activeFilter != 'All') {
-      if (_activeFilter == 'Free') {
+      if (_activeFilter == 'Connections') {
+        // Croise avec les evenements deja lisibles : un evenement prive
+        // inaccessible ne peut donc pas apparaitre, meme si une connexion y va.
+        final ids = ref.watch(connectionEventIdsProvider).asData?.value ??
+            const <String>{};
+        result = result.where((ev) => ids.contains(ev['id'])).toList();
+      } else if (_activeFilter == 'Free') {
         result = result.where((ev) => (ev['price'] ?? 0) == 0).toList();
       } else if (_activeFilter == 'Tonight') {
         final now = DateTime.now();
@@ -93,6 +100,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     switch (f) {
       case 'All':
         return l.categoryAll;
+      case 'Connections':
+        return l.filterMyConnections;
       case 'Tonight':
         return l.filterTonight;
       case 'Free':
@@ -106,7 +115,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final eventsAsync = ref.watch(eventsProvider);
-    _filters = ['All', 'Tonight', 'Free', ...ref.watch(categoryNamesProvider)];
+    _filters = [
+      'All',
+      'Connections',
+      'Tonight',
+      'Free',
+      ...ref.watch(categoryNamesProvider)
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -301,7 +316,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       ),
                       Expanded(
                         child: filtered.isEmpty
-                            ? _buildEmptyState()
+                            ? (_activeFilter == 'Connections'
+                                ? _buildNoConnectionEvents(l)
+                                : _buildEmptyState())
                             : ListView.builder(
                                 physics:
                                     const AlwaysScrollableScrollPhysics(),
@@ -320,6 +337,39 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Vide sur « Mes connexions » : le message generique (« aucun resultat »)
+  /// laisserait croire a un bug, alors que c'est l'etat normal au depart —
+  /// personne ne se suit encore, et la presence n'est visible que sur decision
+  /// explicite de chacun.
+  Widget _buildNoConnectionEvents(AppLocalizations l) {
+    return ListView(
+      children: [
+        SizedBox(
+          height: 360,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.group_outlined,
+                      size: 52, color: AppColors.textFaint),
+                  const SizedBox(height: 16),
+                  Text(
+                    l.noConnectionEvents,
+                    textAlign: TextAlign.center,
+                    style: AppText.body
+                        .copyWith(color: AppColors.textLow, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

@@ -67,7 +67,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _page,
+      backgroundColor: _page, 
       appBar: AppBar(
         backgroundColor: _page,
         elevation: 0,

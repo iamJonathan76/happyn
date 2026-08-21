@@ -752,6 +752,18 @@ abstract class AppLocalizations {
   /// **'On invitation'**
   String get onInvitationChip;
 
+  /// No description provided for @filterMyConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'My connections'**
+  String get filterMyConnections;
+
+  /// No description provided for @noConnectionEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'No event from your connections yet. Follow each other, and events they choose to share will show up here.'**
+  String get noConnectionEvents;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:
