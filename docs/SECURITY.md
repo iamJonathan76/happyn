@@ -53,6 +53,10 @@ bloquant §6.1.
 | `legal_documents` | tous | aucune (contenu géré en base) |
 | `user_legal_acceptances` | soi-même | soi-même |
 | `categories` | tous | aucune |
+| `events` | public, ou createur, ou detenteur de billet | createur |
+| `tickets` | ses propres billets | **aucune** — serveur uniquement |
+| `ticket_types` | si l'evenement est lisible | organisateur |
+| `event_unlocks` | soi-meme | `unlock_private_event` uniquement |
 
 ### Données personnelles exposées
 
@@ -160,35 +164,27 @@ systématiquement jusqu'ici, rien n'est jamais sorti.
 
 Classé par ce qu'il faut faire en premier.
 
-### 6.1 BLOQUANT — vérifier que la RLS est réellement activée
+### 6.1 RÉSOLU — RLS d'`events`, `tickets`, `ticket_types`
 
-`events`, `tickets` et `ticket_types` ont été créées depuis le tableau de bord,
-pas par une migration. **Aucun fichier du dépôt ne contient
-`alter table ... enable row level security` pour ces trois tables**, et aucune
-policy d'écriture pour `tickets` non plus.
+Vérifié le 2026-08-14 : la RLS est **active** sur les trois, et les policies
+sont saines.
 
-Vérifié le 2026-08-14 : la RLS est bien **active** sur `events` et `tickets`.
-Reste à confirmer `ticket_types` (la première vérification interrogeait un nom
-de table erroné, `ticket_tiers`).
+`tickets` n'a qu'une policy, `SELECT` sur ses propres billets. **L'absence de
+policy d'écriture est délibérée** : c'est elle qui empêche un client de se
+fabriquer un billet ou de repasser le sien de `used` à `valid`. L'émission
+passe par les fonctions Edge en `service_role`, non soumises à la RLS. Ne
+jamais ajouter d'`insert`/`update` sur cette table.
 
-Le risque de fond demeure : ces policies n'existent que dans le tableau de
-bord. Elles sont invisibles pour le second développeur, absentes de toute
-revue, et perdues si le projet est recréé. **Elles doivent être reversées en
-migration.**
+Les policies, qui n'existaient que dans le tableau de bord, sont désormais
+versionnées (20260814020000) avec une correction : `ticket_types` était en
+`using (true)`, exposant les noms, prix et quantités des catégories de billets
+d'un événement privé. La lisibilité suit maintenant celle de l'événement.
 
-À faire dans le SQL Editor :
-
-```sql
-select relname, relrowsecurity
-from pg_class
-where relname in ('events','tickets','ticket_types');
-```
-
-Les trois doivent répondre `true`. Sinon, activer et écrire une migration pour
-que ce soit versionné. Lister aussi leurs policies (`pg_policies`) et les
-reporter dans une migration : aujourd'hui elles n'existent que dans le tableau
-de bord, donc elles sont invisibles pour le second développeur et perdues en cas
-de recréation du projet.
+Ce resserrage imposait de rendre le déverrouillage durable : après avoir saisi
+le code, un invité n'est ni organisateur ni encore détenteur de billet, donc la
+liste des catégories lui serait revenue vide. D'où la table `event_unlocks`,
+écrite uniquement par `unlock_private_event` (qui vérifie le code) — jamais par
+le client.
 
 ### 6.2 IMPORTANT — les buckets de stockage sont publics
 
