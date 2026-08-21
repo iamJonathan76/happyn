@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="HAPPYN">
+  <title>HAPPYN</title>
+  <!--
+    Marque HAPPYN — le « H » seul, sans tuile de fond.
+
+    L'icône PNG de l'app a un fond noir APLATI (remove_alpha_ios dans
+    pubspec.yaml : iOS refuse la transparence sur les icônes de l'App Store).
+    Ce fond opaque devient un bloc visible dès que le logo est posé sur autre
+    chose que du noir. Ici : aucun rect de fond, la lettre est détourée, elle
+    se pose sur n'importe quelle couleur.
+
+    Tracé en un seul path, proportions relevées sur l'icône :
+    deux barres à extrémités rondes (largeur 48, rayon 24), séparées de 72,
+    reliées par une traverse ; les contre-formes ont des flancs droits puis
+    un demi-cercle de rayon 36.
+  -->
+  <defs>
+    <linearGradient id="happynMark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFAA1D" />
+      <stop offset="0.34" stop-color="#FF5A45" />
+      <stop offset="0.62" stop-color="#FF2D8F" />
+      <stop offset="1" stop-color="#7B2FF7" />
+    </linearGradient>
+  </defs>
+
+  <path
+    fill="url(#happynMark)"
+    d="M44 58
+       A24 24 0 0 1 92 58
+       L92 74
+       A36 36 0 0 0 164 74
+       L164 58
+       A24 24 0 0 1 212 58
+       L212 198
+       A24 24 0 0 1 164 198
+       L164 182
+       A36 36 0 0 0 92 182
+       L92 198
+       A24 24 0 0 1 44 198
+       Z" />
+</svg>
