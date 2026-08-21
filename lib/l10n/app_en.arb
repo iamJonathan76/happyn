@@ -140,6 +140,9 @@
   "resetSendAction": "Send link",
   "resetSent": "If that address has an account, a reset link is on its way. Check your inbox and your spam folder.",
   "resetNeedEmail": "Enter your email address first.",
+  "soldLabel": "Tickets sold",
+  "soldOfTotal": "{sold} / {total}",
+  "@soldOfTotal": {"placeholders": {"sold": {"type": "int"}, "total": {"type": "int"}}},
   "getTickets": "Get Tickets",
   "freeEntry": "Free Entry",
 

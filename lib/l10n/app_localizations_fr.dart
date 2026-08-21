@@ -396,6 +396,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get resetNeedEmail => 'Entre d\'abord ton adresse courriel.';
 
   @override
+  String get soldLabel => 'Billets vendus';
+
+  @override
+  String soldOfTotal(int sold, int total) {
+    return '$sold / $total';
+  }
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

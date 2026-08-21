@@ -156,6 +156,32 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     );
   }
 
+  /// Compteur de ventes, visible du seul organisateur.
+  ///
+  /// Sans plafond de quantite (`total == 0`), on affiche le nombre vendu seul :
+  /// « 12 / 0 » n'aurait aucun sens.
+  Widget _salesCounter(String eventId, AppLocalizations l) {
+    final sales = ref.watch(eventSalesProvider(eventId)).asData?.value;
+    if (sales == null) return const SizedBox(width: 16);
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(l.soldLabel, style: AppText.small),
+          Text(
+            sales.total > 0
+                ? l.soldOfTotal(sales.sold, sales.total)
+                : '${sales.sold}',
+            style: AppText.display.copyWith(fontSize: 26, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
   PopupMenuItem<String> _menuItem(String value, IconData icon, String label,
       {bool danger = false}) {
     final c = danger ? AppColors.error : Colors.white;
@@ -657,8 +683,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 children: [
                   Row(
                     children: [
-                      // Price (masqué pour l'organisateur)
-                      if (!isOrganizer) ...[
+                      // L'organisateur voit ses ventes la ou le visiteur voit
+                      // le prix : meme emplacement, information adaptee au role.
+                      if (isOrganizer)
+                        _salesCounter(ev['id'] as String, l)
+                      else ...[
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,

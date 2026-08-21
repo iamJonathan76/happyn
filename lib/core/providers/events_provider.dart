@@ -29,3 +29,36 @@ final eventsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   return list.where((e) => !blocked.contains(e['created_by'])).toList();
 });
 
+
+/// Billets vendus sur un événement, tous paliers confondus.
+///
+/// Un organisateur n'avait nulle part où voir combien de monde vient. Il créait
+/// l'événement, les gens achetaient, et il ne l'apprenait qu'en scannant à la
+/// porte — trop tard pour commander plus de boissons ou pour annuler faute de
+/// monde.
+///
+/// `quantity_sold` est tenu à jour côté serveur à chaque émission de billet :
+/// on ne recompte pas la table `tickets`, qui n'est de toute façon lisible que
+/// par le détenteur de chaque billet.
+///
+/// `total` vaut 0 quand aucune quantité n'est plafonnée — l'affichage doit
+/// alors montrer le nombre vendu seul, pas « 12 sur 0 ».
+/// `autoDispose` : sans lui la valeur resterait en cache toute la session et
+/// l'organisateur verrait un compteur fige, ce qui est pire que pas de
+/// compteur du tout. La requete est relancee a chaque ouverture de la fiche.
+final eventSalesProvider =
+    FutureProvider.autoDispose.family<({int sold, int total}), String>(
+        (ref, eventId) async {
+  final data = await Supabase.instance.client
+      .from('ticket_types')
+      .select('quantity_sold, quantity_total')
+      .eq('event_id', eventId);
+
+  var sold = 0;
+  var total = 0;
+  for (final row in List<Map<String, dynamic>>.from(data)) {
+    sold += (row['quantity_sold'] as num?)?.toInt() ?? 0;
+    total += (row['quantity_total'] as num?)?.toInt() ?? 0;
+  }
+  return (sold: sold, total: total);
+});

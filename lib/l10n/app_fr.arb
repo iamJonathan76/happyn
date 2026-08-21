@@ -125,6 +125,9 @@
   "resetSendAction": "Envoyer le lien",
   "resetSent": "Si cette adresse a un compte, un lien vient de partir. Regarde ta boîte de réception et tes indésirables.",
   "resetNeedEmail": "Entre d'abord ton adresse courriel.",
+  "soldLabel": "Billets vendus",
+  "soldOfTotal": "{sold} / {total}",
+  "@soldOfTotal": {"placeholders": {"sold": {"type": "int"}, "total": {"type": "int"}}},
   "getTickets": "Obtenir des billets",
   "freeEntry": "Entrée gratuite",
 

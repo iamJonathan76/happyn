@@ -800,6 +800,18 @@ abstract class AppLocalizations {
   /// **'Enter your email address first.'**
   String get resetNeedEmail;
 
+  /// No description provided for @soldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets sold'**
+  String get soldLabel;
+
+  /// No description provided for @soldOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{sold} / {total}'**
+  String soldOfTotal(int sold, int total);
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

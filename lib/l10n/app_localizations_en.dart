@@ -392,6 +392,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetNeedEmail => 'Enter your email address first.';
 
   @override
+  String get soldLabel => 'Tickets sold';
+
+  @override
+  String soldOfTotal(int sold, int total) {
+    return '$sold / $total';
+  }
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override
