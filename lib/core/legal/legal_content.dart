@@ -21,6 +21,48 @@ class LegalDoc {
 
 const String kLegalVersion = 'Version 1.0 · June 2026';
 
+/// Convertit le markdown léger stocké en base (## titres, - puces, paragraphes
+/// séparés par une ligne vide) en sections rendues par LegalPageScreen.
+List<LegalSection> parseLegalMarkdown(String md) {
+  final sections = <LegalSection>[];
+  String? heading;
+  var paragraphs = <String>[];
+  var bullets = <String>[];
+
+  void flush() {
+    if (heading != null || paragraphs.isNotEmpty || bullets.isNotEmpty) {
+      sections.add(LegalSection(
+        heading: heading,
+        paragraphs: List.of(paragraphs),
+        bullets: List.of(bullets),
+      ));
+    }
+    heading = null;
+    paragraphs = [];
+    bullets = [];
+  }
+
+  for (final rawLine in md.split('\n')) {
+    final line = rawLine.trimRight();
+    if (line.trim().isEmpty) {
+      // Ligne vide = fin d'un bloc de paragraphes (mais on garde le heading en
+      // cours tant qu'aucun nouveau titre n'apparaît).
+      if (bullets.isEmpty && heading == null && paragraphs.isNotEmpty) flush();
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      flush();
+      heading = line.substring(3).trim();
+    } else if (line.startsWith('- ')) {
+      bullets.add(line.substring(2).trim());
+    } else {
+      paragraphs.add(line.trim());
+    }
+  }
+  flush();
+  return sections;
+}
+
 const Map<String, LegalDoc> kLegalDocs = {
   'terms': LegalDoc(
     title: 'Terms of Service',
@@ -30,7 +72,10 @@ const Map<String, LegalDoc> kLegalDocs = {
       ]),
       LegalSection(
         heading: '1. Eligibility',
-        paragraphs: ['Users must be at least 13 years old.'],
+        paragraphs: [
+          'Users must be at least 14 years old. Organizing paid events or '
+              'receiving payouts requires users to be 18 or older.',
+        ],
       ),
       LegalSection(
         heading: '2. Accounts',

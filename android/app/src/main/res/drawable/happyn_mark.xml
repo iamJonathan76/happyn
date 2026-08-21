@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Marque HAPPYN — le « H », en vectoriel natif Android.
+
+  Même tracé que web/assets/img/happyn-mark.svg : la syntaxe des chemins des
+  VectorDrawable est celle de SVG, les coordonnées sont donc reprises telles
+  quelles. Si le logo change, les deux fichiers changent ensemble.
+
+  Le dégradé dans un VectorDrawable demande l'API 24+. minSdk est piloté par
+  flutter.minSdkVersion (≥ 24 sur le SDK Flutter utilisé ici) — à revérifier
+  si le projet devait un jour redescendre plus bas.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="126dp"
+    android:height="141dp"
+    android:viewportWidth="168"
+    android:viewportHeight="188">
+
+    <!-- Le viewport est recadré sur la boîte englobante du tracé (44,34) :
+         on décale donc le chemin d'autant. -->
+    <group android:translateX="-44" android:translateY="-34">
+        <path
+            android:pathData="M44,58
+                A24,24 0 0 1 92,58
+                L92,74
+                A36,36 0 0 0 164,74
+                L164,58
+                A24,24 0 0 1 212,58
+                L212,198
+                A24,24 0 0 1 164,198
+                L164,182
+                A36,36 0 0 0 92,182
+                L92,198
+                A24,24 0 0 1 44,198
+                Z">
+            <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startX="44" android:startY="34"
+                    android:endX="212" android:endY="222">
+                    <item android:offset="0"    android:color="#FFAA1D" />
+                    <item android:offset="0.34" android:color="#FF5A45" />
+                    <item android:offset="0.62" android:color="#FF2D8F" />
+                    <item android:offset="1"    android:color="#7B2FF7" />
+                </gradient>
+            </aapt:attr>
+        </path>
+    </group>
+</vector>

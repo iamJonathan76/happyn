@@ -1,14 +1,23 @@
 import 'dart:async';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/core/providers/tickets_provider.dart';
+import 'package:happyn/core/providers/attendance_provider.dart';
+import 'package:happyn/core/events/event_utils.dart';
+import 'package:happyn/core/utils/secure_screen.dart';
+import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
 
-class QrTicketScreen extends StatefulWidget {
+class QrTicketScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> ticket;
   final Map<String, dynamic> event;
   final Map<String, dynamic> ticketType;
@@ -25,10 +34,10 @@ class QrTicketScreen extends StatefulWidget {
   });
 
   @override
-  State<QrTicketScreen> createState() => _QrTicketScreenState();
+  ConsumerState<QrTicketScreen> createState() => _QrTicketScreenState();
 }
 
-class _QrTicketScreenState extends State<QrTicketScreen> {
+class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
   // Payload signé renvoyé par l'Edge Function `mint-qr`, valable 5 min.
   // Régénéré automatiquement avant expiration tant que l'écran est ouvert.
   String? _qrPayload;
@@ -36,22 +45,22 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
   String? _error;
   Timer? _refreshTimer;
 
-  static const _bg = Color(0xFF13111C);
-  static const _page = Color(0xFF08080F);
+  static const _bg = AppColors.cardDark;
+  static const _page = AppColors.background;
 
   @override
   void initState() {
     super.initState();
-    // Block screenshots on this screen
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    // Vrai blocage screenshot + enregistrement d'écran (FLAG_SECURE natif).
+    SecureScreen.enable();
     _mintQr();
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values);
+    // On lève le blocage en quittant l'écran (le reste de l'app reste normal).
+    SecureScreen.disable();
     super.dispose();
   }
 
@@ -102,14 +111,13 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
   }
 
   String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'TBD';
-    final dt = DateTime.parse(dateStr);
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    if (dateStr == null) return AppLocalizations.of(context).tbd;
+    return AppDates.dayMonthYear(context, dateStr);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final ev = widget.event;
     final ticket = widget.ticket;
     final ticketType = widget.ticketType;
@@ -117,7 +125,7 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
     final accent = categoryColor(cat);
     final cancelled = (ev['status'] ?? 'published') == 'cancelled';
     final priceText = ticketType['price'] == 0 || ticketType['price'] == null
-        ? 'Free'
+        ? l.free
         : '\$${ticketType['price']}';
 
     return Scaffold(
@@ -148,12 +156,8 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                   ),
                   const SizedBox(width: 14),
                   Text(
-                    'My Ticket',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+                    l.myTicket,
+                    style: AppText.h1.copyWith(color: Colors.white),
                   ),
                 ],
               ),
@@ -174,25 +178,20 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF4B4B).withOpacity(0.15),
+                          color: AppColors.error.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: const Color(0xFFFF4B4B).withOpacity(0.5)),
+                              color: AppColors.error.withOpacity(0.5)),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.cancel,
-                                color: Color(0xFFFF4B4B), size: 18),
+                                color: AppColors.error, size: 18),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'This event was cancelled by the organizer. '
-                                'This ticket is no longer valid.',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white.withOpacity(0.85),
-                                ),
+                                l.ticketCancelledBanner,
+                                style: AppText.captionBold.copyWith(fontSize: 11.5),
                               ),
                             ),
                           ],
@@ -206,24 +205,20 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C3AED).withOpacity(0.15),
+                          color: AppColors.primary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: const Color(0xFF7C3AED).withOpacity(0.4)),
+                              color: AppColors.primary.withOpacity(0.4)),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.confirmation_number,
-                                color: Color(0xFFC4B5FD), size: 16),
+                                color: AppColors.lavenderLight, size: 16),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Ticket 1 of ${widget.totalTickets} · all ${widget.totalTickets} are in “My Tickets”',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white.withOpacity(0.8),
-                                ),
+                                style: AppText.captionBold.copyWith(fontSize: 11.5),
                               ),
                             ),
                           ],
@@ -256,11 +251,11 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                                     imageUrl: (ev['image_url'] ?? '') as String,
                                     fit: BoxFit.cover,
                                     placeholder: (_, _) => Container(
-                                        color: const Color(0xFF1A0F3D)),
+                                        color: AppColors.imagePlaceholder),
                                     errorWidget: (_, _, _) => Container(
-                                      color: const Color(0xFF1A0F3D),
+                                      color: AppColors.imagePlaceholder,
                                       child: Icon(categoryIcon(cat),
-                                          color: const Color(0xFF7C3AED),
+                                          color: AppColors.primary,
                                           size: 40),
                                     ),
                                   ),
@@ -293,11 +288,7 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                                             const SizedBox(width: 5),
                                             Text(
                                               cat,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
-                                                color: accent,
-                                              ),
+                                              style: AppText.smallBold.copyWith(color: accent),
                                             ),
                                           ],
                                         ),
@@ -306,11 +297,7 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                                           (ev['title'] ?? '') as String,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 19,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                          ),
+                                          style: AppText.h1.copyWith(fontSize: 19, color: Colors.white),
                                         ),
                                       ],
                                     ),
@@ -325,11 +312,11 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                               padding: const EdgeInsets.fromLTRB(18, 4, 18, 16),
                               child: Row(
                                 children: [
-                                  _info('DATE',
+                                  _info(l.labelDate,
                                       _formatDate(ev['start_date'] as String?)),
-                                  _info('TYPE',
+                                  _info(l.labelType,
                                       (ticketType['name'] ?? '') as String),
-                                  _info('PRICE', priceText),
+                                  _info(l.labelPrice, priceText),
                                 ],
                               ),
                             ),
@@ -347,13 +334,9 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                                   _qrBox(),
                                   const SizedBox(height: 16),
                                   Text(
-                                    _error ?? 'Scan at entry',
+                                    _error != null ? l.qrLoadError : l.scanAtEntry,
                                     textAlign: TextAlign.center,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white.withOpacity(0.85),
-                                    ),
+                                    style: AppText.h5,
                                   ),
                                   const SizedBox(height: 6),
                                   if (_error == null)
@@ -364,14 +347,14 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                                         Icon(Icons.lock_outline,
                                             size: 12,
                                             color:
-                                                Colors.white.withOpacity(0.35)),
+                                                AppColors.textLow),
                                         const SizedBox(width: 5),
-                                        Text(
-                                          'Secure code · refreshes automatically',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 10.5,
-                                            color:
-                                                Colors.white.withOpacity(0.35),
+                                        Flexible(
+                                          child: Text(
+                                            l.secureCodeRefreshes,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: AppText.small.copyWith(fontSize: 10.5),
                                           ),
                                         ),
                                       ],
@@ -399,27 +382,39 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ticket Details',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
+                            l.ticketDetails,
+                            style: AppText.h4.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                           ),
                           const SizedBox(height: 12),
                           _detailRow(
-                              'Order ID',
+                              l.orderId,
                               ticket['id']
                                   .toString()
                                   .substring(0, 8)
                                   .toUpperCase()),
-                          _detailRow('Type',
+                          _detailRow(l.typeLabel,
                               (ticketType['name'] ?? '') as String),
-                          _detailRow('Status', 'Valid ✓'),
-                          _detailRow('Venue', (ev['location'] ?? '—') as String),
+                          _detailRow(l.statusLabel, l.statusValid),
+                          _detailRow(l.venueLabel, (ev['location'] ?? '—') as String),
                         ],
                       ),
                     ),
+
+                    // Visibilité de la présence : opt-in, par événement.
+                    if (!cancelled && !isEventPast(ev))
+                      _visibilityTile(ev['id'] as String),
+
+                    // ── Transfert ──────────────────────────────────
+                    if (!cancelled && !isEventPast(ev)) ...[
+                      const SizedBox(height: 14),
+                      _TransferButton(onTap: _openTransferSheet),
+                      const SizedBox(height: 4),
+                      Text(
+                        l.transferHint,
+                        textAlign: TextAlign.center,
+                        style: AppText.small,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -428,6 +423,222 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
         ),
       ),
     );
+  }
+
+
+  /// Interrupteur de visibilité de la présence.
+  ///
+  /// Volontairement sobre et accompagné d'une explication : l'utilisateur doit
+  /// comprendre qu'il partage OU on ne le fait pas. Coupé par défaut.
+  Widget _visibilityTile(String eventId) {
+    final l = AppLocalizations.of(context);
+    final async = ref.watch(myAttendanceProvider(eventId));
+    final row = async.asData?.value;
+    if (row == null) return const SizedBox.shrink();
+
+    final visible = row['visible_to_connections'] == true;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.fromLTRB(14, 4, 6, 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.07)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(l.showImGoing,
+                    style: AppText.bodySm.copyWith(color: Colors.white)),
+              ),
+              Switch(
+                value: visible,
+                activeThumbColor: Colors.white,
+                activeTrackColor: AppColors.primary,
+                onChanged: (v) async {
+                  try {
+                    await setAttendanceVisibility(eventId, v);
+                    ref.invalidate(myAttendanceProvider(eventId));
+                    if (mounted) showAppSnack(context, l.visibilityUpdated);
+                  } catch (e) {
+                    debugPrint('setAttendanceVisibility failed: $e');
+                    if (mounted) showAppSnack(context, l.visibilityFailed);
+                  }
+                },
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text(l.showImGoingHelp,
+                style: AppText.small.copyWith(height: 1.4)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Transfert de billet ────────────────────────────────────────────────────
+  void _openTransferSheet() {
+    final l = AppLocalizations.of(context);
+    final controller = TextEditingController();
+    bool sending = false;
+    String? errorText;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (sheetCtx, setSheet) {
+            Future<void> submit() async {
+              final email = controller.text.trim();
+              if (email.isEmpty || !email.contains('@')) {
+                setSheet(() => errorText = l.errValidEmail);
+                return;
+              }
+              setSheet(() {
+                sending = true;
+                errorText = null;
+              });
+              try {
+                await Supabase.instance.client.rpc('transfer_ticket', params: {
+                  'p_ticket_id': widget.ticket['id'],
+                  'p_recipient_email': email,
+                });
+                // Le billet a changé de propriétaire : rafraîchir "My Tickets".
+                ref.invalidate(myTicketsProvider);
+                if (!sheetCtx.mounted) return;
+                Navigator.of(sheetCtx).pop();
+                if (!mounted) return;
+                showAppSnack(context, l.ticketSentTo(email),
+                    background: AppColors.successDark);
+                // On quitte l'écran : ce billet ne nous appartient plus.
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              } catch (e) {
+                setSheet(() {
+                  sending = false;
+                  errorText = _transferError(e, l);
+                });
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 22,
+                right: 22,
+                top: 20,
+                bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.textFaint,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    l.transferTicket,
+                    style: AppText.h1.copyWith(fontSize: 19, color: Colors.white),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l.transferSheetBody,
+                    style: AppText.bodySm.copyWith(fontSize: 12.5, height: 1.4),
+                  ),
+                  const SizedBox(height: 18),
+                  TextField(
+                    controller: controller,
+                    enabled: !sending,
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    style: AppText.body.copyWith(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: l.emailHintFriend,
+                      hintStyle: AppText.body.copyWith(color: AppColors.textLow),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.05),
+                      prefixIcon: Icon(Icons.alternate_email,
+                          color: AppColors.textLow, size: 20),
+                      errorText: errorText,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide:
+                            BorderSide(color: Colors.white.withOpacity(0.09)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.primary),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide:
+                            BorderSide(color: Colors.white.withOpacity(0.09)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: sending ? null : submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        disabledBackgroundColor:
+                            AppColors.primary.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: sending
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2.4, color: Colors.white),
+                            )
+                          : Text(
+                              l.sendTicket,
+                              style: AppText.h3.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _transferError(Object e, AppLocalizations l) {
+    final msg = e.toString();
+    if (msg.contains('recipient_not_found')) return l.transferErrRecipientNotFound;
+    if (msg.contains('cannot_transfer_self')) return l.transferErrSelf;
+    if (msg.contains('ticket_not_transferable')) {
+      return l.transferErrNotTransferable;
+    }
+    if (msg.contains('event_cancelled')) return l.transferErrEventCancelled;
+    if (msg.contains('event_ended')) return l.transferErrEventEnded;
+    return l.transferFailed;
   }
 
   // ── QR (loading / error / code) ────────────────────────────────────────────
@@ -448,7 +659,7 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                   width: 30,
                   height: 30,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2.6, color: Color(0xFF7C3AED)),
+                      strokeWidth: 2.6, color: AppColors.primary),
                 ),
               )
             : _error != null
@@ -502,7 +713,7 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                   (_) => Container(
                     width: 6,
                     height: 1.5,
-                    color: Colors.white.withOpacity(0.15),
+                    color: AppColors.textFaint,
                   ),
                 ),
               ),
@@ -531,23 +742,14 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: Colors.white.withOpacity(0.4),
-              letterSpacing: 1,
-            ),
+            style: AppText.microBold.copyWith(color: AppColors.textLow, letterSpacing: 1),
           ),
           const SizedBox(height: 2),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-            ),
+            style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
           ),
         ],
       ),
@@ -562,24 +764,46 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: Colors.white.withOpacity(0.4),
-            ),
+            style: AppText.caption.copyWith(color: AppColors.textLow),
           ),
           Flexible(
             child: Text(
               value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+              style: AppText.caption.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Bouton « Transfer ticket » (contour discret, ne concurrence pas le QR).
+class _TransferButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _TransferButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.send_outlined, size: 18, color: Colors.white),
+        label: Text(
+          'Transfer ticket',
+          style: AppText.h3.copyWith(fontSize: 14.5, fontWeight: FontWeight.w800, color: Colors.white),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: AppColors.textFaint),
+          backgroundColor: Colors.white.withOpacity(0.04),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
       ),
     );
   }

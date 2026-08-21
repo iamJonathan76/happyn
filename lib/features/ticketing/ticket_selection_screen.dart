@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
+import 'package:happyn/core/utils/age.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'qr_ticket_screen.dart';
 import 'payment_processing_screen.dart';
 
@@ -65,12 +69,48 @@ class _TicketSelectionScreenState
   }
 
   String get _priceText {
-    if (_totalPrice == 0) return 'Free';
+    if (_totalPrice == 0) return AppLocalizations.of(context).free;
     return '\$${_totalPrice.toStringAsFixed(2)}';
+  }
+
+  void _showAgeBlocked(int minAge) {
+    final l = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.ageRequirementLabel,
+            style: AppText.h4.copyWith(fontWeight: FontWeight.w800, color: Colors.white)),
+        content: Text(
+          l.ageBlockedBody(minAge),
+          style: AppText.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.ok,
+                style: AppText.body.copyWith(color: AppColors.lavender)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _purchaseTicket() async {
     if (_selectedTypeIndex == null) return;
+    final l = AppLocalizations.of(context);
+
+    // Soft-gate d'âge : si l'event a une exigence et que l'âge connu est en
+    // dessous, on bloque. Âge inconnu (ancien compte) → on laisse passer.
+    final minAge = (widget.event['min_age'] ?? 0) as int;
+    if (minAge > 0) {
+      final age = currentUserAge();
+      if (age != null && age < minAge) {
+        _showAgeBlocked(minAge);
+        return;
+      }
+    }
 
     setState(() => _isPurchasing = true);
 
@@ -152,42 +192,25 @@ class _TicketSelectionScreenState
     } on StripeException catch (_) {
       // Annulation ou échec côté Stripe : on reste sur l'écran, message discret.
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Payment cancelled',
-                style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+        showAppSnack(context, l.paymentCancelled);
       }
     } catch (e) {
       if (mounted) {
         final msg = e.toString();
         final friendly = msg.contains('event_ended')
-            ? 'This event has ended — tickets are closed.'
+            ? l.errEventEndedTickets
             : msg.contains('exceeds_max_per_order')
-            ? 'You reached the limit per person for this ticket.'
+            ? l.errLimitPerPerson
             : msg.contains('insufficient_stock')
-            ? 'Sorry, not enough tickets left.'
+            ? l.errNotEnoughTickets
             : msg.contains('not_authenticated')
-                ? 'Please sign in again.'
+                ? l.errSignInAgain
                 : msg.contains('ticket_type_not_found')
-                    ? 'This ticket is no longer available.'
+                    ? l.errTicketUnavailable
                     : msg.contains('payments_not_configured')
-                        ? 'Payments are not set up yet.'
-                        : 'Something went wrong. Please try again.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(friendly,
-                style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+                        ? l.errPaymentsNotSetup
+                        : l.errSomethingWrong;
+        showAppSnack(context, friendly);
       }
     } finally {
       if (mounted) setState(() => _isPurchasing = false);
@@ -196,11 +219,12 @@ class _TicketSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final ev = widget.event;
     final imageUrl = (ev['image_url'] ?? '') as String;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           // ── Header ──────────────────────────────────────────────
@@ -212,15 +236,15 @@ class _TicketSelectionScreenState
                 CachedNetworkImage(
                   imageUrl: imageUrl,
                   fit: BoxFit.cover,
-                  placeholder: (_, _) => Container(color: const Color(0xFF1A0F3D)),
-                  errorWidget: (_, _, _) => Container(color: const Color(0xFF1A0F3D)),
+                  placeholder: (_, _) => Container(color: AppColors.imagePlaceholder),
+                  errorWidget: (_, _, _) => Container(color: AppColors.imagePlaceholder),
                 ),
                 Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Color(0x44080F0F), Color(0xFF08080F)],
+                      colors: [Color(0x44080F0F), AppColors.background],
                     ),
                   ),
                 ),
@@ -251,24 +275,17 @@ class _TicketSelectionScreenState
                     children: [
                       Text(
                         (ev['title'] ?? '') as String,
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
+                        style: AppText.h1.copyWith(color: Colors.white),
                       ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           const Icon(Icons.location_on,
-                              color: Color(0xFFA78BFA), size: 12),
+                              color: AppColors.lavender, size: 12),
                           const SizedBox(width: 4),
                           Text(
                             (ev['location'] ?? '') as String,
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.6),
-                            ),
+                            style: AppText.caption,
                           ),
                         ],
                       ),
@@ -283,7 +300,7 @@ class _TicketSelectionScreenState
           Expanded(
             child: _isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF7C3AED)))
+                    child: CircularProgressIndicator(color: AppColors.primary))
                 : _ticketTypes.isEmpty
                     ? _buildNoTickets()
                     : SingleChildScrollView(
@@ -292,12 +309,8 @@ class _TicketSelectionScreenState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Select Ticket Type',
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                              l.selectTicketType,
+                              style: AppText.h2.copyWith(fontSize: 18, color: Colors.white),
                             ),
                             const SizedBox(height: 14),
 
@@ -325,12 +338,12 @@ class _TicketSelectionScreenState
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? const Color(0xFF7C3AED).withOpacity(0.12)
+                                        ? AppColors.primary.withOpacity(0.12)
                                         : Colors.white.withOpacity(0.04),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: isSelected
-                                          ? const Color(0xFF7C3AED)
+                                          ? AppColors.primary
                                           : Colors.white.withOpacity(0.08),
                                       width: isSelected ? 1.5 : 1,
                                     ),
@@ -345,8 +358,8 @@ class _TicketSelectionScreenState
                                           shape: BoxShape.circle,
                                           border: Border.all(
                                             color: isSelected
-                                                ? const Color(0xFF7C3AED)
-                                                : Colors.white.withOpacity(0.3),
+                                                ? AppColors.primary
+                                                : AppColors.textLow,
                                             width: 2,
                                           ),
                                         ),
@@ -357,7 +370,7 @@ class _TicketSelectionScreenState
                                                   height: 10,
                                                   decoration: const BoxDecoration(
                                                     shape: BoxShape.circle,
-                                                    color: Color(0xFF7C3AED),
+                                                    color: AppColors.primary,
                                                   ),
                                                 ),
                                               )
@@ -374,13 +387,9 @@ class _TicketSelectionScreenState
                                               children: [
                                                 Text(
                                                   (t['name'] ?? '') as String,
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: isSoldOut
-                                                        ? Colors.white.withOpacity(0.3)
-                                                        : Colors.white,
-                                                  ),
+                                                  style: AppText.h4.copyWith(color: isSoldOut
+                                                        ? AppColors.textLow
+                                                        : Colors.white),
                                                 ),
                                                 if (remaining <= 10 && !isSoldOut) ...[
                                                   const SizedBox(width: 8),
@@ -388,18 +397,14 @@ class _TicketSelectionScreenState
                                                     padding: const EdgeInsets.symmetric(
                                                         horizontal: 6, vertical: 2),
                                                     decoration: BoxDecoration(
-                                                      color: const Color(0xFFEC4899)
+                                                      color: AppColors.pink
                                                           .withOpacity(0.2),
                                                       borderRadius:
                                                           BorderRadius.circular(6),
                                                     ),
                                                     child: Text(
-                                                      'Only $remaining left',
-                                                      style: GoogleFonts.inter(
-                                                        fontSize: 9,
-                                                        fontWeight: FontWeight.w700,
-                                                        color: const Color(0xFFEC4899),
-                                                      ),
+                                                      l.onlyLeft(remaining),
+                                                      style: AppText.microBold.copyWith(color: AppColors.pink),
                                                     ),
                                                   ),
                                                 ],
@@ -409,10 +414,7 @@ class _TicketSelectionScreenState
                                               const SizedBox(height: 4),
                                               Text(
                                                 (t['perks'] as List).join(' · '),
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 11,
-                                                  color: Colors.white.withOpacity(0.4),
-                                                ),
+                                                style: AppText.small,
                                               ),
                                             ],
                                           ],
@@ -421,14 +423,10 @@ class _TicketSelectionScreenState
 
                                       // Price
                                       Text(
-                                        isSoldOut ? 'Sold Out' : priceText,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w900,
-                                          color: isSoldOut
-                                              ? Colors.white.withOpacity(0.3)
-                                              : const Color(0xFFC4B5FD),
-                                        ),
+                                        isSoldOut ? l.soldOut : priceText,
+                                        style: AppText.h3.copyWith(fontWeight: FontWeight.w900, color: isSoldOut
+                                              ? AppColors.textLow
+                                              : AppColors.lavenderLight),
                                       ),
                                     ],
                                   ),
@@ -441,12 +439,8 @@ class _TicketSelectionScreenState
                             // Quantity selector
                             if (_selectedTypeIndex != null) ...[
                               Text(
-                                'Quantity',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
+                                l.quantity,
+                                style: AppText.h3.copyWith(fontSize: 16, color: Colors.white),
                               ),
                               const SizedBox(height: 12),
                               Row(
@@ -462,11 +456,7 @@ class _TicketSelectionScreenState
                                         horizontal: 24),
                                     child: Text(
                                       '$_quantity',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                      ),
+                                      style: AppText.display.copyWith(fontSize: 22, color: Colors.white),
                                     ),
                                   ),
                                   _qtyButton(
@@ -502,19 +492,12 @@ class _TicketSelectionScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Total',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.white.withOpacity(0.38),
-                        ),
+                        l.total,
+                        style: AppText.small,
                       ),
                       Text(
                         _priceText,
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
+                        style: AppText.display.copyWith(color: Colors.white),
                       ),
                     ],
                   ),
@@ -526,14 +509,14 @@ class _TicketSelectionScreenState
                         height: 56,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                            colors: [AppColors.primary, AppColors.pink],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF7C3AED).withOpacity(0.55),
+                              color: AppColors.primary.withOpacity(0.55),
                               blurRadius: 20,
                               offset: const Offset(0, 6),
                             ),
@@ -554,12 +537,8 @@ class _TicketSelectionScreenState
                                         color: Colors.white, size: 16),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Checkout',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
+                                      l.checkout,
+                                      style: AppText.h3.copyWith(color: Colors.white),
                                     ),
                                   ],
                                 ),
@@ -575,27 +554,22 @@ class _TicketSelectionScreenState
   }
 
   Widget _buildNoTickets() {
+    final l = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.confirmation_number_outlined,
-              size: 48, color: Colors.white.withOpacity(0.15)),
+              size: 48, color: AppColors.textFaint),
           const SizedBox(height: 16),
           Text(
-            'No tickets available yet',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.35),
-            ),
+            l.noTicketsAvailable,
+            style: AppText.body.copyWith(color: AppColors.textLow),
           ),
           const SizedBox(height: 8),
           Text(
-            'The organizer hasn\'t added tickets yet.',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: Colors.white.withOpacity(0.2),
-            ),
+            l.organizerNoTickets,
+            style: AppText.caption.copyWith(color: AppColors.textFaint),
           ),
         ],
       ),

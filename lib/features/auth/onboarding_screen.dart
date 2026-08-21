@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -17,21 +19,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'img': 'https://images.unsplash.com/photo-1574155376612-bfa4ed8aabfd?w=800&h=640&fit=crop&auto=format',
       'title': 'Discover Events\nNear You',
       'sub': 'From underground clubs to rooftop festivals — find what moves you, powered by real-time local intelligence.',
-      'color': Color(0xFF7C3AED),
+      'color': AppColors.primary,
       'icon': Icons.auto_awesome,
     },
     {
       'img': 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=640&fit=crop&auto=format',
       'title': 'Connect With\nYour People',
       'sub': 'Follow friends, join communities, and always know who is going where before you commit.',
-      'color': Color(0xFFEC4899),
+      'color': AppColors.pink,
       'icon': Icons.people,
     },
     {
       'img': 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&h=640&fit=crop&auto=format',
       'title': 'Be the Moment',
       'sub': 'Secure tickets in seconds. QR check-in. No stress, no FOMO. Just pure experience.',
-      'color': Color(0xFFF97316),
+      'color': AppColors.warning,
       'icon': Icons.bolt,
     },
   ];
@@ -46,10 +48,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final slide = _slides[_currentSlide];
+    final titles = [l.onbTitle1, l.onbTitle2, l.onbTitle3];
+    final subs = [l.onbSub1, l.onbSub2, l.onbSub3];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           // Image top 54%
@@ -62,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   imageUrl: slide['img'],
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
-                    color: const Color(0xFF1A0F3D),
+                    color: AppColors.imagePlaceholder,
                   ),
                 ),
                 // Dark gradient overlay
@@ -74,7 +79,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       colors: [
                         Color(0x0033080f),
                         Color(0x1A08080F),
-                        Color(0xFF08080F),
+                        AppColors.background,
                       ],
                       stops: [0.0, 0.4, 1.0],
                     ),
@@ -98,16 +103,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.15),
+                          color: AppColors.textFaint,
                         ),
                       ),
                       child: Text(
-                        'Skip',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withOpacity(0.6),
-                        ),
+                        l.skip,
+                        style: AppText.captionBold.copyWith(color: AppColors.textMed),
                       ),
                     ),
                   ),
@@ -130,14 +131,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     height: 44,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                        colors: [AppColors.primary, AppColors.pink],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF7C3AED).withOpacity(0.55),
+                          color: AppColors.primary.withOpacity(0.55),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
@@ -154,25 +155,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   // Title
                   Text(
-                    slide['title'],
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      height: 1.2,
-                    ),
+                    titles[_currentSlide],
+                    style: AppText.display.copyWith(color: Colors.white, height: 1.2),
                   ),
 
                   const SizedBox(height: 10),
 
                   // Subtitle
                   Text(
-                    slide['sub'],
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: const Color(0xFFF0EEFF).withOpacity(0.5),
-                      height: 1.6,
-                    ),
+                    subs[_currentSlide],
+                    style: AppText.body.copyWith(color: AppColors.textLight.withOpacity(0.5), height: 1.6),
                   ),
 
                   const Spacer(),
@@ -191,14 +183,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           gradient: isActive
                               ? const LinearGradient(
                                   colors: [
-                                    Color(0xFF7C3AED),
-                                    Color(0xFFEC4899)
+                                    AppColors.primary,
+                                    AppColors.pink
                                   ],
                                 )
                               : null,
                           color: isActive
                               ? null
-                              : Colors.white.withOpacity(0.18),
+                              : AppColors.textFaint,
                         ),
                       );
                     }),
@@ -214,14 +206,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 56,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                          colors: [AppColors.primary, AppColors.pink],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7C3AED).withOpacity(0.55),
+                            color: AppColors.primary.withOpacity(0.55),
                             blurRadius: 20,
                             offset: const Offset(0, 6),
                           ),
@@ -231,12 +223,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            _currentSlide < 2 ? 'Continue' : 'Get Started',
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                            _currentSlide < 2 ? l.onbContinue : l.getStarted,
+                            style: AppText.h3.copyWith(color: Colors.white),
                           ),
                           const SizedBox(width: 8),
                           const Icon(Icons.arrow_forward,

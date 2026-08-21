@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 
 /// Icône Material + couleur d'accent par catégorie (fallback si nom inconnu).
 /// Source partagée par Home, Discover, etc.
@@ -32,30 +33,30 @@ const Map<String, IconData> kCategoryIcons = {
 };
 
 const Map<String, Color> kCategoryColors = {
-  'Music': Color(0xFFEC4899),
-  'Concerts': Color(0xFFEC4899),
-  'Concert': Color(0xFFEC4899),
-  'Party': Color(0xFFF472B6),
-  'Parties': Color(0xFFF472B6),
-  'Festival': Color(0xFFF97316),
-  'Festivals': Color(0xFFF97316),
+  'Music': AppColors.pink,
+  'Concerts': AppColors.pink,
+  'Concert': AppColors.pink,
+  'Party': AppColors.pinkLight,
+  'Parties': AppColors.pinkLight,
+  'Festival': AppColors.warning,
+  'Festivals': AppColors.warning,
   'Networking': Color(0xFF10B981),
-  'Art': Color(0xFFA78BFA),
-  'Sports': Color(0xFFF97316),
-  'Food & Drink': Color(0xFFFBBF24),
-  'Food': Color(0xFFFBBF24),
-  'Faith': Color(0xFF34D399),
-  'Church': Color(0xFF34D399),
-  'Birthdays': Color(0xFFF472B6),
-  'Birthday': Color(0xFFF472B6),
-  'Student Life': Color(0xFF60A5FA),
-  'Tech': Color(0xFF60A5FA),
-  'Technology': Color(0xFF60A5FA),
+  'Art': AppColors.lavender,
+  'Sports': AppColors.warning,
+  'Food & Drink': AppColors.amber,
+  'Food': AppColors.amber,
+  'Faith': AppColors.green,
+  'Church': AppColors.green,
+  'Birthdays': AppColors.pinkLight,
+  'Birthday': AppColors.pinkLight,
+  'Student Life': AppColors.blue,
+  'Tech': AppColors.blue,
+  'Technology': AppColors.blue,
   'Gaming': Color(0xFF818CF8),
   'Comedy': Color(0xFFFB923C),
   'Business': Color(0xFF818CF8),
-  'Community': Color(0xFF34D399),
-  'Arts': Color(0xFFA78BFA),
+  'Community': AppColors.green,
+  'Arts': AppColors.lavender,
   'Other': Color(0xFF9CA3AF),
 };
 
@@ -63,4 +64,4 @@ IconData categoryIcon(String name) =>
     kCategoryIcons[name] ?? Icons.local_activity_outlined;
 
 Color categoryColor(String name) =>
-    kCategoryColors[name] ?? const Color(0xFFA78BFA);
+    kCategoryColors[name] ?? AppColors.lavender;

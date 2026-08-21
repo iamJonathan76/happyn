@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'widgets/hero_event_card.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/core/providers/events_provider.dart';
-import 'package:happyn/core/providers/categories_provider.dart';
+import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
-import 'package:happyn/core/providers/favorites_provider.dart';
+import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/notifications/notifications_screen.dart';
-import 'package:happyn/core/widgets/event_list_card.dart';
+import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/features/social/widgets/post_card.dart';
+import 'package:happyn/core/providers/social_provider.dart';
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 // Note: ConsumerStatefulWidget au lieu de StatefulWidget car on garde
@@ -34,10 +37,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedCat = 0;
-
-  // Alimenté depuis le provider en début de build : ['All', ...catégories].
   List<String> _categories = const ['All'];
-  // Données catégories (nom + emoji) pour les cercles.
   List<Map<String, dynamic>> _catData = const [];
 
   // Getter (pas un champ figé) → toujours la valeur à jour après un updateUser.
@@ -54,25 +54,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? get avatarUrl => user?.userMetadata?['avatar_url'] as String?;
 
   String get _greeting {
+    final l = AppLocalizations.of(context);
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return l.greetingMorning;
+    if (h < 18) return l.greetingAfternoon;
+    return l.greetingEvening;
   }
 
   List<Map<String, dynamic>> _filterByCategory(
     List<Map<String, dynamic>> events,
   ) {
-    // Découverte : uniquement les events publiés et pas terminés.
     final upcoming = events.where(isEventVisible).toList();
     if (_selectedCat <= 0 || _selectedCat >= _categories.length) return upcoming;
-    final cat = _categories[_selectedCat];
-    return upcoming.where((e) => e['category'] == cat).toList();
+    return upcoming
+        .where((e) => e['category'] == _categories[_selectedCat])
+        .toList();
   }
 
   Future<void> _refresh() async {
     ref.invalidate(eventsProvider);
     ref.invalidate(notificationsProvider); // maj du badge cloche
+    ref.invalidate(discoverFeedProvider);
     // on attend que le nouveau fetch soit terminé pour que le
     // RefreshIndicator se ferme au bon moment
     await ref.read(eventsProvider.future);
@@ -89,10 +91,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _categories = ['All', ..._catData.map((c) => c['name'] as String)];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: RefreshIndicator(
-        color: const Color(0xFF7C3AED),
-        backgroundColor: const Color(0xFF1A1535),
+        color: AppColors.primary,
+        backgroundColor: AppColors.card,
         onRefresh: _refresh,
         child: CustomScrollView(
           controller: widget.scrollController,
@@ -104,12 +106,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             SliverToBoxAdapter(child: _buildSearchBar()),
             SliverToBoxAdapter(child: _buildLocation(eventsAsync)),
             SliverToBoxAdapter(child: _buildCategories()),
+            // Bandeau d'événements : un aperçu, « Tout voir » mène à Découvrir
+            // (qui porte les catégories, filtres et la liste complète).
             SliverToBoxAdapter(
-                child: _buildSectionHeader('For you', seeAll: true)),
+                child: _buildSectionHeader(
+                    AppLocalizations.of(context).onNow, seeAll: true)),
             SliverToBoxAdapter(child: _buildHeroCards(eventsAsync)),
             SliverToBoxAdapter(
-                child: _buildSectionHeader('Popular near you', seeAll: true)),
+                child: _buildSectionHeader(
+                    AppLocalizations.of(context).popularNearYou, seeAll: true)),
             SliverToBoxAdapter(child: _buildCompactList(eventsAsync)),
+            // Puis la couche sociale : des moments vecus autour des events.
+            SliverToBoxAdapter(child: _buildMomentsHeader()),
+            _buildFeedSliver(),
             const SliverToBoxAdapter(child: SizedBox(height: 90)),
           ],
         ),
@@ -129,19 +138,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   TextSpan(
                     text: '$_greeting,\n',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFFF0EEFF).withOpacity(0.5),
-                    ),
+                    style: AppText.caption.copyWith(fontWeight: FontWeight.w500, color: AppColors.textLight.withOpacity(0.5)),
                   ),
                   TextSpan(
                     text: '$userName 👋',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h1.copyWith(color: Colors.white),
                   ),
                 ],
               ),
@@ -180,20 +181,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           padding: const EdgeInsets.all(4),
                           constraints: const BoxConstraints(minWidth: 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEC4899),
+                            color: AppColors.pink,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                                color: const Color(0xFF08080F), width: 1.5),
+                                color: AppColors.background, width: 1.5),
                           ),
                           child: Text(
                             '${ref.watch(unreadCountProvider)}',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              fontSize: 8,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1,
-                            ),
+                            style: AppText.microBold.copyWith(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white, height: 1),
                           ),
                         ),
                       ),
@@ -206,14 +202,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 height: 36,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                    colors: [AppColors.primary, AppColors.pink],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7C3AED).withOpacity(0.55),
+                      color: AppColors.primary.withOpacity(0.55),
                       blurRadius: 12,
                     ),
                   ],
@@ -229,22 +225,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           errorWidget: (_, _, _) => Center(
                             child: Text(
                               userInitials,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                              ),
+                              style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
                             ),
                           ),
                         )
                       : Center(
                           child: Text(
                             userInitials,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
+                            style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
                           ),
                         ),
                 ),
@@ -271,25 +259,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Row(
           children: [
             const SizedBox(width: 14),
-            Icon(Icons.search, color: Colors.white.withOpacity(0.35), size: 18),
+            Icon(Icons.search, color: AppColors.textLow, size: 18),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Search events, artists, venues...',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: Colors.white.withOpacity(0.32),
-                ),
+                AppLocalizations.of(context).searchHint,
+                style: AppText.bodySm.copyWith(color: AppColors.textLow),
               ),
             ),
             Container(
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C3AED).withOpacity(0.18),
+                color: AppColors.primary.withOpacity(0.18),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.tune, color: Color(0xFFA78BFA), size: 14),
+              child: const Icon(Icons.tune, color: AppColors.lavender, size: 14),
             ),
             ],
           ),
@@ -299,22 +284,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildLocation(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
-    // Compte uniquement les events visibles (publiés + à venir).
     final count =
         (eventsAsync.asData?.value ?? []).where(isEventVisible).length;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
       child: Row(
         children: [
-          const Icon(Icons.navigation, color: Color(0xFFEC4899), size: 13),
+          const Icon(Icons.navigation, color: AppColors.pink, size: 13),
           const SizedBox(width: 5),
           Text(
-            '$count events to discover',
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFFF0EEFF).withOpacity(0.45),
-            ),
+            AppLocalizations.of(context).eventsToDiscover(count),
+            style: AppText.small.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textLight.withOpacity(0.45)),
           ),
         ],
       ),
@@ -332,9 +314,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           itemCount: _categories.length,
           itemBuilder: (context, i) {
             final isActive = i == _selectedCat;
-            final label = _categories[i];
-            final color =
-                i == 0 ? const Color(0xFFA78BFA) : categoryColor(label);
+            final label = i == 0
+                ? AppLocalizations.of(context).categoryAll
+                : _categories[i];
+            final color = i == 0 ? AppColors.lavender : categoryColor(label);
 
             return GestureDetector(
               onTap: () => setState(() => _selectedCat = i),
@@ -347,27 +330,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: isActive
-                            ? color
-                            : color.withOpacity(0.13),
+                        color: isActive ? color : color.withOpacity(0.13),
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: color.withOpacity(isActive ? 0 : 0.30),
-                        ),
+                            color: color.withOpacity(isActive ? 0 : 0.30)),
                         boxShadow: isActive
                             ? [
                                 BoxShadow(
-                                  color: color.withOpacity(0.45),
-                                  blurRadius: 14,
-                                ),
+                                    color: color.withOpacity(0.45),
+                                    blurRadius: 14)
                               ]
                             : null,
                       ),
                       child: Center(
                         child: Icon(
-                          i == 0
-                              ? Icons.auto_awesome
-                              : categoryIcon(label),
+                          i == 0 ? Icons.auto_awesome : categoryIcon(label),
                           color: isActive ? Colors.white : color,
                           size: 24,
                         ),
@@ -378,13 +355,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: isActive
-                            ? Colors.white
-                            : const Color(0xFFF0EEFF).withOpacity(0.5),
-                      ),
+                      style: AppText.micro.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isActive
+                              ? Colors.white
+                              : AppColors.textLight.withOpacity(0.5)),
                     ),
                   ],
                 ),
@@ -396,18 +371,130 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Quelques evenements en liste sous le bandeau. Volontairement court :
+  /// la liste complete vit sur Decouvrir.
+  Widget _buildCompactList(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
+    final events = _filterByCategory(eventsAsync.asData?.value ?? []);
+    if (events.length <= 1) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: events
+            .skip(1)
+            .take(3)
+            .map((ev) => EventListCard(event: ev))
+            .toList(),
+      ),
+    );
+  }
+
+  /// En-tete de la couche sociale. Le titre compte : « Moments » dit que ce
+  /// contenu documente des experiences, la ou « Fil » aurait dit reseau social.
+    /// Onglets du fil : Découvrir (tout le monde) / Abonnements.
+    /// En-tete de la couche sociale : titre a gauche, bascule discrete a droite.
+  ///
+  /// Volontairement leger. Deux gros boutons pleine largeur donneraient au fil
+  /// un poids de navigation principale, alors que c'est une couche au-dessus
+  /// des evenements.
+    /// En-tete de la couche sociale.
+  ///
+  /// Un seul fil, sans selecteur de mode : c'est ce qui prepare un classement
+  /// par recommandation, ou un bouton « Abonnements » deviendrait redondant.
+  /// Voir ce que font ses connexions passera par un filtre sur Decouvrir, et
+  /// portera sur les EVENEMENTS auxquels elles vont — pas sur leurs
+  /// publications.
+  Widget _buildMomentsHeader() {
+    final l = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 26, 20, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l.moments,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.h3.copyWith(fontSize: 17)),
+          const SizedBox(height: 3),
+          Text(l.momentsFromEvents, style: AppText.small),
+        ],
+      ),
+    );
+  }
+
+  /// Le fil lui-même, en sliver pour rester dans le même défilement que
+  /// l'en-tête et le bandeau d'événements.
+  Widget _buildFeedSliver() {
+    final l = AppLocalizations.of(context);
+    final async = ref.watch(discoverFeedProvider);
+
+    return async.when(
+      loading: () => const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 40),
+          child: Center(
+              child: CircularProgressIndicator(color: AppColors.primary)),
+        ),
+      ),
+      error: (e, _) {
+        debugPrint('feed error: $e');
+        return SliverToBoxAdapter(
+          child: _feedMessage(Icons.cloud_off, l.couldNotLoadEvents, ''),
+        );
+      },
+      data: (posts) {
+        if (posts.isEmpty) {
+          return SliverToBoxAdapter(
+            child: _feedMessage(Icons.photo_camera_outlined,
+                l.feedEmpty, l.feedEmptyBody),
+          );
+        }
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          sliver: SliverList.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, i) => PostCard(
+              post: posts[i],
+              onChanged: () => ref.invalidate(discoverFeedProvider),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _feedMessage(IconData icon, String title, String body) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 36),
+        child: Column(
+          children: [
+            Icon(icon, size: 40, color: AppColors.textFaint),
+            const SizedBox(height: 12),
+            Text(title,
+                textAlign: TextAlign.center,
+                style: AppText.body.copyWith(color: AppColors.textLow)),
+            if (body.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(body,
+                  textAlign: TextAlign.center,
+                  style: AppText.caption.copyWith(color: AppColors.textFaint)),
+            ],
+          ],
+        ),
+      );
+
   Widget _buildSectionHeader(String title, {bool seeAll = false}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
+          // Expanded + ellipsis : les titres FR plus longs ne débordent pas
+          // sur le « Tout voir ».
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.h3.copyWith(fontWeight: FontWeight.w900, color: Colors.white),
             ),
           ),
           if (seeAll)
@@ -416,15 +503,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Row(
                 children: [
                   Text(
-                    'See all',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFFA78BFA),
-                    ),
+                    AppLocalizations.of(context).seeAll,
+                    style: AppText.smallBold.copyWith(color: AppColors.lavender),
                   ),
                   const Icon(Icons.chevron_right,
-                      color: Color(0xFFA78BFA), size: 14),
+                      color: AppColors.lavender, size: 14),
                 ],
               ),
             ),
@@ -438,18 +521,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       loading: () => const SizedBox(
         height: 252,
         child: Center(
-          child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       ),
       error: (err, _) => SizedBox(
         height: 252,
         child: Center(
           child: Text(
-            'Could not load events',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: Colors.white.withOpacity(0.35),
-            ),
+            AppLocalizations.of(context).couldNotLoadEvents,
+            style: AppText.bodySm.copyWith(color: AppColors.textLow),
           ),
         ),
       ),
@@ -460,11 +540,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             height: 252,
             child: Center(
               child: Text(
-                'No events yet — create the first one! 🎉',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: Colors.white.withOpacity(0.35),
-                ),
+                AppLocalizations.of(context).noEventsYet,
+                style: AppText.bodySm.copyWith(color: AppColors.textLow),
               ),
             ),
           );
@@ -475,234 +552,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 20, right: 8),
             itemCount: events.length,
-            itemBuilder: (context, i) => _HeroCard(event: events[i]),
+            itemBuilder: (context, i) => HeroEventCard(event: events[i]),
           ),
         );
       },
     );
   }
 
-  Widget _buildCompactList(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
-    final allEvents =
-        (eventsAsync.asData?.value ?? []).where(isEventVisible).toList();
-    if (allEvents.length <= 1) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: allEvents
-            .skip(1)
-            .take(4)
-            .map((ev) => EventListCard(event: ev))
-            .toList(),
-      ),
-    );
   }
 
-}
 
-// ─── Hero Card ────────────────────────────────────────────────────────────────
-
-class _HeroCard extends ConsumerWidget {
-  final Map<String, dynamic> event;
-  const _HeroCard({required this.event});
-
-  (String, String) _dateParts(String? s) {
-    if (s == null) return ('', '');
-    final dt = DateTime.parse(s);
-    const m = [
-      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
-    ];
-    return (m[dt.month - 1], dt.day.toString());
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ev = event;
-    final eventId = ev['id'] as String;
-    final cat = (ev['category'] ?? '') as String;
-    final color = categoryColor(cat);
-    final (mon, day) = _dateParts(ev['start_date'] as String?);
-    final priceText = (ev['price'] == 0 || ev['price'] == null)
-        ? 'Free'
-        : '\$${ev['price']}';
-    final city = (ev['city'] ?? ev['location'] ?? '') as String;
-    final favIds = ref.watch(favoritesProvider).asData?.value ?? <String>{};
-    final isFav = favIds.contains(eventId);
-
-    return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => EventDetailScreen(event: ev)),
-      ),
-      child: Container(
-        width: 290,
-        margin: const EdgeInsets.only(right: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFF13111C),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.45),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Image + badge date + cœur ─────────────────────────
-              Stack(
-                children: [
-                  SizedBox(
-                    height: 150,
-                    width: double.infinity,
-                    child: CachedNetworkImage(
-                      imageUrl: (ev['image_url'] ?? '') as String,
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) =>
-                          Container(color: const Color(0xFF1A0F3D)),
-                      errorWidget: (_, _, _) => Container(
-                        color: const Color(0xFF1A0F3D),
-                        child: Center(
-                          child: Icon(categoryIcon(cat),
-                              color: const Color(0xFF7C3AED), size: 38),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: Container(
-                      width: 44,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(mon,
-                              style: GoogleFonts.inter(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFFEC4899),
-                                letterSpacing: 0.5,
-                              )),
-                          Text(day,
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF08080F),
-                                height: 1,
-                              )),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: GestureDetector(
-                      onTap: () async {
-                        await toggleFavorite(eventId, isFav);
-                        ref.invalidate(favoritesProvider);
-                      },
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.4),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border,
-                          color: isFav ? const Color(0xFFEC4899) : Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // ── Infos ─────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      (ev['title'] ?? '') as String,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        Icon(categoryIcon(cat), size: 12, color: color),
-                        const SizedBox(width: 5),
-                        Text(
-                          cat,
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: color,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Icon(Icons.location_on,
-                                  size: 12,
-                                  color: Colors.white.withOpacity(0.4)),
-                              const SizedBox(width: 3),
-                              Expanded(
-                                child: Text(
-                                  city,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    color: Colors.white.withOpacity(0.55),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          priceText,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

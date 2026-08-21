@@ -1,15 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/providers/auth_provider.dart';
 
 /// Ensemble des event_id mis en favori par l'utilisateur connecté.
 final favoritesProvider = FutureProvider<Set<String>>((ref) async {
-  final user = Supabase.instance.client.auth.currentUser;
-  if (user == null) return <String>{};
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null) return <String>{};
   final data = await Supabase.instance.client
       .from('favorites')
       .select('event_id')
-      .eq('user_id', user.id);
+      .eq('user_id', uid);
   return List<Map<String, dynamic>>.from(data)
       .map((e) => e['event_id'] as String)
       .toSet();

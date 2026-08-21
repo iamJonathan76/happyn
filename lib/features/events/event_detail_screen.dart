@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/core/providers/events_provider.dart';
@@ -9,6 +11,14 @@ import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
+import 'package:happyn/core/utils/maps.dart';
+import 'package:happyn/features/events/widgets/event_moments.dart';
+import 'package:happyn/features/events/widgets/whos_going.dart';
+import 'package:happyn/features/social/create_post_screen.dart';
+import 'package:happyn/core/providers/social_provider.dart';
+import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
@@ -37,42 +47,101 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       if (!mounted) return;
       setState(() => _status = newStatus);
       ref.invalidate(eventsProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(toast, style: GoogleFonts.inter(color: Colors.white)),
-          backgroundColor: const Color(0xFF1A1535),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      showAppSnack(context, toast);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Action failed. Please try again.')),
+          SnackBar(content: Text(AppLocalizations.of(context).actionFailed)),
         );
       }
     }
   }
 
   Widget _organizerMenu() {
+    final l = AppLocalizations.of(context);
     return PopupMenuButton<String>(
-      color: const Color(0xFF1A1535),
+      color: AppColors.card,
       shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       position: PopupMenuPosition.under,
       onSelected: (v) {
-        if (v == 'unpublish') _setStatus('draft', 'Event unpublished');
-        if (v == 'publish') _setStatus('published', 'Event published');
+        if (v == 'moment') {
+          _shareMoment(widget.event['id'] as String);
+        }
+        if (v == 'unpublish') _setStatus('draft', l.eventUnpublishedMsg);
+        if (v == 'publish') _setStatus('published', l.eventPublishedMsg);
         if (v == 'cancel') _confirmCancel();
       },
       itemBuilder: (context) => [
+        _menuItem('moment', Icons.add_a_photo_outlined, l.shareMoment),
         if (_status == 'published')
-          _menuItem('unpublish', Icons.visibility_off_outlined, 'Unpublish')
+          _menuItem('unpublish', Icons.visibility_off_outlined, l.unpublish)
         else
-          _menuItem('publish', Icons.publish_outlined, 'Publish'),
+          _menuItem('publish', Icons.publish_outlined, l.publish),
         if (_status != 'cancelled')
-          _menuItem('cancel', Icons.cancel_outlined, 'Cancel event',
+          _menuItem('cancel', Icons.cancel_outlined, l.cancelEvent,
               danger: true),
+      ],
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.45),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0.12)),
+        ),
+        child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
+  /// Peut-on documenter cet événement ? (organisateur ou détenteur de billet)
+  /// Même règle que `can_attach_event` côté base — ici c'est du confort d'UI.
+  bool _canPost(String eventId) {
+    final list = ref.watch(attachableEventsProvider).asData?.value ?? const [];
+    return list.any((e) => e['id'] == eventId);
+  }
+
+  Future<void> _shareMoment(String eventId) async {
+    await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => CreatePostScreen(initialEventId: eventId)));
+    if (!mounted) return;
+    ref.invalidate(discoverFeedProvider);
+    // Sans ca la section « Moments » de cette fiche resterait vide juste apres
+    // qu'on vient d'y publier.
+    ref.invalidate(eventPostsProvider(eventId));
+  }
+
+  /// Menu du visiteur : partager un moment, signaler, bloquer.
+  Widget _visitorMenu(Map<String, dynamic> ev) {
+    final l = AppLocalizations.of(context);
+    final organizerId = ev['created_by'] as String?;
+    return PopupMenuButton<String>(
+      color: AppColors.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      position: PopupMenuPosition.under,
+      onSelected: (v) async {
+        if (v == 'moment') {
+          await _shareMoment(ev['id'] as String);
+        } else if (v == 'report') {
+          await showReportSheet(context,
+              targetType: 'event', targetId: ev['id'] as String);
+        } else if (v == 'block' && organizerId != null) {
+          final blocked =
+              await confirmBlockUser(context, ref, userId: organizerId);
+          if (blocked && mounted) {
+            ref.invalidate(eventsProvider);
+            showAppSnack(context, l.userBlocked);
+            Navigator.of(context).pop(); // on quitte la fiche masquée
+          }
+        }
+      },
+      itemBuilder: (context) => [
+        if (_canPost(ev['id'] as String))
+          _menuItem('moment', Icons.add_a_photo_outlined, l.shareMoment),
+        _menuItem('report', Icons.flag_outlined, l.reportEvent),
+        if (organizerId != null)
+          _menuItem('block', Icons.block, l.blockOrganizer, danger: true),
       ],
       child: Container(
         width: 38,
@@ -89,7 +158,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
 
   PopupMenuItem<String> _menuItem(String value, IconData icon, String label,
       {bool danger = false}) {
-    final c = danger ? const Color(0xFFFF4B4B) : Colors.white;
+    final c = danger ? AppColors.error : Colors.white;
     return PopupMenuItem<String>(
       value: value,
       child: Row(
@@ -97,84 +166,75 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           Icon(icon, size: 18, color: c),
           const SizedBox(width: 10),
           Text(label,
-              style: GoogleFonts.inter(color: c, fontWeight: FontWeight.w600)),
+              style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: c)),
         ],
       ),
     );
   }
 
   void _confirmCancel() {
+    final l = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1535),
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Cancel this event?',
-            style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w700)),
+        title: Text(l.cancelEventTitle,
+            style: AppText.h4.copyWith(color: Colors.white)),
         content: Text(
-          'Ticket sales close and attendees will see it as cancelled. '
-          'The event and its data are kept. This can be re-published later.',
-          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.6)),
+          l.cancelEventBody,
+          style: AppText.body,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Keep',
-                style: GoogleFonts.inter(color: Colors.white.withOpacity(0.5))),
+            child: Text(l.keep,
+                style: AppText.body),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _setStatus('cancelled', 'Event cancelled');
+              _setStatus('cancelled', l.eventCancelledMsg);
             },
-            child: Text('Cancel event',
-                style: GoogleFonts.inter(
-                    color: const Color(0xFFFF4B4B),
-                    fontWeight: FontWeight.w700)),
+            child: Text(l.cancelEvent,
+                style: AppText.body.copyWith(fontWeight: FontWeight.w700, color: AppColors.error)),
           ),
         ],
       ),
     );
   }
 
+  /// Ouvre l'app Maps sur l'adresse de l'event (lieu + ville).
+  Future<void> _openDirections(Map<String, dynamic> ev) async {
+    final address = [ev['location'], ev['city']]
+        .where((s) => s != null && s.toString().trim().isNotEmpty)
+        .join(', ');
+    final ok = await openInMaps(address);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(AppLocalizations.of(context).couldNotOpenMaps)),
+      );
+    }
+  }
+
   String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'TBD';
-    final dt = DateTime.parse(dateStr);
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    if (dateStr == null) return AppLocalizations.of(context).tbd;
+    return AppDates.dowDayMonthYear(context, dateStr);
   }
 
   String _formatTime(String? dateStr) {
-    if (dateStr == null) return 'TBD';
-    final dt = DateTime.parse(dateStr);
-    final hour = dt.hour;
-    final minute = dt.minute.toString().padLeft(2, '0');
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    return '$displayHour:$minute $period';
+    if (dateStr == null) return AppLocalizations.of(context).tbd;
+    return AppDates.time(context, dateStr);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final ev = widget.event;
     final imageUrl = (ev['image_url'] ?? '') as String;
     final price = ev['price'];
-    final priceText = (price == null || price == 0) ? 'Free' : '\$$price';
+    final priceText = (price == null || price == 0) ? l.free : '\$$price';
     final cat = (ev['category'] ?? '') as String;
     final catColor = categoryColor(cat);
     final past = isEventPast(ev);
@@ -185,13 +245,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     // Un visiteur ne peut pas acheter un event terminé, annulé ou dépublié.
     final blocked = !isOrganizer && (past || _status != 'published');
     final ctaLabel = cancelled
-        ? 'Event cancelled'
+        ? l.eventCancelledMsg
         : past
-            ? 'Event ended'
-            : 'Unavailable';
+            ? l.eventEnded
+            : l.ctaUnavailable;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // ── Scrollable Content ───────────────────────────────────
@@ -209,13 +269,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
                         placeholder: (_, _) =>
-                            Container(color: const Color(0xFF1A0F3D)),
+                            Container(color: AppColors.imagePlaceholder),
                         errorWidget: (_, _, _) => Container(
-                          color: const Color(0xFF1A0F3D),
+                          color: AppColors.imagePlaceholder,
                           child: const Center(
                             child: Icon(
                               Icons.event,
-                              color: Color(0xFF7C3AED),
+                              color: AppColors.primary,
                               size: 48,
                             ),
                           ),
@@ -232,7 +292,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               Color(0x66080F0F),
                               Colors.transparent,
                               Color(0xCC08080F),
-                              Color(0xFF08080F),
+                              AppColors.background,
                             ],
                             stops: [0.0, 0.35, 0.78, 1.0],
                           ),
@@ -311,11 +371,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
-                                          content: Text('Sharing — coming soon',
-                                              style: GoogleFonts.inter(
-                                                  color: Colors.white)),
+                                          content: Text(l.sharingSoon,
+                                              style: AppText.body.copyWith(color: Colors.white)),
                                           backgroundColor:
-                                              const Color(0xFF1A1535),
+                                              AppColors.card,
                                           behavior: SnackBarBehavior.floating,
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -378,7 +437,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                                 ? Icons.favorite
                                                 : Icons.favorite_border,
                                             color: isFav
-                                                ? const Color(0xFFEC4899)
+                                                ? AppColors.pink
                                                 : Colors.white,
                                             size: 16,
                                           ),
@@ -386,6 +445,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                       );
                                     },
                                   ),
+                                  // Modération : signaler / bloquer.
+                                  // Exigé par Apple (règle 1.2) dès lors que
+                                  // les utilisateurs publient du contenu.
+                                  if (!isOrganizer) ...[
+                                    const SizedBox(width: 8),
+                                    _visitorMenu(ev),
+                                  ],
                                 ],
                               ),
                             ],
@@ -404,17 +470,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFFEC4899), Color(0xFFF97316)],
+                              colors: [AppColors.pink, AppColors.warning],
                             ),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             '🔥 ${(ev['category'] ?? 'Event') as String}',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                            style: AppText.micro.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
                           ),
                         ),
                       ),
@@ -429,11 +491,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                 horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: cancelled
-                                  ? const Color(0xFFFF4B4B).withOpacity(0.9)
+                                  ? AppColors.error.withOpacity(0.9)
                                   : Colors.black.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.2)),
+                                  color: AppColors.textFaint),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -443,15 +505,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                         ? Icons.cancel
                                         : Icons.event_busy,
                                     size: 12,
-                                    color: Colors.white.withOpacity(0.85)),
+                                    color: AppColors.textHigh),
                                 const SizedBox(width: 4),
                                 Text(
-                                  cancelled ? 'Cancelled' : 'Ended',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
+                                  cancelled ? l.statusCancelled : l.statusEnded,
+                                  style: AppText.micro.copyWith(fontWeight: FontWeight.w700, color: AppColors.textHigh),
                                 ),
                               ],
                             ),
@@ -472,12 +530,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       // Title
                       Text(
                         (ev['title'] ?? '') as String,
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          height: 1.2,
-                        ),
+                        style: AppText.display.copyWith(color: Colors.white, height: 1.2),
                       ),
 
                       const SizedBox(height: 6),
@@ -489,11 +542,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           const SizedBox(width: 6),
                           Text(
                             cat,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: catColor,
-                            ),
+                            style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: catColor),
                           ),
                         ],
                       ),
@@ -508,12 +557,41 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Location
+                      // Location — cliquable : ouvre l'app Maps (itinéraire).
                       _infoRow(
                         Icons.location_on_outlined,
                         (ev['location'] ?? 'TBD') as String,
                         (ev['city'] ?? '') as String,
+                        onTap: () => _openDirections(ev),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: AppColors.primary.withOpacity(0.35)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.directions,
+                                  color: AppColors.lavenderLight, size: 15),
+                              const SizedBox(width: 5),
+                              Text(
+                                l.getDirections,
+                                style: AppText.smallBold.copyWith(color: AppColors.lavenderLight),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
+
+                      // Preuve sociale, placee au moment de la decision.
+                      WhosGoing(eventId: ev['id'] as String),
+
+                      // Preuve visuelle : ce que l'evenement a donne.
+                      EventMoments(eventId: ev['id'] as String),
 
                       const SizedBox(height: 24),
 
@@ -521,21 +599,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       if (ev['description'] != null &&
                           (ev['description'] as String).isNotEmpty) ...[
                         Text(
-                          'About this event',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                          l.aboutThisEvent,
+                          style: AppText.h2.copyWith(fontSize: 16, color: Colors.white),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           ev['description'] as String,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: Colors.white.withOpacity(0.55),
-                            height: 1.6,
-                          ),
+                          style: AppText.body.copyWith(height: 1.6),
                         ),
                         const SizedBox(height: 20),
                       ],
@@ -548,7 +618,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           _tag(ev['category'] ?? 'Event'),
                           if ((ev['city'] ?? '').toString().isNotEmpty)
                             _tag(ev['city']),
-                          if ((ev['price'] ?? 0) == 0) _tag('Free Entry'),
+                          if ((ev['price'] ?? 0) == 0) _tag(l.freeEntry),
+                          if (((ev['min_age'] ?? 0) as int) > 0)
+                            _tag('${ev['min_age']}+'),
                         ],
                       ),
                     ],
@@ -575,8 +647,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFF08080F).withOpacity(0),
-                    const Color(0xFF08080F),
+                    AppColors.background.withOpacity(0),
+                    AppColors.background,
                   ],
                 ),
               ),
@@ -592,19 +664,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Starting from',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: Colors.white.withOpacity(0.38),
-                          ),
+                          l.startingFrom,
+                          style: AppText.small,
                         ),
                         Text(
                           priceText,
-                          style: GoogleFonts.poppins(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
+                          style: AppText.display.copyWith(fontSize: 26, color: Colors.white),
                         ),
                       ],
                     ),
@@ -632,8 +697,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               ? null
                               : const LinearGradient(
                                   colors: [
-                                    Color(0xFF7C3AED),
-                                    Color(0xFFEC4899)
+                                    AppColors.primary,
+                                    AppColors.pink
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -644,7 +709,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               ? null
                               : [
                                   BoxShadow(
-                                    color: const Color(0xFF7C3AED)
+                                    color: AppColors.primary
                                         .withOpacity(0.55),
                                     blurRadius: 20,
                                     offset: const Offset(0, 6),
@@ -661,23 +726,25 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                       ? Icons.qr_code_scanner
                                       : Icons.confirmation_number_outlined,
                               color: blocked
-                                  ? Colors.white.withOpacity(0.5)
+                                  ? AppColors.textMed
                                   : Colors.white,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              blocked
-                                  ? ctaLabel
-                                  : isOrganizer
-                                      ? 'Scan tickets'
-                                      : 'Get Tickets',
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: blocked
-                                    ? Colors.white.withOpacity(0.5)
-                                    : Colors.white,
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  blocked
+                                      ? ctaLabel
+                                      : isOrganizer
+                                          ? l.scanTickets
+                                          : l.getTickets,
+                                  maxLines: 1,
+                                  style: AppText.h3.copyWith(color: blocked
+                                        ? AppColors.textMed
+                                        : Colors.white),
+                                ),
                               ),
                             ),
                             if (!blocked) ...[
@@ -704,8 +771,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     );
   }
 
-  Widget _infoRow(IconData icon, String top, String bottom) {
-    return Container(
+  Widget _infoRow(IconData icon, String top, String bottom,
+      {VoidCallback? onTap, Widget? trailing}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.04),
@@ -718,10 +788,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF7C3AED).withOpacity(0.15),
+              color: AppColors.primary.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: const Color(0xFFC4B5FD), size: 18),
+            child: Icon(icon, color: AppColors.lavenderLight, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -730,11 +800,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               children: [
                 Text(
                   top,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: AppText.bodySm.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -742,10 +808,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   const SizedBox(height: 2),
                   Text(
                     bottom,
-                    style: GoogleFonts.inter(
-                      fontSize: 11.5,
-                      color: Colors.white.withOpacity(0.5),
-                    ),
+                    style: AppText.caption.copyWith(fontSize: 11.5),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -753,7 +816,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               ],
             ),
           ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing,
+          ],
         ],
+      ),
       ),
     );
   }
@@ -762,17 +830,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF7C3AED).withOpacity(0.13),
+        color: AppColors.primary.withOpacity(0.13),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF7C3AED).withOpacity(0.28)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.28)),
       ),
       child: Text(
         '#$label',
-        style: GoogleFonts.inter(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFC4B5FD),
-        ),
+        style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: AppColors.lavenderLight),
       ),
     );
   }

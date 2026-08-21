@@ -13,6 +13,12 @@ String eventStatus(Map<String, dynamic> event) =>
 bool isEventCancelled(Map<String, dynamic> event) =>
     eventStatus(event) == 'cancelled';
 
-/// Visible dans la découverte (Home/Discover) : publié ET pas terminé.
+bool isEventPrivate(Map<String, dynamic> event) =>
+    (event['visibility'] ?? 'public') == 'private';
+
+/// Visible dans la découverte (Home/Discover) : publié, pas terminé, ET public.
+/// Un event privé n'apparaît jamais dans les feeds — seulement via son code.
 bool isEventVisible(Map<String, dynamic> event) =>
-    eventStatus(event) == 'published' && !isEventPast(event);
+    eventStatus(event) == 'published' &&
+    !isEventPast(event) &&
+    !isEventPrivate(event);

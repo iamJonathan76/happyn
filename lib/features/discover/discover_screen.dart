@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/providers/attendance_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
+import 'package:happyn/features/events/join_private_event_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -54,7 +58,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
     // Category/quick filter
     if (_activeFilter != 'All') {
-      if (_activeFilter == 'Free') {
+      if (_activeFilter == 'Connections') {
+        // Croise avec les evenements deja lisibles : un evenement prive
+        // inaccessible ne peut donc pas apparaitre, meme si une connexion y va.
+        final ids = ref.watch(connectionEventIdsProvider).asData?.value ??
+            const <String>{};
+        result = result.where((ev) => ids.contains(ev['id'])).toList();
+      } else if (_activeFilter == 'Free') {
         result = result.where((ev) => (ev['price'] ?? 0) == 0).toList();
       } else if (_activeFilter == 'Tonight') {
         final now = DateTime.now();
@@ -85,13 +95,36 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     await ref.read(eventsProvider.future);
   }
 
+  /// Libellé affiché d'un filtre (les clés internes restent 'All'/'Tonight'/'Free').
+  String _filterLabel(String f, AppLocalizations l) {
+    switch (f) {
+      case 'All':
+        return l.categoryAll;
+      case 'Connections':
+        return l.filterMyConnections;
+      case 'Tonight':
+        return l.filterTonight;
+      case 'Free':
+        return l.free;
+      default:
+        return f; // nom de catégorie (non traduit)
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final eventsAsync = ref.watch(eventsProvider);
-    _filters = ['All', 'Tonight', 'Free', ...ref.watch(categoryNamesProvider)];
+    _filters = [
+      'All',
+      'Connections',
+      'Tonight',
+      'Free',
+      ...ref.watch(categoryNamesProvider)
+    ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
@@ -99,13 +132,42 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           // ── Header ──────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Text(
-              'Discover',
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  l.discoverTitle,
+                  style: AppText.display.copyWith(color: Colors.white),
+                ),
+                const Spacer(),
+                // Accès aux events privés via code d'invitation
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const JoinPrivateEventScreen()),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border:
+                          Border.all(color: Colors.white.withOpacity(0.1)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.vpn_key,
+                            size: 14, color: AppColors.lavenderLight),
+                        const SizedBox(width: 6),
+                        Text(
+                          l.haveACode,
+                          style: AppText.captionBold,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -126,23 +188,17 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   const SizedBox(width: 14),
                   Icon(
                     Icons.search,
-                    color: Colors.white.withOpacity(0.38),
+                    color: AppColors.textLow,
                     size: 18,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
                       controller: _searchController,
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
+                      style: AppText.bodySm.copyWith(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: 'Events, venues, artists...',
-                        hintStyle: GoogleFonts.inter(
-                          color: Colors.white.withOpacity(0.28),
-                          fontSize: 13,
-                        ),
+                        hintText: l.searchHintDiscover,
+                        hintStyle: AppText.bodySm.copyWith(color: AppColors.textFaint),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -158,7 +214,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         padding: const EdgeInsets.only(right: 12),
                         child: Icon(
                           Icons.close,
-                          color: Colors.white.withOpacity(0.38),
+                          color: AppColors.textLow,
                           size: 16,
                         ),
                       ),
@@ -192,7 +248,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     decoration: BoxDecoration(
                       gradient: isActive
                           ? const LinearGradient(
-                              colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                              colors: [AppColors.primary, AppColors.pink],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             )
@@ -205,23 +261,17 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       boxShadow: isActive
                           ? [
                               BoxShadow(
-                                color: const Color(
-                                  0xFF7C3AED,
-                                ).withOpacity(0.55),
+                                color: AppColors.primary.withOpacity(0.55),
                                 blurRadius: 10,
                               ),
                             ]
                           : null,
                     ),
                     child: Text(
-                      f,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
+                      _filterLabel(f, l),
+                      style: AppText.smallBold.copyWith(color: isActive
                             ? Colors.white
-                            : Colors.white.withOpacity(0.42),
-                      ),
+                            : AppColors.textLow),
                     ),
                   ),
                 );
@@ -235,22 +285,19 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           Expanded(
             child: eventsAsync.when(
               loading: () => const Center(
-                child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
               error: (err, _) => Center(
                 child: Text(
-                  'Could not load events',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.35),
-                  ),
+                  l.couldNotLoadEvents,
+                  style: AppText.body.copyWith(color: AppColors.textLow),
                 ),
               ),
               data: (allEvents) {
                 final filtered = _applyFilters(allEvents);
                 return RefreshIndicator(
-                  color: const Color(0xFF7C3AED),
-                  backgroundColor: const Color(0xFF1A1535),
+                  color: AppColors.primary,
+                  backgroundColor: AppColors.card,
                   onRefresh: _refresh,
                   child: Column(
                     children: [
@@ -261,19 +308,17 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         child: Row(
                           children: [
                             Text(
-                              '${filtered.length} event${filtered.length != 1 ? 's' : ''} found',
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withOpacity(0.4),
-                              ),
+                              l.eventsFound(filtered.length),
+                              style: AppText.captionBold.copyWith(color: AppColors.textLow),
                             ),
                           ],
                         ),
                       ),
                       Expanded(
                         child: filtered.isEmpty
-                            ? _buildEmptyState()
+                            ? (_activeFilter == 'Connections'
+                                ? _buildNoConnectionEvents(l)
+                                : _buildEmptyState())
                             : ListView.builder(
                                 physics:
                                     const AlwaysScrollableScrollPhysics(),
@@ -295,7 +340,41 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     );
   }
 
+  /// Vide sur « Mes connexions » : le message generique (« aucun resultat »)
+  /// laisserait croire a un bug, alors que c'est l'etat normal au depart —
+  /// personne ne se suit encore, et la presence n'est visible que sur decision
+  /// explicite de chacun.
+  Widget _buildNoConnectionEvents(AppLocalizations l) {
+    return ListView(
+      children: [
+        SizedBox(
+          height: 360,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.group_outlined,
+                      size: 52, color: AppColors.textFaint),
+                  const SizedBox(height: 16),
+                  Text(
+                    l.noConnectionEvents,
+                    textAlign: TextAlign.center,
+                    style: AppText.body
+                        .copyWith(color: AppColors.textLow, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildEmptyState() {
+    final l = AppLocalizations.of(context);
     return ListView(
       // ListView (pas Center) pour que le RefreshIndicator marche
       // même quand la liste est vide
@@ -309,25 +388,19 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 Icon(
                   Icons.search_off,
                   size: 52,
-                  color: Colors.white.withOpacity(0.15),
+                  color: AppColors.textFaint,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   _searchQuery.isNotEmpty
-                      ? 'No results for "$_searchQuery"'
-                      : 'No events in this category yet',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.35),
-                  ),
+                      ? l.noResultsFor(_searchQuery)
+                      : l.noEventsInCategory,
+                  style: AppText.body.copyWith(color: AppColors.textLow),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Try a different search or filter',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.2),
-                  ),
+                  l.tryDifferentSearch,
+                  style: AppText.caption.copyWith(color: AppColors.textFaint),
                 ),
               ],
             ),

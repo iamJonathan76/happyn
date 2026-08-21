@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -48,37 +50,40 @@ class NotificationsScreen extends ConsumerWidget {
   (IconData, Color) _visual(String type) {
     switch (type) {
       case 'ticket_confirmed':
-        return (Icons.confirmation_number, const Color(0xFF34D399));
+        return (Icons.confirmation_number, AppColors.green);
+      case 'ticket_received':
+        return (Icons.card_giftcard, AppColors.green);
       case 'event_cancelled':
-        return (Icons.cancel, const Color(0xFFFF4B4B));
+        return (Icons.cancel, AppColors.error);
       case 'event_updated':
-        return (Icons.edit_calendar, const Color(0xFFFBBF24));
+        return (Icons.edit_calendar, AppColors.amber);
       default:
-        return (Icons.notifications, const Color(0xFFA78BFA));
+        return (Icons.notifications, AppColors.lavender);
     }
   }
 
-  String _ago(String? iso) {
+  String _ago(String? iso, AppLocalizations l) {
     if (iso == null) return '';
     final dt = DateTime.tryParse(iso);
     if (dt == null) return '';
     final d = DateTime.now().difference(dt);
-    if (d.inMinutes < 1) return 'now';
-    if (d.inMinutes < 60) return '${d.inMinutes}m';
-    if (d.inHours < 24) return '${d.inHours}h';
-    if (d.inDays < 7) return '${d.inDays}d';
-    return '${(d.inDays / 7).floor()}w';
+    if (d.inMinutes < 1) return l.timeNow;
+    if (d.inMinutes < 60) return l.timeMinutesShort(d.inMinutes);
+    if (d.inHours < 24) return l.timeHoursShort(d.inHours);
+    if (d.inDays < 7) return l.timeDaysShort(d.inDays);
+    return l.timeWeeksShort((d.inDays / 7).floor());
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final async = ref.watch(notificationsProvider);
     final unread = ref.watch(unreadCountProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF08080F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
@@ -86,37 +91,29 @@ class NotificationsScreen extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Notifications',
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          l.notificationsTitle,
+          style: AppText.h2.copyWith(color: Colors.white),
         ),
         actions: [
           if (unread > 0)
             TextButton(
               onPressed: () => _markAllRead(ref),
               child: Text(
-                'Mark all read',
-                style: GoogleFonts.inter(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFA78BFA),
-                ),
+                l.markAllRead,
+                style: AppText.captionBold.copyWith(fontSize: 12.5, color: AppColors.lavender),
               ),
             ),
         ],
       ),
       body: async.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C3AED))),
-        error: (_, __) => _empty(),
+            child: CircularProgressIndicator(color: AppColors.primary)),
+        error: (_, __) => _empty(l),
         data: (list) {
-          if (list.isEmpty) return _empty();
+          if (list.isEmpty) return _empty(l);
           return RefreshIndicator(
-            color: const Color(0xFF7C3AED),
-            backgroundColor: const Color(0xFF1A1535),
+            color: AppColors.primary,
+            backgroundColor: AppColors.card,
             onRefresh: () async {
               ref.invalidate(notificationsProvider);
               await ref.read(notificationsProvider.future);
@@ -136,6 +133,7 @@ class NotificationsScreen extends ConsumerWidget {
 
   Widget _tile(
       BuildContext context, WidgetRef ref, Map<String, dynamic> n) {
+    final l = AppLocalizations.of(context);
     final type = (n['type'] ?? '') as String;
     final (icon, color) = _visual(type);
     final unread = n['read'] == false;
@@ -191,42 +189,27 @@ class NotificationsScreen extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           (n['title'] ?? '') as String,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                          style: AppText.h4.copyWith(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
                         ),
                       ),
                       Text(
-                        _ago(n['created_at'] as String?),
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          color: Colors.white.withOpacity(0.4),
-                        ),
+                        _ago(n['created_at'] as String?, l),
+                        style: AppText.micro,
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     (n['body'] ?? '') as String,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      height: 1.45,
-                      color: Colors.white.withOpacity(0.62),
-                    ),
+                    style: AppText.caption.copyWith(height: 1.45),
                   ),
                   if (eventId != null) ...[
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         Text(
-                          'View event',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: color,
-                          ),
+                          l.viewEvent,
+                          style: AppText.smallBold.copyWith(color: color),
                         ),
                         Icon(Icons.chevron_right, size: 14, color: color),
                       ],
@@ -252,7 +235,7 @@ class NotificationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _empty() => Center(
+  Widget _empty(AppLocalizations l) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -264,25 +247,18 @@ class NotificationsScreen extends ConsumerWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.notifications_none,
-                  size: 42, color: Colors.white.withOpacity(0.25)),
+                  size: 42, color: AppColors.textFaint),
             ),
             const SizedBox(height: 18),
             Text(
-              "You're all caught up",
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.white.withOpacity(0.7),
-              ),
+              l.allCaughtUp,
+              style: AppText.h3.copyWith(color: AppColors.textMed),
             ),
             const SizedBox(height: 6),
             Text(
-              'Cancellations and event changes will show up here.',
+              l.notifEmptyBody,
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: Colors.white.withOpacity(0.3),
-              ),
+              style: AppText.caption.copyWith(color: AppColors.textLow),
             ),
           ],
         ),

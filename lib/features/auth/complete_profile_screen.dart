@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 
@@ -79,6 +82,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
           'id': user.id,
           'email': user.email,
           'full_name': user.userMetadata?['full_name'],
+          'date_of_birth': user.userMetadata?['date_of_birth'],
           'onboarded': true,
         });
       } catch (_) {}
@@ -101,6 +105,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         'id': user.id,
         'email': user.email,
         'full_name': user.userMetadata?['full_name'],
+        'date_of_birth': user.userMetadata?['date_of_birth'],
         if (avatarUrl != null) 'avatar_url': avatarUrl,
         'city': _cityController.text.trim(),
         'bio': _bioController.text.trim(),
@@ -111,16 +116,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       if (mounted) _goHome();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not save. You can do it later in settings.',
-                style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: const Color(0xFF1A1535),
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+        showAppSnack(context, AppLocalizations.of(context).couldNotSaveLater);
         setState(() => _saving = false);
       }
     }
@@ -128,10 +124,11 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final categories = ref.watch(categoryNamesProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -142,22 +139,14 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Complete your profile',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+                    l.completeYourProfile,
+                    style: AppText.h1.copyWith(color: Colors.white),
                   ),
                   TextButton(
                     onPressed: _saving ? null : _skip,
                     child: Text(
-                      'Skip',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFFA78BFA),
-                      ),
+                      l.skip,
+                      style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.lavender),
                     ),
                   ),
                 ],
@@ -168,11 +157,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Optional — you can do this later in settings.',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.4),
-                  ),
+                  l.optionalDoLater,
+                  style: AppText.caption.copyWith(color: AppColors.textLow),
                 ),
               ),
             ),
@@ -194,7 +180,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
-                                colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                                colors: [AppColors.primary, AppColors.pink],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -206,15 +192,11 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                   : Container(
                                       width: 98,
                                       height: 98,
-                                      color: const Color(0xFF1A1535),
+                                      color: AppColors.card,
                                       child: Center(
                                         child: Text(
                                           _initials,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                          ),
+                                          style: AppText.display.copyWith(fontSize: 32, color: Colors.white),
                                         ),
                                       ),
                                     ),
@@ -226,10 +208,10 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7C3AED),
+                                color: AppColors.primary,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: const Color(0xFF08080F), width: 2),
+                                    color: AppColors.background, width: 2),
                               ),
                               child: const Icon(Icons.camera_alt,
                                   color: Colors.white, size: 14),
@@ -242,17 +224,17 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   const SizedBox(height: 28),
 
                   // City
-                  _label('City'),
+                  AppLabel(l.cityLabel),
                   TextField(
                     controller: _cityController,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration:
-                        _dec('e.g. Ottawa, ON', Icons.location_city_outlined),
+                        appInputDecoration(l.cityHintShort, icon: Icons.location_city_outlined),
                   ),
                   const SizedBox(height: 20),
 
                   // Interests
-                  _label('Interests'),
+                  AppLabel(l.interestsLabel),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -288,17 +270,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                   size: 13,
                                   color: selected
                                       ? color
-                                      : Colors.white.withOpacity(0.5)),
+                                      : AppColors.textMed),
                               const SizedBox(width: 5),
                               Text(
                                 c,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: selected
+                                style: AppText.captionBold.copyWith(color: selected
                                       ? Colors.white
-                                      : Colors.white.withOpacity(0.55),
-                                ),
+                                      : AppColors.textMed),
                               ),
                             ],
                           ),
@@ -309,15 +287,14 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   const SizedBox(height: 20),
 
                   // Bio
-                  _label('Bio'),
+                  AppLabel(l.bioLabel),
                   TextField(
                     controller: _bioController,
                     maxLines: 3,
                     maxLength: 160,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: _dec('A few words about you...', null)
-                        .copyWith(counterStyle: GoogleFonts.inter(
-                            color: Colors.white.withOpacity(0.3), fontSize: 10)),
+                    decoration: appInputDecoration(l.bioHint)
+                        .copyWith(counterStyle: AppText.micro),
                   ),
                 ],
               ),
@@ -333,7 +310,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   height: 54,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                      colors: [AppColors.primary, AppColors.pink],
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -346,12 +323,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                                 color: Colors.white, strokeWidth: 2),
                           )
                         : Text(
-                            'Save & Continue',
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                            l.saveAndContinue,
+                            style: AppText.h3.copyWith(color: Colors.white),
                           ),
                   ),
                 ),
@@ -363,38 +336,4 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     );
   }
 
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          text,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.6),
-          ),
-        ),
-      );
-
-  InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
-        hintText: hint,
-        hintStyle: GoogleFonts.inter(
-            color: Colors.white.withOpacity(0.25), fontSize: 14),
-        prefixIcon: icon == null
-            ? null
-            : Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.055),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
-        ),
-      );
-}
+    }

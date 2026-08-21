@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/dates.dart';
 
 /// Carte d'event en ligne (vignette + badge date + titre + lieu + cœur/prix).
 /// Partagée par le Home (« Popular near you ») et Discover. Le cœur est
@@ -13,14 +16,10 @@ class EventListCard extends ConsumerWidget {
   final Map<String, dynamic> event;
   const EventListCard({super.key, required this.event});
 
-  (String, String) _dateParts(String? s) {
-    if (s == null) return ('', '');
-    final dt = DateTime.parse(s);
-    const m = [
-      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
-    ];
-    return (m[dt.month - 1], dt.day.toString());
+  (String, String) _dateParts(BuildContext context, String? s) {
+    final dt = s == null ? null : DateTime.tryParse(s);
+    if (dt == null) return ('', '');
+    return (AppDates.monthBadge(context, s), dt.day.toString());
   }
 
   @override
@@ -29,9 +28,9 @@ class EventListCard extends ConsumerWidget {
     final eventId = ev['id'] as String;
     final cat = (ev['category'] ?? '') as String;
     final color = categoryColor(cat);
-    final (mon, day) = _dateParts(ev['start_date'] as String?);
+    final (mon, day) = _dateParts(context, ev['start_date'] as String?);
     final priceText = (ev['price'] == 0 || ev['price'] == null)
-        ? 'Free'
+        ? AppLocalizations.of(context).free
         : '\$${ev['price']}';
     final city = (ev['city'] ?? '') as String;
     final venue = (ev['location'] ?? '') as String;
@@ -65,11 +64,11 @@ class EventListCard extends ConsumerWidget {
                       imageUrl: (ev['image_url'] ?? '') as String,
                       fit: BoxFit.cover,
                       placeholder: (_, _) =>
-                          Container(color: const Color(0xFF1A0F3D)),
+                          Container(color: AppColors.imagePlaceholder),
                       errorWidget: (_, _, _) => Container(
-                        color: const Color(0xFF1A0F3D),
+                        color: AppColors.imagePlaceholder,
                         child: Icon(categoryIcon(cat),
-                            color: const Color(0xFF7C3AED), size: 22),
+                            color: AppColors.primary, size: 22),
                       ),
                     ),
                   ),
@@ -83,11 +82,7 @@ class EventListCard extends ConsumerWidget {
                       child: Text(
                         '$mon $day',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
+                        style: AppText.microBold.copyWith(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white),
                       ),
                     ),
                   ),
@@ -105,11 +100,7 @@ class EventListCard extends ConsumerWidget {
                     (ev['title'] ?? '') as String,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                    style: AppText.h5.copyWith(color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -121,10 +112,7 @@ class EventListCard extends ConsumerWidget {
                           venue.isNotEmpty ? venue : cat,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: Colors.white.withOpacity(0.55),
-                          ),
+                          style: AppText.small.copyWith(color: AppColors.textMed),
                         ),
                       ),
                     ],
@@ -135,10 +123,7 @@ class EventListCard extends ConsumerWidget {
                       city,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        color: Colors.white.withOpacity(0.38),
-                      ),
+                      style: AppText.micro,
                     ),
                   ],
                 ],
@@ -158,19 +143,15 @@ class EventListCard extends ConsumerWidget {
                   child: Icon(
                     isFav ? Icons.favorite : Icons.favorite_border,
                     color: isFav
-                        ? const Color(0xFFEC4899)
-                        : Colors.white.withOpacity(0.35),
+                        ? AppColors.pink
+                        : AppColors.textLow,
                     size: 18,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   priceText,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFFC4B5FD),
-                  ),
+                  style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.lavenderLight),
                 ),
               ],
             ),

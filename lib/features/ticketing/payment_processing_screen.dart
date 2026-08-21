@@ -1,12 +1,14 @@
 import 'dart:async';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'qr_ticket_screen.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 /// Après un paiement réussi, l'émission du ticket se fait côté serveur (webhook
 /// Stripe), donc de façon asynchrone. Cet écran poll la table `tickets` jusqu'à
@@ -89,7 +91,7 @@ class _PaymentProcessingScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -100,60 +102,47 @@ class _PaymentProcessingScreenState
   }
 
   Widget _loadingView() {
+    final l = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(
           width: 56,
           height: 56,
-          child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
         const SizedBox(height: 28),
         Text(
-          'Payment received ✓',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          l.paymentReceived,
+          style: AppText.h2.copyWith(fontSize: 18, color: Colors.white),
         ),
         const SizedBox(height: 8),
         Text(
-          'Issuing your ticket…',
+          l.issuingTicket,
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.5),
-          ),
+          style: AppText.body,
         ),
       ],
     );
   }
 
   Widget _timeoutView() {
+    final l = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         const Icon(Icons.hourglass_bottom,
-            color: Color(0xFFF97316), size: 64),
+            color: AppColors.warning, size: 64),
         const SizedBox(height: 20),
         Text(
-          'Almost there',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          l.almostThere,
+          style: AppText.h2.copyWith(fontSize: 18, color: Colors.white),
         ),
         const SizedBox(height: 8),
         Text(
-          'Your payment went through. Your ticket is taking a little longer '
-          'than usual — it will appear in “My Tickets” shortly.',
+          l.paymentDelayBody,
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.5),
-          ),
+          style: AppText.body,
         ),
         const SizedBox(height: 28),
         GestureDetector(
@@ -164,17 +153,13 @@ class _PaymentProcessingScreenState
                 const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                colors: [AppColors.primary, AppColors.pink],
               ),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
-              'Back to Home',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+              l.backToHome,
+              style: AppText.h3.copyWith(color: Colors.white),
             ),
           ),
         ),

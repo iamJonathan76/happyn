@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 
 /// Édition du profil : nom + photo (avatar). Stockés dans les user metadata
 /// Supabase (`full_name`, `avatar_url`) et synchronisés dans la table profiles.
@@ -94,9 +97,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _save() async {
+    final l = AppLocalizations.of(context);
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      _snack('Please enter your name');
+      showAppSnack(context, l.errEnterName);
       return;
     }
 
@@ -120,35 +124,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       });
 
       if (mounted) {
-        _snack('Profile updated ✓');
+        showAppSnack(context, l.profileUpdated);
         Navigator.of(context).pop(true);
       }
     } catch (e) {
-      _snack('Could not save. Please try again.');
+      showAppSnack(context, l.couldNotSaveRetry);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  void _snack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A1535),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  @override
+    @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final email = _supabase.auth.currentUser?.email ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF08080F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
@@ -156,12 +150,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Edit Profile',
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          l.editProfile,
+          style: AppText.h2.copyWith(color: Colors.white),
         ),
       ),
       body: ListView(
@@ -180,7 +170,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                        colors: [AppColors.primary, AppColors.pink],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -193,10 +183,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C3AED),
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: const Color(0xFF08080F), width: 2),
+                            color: AppColors.background, width: 2),
                       ),
                       child: const Icon(Icons.camera_alt,
                           color: Colors.white, size: 14),
@@ -209,43 +199,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 6),
           Center(
             child: Text(
-              'Tap to change photo',
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: Colors.white.withOpacity(0.35),
-              ),
+              l.tapToChangePhoto,
+              style: AppText.small,
             ),
           ),
           const SizedBox(height: 24),
 
-          _label('Full Name'),
+          AppLabel(l.fullNameLabel),
           TextField(
             controller: _nameController,
             onChanged: (_) => setState(() {}), // maj des initiales du placeholder
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec('Your name', Icons.person_outline),
+            decoration: appInputDecoration(l.yourNameHint, icon: Icons.person_outline),
           ),
           const SizedBox(height: 16),
-          _label('City'),
+          AppLabel(l.cityLabel),
           TextField(
             controller: _cityController,
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec('e.g. Ottawa, ON', Icons.location_city_outlined),
+            decoration: appInputDecoration(l.cityHintShort, icon: Icons.location_city_outlined),
           ),
           const SizedBox(height: 16),
-          _label('Bio'),
+          AppLabel(l.bioLabel),
           TextField(
             controller: _bioController,
             maxLines: 3,
             maxLength: 160,
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: _dec('A few words about you...', null).copyWith(
-              counterStyle: GoogleFonts.inter(
-                  color: Colors.white.withOpacity(0.3), fontSize: 10),
+            decoration: appInputDecoration(l.bioHint).copyWith(
+              counterStyle: AppText.micro,
             ),
           ),
           const SizedBox(height: 16),
-          _label('Email'),
+          AppLabel(l.emailLabel),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -256,25 +242,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Row(
               children: [
                 Icon(Icons.mail_outline,
-                    color: Colors.white.withOpacity(0.3), size: 18),
+                    color: AppColors.textLow, size: 18),
                 const SizedBox(width: 12),
                 Text(
                   email,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.5),
-                  ),
+                  style: AppText.body,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            'Email changes are coming soon.',
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: Colors.white.withOpacity(0.3),
-            ),
+            l.emailChangesSoon,
+            style: AppText.small,
           ),
           const SizedBox(height: 32),
           GestureDetector(
@@ -283,7 +263,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               height: 54,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                  colors: [AppColors.primary, AppColors.pink],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -296,12 +276,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: Colors.white, strokeWidth: 2),
                       )
                     : Text(
-                        'Save Changes',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                        l.saveChanges,
+                        style: AppText.h3.copyWith(color: Colors.white),
                       ),
               ),
             ),
@@ -331,51 +307,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _initialsCircle() => Container(
         width: 98,
         height: 98,
-        color: const Color(0xFF1A1535),
+        color: AppColors.card,
         child: Center(
           child: Text(
             _initials,
-            style: GoogleFonts.poppins(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
+            style: AppText.display.copyWith(fontSize: 32, color: Colors.white),
           ),
         ),
       );
 
-  Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          text,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.6),
-          ),
-        ),
-      );
-
-  InputDecoration _dec(String hint, IconData? icon) => InputDecoration(
-        hintText: hint,
-        hintStyle:
-            GoogleFonts.inter(color: Colors.white.withOpacity(0.25), fontSize: 14),
-        prefixIcon: icon == null
-            ? null
-            : Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.055),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
-        ),
-      );
-}
+    }

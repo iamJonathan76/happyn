@@ -1,12 +1,21 @@
 import 'dart:io';
+import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/theme/app_colors.dart';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/utils/age.dart';
+import 'widgets/ticket_tier.dart';
+import 'widgets/ticket_tier_card.dart';
+import 'widgets/invite_code_dialog.dart';
+import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
@@ -25,7 +34,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _cityController = TextEditingController();
   // Tiers de billets : 1 par défaut (« General Admission »), l'organisateur
   // peut en ajouter d'autres (VIP, Early Bird…).
-  final List<_TicketTier> _tiers = [_TicketTier(name: 'General Admission')];
+  final List<TicketTier> _tiers = [TicketTier(name: 'General Admission')];
 
   XFile? _pickedImage;
 
@@ -33,6 +42,19 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   DateTime _startDate = DateTime.now().add(const Duration(days: 1));
   DateTime _endDate = DateTime.now().add(const Duration(days: 1, hours: 3));
   bool _isLoading = false;
+
+  /// Event privé : non listé dans la découverte, accessible seulement via code.
+  bool _isPrivate = false;
+  /// Code existant (mode édition) pour ne pas en regénérer un inutilement.
+  String? _existingCode;
+
+  /// Les photos d'un evenement prive sont-elles publiques ?
+  ///
+  /// Faux par defaut : exposer sa soiree doit etre un oui explicite. Un
+  /// evenement public n'a pas la question — tout y est public.
+  bool _postsPublic = false;
+  /// Exigence d'âge (0 = All Ages, sinon 14/16/18/21).
+  int _minAge = 0;
 
   bool get _isEditing => widget.event != null;
 
@@ -46,6 +68,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       _locationController.text = (ev['location'] ?? '') as String;
       _cityController.text = (ev['city'] ?? '') as String;
       _selectedCategory = (ev['category'] ?? 'Music') as String;
+      _isPrivate = (ev['visibility'] ?? 'public') == 'private';
+      _existingCode = ev['access_code'] as String?;
+      _postsPublic = (ev['posts_visibility'] ?? 'public') == 'public';
+      _minAge = (ev['min_age'] ?? 0) as int;
       if (ev['start_date'] != null) {
         _startDate = DateTime.parse(ev['start_date'] as String);
       }
@@ -72,7 +98,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         }
         _tiers
           ..clear()
-          ..addAll(list.map((t) => _TicketTier(
+          ..addAll(list.map((t) => TicketTier(
                 id: t['id'] as String,
                 name: (t['name'] ?? '') as String,
                 price: (t['price'] ?? 0).toString(),
@@ -99,103 +125,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     super.dispose();
   }
 
-  void _addTier() => setState(() => _tiers.add(_TicketTier()));
+  void _addTier() => setState(() => _tiers.add(TicketTier()));
 
   void _removeTier(int i) => setState(() => _tiers.removeAt(i).dispose());
 
-  Widget _tierCard(int i) {
-    final tier = _tiers[i];
-    return Container(
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.09)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: tier.nameController,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDec(
-                      'Tier name (e.g. VIP)', Icons.local_activity_outlined),
-                ),
-              ),
-              // Supprimer : seulement les tiers nouveaux (pas ceux qui existent
-              // déjà en base, pour ne pas casser des ventes).
-              if (tier.id == null && _tiers.length > 1) ...[
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _removeTier(i),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF4B4B).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.close,
-                        color: Color(0xFFFF4B4B), size: 18),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          if (tier.quantitySold > 0) ...[
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '${tier.quantitySold} sold · min quantity ${tier.quantitySold}',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  color: const Color(0xFFA78BFA),
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: tier.priceController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDec('0 = free', Icons.attach_money),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  controller: tier.quantityController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDec(
-                      'Qty e.g. 100', Icons.confirmation_number_outlined),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  controller: tier.maxPerOrderController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration:
-                      _inputDec('Max/person (0=∞)', Icons.person_outline),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _pickDate({required bool isStart}) async {
+    Future<void> _pickDate({required bool isStart}) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: isStart ? _startDate : _endDate,
@@ -205,8 +139,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         return Theme(
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF7C3AED),
-              surface: Color(0xFF1A1535),
+              primary: AppColors.primary,
+              surface: AppColors.card,
             ),
           ),
           child: child!,
@@ -221,8 +155,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           return Theme(
             data: ThemeData.dark().copyWith(
               colorScheme: const ColorScheme.dark(
-                primary: Color(0xFF7C3AED),
-                surface: Color(0xFF1A1535),
+                primary: AppColors.primary,
+                surface: AppColors.card,
               ),
             ),
             child: child!,
@@ -275,36 +209,44 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Future<void> _createEvent() async {
+    final l = AppLocalizations.of(context);
+    // Gate 18+ : organiser un event requiert la majorité. Soft : si l'âge est
+    // inconnu (ancien compte sans date de naissance), on laisse passer.
+    final age = currentUserAge();
+    if (age != null && age < kMinOrganizerAge) {
+      showAppSnack(context, l.mustBeOrganizerAge(kMinOrganizerAge));
+      return;
+    }
     if (_titleController.text.trim().isEmpty) {
-      _showSnack('Please enter a title');
+      showAppSnack(context, l.errEnterTitle);
       return;
     }
     if (_locationController.text.trim().isEmpty) {
-      _showSnack('Please enter a location');
+      showAppSnack(context, l.errEnterLocation);
       return;
     }
     if (_cityController.text.trim().isEmpty) {
-      _showSnack('Please enter a city');
+      showAppSnack(context, l.errEnterCity);
       return;
     }
 
     // ── Mode ÉDITION : infos de l'event + tiers (update/insert) ─────────────
     if (_isEditing) {
       // Construit et valide les tiers
-      final editTiers = <_TicketTier>[];
+      final editTiers = <TicketTier>[];
       for (final t in _tiers) {
         final name = t.nameController.text.trim();
         final qty = int.tryParse(t.quantityController.text) ?? 0;
         if (name.isEmpty || qty <= 0) continue;
         // Garde-fou : on ne descend pas sous le nombre déjà vendu.
         if (t.id != null && qty < t.quantitySold) {
-          _showSnack('“$name”: quantity can’t be below ${t.quantitySold} sold');
+          showAppSnack(context, l.errQtyBelowSold(name, t.quantitySold));
           return;
         }
         editTiers.add(t);
       }
       if (editTiers.isEmpty) {
-        _showSnack('Keep at least one ticket tier');
+        showAppSnack(context, l.errKeepOneTier);
         return;
       }
       final eventPrice = editTiers
@@ -319,6 +261,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             : (widget.event!['image_url'] as String?);
         final eventId = widget.event!['id'];
 
+        // Passage en privé : on génère un code s'il n'en existe pas encore.
+        final editCode = _isPrivate
+            ? (_existingCode ?? _generateCode())
+            : null;
+
         await Supabase.instance.client.from('events').update({
           'title': _titleController.text.trim(),
           'description': _descriptionController.text.trim(),
@@ -329,6 +276,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           'end_date': _endDate.toIso8601String(),
           'price': eventPrice,
           if (imageUrl != null) 'image_url': imageUrl,
+          'visibility': _isPrivate ? 'private' : 'public',
+          'posts_visibility':
+              (!_isPrivate || _postsPublic) ? 'public' : 'invitees',
+          'access_code': editCode, // null si repassé en public
+          'min_age': _minAge,
         }).eq('id', eventId);
 
         // Upsert des tiers : update si existant, insert si nouveau.
@@ -356,12 +308,19 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
         if (mounted) {
           ref.invalidate(eventsProvider);
-          _showSnack('Event updated ✓');
-          await Future.delayed(const Duration(milliseconds: 800));
+          // Si on vient de passer l'event en privé, on montre le code.
+          if (editCode != null && _existingCode == null) {
+            _existingCode = editCode;
+            await showInviteCodeDialog(context,
+                eventTitle: _titleController.text.trim(), code: editCode);
+          } else {
+            showAppSnack(context, l.eventUpdated);
+            await Future.delayed(const Duration(milliseconds: 800));
+          }
           if (mounted) Navigator.of(context).pop(true);
         }
       } catch (e) {
-        _showSnack('Error: ${e.toString()}');
+        showAppSnack(context, l.errGeneric(e.toString()));
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -386,7 +345,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       });
     }
     if (tiers.isEmpty) {
-      _showSnack('Add at least one ticket tier (name + quantity)');
+      showAppSnack(context, l.errAddOneTier);
       return;
     }
     // Prix affiché de l'event = le tier le moins cher (« Starting from »)
@@ -405,6 +364,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       final imageUrl = uploadedUrl ??
           'https://images.unsplash.com/photo-1574155376612-bfa4ed8aabfd?w=800&h=450&fit=crop';
 
+      // Code d'invitation généré uniquement pour les events privés.
+      final accessCode = _isPrivate ? _generateCode() : null;
+
       // 1. Crée l'event et récupère son id
       final createdEvent = await Supabase.instance.client
           .from('events')
@@ -419,6 +381,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             'price': eventPrice,
             'image_url': imageUrl,
             'created_by': user.id,
+            'visibility': _isPrivate ? 'private' : 'public',
+            'posts_visibility':
+                (!_isPrivate || _postsPublic) ? 'public' : 'invitees',
+            'min_age': _minAge,
+            if (accessCode != null) 'access_code': accessCode,
           })
           .select()
           .single();
@@ -433,57 +400,43 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         // Invalide le provider partagé : Home, Discover et Profile
         // verront le nouvel event automatiquement, sans relancer l'app.
         ref.invalidate(eventsProvider);
-        _showSnack('Event created successfully! 🎉');
-        await Future.delayed(const Duration(seconds: 1));
-        Navigator.of(context).pop(true); // true = signal optionnel pour l'appelant
+        // Event privé : on montre le code d'invitation à partager.
+        if (accessCode != null) {
+          await showInviteCodeDialog(context,
+                eventTitle: _titleController.text.trim(), code: accessCode);
+        } else {
+          showAppSnack(context, l.eventCreated);
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        if (mounted) {
+          Navigator.of(context).pop(true); // signal optionnel pour l'appelant
+        }
       }
     } catch (e) {
-      _showSnack('Error: ${e.toString()}');
+      showAppSnack(context, l.errGeneric(e.toString()));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.inter(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A1535),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+  /// Génère un code d'invitation court et lisible : HPN-XXXXX
+  /// (sans caractères ambigus : ni O/0, ni I/1).
+  String _generateCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rand = Random.secure();
+    final code =
+        List.generate(5, (_) => chars[rand.nextInt(chars.length)]).join();
+    return 'HPN-$code';
   }
 
-  InputDecoration _inputDec(String hint, IconData icon) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: GoogleFonts.inter(color: Colors.white.withOpacity(0.25), fontSize: 14),
-      prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.3), size: 18),
-      filled: true,
-      fillColor: Colors.white.withOpacity(0.055),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.09)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    );
-  }
-
-  String _formatDate(DateTime dt) {
+  /// Affiche le code après création d'un event privé, avec copie/partage.
+        String _formatDate(DateTime dt) {
     return '${dt.day}/${dt.month}/${dt.year} at ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final categoryNames = ref.watch(categoryNamesProvider);
     // Fallback tant que la table n'est pas chargée, pour ne pas casser le menu.
     final cats = categoryNames.isEmpty ? [_selectedCategory] : categoryNames;
@@ -491,13 +444,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         cats.contains(_selectedCategory) ? _selectedCategory : cats.first;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF08080F),
+      backgroundColor: AppColors.background,
       body: Container(
         decoration: const BoxDecoration(
           gradient: RadialGradient(
             center: Alignment(0, -1.0),
             radius: 1.2,
-            colors: [Color(0xFF1A0F3D), Color(0xFF08080F)],
+            colors: [AppColors.imagePlaceholder, AppColors.background],
             stops: [0.0, 0.6],
           ),
         ),
@@ -524,12 +477,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     ),
                     const SizedBox(width: 14),
                     Text(
-                      _isEditing ? 'Edit Event' : 'Create Event',
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
+                      _isEditing ? l.editEventTitle : l.createEventTitle,
+                      style: AppText.h1.copyWith(color: Colors.white),
                     ),
                   ],
                 ),
@@ -546,17 +495,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     children: [
 
                       // Title
-                      _label('Event Title *'),
+                      AppLabel(l.eventTitleLabel),
                       TextField(
                         controller: _titleController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('e.g. Afro Vibes Party', Icons.title),
+                        decoration: appInputDecoration('e.g. Afro Vibes Party', icon: Icons.title, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Category
-                      _label('Category *'),
+                      AppLabel(l.categoryLabel),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
@@ -568,9 +517,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           child: DropdownButton<String>(
                             value: dropdownValue,
                             isExpanded: true,
-                            dropdownColor: const Color(0xFF1A1535),
-                            style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
-                            icon: Icon(Icons.keyboard_arrow_down, color: Colors.white.withOpacity(0.4)),
+                            dropdownColor: AppColors.card,
+                            style: AppText.body.copyWith(color: Colors.white),
+                            icon: Icon(Icons.keyboard_arrow_down, color: AppColors.textLow),
                             items: cats.map((cat) => DropdownMenuItem(
                               value: cat,
                               child: Text(cat),
@@ -583,38 +532,38 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       const SizedBox(height: 16),
 
                       // Description
-                      _label('Description'),
+                      AppLabel(l.descriptionLabel),
                       TextField(
                         controller: _descriptionController,
                         maxLines: 3,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('Tell people about your event...', Icons.description_outlined)
+                        decoration: appInputDecoration(l.descriptionHint, icon: Icons.description_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16))
                             .copyWith(prefixIcon: null, contentPadding: const EdgeInsets.all(16)),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Location + City
-                      _label('Location *'),
+                      AppLabel(l.locationLabel),
                       TextField(
                         controller: _locationController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('Venue name or address', Icons.location_on_outlined),
+                        decoration: appInputDecoration(l.venueHint, icon: Icons.location_on_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: _cityController,
                         style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: _inputDec('City (e.g. Ottawa, ON)', Icons.location_city_outlined),
+                        decoration: appInputDecoration(l.cityHint, icon: Icons.location_city_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Dates
-                      _label('Date & Time *'),
+                      AppLabel(l.dateTimeLabel),
                       Row(
                         children: [
-                          Expanded(child: _dateTile('Start', _startDate, () => _pickDate(isStart: true))),
+                          Expanded(child: _dateTile(l.startLabel, _startDate, () => _pickDate(isStart: true))),
                           const SizedBox(width: 10),
                           Expanded(child: _dateTile('End', _endDate, () => _pickDate(isStart: false))),
                         ],
@@ -628,33 +577,37 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _label('Ticket Tiers *'),
+                            AppLabel(l.ticketTiersLabel),
                             GestureDetector(
                               onTap: _addTier,
                               child: Row(
                                 children: [
                                   const Icon(Icons.add,
-                                      color: Color(0xFFA78BFA), size: 16),
+                                      color: AppColors.lavender, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Add tier',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFFA78BFA),
-                                    ),
+                                    l.addTier,
+                                    style: AppText.caption.copyWith(fontWeight: FontWeight.w700, color: AppColors.lavender),
                                   ),
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        ...List.generate(_tiers.length, (i) => _tierCard(i)),
+                        ...List.generate(
+                          _tiers.length,
+                          (i) => TicketTierCard(
+                            tier: _tiers[i],
+                            canRemove: _tiers[i].id == null &&
+                                _tiers.length > 1,
+                            onRemove: () => _removeTier(i),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                       ],
 
                       // Cover image picker
-                      _label('Cover Image'),
+                      AppLabel(l.coverImageLabel),
                       GestureDetector(
                         onTap: _pickImage,
                         child: Container(
@@ -684,15 +637,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       children: [
                                         Icon(
                                             Icons.add_photo_alternate_outlined,
-                                            color: Colors.white.withOpacity(0.4),
+                                            color: AppColors.textLow,
                                             size: 36),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Tap to choose a cover photo',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 12,
-                                            color: Colors.white.withOpacity(0.4),
-                                          ),
+                                          l.tapToChoosePhoto,
+                                          style: AppText.caption.copyWith(color: AppColors.textLow),
                                         ),
                                       ],
                                     ))
@@ -725,14 +675,118 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Optional — a default image is used if you skip this.',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.white.withOpacity(0.3),
+                        l.coverOptional,
+                        style: AppText.small,
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // ── Exigence d'âge ─────────────────────────────
+                      AppLabel(l.ageRequirementLabel),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _ageChip(0, l.allAges),
+                          _ageChip(14, '14+'),
+                          _ageChip(16, '16+'),
+                          _ageChip(18, '18+'),
+                          _ageChip(21, '21+'),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Attendees below the age are blocked at checkout. Final '
+                        'age check is done at the door by the organizer.',
+                        style: AppText.small,
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // ── Event privé ────────────────────────────────
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.04),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _isPrivate
+                                ? AppColors.primary.withOpacity(0.5)
+                                : Colors.white.withOpacity(0.07),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            SwitchListTile(
+                              value: _isPrivate,
+                              onChanged: (v) => setState(() => _isPrivate = v),
+                              activeColor: AppColors.primary,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 2),
+                              title: Row(
+                                children: [
+                                  Icon(
+                                    _isPrivate
+                                        ? Icons.lock
+                                        : Icons.public,
+                                    size: 16,
+                                    color: AppColors.textMed,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l.privateEventLabel,
+                                    style: AppText.h4.copyWith(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  _isPrivate
+                                      ? l.privateEventOnHelp
+                                      : l.privateEventOffHelp,
+                                  style: AppText.caption.copyWith(fontSize: 11.5, height: 1.35),
+                                ),
+                              ),
+                            ),
+                            // Le choix n'a de sens que si l'entree est
+                            // fermee : sur un evenement public, tout est
+                            // deja public.
+                            if (_isPrivate) _postsVisibilityChoice(l),
+
+                            // Mode édition : rappel du code existant
+                            if (_isEditing &&
+                                _isPrivate &&
+                                _existingCode != null)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        l.inviteCodeLabel(_existingCode!),
+                                        style: AppText.h5.copyWith(color: AppColors.lavenderLight, letterSpacing: 1),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Clipboard.setData(ClipboardData(
+                                            text: _existingCode!));
+                                        showAppSnack(context, l.codeCopied);
+                                      },
+                                      child: Icon(Icons.copy,
+                                          size: 16,
+                                          color: Colors.white
+                                              .withOpacity(0.5)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 28),
 
                       // Submit button
                       GestureDetector(
@@ -742,14 +796,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           height: 56,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                              colors: [AppColors.primary, AppColors.pink],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF7C3AED).withOpacity(0.55),
+                                color: AppColors.primary.withOpacity(0.55),
                                 blurRadius: 20,
                                 offset: const Offset(0, 6),
                               ),
@@ -775,13 +829,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       const SizedBox(width: 8),
                                       Text(
                                         _isEditing
-                                            ? 'Save Changes'
-                                            : 'Publish Event',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
+                                            ? l.saveChanges
+                                            : l.publishEvent,
+                                        style: AppText.h3.copyWith(color: Colors.white),
                                       ),
                                     ],
                                   ),
@@ -801,22 +851,33 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
   }
 
-  Widget _label(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Colors.white.withOpacity(0.6),
-          letterSpacing: 0.3,
+  Widget _ageChip(int value, String label) {
+    final selected = _minAge == value;
+    return GestureDetector(
+      onTap: () => setState(() => _minAge = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: selected
+              ? const LinearGradient(
+                  colors: [AppColors.primary, AppColors.pink])
+              : null,
+          color: selected ? null : Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: selected
+                  ? Colors.transparent
+                  : Colors.white.withOpacity(0.09)),
+        ),
+        child: Text(
+          label,
+          style: AppText.bodySm.copyWith(fontWeight: FontWeight.w700, color: selected ? Colors.white : AppColors.textMed),
         ),
       ),
     );
   }
 
-  Widget _dateTile(String label, DateTime dt, VoidCallback onTap) {
+    Widget _dateTile(String label, DateTime dt, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -831,22 +892,87 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           children: [
             Text(
               label,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                color: Colors.white.withOpacity(0.4),
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppText.micro.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
             Text(
               _formatDate(dt),
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Portée des photos d'un événement privé.
+  ///
+  /// Deux besoins opposés et également légitimes : un lancement veut montrer
+  /// que ça a eu lieu sans laisser personne s'inviter ; un mariage veut que
+  /// les photos restent entre invités. L'app ne peut pas deviner lequel des
+  /// deux — seul l'organisateur le sait, donc on lui demande.
+  Widget _postsVisibilityChoice(AppLocalizations l) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l.postsVisibilityLabel,
+              style: AppText.captionBold.copyWith(color: Colors.white)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _postsOption(l.postsInviteesOnly, Icons.lock_outline, false),
+              const SizedBox(width: 8),
+              _postsOption(l.postsPublicOption, Icons.public, true),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(l.postsVisibilityHelp,
+              style: AppText.caption.copyWith(fontSize: 11.5, height: 1.35)),
+        ],
+      ),
+    );
+  }
+
+  Widget _postsOption(String label, IconData icon, bool value) {
+    final selected = _postsPublic == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _postsPublic = value),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary.withOpacity(0.18)
+                : Colors.white.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected
+                  ? AppColors.primary.withOpacity(0.5)
+                  : Colors.white.withOpacity(0.08),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon,
+                  size: 14,
+                  color: selected ? AppColors.lavenderLight : AppColors.textLow),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.smallBold.copyWith(
+                        color: selected
+                            ? AppColors.lavenderLight
+                            : AppColors.textMed)),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -854,34 +980,3 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 }
 
 /// Un tier de billet en cours d'édition dans Create Event (nom, prix, quantité).
-class _TicketTier {
-  /// id du ticket_type existant (null = nouveau tier à créer).
-  final String? id;
-
-  /// Nombre déjà vendu (garde-fou : on ne descend pas la quantité en dessous).
-  final int quantitySold;
-
-  final TextEditingController nameController;
-  final TextEditingController priceController;
-  final TextEditingController quantityController;
-  final TextEditingController maxPerOrderController;
-
-  _TicketTier({
-    String name = '',
-    this.id,
-    this.quantitySold = 0,
-    String price = '',
-    String quantity = '100',
-    String maxPerOrder = '10',
-  })  : nameController = TextEditingController(text: name),
-        priceController = TextEditingController(text: price),
-        quantityController = TextEditingController(text: quantity),
-        maxPerOrderController = TextEditingController(text: maxPerOrder);
-
-  void dispose() {
-    nameController.dispose();
-    priceController.dispose();
-    quantityController.dispose();
-    maxPerOrderController.dispose();
-  }
-}

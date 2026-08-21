@@ -1,0 +1,21 @@
+# =============================================================================
+# HAPPYN — Déploiement du site vitrine (Netlify)
+# =============================================================================
+# Le site est statique : rien à builder, on publie le dossier `web/` tel quel.
+# Netlify lit ce fichier à la racine du dépôt, donc aucune configuration à
+# cliquer dans le dashboard au-delà du branchement du repo.
+# =============================================================================
+
+[build]
+  publish = "web"
+  command = ""
+
+# Le site ne charge que ses propres ressources et n'appelle que Supabase.
+# Ces en-têtes le disent explicitement : utile pour les audits des stores.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://jvjvuozvlzqqmcjanvnh.supabase.co; frame-ancestors 'none'"

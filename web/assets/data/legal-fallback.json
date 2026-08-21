@@ -1,0 +1,101 @@
+[
+  {
+    "slug": "terms",
+    "title": "Terms of Service",
+    "content": "Welcome to HAPPYN. By accessing or using HAPPYN, you agree to these Terms.\r\n\r\n## 1. Eligibility\r\nUsers must be at least 14 years old. Some features are restricted by age, and organizing paid events or receiving payouts requires users to be 18 or older.\r\n\r\n## 2. Minors\r\nIf you are under 18, you may browse, follow organizers, save events, and purchase a ticket only where the event allows it, and you confirm that a parent or legal guardian authorizes any purchase made through your account.\r\n\r\n## 3. Accounts\r\nUsers are responsible for maintaining the security of their account credentials.\r\n\r\n## 4. Platform Purpose\r\nHAPPYN enables users to discover, create, promote, and attend events.\r\n\r\n## 5. Prohibited Conduct\r\nFraudulent events, harassment, impersonation, illegal activity, spam, and abuse are prohibited.\r\n\r\n## 6. Event Organizers\r\nOrganizers are responsible for the accuracy, legality, safety, and execution of their events, including verifying attendee age at the door where an event sets an age requirement.\r\n\r\n## 7. Suspension and Termination\r\nHAPPYN may suspend or terminate accounts that violate these Terms.\r\n\r\n## 8. Limitation of Liability\r\nHAPPYN is not responsible for losses, injuries, disputes, or damages resulting from attendance at events.\r\n\r\n## 9. Modifications\r\nHAPPYN may update these Terms at any time.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 1,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "privacy",
+    "title": "Privacy Policy",
+    "content": "HAPPYN respects user privacy.\r\n\r\n## Information collected may include:\r\n- Name\r\n- Email address\r\n- Date of birth\r\n- Profile photo\r\n- City and location preferences\r\n- Event activity and attendance history\r\n- Device and usage information\r\n\r\n## We use this information to:\r\n- Provide recommendations\r\n- Confirm eligibility and apply age requirements\r\n- Improve the platform\r\n- Process registrations\r\n- Send important notifications\r\n\r\nWe do not sell personal information.\r\n\r\nUsers may request access, correction, or deletion of their data.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 2,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "community",
+    "title": "Community Guidelines",
+    "content": "Our goal is to maintain a safe and welcoming community.\r\n\r\n## Users must:\r\n- Respect others\r\n- Provide accurate information\r\n- Follow applicable laws\r\n\r\n## Users may not:\r\n- Harass or threaten others\r\n- Post hateful content\r\n- Create fake accounts\r\n- Promote illegal activity\r\n- Mislead attendees\r\n\r\nViolations may result in warnings, suspensions, or permanent bans.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 3,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "cookie",
+    "title": "Cookie Policy",
+    "content": "HAPPYN uses cookies and similar technologies to:\r\n- Keep users signed in\r\n- Remember preferences\r\n- Improve performance\r\n- Analyze platform usage\r\n\r\nUsers may disable cookies through their device or browser settings, although some features may not function properly.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 4,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "copyright",
+    "title": "Copyright Policy",
+    "content": "All HAPPYN trademarks, branding, software, designs, and original content are protected by intellectual property laws.\r\n\r\nUsers retain ownership of content they upload but grant HAPPYN a non-exclusive license to display and distribute that content on the platform.\r\n\r\nCopyright complaints may be submitted to HAPPYN support.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 5,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "refund",
+    "title": "Refund Policy",
+    "content": "Refund policies are determined by event organizers.\r\n\r\nIf an event is cancelled, attendees may be eligible for refunds according to the organizer's policy and applicable law.\r\n\r\nPlatform service fees may be non-refundable unless otherwise required.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 6,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "payments",
+    "title": "Payments",
+    "content": "HAPPYN processes payments through secure third-party payment providers.\r\n\r\nPlatform fees are non-refundable unless required by law.\r\n\r\nOrganizers are responsible for refund decisions according to their selected refund policy.\r\n\r\nHAPPYN reserves the right to delay payouts when fraud is suspected.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 7,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "fraud-prevention",
+    "title": "Fraud Prevention",
+    "content": "HAPPYN may temporarily suspend ticket sales or organizer payouts while investigating reports of fraud.\r\n\r\nAccounts engaged in fraudulent activity may be permanently banned.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 8,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "safety",
+    "title": "Safety Policy",
+    "content": "Users should exercise good judgment when attending events.\r\n\r\n## HAPPYN encourages users to:\r\n- Meet in safe environments\r\n- Follow venue rules\r\n- Report suspicious activity\r\n\r\nEmergency situations should be reported directly to local authorities.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 9,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "organizer",
+    "title": "Organizer Standards",
+    "content": "## Organizers must:\r\n- Provide accurate event information\r\n- Honor ticket commitments\r\n- Comply with local laws\r\n- Respect attendee privacy\r\n- Enforce any age requirement at the door\r\n\r\nRepeated violations may result in organizer account removal.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 10,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  },
+  {
+    "slug": "data-retention",
+    "title": "Data Retention",
+    "content": "Deleted accounts may have certain information retained where required by law or for fraud prevention.\r\n\r\nRetained data is limited to what is necessary and is removed once no longer required.",
+    "version": "Version 1.1",
+    "effective_date": "2026-07-23",
+    "sort_order": 11,
+    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+  }
+]
