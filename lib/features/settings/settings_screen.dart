@@ -4,6 +4,7 @@ import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
+import 'package:happyn/features/ticketing/my_tickets_screen.dart';
 import 'package:happyn/features/settings/legal_page_screen.dart';
 import 'package:happyn/features/settings/delete_account_screen.dart';
 import 'package:happyn/features/settings/blocked_users_screen.dart';
@@ -46,37 +47,26 @@ class SettingsScreen extends ConsumerWidget {
           _tile(context, Icons.person_outline, l.editProfile,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const EditProfileScreen()))),
-          _soon(context, Icons.tune, l.preferences),
-          _soon(context, Icons.notifications_outlined, l.notificationPreferences),
           _languageTile(context, ref, l),
 
           // ── Social ────────────────────────────────────────────────
+          // « Amis », « Abonnements » et « Abonnés » ont ete retires : ils
+          // annoncaient « bientot » alors que les compteurs et le graphe
+          // vivent deja sur le profil. Une ligne qui dit « bientot » pour une
+          // chose deja faite fait passer l'app pour inachevee, et apprend a
+          // l'utilisateur a ne plus lire les libelles.
           _section(l.sectionSocial),
-          _soon(context, Icons.group_outlined, l.friends),
-          _soon(context, Icons.person_add_alt, l.following),
-          _soon(context, Icons.people_alt_outlined, l.followers),
           _tile(context, Icons.block, l.blockedUsers,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const BlockedUsersScreen()))),
 
-          // ── My Activity ───────────────────────────────────────────
+          // ── Mon activité ──────────────────────────────────────────
+          // Mes billets existe vraiment : on y mene, au lieu de promettre un
+          // « historique » qui serait le meme ecran.
           _section(l.sectionMyActivity),
-          _soon(context, Icons.bookmark_border, l.savedEvents),
-          _soon(context, Icons.history, l.eventHistory),
-          _soon(context, Icons.star_border, l.favoriteOrganizers),
-
-          // ── Organizer Tools ───────────────────────────────────────
-          _section(l.sectionOrganizerTools),
-          _soon(context, Icons.event_note_outlined, l.myEvents),
-          _soon(context, Icons.how_to_reg_outlined, l.attendeeManagement),
-          _soon(context, Icons.bar_chart, l.analytics),
-          _soon(context, Icons.payments_outlined, l.payouts),
-
-          // ── Support ───────────────────────────────────────────────
-          _section(l.sectionSupport),
-          _soon(context, Icons.help_outline, l.helpCenter),
-          _soon(context, Icons.support_agent, l.contactSupport),
-          _soon(context, Icons.flag_outlined, l.reportProblem),
+          _tile(context, Icons.confirmation_number_outlined, l.myTicketsTitle,
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const MyTicketsScreen()))),
 
           // ── Legal (piloté par la DB : legal_documents) ────────────
           _section(l.sectionLegal),
@@ -139,19 +129,6 @@ class SettingsScreen extends ConsumerWidget {
                 style: AppText.body.copyWith(color: AppColors.lavender)),
           ),
         ],
-      ),
-    );
-  }
-
-  void _comingSoon(BuildContext context, String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context).comingSoon(label),
-            style: AppText.body.copyWith(color: Colors.white)),
-        backgroundColor: AppColors.card,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -294,24 +271,6 @@ class SettingsScreen extends ConsumerWidget {
         _legal(context, Icons.verified_user_outlined, 'Organizer Standards',
             'organizer'),
       ];
-
-  Widget _soon(BuildContext context, IconData icon, String label) => _row(
-        icon,
-        label,
-        onTap: () => _comingSoon(context, label),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            AppLocalizations.of(context).soon,
-            style: AppText.microBold.copyWith(color: AppColors.textLow),
-          ),
-        ),
-        dimmed: true,
-      );
 
   Widget _staticTile(IconData icon, String label, String value) => _row(
         icon,
