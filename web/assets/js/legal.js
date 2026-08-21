@@ -242,6 +242,33 @@
     });
   }
 
+  // ── Amener le lecteur au texte ─────────────────────────────────────────────
+  // Sous 900 px la barre latérale passe AU-DESSUS du contenu (voir la média
+  // query du CSS). Ouvrir un document est un changement de page : le navigateur
+  // atterrit donc en haut, sur la liste des politiques, et le texte demandé se
+  // trouve hors écran. On a l'impression que le clic n'a rien fait, et il faut
+  // faire défiler pour découvrir que si.
+  //
+  // Sur grand écran on ne touche à rien : la barre latérale est À CÔTÉ du
+  // contenu, qui est donc déjà visible — faire défiler la page serait gratuit
+  // et désorientant.
+
+  function revealContent(container) {
+    if (!window.matchMedia('(max-width: 900px)').matches) return;
+
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    // Après le rendu, pour que la position soit calculée sur la hauteur réelle.
+    requestAnimationFrame(() => {
+      container.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+  }
+
   // ── Point d'entrée ─────────────────────────────────────────────────────────
 
   async function init() {
@@ -274,6 +301,7 @@
     const doc = documents.find((entry) => entry.slug === requestedSlug);
     if (doc) {
       renderDocument(container, doc);
+      revealContent(container);
     } else {
       // Slug inconnu (lien obsolète) : on retombe sur l'index plutôt que sur
       // une page vide.
