@@ -687,3 +687,97 @@ section {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================================
+   Réinitialisation du mot de passe (reset.html)
+   ========================================================================== */
+
+.reset-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 72px 20px 96px;
+}
+
+.reset-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+}
+
+.reset-card h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.reset-card .muted {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.reset-card label {
+  display: block;
+  margin: 18px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.reset-card input {
+  width: 100%;
+  padding: 13px 14px;
+  font-size: 16px; /* < 16px ferait zoomer Safari iOS au focus */
+  color: var(--text-primary);
+  background: var(--background-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.reset-card input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.reset-card .hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.reset-card .form-error {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #ffd2e4;
+  background: rgba(233, 79, 173, 0.12);
+  border: 1px solid rgba(233, 79, 173, 0.35);
+  border-radius: 12px;
+}
+
+.reset-card .btn-primary {
+  width: 100%;
+  margin-top: 22px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  color: #fff;
+  background: var(--gradient);
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.reset-card .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.reset-card a {
+  color: var(--primary);
+}

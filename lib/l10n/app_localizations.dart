@@ -770,6 +770,36 @@ abstract class AppLocalizations {
   /// **'No email app found. Write to us at {email}'**
   String supportNoMailApp(String email);
 
+  /// No description provided for @resetSendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset your password'**
+  String get resetSendTitle;
+
+  /// No description provided for @resetSendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll email you a link to choose a new password. Enter the address you signed up with.'**
+  String get resetSendBody;
+
+  /// No description provided for @resetSendAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Send link'**
+  String get resetSendAction;
+
+  /// No description provided for @resetSent.
+  ///
+  /// In en, this message translates to:
+  /// **'If that address has an account, a reset link is on its way. Check your inbox and your spam folder.'**
+  String get resetSent;
+
+  /// No description provided for @resetNeedEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address first.'**
+  String get resetNeedEmail;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

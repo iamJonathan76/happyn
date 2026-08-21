@@ -6,6 +6,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/config/auth_config.dart';
 import 'package:happyn/core/utils/age.dart';
+import 'package:happyn/core/utils/support.dart';
+import 'package:flutter/foundation.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/auth/complete_profile_screen.dart';
 
@@ -212,6 +214,32 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  /// Envoie le courriel de reinitialisation.
+  ///
+  /// Le message de confirmation est volontairement le meme que l'adresse ait
+  /// un compte ou non : repondre « aucun compte avec cette adresse »
+  /// permettrait a n'importe qui de savoir qui est inscrit sur HAPPYN.
+  Future<void> _sendPasswordReset(AppLocalizations l) async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      showAppSnack(context, l.resetNeedEmail);
+      return;
+    }
+    try {
+      await Supabase.instance.client.auth.resetPasswordForEmail(
+        email,
+        // Ou l'utilisateur atterrit en cliquant le lien. Cette URL doit etre
+        // declaree dans Supabase (Authentication > URL Configuration) : sinon
+        // la redirection est refusee — ce qui empeche qu'on fasse pointer le
+        // lien vers un site tiers pour recuperer la session.
+        redirectTo: kPasswordResetUrl,
+      );
+    } catch (e) {
+      debugPrint('resetPasswordForEmail: $e');
+    }
+    if (mounted) showAppSnack(context, l.resetSent);
   }
 
   @override
@@ -436,19 +464,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l.passwordResetSoon,
-                                style: AppText.body.copyWith(color: Colors.white)),
-                            backgroundColor: AppColors.card,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      },
+                      onPressed: () => _sendPasswordReset(l),
                       child: Text(
                         l.forgotPassword,
                         style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: AppColors.lavender),

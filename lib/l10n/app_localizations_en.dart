@@ -375,6 +375,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get resetSendTitle => 'Reset your password';
+
+  @override
+  String get resetSendBody =>
+      'We\'ll email you a link to choose a new password. Enter the address you signed up with.';
+
+  @override
+  String get resetSendAction => 'Send link';
+
+  @override
+  String get resetSent =>
+      'If that address has an account, a reset link is on its way. Check your inbox and your spam folder.';
+
+  @override
+  String get resetNeedEmail => 'Enter your email address first.';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

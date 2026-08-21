@@ -135,6 +135,11 @@
   "noConnectionEvents": "No event from your connections yet. Follow each other, and events they choose to share will show up here.",
   "supportNoMailApp": "No email app found. Write to us at {email}",
   "@supportNoMailApp": {"placeholders": {"email": {"type": "String"}}},
+  "resetSendTitle": "Reset your password",
+  "resetSendBody": "We'll email you a link to choose a new password. Enter the address you signed up with.",
+  "resetSendAction": "Send link",
+  "resetSent": "If that address has an account, a reset link is on its way. Check your inbox and your spam folder.",
+  "resetNeedEmail": "Enter your email address first.",
   "getTickets": "Get Tickets",
   "freeEntry": "Free Entry",
 

@@ -34,3 +34,11 @@ Future<bool> contactSupport({String? subject, String? body}) async {
     return false;
   }
 }
+
+/// Page web ou atterrit le lien de reinitialisation du mot de passe.
+///
+/// Doit etre declaree a l'identique dans Supabase (Authentication > URL
+/// Configuration > Redirect URLs). Sans cette declaration Supabase refuse la
+/// redirection : c'est ce qui empeche quelqu'un de faire pointer le lien vers
+/// son propre site pour recuperer la session de la personne qui clique.
+const String kPasswordResetUrl = 'https://happynca.netlify.app/reset.html';

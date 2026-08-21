@@ -379,6 +379,23 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get resetSendTitle => 'Réinitialiser ton mot de passe';
+
+  @override
+  String get resetSendBody =>
+      'On t\'envoie un lien par courriel pour choisir un nouveau mot de passe. Entre l\'adresse utilisée à l\'inscription.';
+
+  @override
+  String get resetSendAction => 'Envoyer le lien';
+
+  @override
+  String get resetSent =>
+      'Si cette adresse a un compte, un lien vient de partir. Regarde ta boîte de réception et tes indésirables.';
+
+  @override
+  String get resetNeedEmail => 'Entre d\'abord ton adresse courriel.';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override
