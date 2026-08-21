@@ -162,19 +162,26 @@ Classé par ce qu'il faut faire en premier.
 
 ### 6.1 BLOQUANT — vérifier que la RLS est réellement activée
 
-`events`, `tickets` et `ticket_tiers` ont été créées depuis le tableau de bord,
+`events`, `tickets` et `ticket_types` ont été créées depuis le tableau de bord,
 pas par une migration. **Aucun fichier du dépôt ne contient
 `alter table ... enable row level security` pour ces trois tables**, et aucune
-policy d'écriture pour `tickets` non plus. Si la RLS n'est pas activée dessus,
-toutes les protections d'événements privés et de billets sont inertes — et rien
-dans Postgres ne le signale.
+policy d'écriture pour `tickets` non plus.
+
+Vérifié le 2026-08-14 : la RLS est bien **active** sur `events` et `tickets`.
+Reste à confirmer `ticket_types` (la première vérification interrogeait un nom
+de table erroné, `ticket_tiers`).
+
+Le risque de fond demeure : ces policies n'existent que dans le tableau de
+bord. Elles sont invisibles pour le second développeur, absentes de toute
+revue, et perdues si le projet est recréé. **Elles doivent être reversées en
+migration.**
 
 À faire dans le SQL Editor :
 
 ```sql
 select relname, relrowsecurity
 from pg_class
-where relname in ('events','tickets','ticket_tiers');
+where relname in ('events','tickets','ticket_types');
 ```
 
 Les trois doivent répondre `true`. Sinon, activer et écrire une migration pour
