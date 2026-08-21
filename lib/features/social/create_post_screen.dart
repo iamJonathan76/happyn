@@ -93,7 +93,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       );
 
       ref.invalidate(discoverFeedProvider);
-      ref.invalidate(followingFeedProvider);
       ref.invalidate(userPostsProvider(uid));
 
       if (!mounted) return;

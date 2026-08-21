@@ -34,29 +34,6 @@ final discoverFeedProvider =
   return _withoutBlocked(ref, data);
 });
 
-/// Fil « Abonnements » : publications des comptes suivis (et les siennes).
-///
-/// ⚠️ Plus branché à aucun écran depuis que l'accueil n'a qu'un seul fil.
-/// Conservé le temps de trancher : voir ce que font ses connexions passera
-/// probablement par un filtre sur Découvrir portant sur les ÉVÉNEMENTS
-/// auxquels elles vont, auquel cas ce provider n'aura plus lieu d'être — un
-/// profil public suffit à voir les publications d'une personne.
-final followingFeedProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final uid = ref.watch(currentUserIdProvider);
-  if (uid == null) return [];
-  final following = await ref.watch(followingProvider.future);
-  final authors = {...following, uid}.toList();
-
-  final data = await Supabase.instance.client
-      .from('feed_posts')
-      .select()
-      .inFilter('author_id', authors)
-      .order('created_at', ascending: false)
-      .limit(_kFeedLimit);
-  return _withoutBlocked(ref, data);
-});
-
 /// Publications d'un compte donné (profil public).
 final userPostsProvider =
     FutureProvider.family<List<Map<String, dynamic>>, String>((ref, userId) async {
