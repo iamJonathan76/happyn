@@ -13,8 +13,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/features/main_shell.dart';
+import 'package:happyn/core/config/observability.dart';
 
+/// Tout le demarrage passe par `runWithObservability` : sans lui, une erreur
+/// survenant PENDANT l'initialisation (Supabase injoignable, Stripe mal
+/// configure) ne serait remontee nulle part — or c'est exactement le moment ou
+/// l'app est la plus fragile chez quelqu'un d'autre.
 Future<void> main() async {
+  await runWithObservability(_start);
+}
+
+Future<void> _start() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Données de formatage des dates (mois/jours localisés FR/EN).

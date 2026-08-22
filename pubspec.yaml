@@ -63,6 +63,7 @@ dependencies:
   
   # Icons
   cupertino_icons: ^1.0.8
+  sentry_flutter: ^8.14.2
 
 dev_dependencies:
   flutter_test:
