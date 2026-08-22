@@ -225,6 +225,23 @@ Correction : SMTP externe (Resend, gratuit jusqu'a 3 000 courriels/mois), dans
 Project Settings > Authentication > SMTP Settings. **Depend de l'achat du
 domaine** : on ne peut pas envoyer depuis une adresse Gmail.
 
+### 6.3 ter — Aucun rapport de plantage
+
+Rien n'est installe. En production on ne saurait pas pourquoi l'app plante :
+les utilisateurs ne signalent pas, ils desinstallent.
+
+**Declencheur : avant la premiere version donnee a quelqu'un d'autre que
+nous** — premiere beta, premier APK envoye a un ami, premier TestFlight. Pas
+avant les stores. Les plantages survenus avant l'installation de l'outil sont
+perdus definitivement, il n'y a pas de rattrapage retroactif.
+
+Sentry, gratuit jusqu'a 5 000 erreurs/mois, une dependance et une dizaine de
+lignes dans main.dart.
+
+Argument supplementaire : ce projet a deja produit trois fois des erreurs
+avalees en silence qui se deguisaient en ecran vide (« Mes evenements » vide,
+transfert de billet, recursion RLS). C'est exactement ce que cet outil attrape.
+
 ### 6.4 À traiter avant publication
 
 - **Relire l'intégralité du recueil légal**, en détail — jalon bloquant déjà
