@@ -4,7 +4,9 @@ import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/utils/support.dart';
+import 'package:happyn/features/settings/moderation_screen.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/ticketing/my_tickets_screen.dart';
 import 'package:happyn/features/settings/legal_page_screen.dart';
@@ -69,6 +71,28 @@ class SettingsScreen extends ConsumerWidget {
           _tile(context, Icons.confirmation_number_outlined, l.myTicketsTitle,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const MyTicketsScreen()))),
+
+          // ── Moderation ────────────────────────────────────────────
+          // N'apparait que pour un administrateur. Ce n'est pas une
+          // protection : chaque action est revérifiée en base.
+          if (ref.watch(isAdminProvider).asData?.value == true) ...[
+            _section(l.moderation),
+            _tile(context, Icons.gavel_outlined, l.moderationQueue,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const ModerationScreen()))),
+          ],
+
+          // ── Modération (administrateurs) ──────────────────────────
+          // L'entree n'apparait que pour un administrateur, mais ce n'est pas
+          // ce qui protege : chaque action est revérifiée en base
+          // (`i_am_admin`). Forcer l'ecran a s'ouvrir ne donnerait qu'une file
+          // vide et des erreurs `not_admin`.
+          if (ref.watch(isAdminProvider).asData?.value == true) ...[
+            _section(l.moderation),
+            _tile(context, Icons.shield_outlined, l.moderationQueue,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const ModerationScreen()))),
+          ],
 
           // ── Assistance ────────────────────────────────────────────
           // Une seule ligne, qui ouvre vraiment un courriel. Apple veut un

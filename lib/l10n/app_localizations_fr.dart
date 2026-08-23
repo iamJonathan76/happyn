@@ -404,6 +404,44 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get moderation => 'Modération';
+
+  @override
+  String get moderationQueue => 'Signalements à traiter';
+
+  @override
+  String get noReports => 'Rien à traiter. La file est vide.';
+
+  @override
+  String get reportedEvent => 'Événement';
+
+  @override
+  String get reportedPost => 'Publication';
+
+  @override
+  String get reportedUser => 'Compte';
+
+  @override
+  String get actionRemove => 'Retirer le contenu';
+
+  @override
+  String get actionSuspend => 'Suspendre le compte';
+
+  @override
+  String get actionDismiss => 'Non fondé';
+
+  @override
+  String get actionDone => 'Signalement traité';
+
+  @override
+  String reportedBy(String reason) {
+    return 'Motif : $reason';
+  }
+
+  @override
+  String get moderationFailed => 'Action échouée. Rien n\'a été modifié.';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

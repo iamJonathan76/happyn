@@ -400,6 +400,44 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get moderation => 'Moderation';
+
+  @override
+  String get moderationQueue => 'Reports to review';
+
+  @override
+  String get noReports => 'Nothing to review. The queue is empty.';
+
+  @override
+  String get reportedEvent => 'Event';
+
+  @override
+  String get reportedPost => 'Post';
+
+  @override
+  String get reportedUser => 'Account';
+
+  @override
+  String get actionRemove => 'Remove content';
+
+  @override
+  String get actionSuspend => 'Suspend account';
+
+  @override
+  String get actionDismiss => 'Not a violation';
+
+  @override
+  String get actionDone => 'Report resolved';
+
+  @override
+  String reportedBy(String reason) {
+    return 'Reported for: $reason';
+  }
+
+  @override
+  String get moderationFailed => 'Action failed. Nothing was changed.';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

@@ -812,6 +812,78 @@ abstract class AppLocalizations {
   /// **'{sold} / {total}'**
   String soldOfTotal(int sold, int total);
 
+  /// No description provided for @moderation.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderation'**
+  String get moderation;
+
+  /// No description provided for @moderationQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports to review'**
+  String get moderationQueue;
+
+  /// No description provided for @noReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to review. The queue is empty.'**
+  String get noReports;
+
+  /// No description provided for @reportedEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get reportedEvent;
+
+  /// No description provided for @reportedPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get reportedPost;
+
+  /// No description provided for @reportedUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get reportedUser;
+
+  /// No description provided for @actionRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove content'**
+  String get actionRemove;
+
+  /// No description provided for @actionSuspend.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspend account'**
+  String get actionSuspend;
+
+  /// No description provided for @actionDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a violation'**
+  String get actionDismiss;
+
+  /// No description provided for @actionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Report resolved'**
+  String get actionDone;
+
+  /// No description provided for @reportedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported for: {reason}'**
+  String reportedBy(String reason);
+
+  /// No description provided for @moderationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed. Nothing was changed.'**
+  String get moderationFailed;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:
