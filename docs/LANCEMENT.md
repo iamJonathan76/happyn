@@ -9,13 +9,18 @@ n'est pas du développement.
 
 Dans cet ordre, parce que chaque étape en débloque d'autres.
 
-### 1.1 Acheter le domaine — ~15-20 $/an
+### 1.1 Acheter le domaine — FAIT (2026-08-23)
+
+`happyn.ca`, avec une boîte `contact@happyn.ca`. 17 $ la première année,
+~36 $/an ensuite.
+
+Ce qu'il reste à brancher :
 
 C'est le jalon central. Il débloque à lui seul trois choses bloquées :
 
 - le **SMTP** (§1.2), qui exige un domaine vérifié ;
 - une **adresse de contact** propre (aujourd'hui un Gmail, visible publiquement) ;
-- une **URL présentable** (aujourd'hui `happynca.netlify.app`).
+- une **URL présentable**.
 
 À faire ensuite : pointer le domaine sur Netlify, mettre à jour `supportEmail`
 dans `web/assets/js/config.js` **et** `kSupportEmail` dans
@@ -40,8 +45,7 @@ Configuration : Project Settings → Authentication → SMTP Settings.
 Le code est écrit et testé des deux côtés (app + `web/reset.html`). Il reste :
 
 - **Supabase → Authentication → URL Configuration** : Site URL =
-  `https://happynca.netlify.app` (puis le domaine), Redirect URLs =
-  `https://happynca.netlify.app/**` ;
+  `https://happyn.ca`, Redirect URLs = `https://happyn.ca/**` ;
 - **un essai réel depuis un courriel**, non encore fait, bloqué par la limite
   de débit (§1.2).
 
@@ -53,7 +57,7 @@ gabarit de courriel sur `{{ .TokenHash }}`.
 ### 1.4 Relire l'intégralité du recueil légal
 
 **Bloquant, décidé de longue date.** Onze documents, déjà publics sur
-`happynca.netlify.app/legal.html` puisque la page les lit depuis la base.
+`happyn.ca/legal.html` puisque la page les lit depuis la base.
 
 À ajouter pendant cette relecture : **la description du processus de
 suppression de compte** (le mécanisme existe, le texte non), et la mention de

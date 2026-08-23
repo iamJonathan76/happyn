@@ -16,7 +16,7 @@ const HAPPYN = {
   // Adresse de contact réelle, qui reçoit vraiment. À remplacer par une adresse
   // sur le domaine (contact@…) le jour où il est acheté — mais jamais par une
   // adresse qui n'existe pas : un lien de contact mort est pire que pas de lien.
-  supportEmail: 'contact.happyn@gmail.com',
+  supportEmail: 'contact@happyn.ca',
   appStoreUrl: null, // null => badge « Bientôt disponible »
   playStoreUrl: null,
 };
