@@ -57,6 +57,7 @@ bloquant §6.1.
 | `tickets` | ses propres billets | **aucune** — serveur uniquement |
 | `ticket_types` | si l'evenement est lisible | organisateur |
 | `event_unlocks` | soi-meme | `unlock_private_event` uniquement |
+| `admin_actions` | **personne** — aucune policy | fonctions de modération uniquement |
 
 ### Données personnelles exposées
 
@@ -86,7 +87,10 @@ quand un sous-select provoquerait une récursion de policy.
 `can_attach_event`, `event_posts_are_public`, `user_holds_ticket_for`,
 `who_is_going`, `unlock_private_event`, `my_attachable_events`,
 `set_attendance_visibility`, `account_deletion_preview`,
-`delete_my_account_data`, `sync_event_attendance`, `notify_event_change`.
+`delete_my_account_data`, `sync_event_attendance`, `notify_event_change`,
+`event_is_readable`, `i_am_admin`, `is_suspended`, `admin_reports`,
+`admin_resolve_report`, `admin_remove_content`, `admin_set_suspended`,
+`events_from_connections`.
 
 **Règle à respecter en les modifiant :** chacune a `set search_path = public` et
 un `grant execute` restreint. Une fonction `SECURITY DEFINER` sans `search_path`
@@ -113,6 +117,59 @@ policy.
 **Non couvert :** iOS n'a pas d'équivalent à `FLAG_SECURE`. Une capture reste
 possible sur iPhone — c'est le jeton rotatif qui limite les dégâts, pas
 l'interface.
+
+---
+
+## 3 bis. Modération
+
+**Le rôle.** `profiles.is_admin`. La policy d'UPDATE de `profiles` laisse chacun
+modifier sa propre ligne : sans garde-fou, n'importe qui se nommerait
+administrateur en une requête. Un trigger (`prevent_self_admin`) refuse donc
+toute modification de cette colonne venant des rôles `authenticated` et `anon`.
+
+Règle formulée en **liste de refus**, pas en liste d'autorisation. La version
+initiale n'autorisait que `service_role` et bloquait de fait l'éditeur SQL du
+tableau de bord (qui s'exécute en `postgres`) — donc plus personne ne pouvait
+accorder le premier droit. Elle aurait aussi cassé toute migration touchant
+`is_admin`, puisque les migrations s'exécutent en `postgres`. Une liste
+d'autorisation suppose de connaître à l'avance tous les contextes légitimes ;
+la liste de refus, elle, est courte et stable : tout ce qui vient d'un
+téléphone.
+
+Accorder le droit, depuis le tableau de bord uniquement :
+
+```sql
+update public.profiles set is_admin = true
+where id = (select id from auth.users where email = 'adresse@exemple.com');
+```
+
+**Les actions.** `admin_reports`, `admin_resolve_report`,
+`admin_remove_content`, `admin_set_suspended`. Chacune revérifie le droit
+(`i_am_admin`) : l'affichage conditionnel dans l'app n'est qu'un confort.
+Elles sont accessibles depuis deux chemins — la file dans les réglages
+(réactif, ce qui a été signalé) et le menu ⋯ du contenu (opportuniste, ce qu'un
+modérateur voit lui-même).
+
+**Le journal.** `admin_actions` n'a **aucune policy** : il n'est ni lisible ni
+modifiable par un client, seulement par les fonctions ci-dessus et le tableau
+de bord. Un journal d'audit que l'audité peut modifier ne vaut rien. Toute
+action de modération y laisse une trace — c'est ce qui permet de répondre le
+jour où Apple ou un utilisateur demande ce qui a été fait d'un signalement, et
+c'est pourquoi la modération ne doit **jamais** se faire en SQL manuel.
+
+**La suspension.** `profiles.suspended_at`, testée par `is_suspended()` dans
+les policies d'insertion de `posts` et `events`. Un compte suspendu ne perd ni
+son compte ni ses billets — il a payé, il garde ce qu'il a acheté. Il perd la
+capacité de publier. Un administrateur ne peut pas se suspendre lui-même : cela
+verrouillerait la modération.
+
+**Un événement est dépublié, jamais supprimé** par la modération : des gens ont
+peut-être acheté des billets, et effacer la ligne les priverait de la trace de
+ce qu'ils ont payé. Une publication, elle, est supprimée.
+
+**Ce qui manque encore :** aucune alerte quand un signalement arrive. Il faut
+penser à ouvrir la file. Le minimum est un déclencheur appelant une fonction
+Edge qui envoie un courriel — donc dépendant du SMTP, donc du domaine.
 
 ---
 
@@ -198,10 +255,14 @@ profil, les moments d'événement et le cache d'images. Décidé le 2026-08-14 d
 pas le faire avant le lancement — le trou suppose de déjà posséder l'URL, donc
 un invité légitime qui la partage volontairement.
 
-### 6.3 IMPORTANT — les signalements ne sont lus par personne
+### 6.3 EN GRANDE PARTIE RÉSOLU — les signalements
 
-`reports` se remplit, mais il n'existe aucun outil pour les traiter, ni délai de
-réponse. Apple (guideline 1.2) attend une modération effective sous 24 h pour du
+Outillage livré le 2026-08-14 : rôle administrateur, file de traitement,
+retrait de contenu, suspension, journal d'audit (voir §3 bis). **Reste ouvert :
+l'alerte** — rien ne prévient qu'un signalement est arrivé, il faut penser à
+ouvrir la file, ce qui tient mal la contrainte des 24 h.
+
+Historique : Apple (guideline 1.2) attend une modération effective sous 24 h pour du
 contenu généré par les utilisateurs. Le minimum viable : une vue admin, ou même
 une alerte e-mail à chaque insertion.
 
