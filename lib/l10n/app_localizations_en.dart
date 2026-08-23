@@ -438,6 +438,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moderationFailed => 'Action failed. Nothing was changed.';
 
   @override
+  String get adminRemoveConfirm =>
+      'Remove this content as a moderator? The author is not notified, and the action is recorded in the moderation log.';
+
+  @override
+  String get contentRemoved => 'Content removed';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

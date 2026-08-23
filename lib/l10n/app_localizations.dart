@@ -884,6 +884,18 @@ abstract class AppLocalizations {
   /// **'Action failed. Nothing was changed.'**
   String get moderationFailed;
 
+  /// No description provided for @adminRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this content as a moderator? The author is not notified, and the action is recorded in the moderation log.'**
+  String get adminRemoveConfirm;
+
+  /// No description provided for @contentRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Content removed'**
+  String get contentRemoved;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

@@ -141,6 +141,8 @@
   "reportedBy": "Motif : {reason}",
   "@reportedBy": {"placeholders": {"reason": {"type": "String"}}},
   "moderationFailed": "Action échouée. Rien n'a été modifié.",
+  "adminRemoveConfirm": "Retirer ce contenu en tant que modérateur ? L'auteur n'est pas prévenu, et l'action est inscrite au journal de modération.",
+  "contentRemoved": "Contenu retiré",
   "getTickets": "Obtenir des billets",
   "freeEntry": "Entrée gratuite",
 

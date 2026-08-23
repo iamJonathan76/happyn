@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
@@ -140,6 +141,47 @@ class _PostCardState extends ConsumerState<PostCard> {
     if (!mounted) return;
     showAppSnack(context, l.postDeleted);
     widget.onChanged?.call();
+  }
+
+
+  /// Retrait par un moderateur, depuis le contenu lui-meme.
+  ///
+  /// Tomber sur un contenu problematique en naviguant ne devrait pas obliger a
+  /// le retenir, ouvrir les reglages, et esperer que quelqu'un l'ait signale.
+  /// Passe par la meme fonction que la file : l'action est donc tracee dans
+  /// admin_actions, et le droit revérifié en base.
+  Future<void> _adminRemove(AppLocalizations l) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.actionRemove,
+            style: AppText.h4.copyWith(color: Colors.white)),
+        content: Text(l.adminRemoveConfirm, style: AppText.body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(l.keep, style: AppText.body),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(l.actionRemove,
+                style: AppText.smallBold.copyWith(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await removeContent('post', _p['id'] as String);
+      if (!mounted) return;
+      showAppSnack(context, l.contentRemoved);
+      widget.onChanged?.call();
+    } catch (e) {
+      debugPrint('adminRemove failed: $e');
+      if (mounted) showAppSnack(context, l.moderationFailed);
+    }
   }
 
   @override
@@ -301,7 +343,9 @@ class _PostCardState extends ConsumerState<PostCard> {
             position: PopupMenuPosition.under,
             icon: Icon(Icons.more_horiz, color: AppColors.textLow, size: 20),
             onSelected: (v) async {
-              if (v == 'report') {
+              if (v == 'admin_remove') {
+                await _adminRemove(l);
+              } else if (v == 'report') {
                 await showReportSheet(context,
                     targetType: 'post', targetId: _p['id'] as String);
               } else if (v == 'delete') {
@@ -309,6 +353,20 @@ class _PostCardState extends ConsumerState<PostCard> {
               }
             },
             itemBuilder: (context) => [
+              // Visible des seuls moderateurs. Ce n'est pas ce qui protege :
+              // removeContent revérifie le droit en base.
+              if (!_isMine &&
+                  ref.watch(isAdminProvider).asData?.value == true)
+                PopupMenuItem(
+                  value: 'admin_remove',
+                  child: Row(children: [
+                    const Icon(Icons.shield_outlined,
+                        size: 18, color: AppColors.error),
+                    const SizedBox(width: 10),
+                    Text(l.actionRemove,
+                        style: AppText.body.copyWith(color: AppColors.error)),
+                  ]),
+                ),
               if (_isMine)
                 PopupMenuItem(
                   value: 'delete',

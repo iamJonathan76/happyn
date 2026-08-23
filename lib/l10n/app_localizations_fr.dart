@@ -442,6 +442,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get moderationFailed => 'Action échouée. Rien n\'a été modifié.';
 
   @override
+  String get adminRemoveConfirm =>
+      'Retirer ce contenu en tant que modérateur ? L\'auteur n\'est pas prévenu, et l\'action est inscrite au journal de modération.';
+
+  @override
+  String get contentRemoved => 'Contenu retiré';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

@@ -17,6 +17,7 @@ import 'package:happyn/core/utils/maps.dart';
 import 'package:happyn/features/events/widgets/event_moments.dart';
 import 'package:happyn/features/events/widgets/whos_going.dart';
 import 'package:happyn/features/social/create_post_screen.dart';
+import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
@@ -123,6 +124,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       onSelected: (v) async {
         if (v == 'moment') {
           await _shareMoment(ev['id'] as String);
+        } else if (v == 'admin_remove') {
+          await _adminRemove(l, ev['id'] as String);
         } else if (v == 'report') {
           await showReportSheet(context,
               targetType: 'event', targetId: ev['id'] as String);
@@ -139,6 +142,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       itemBuilder: (context) => [
         if (_canPost(ev['id'] as String))
           _menuItem('moment', Icons.add_a_photo_outlined, l.shareMoment),
+        // Visible des seuls moderateurs. Ce n'est pas ce qui protege :
+        // removeContent revérifie le droit en base.
+        if (ref.watch(isAdminProvider).asData?.value == true)
+          _menuItem('admin_remove', Icons.shield_outlined, l.actionRemove,
+              danger: true),
         _menuItem('report', Icons.flag_outlined, l.reportEvent),
         if (organizerId != null)
           _menuItem('block', Icons.block, l.blockOrganizer, danger: true),
@@ -180,6 +188,47 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         ],
       ),
     );
+  }
+
+  /// Retrait par un moderateur, depuis la fiche elle-meme.
+  ///
+  /// Un evenement est DEPUBLIE, pas supprime : des gens ont peut-etre achete
+  /// des billets, et effacer la ligne les priverait de la trace de ce qu'ils
+  /// ont paye. C'est la fonction admin_remove_content qui applique cette
+  /// nuance, pas l'app.
+  Future<void> _adminRemove(AppLocalizations l, String eventId) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.actionRemove,
+            style: AppText.h4.copyWith(color: Colors.white)),
+        content: Text(l.adminRemoveConfirm, style: AppText.body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(l.keep, style: AppText.body),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(l.actionRemove,
+                style: AppText.smallBold.copyWith(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await removeContent('event', eventId);
+      if (!mounted) return;
+      ref.invalidate(eventsProvider);
+      showAppSnack(context, l.contentRemoved);
+      Navigator.of(context).pop();
+    } catch (e) {
+      debugPrint('adminRemove failed: $e');
+      if (mounted) showAppSnack(context, l.moderationFailed);
+    }
   }
 
   PopupMenuItem<String> _menuItem(String value, IconData icon, String label,

@@ -156,6 +156,8 @@
   "reportedBy": "Reported for: {reason}",
   "@reportedBy": {"placeholders": {"reason": {"type": "String"}}},
   "moderationFailed": "Action failed. Nothing was changed.",
+  "adminRemoveConfirm": "Remove this content as a moderator? The author is not notified, and the action is recorded in the moderation log.",
+  "contentRemoved": "Content removed",
   "getTickets": "Get Tickets",
   "freeEntry": "Free Entry",
 
