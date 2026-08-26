@@ -84,8 +84,14 @@
     // Délai maximum explicite : sans lui, une requête qui n'aboutit jamais
     // laisse la page sur « vérification » indéfiniment, ce qui est pire qu'une
     // erreur — l'utilisateur attend quelque chose qui ne viendra pas.
+    //
+    // 30 s et pas 10 : mesuré le 2026-08-26, /auth/v1/verify a mis 10,006 s à
+    // répondre 200. Le délai était donc atteint à l'instant même où le serveur
+    // réussissait, et la page annonçait un lien invalide alors que la session
+    // venait d'être créée. Une valeur trop serrée transforme une lenteur en
+    // panne.
     const abort = new AbortController();
-    const timer = setTimeout(() => abort.abort(), 10000);
+    const timer = setTimeout(() => abort.abort(), 30000);
     try {
       const response = await fetch(`${HAPPYN.supabaseUrl}/auth/v1/verify`, {
         method: 'POST',
