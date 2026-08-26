@@ -19,3 +19,28 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://jvjvuozvlzqqmcjanvnh.supabase.co; frame-ancestors 'none'"
+
+# Le site est statique et sans empreinte dans les noms de fichiers : sans ces
+# en-tetes, un navigateur garde l'ancien reset.js apres un deploiement et
+# execute du code perime. C'est exactement ce qui s'est produit le 2026-08-26 —
+# la page annoncait « lien expire » au premier chargement, puis fonctionnait
+# apres un rafraichissement, parce que seul le second passage recuperait la
+# version corrigee.
+#
+# `must-revalidate` avec `max-age=0` ne desactive pas le cache : le navigateur
+# garde le fichier mais demande au serveur s'il a change. Reponse « inchange »
+# = rien n'est retelecharge. On paie une requete, pas le poids du fichier.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
