@@ -34,6 +34,17 @@
   const MIN_LENGTH = 8;
   let accessToken = null;
 
+  // Le jeton est retiré de l'URL dès qu'il est lu — il n'a pas à traîner dans
+  // l'historique ni dans une capture d'écran. Mais il est à usage unique : si
+  // la page se recharge ensuite (rafraîchissement, redirection, redéploiement),
+  // il n'y a plus rien à vérifier et l'utilisateur voyait « lien invalide »
+  // une seconde après un formulaire qui marchait.
+  //
+  // On le garde donc le temps de l'onglet. `sessionStorage` disparaît à la
+  // fermeture, n'est pas partagé entre onglets, et est effacé dès que le mot de
+  // passe est changé.
+  const STORE_KEY = 'happyn.reset.token';
+
   // ── Affichage ──────────────────────────────────────────────────────────────
 
   function show(target) {
@@ -103,26 +114,41 @@
     const hash = readHashParams();
     const query = new URLSearchParams(location.search);
 
+    // Un jeton déjà obtenu dans cet onglet : on le réutilise plutôt que de
+    // tenter une seconde vérification, qui échouerait.
+    const stored = sessionStorage.getItem(STORE_KEY);
+    if (stored) return stored;
+
     // Lien déjà expiré : Supabase le dit dans le fragment plutôt que de nous
     // laisser deviner.
     if (hash.get('error') || query.get('error')) return null;
 
     const fromHash = hash.get('access_token');
     if (fromHash) {
-      // Retirer les jetons de la barre d'adresse : ils n'ont plus à traîner
-      // dans l'historique ni dans une capture d'écran.
-      history.replaceState(null, '', location.pathname);
+      keep(fromHash);
       return fromHash;
     }
 
     const tokenHash = query.get('token_hash') || query.get('token');
     if (tokenHash) {
       const token = await exchangeTokenHash(tokenHash);
-      if (token) history.replaceState(null, '', location.pathname);
+      if (token) keep(token);
       return token;
     }
 
     return null;
+  }
+
+  /// Mémorise le jeton pour cet onglet et le retire de la barre d'adresse.
+  function keep(token) {
+    try {
+      sessionStorage.setItem(STORE_KEY, token);
+    } catch (_) {
+      // Navigation privée sur certains navigateurs : on continue sans
+      // mémoriser plutôt que d'échouer. Seul un rechargement redeviendrait
+      // problématique.
+    }
+    history.replaceState(null, '', location.pathname);
   }
 
   // ── Écriture du nouveau mot de passe ───────────────────────────────────────
@@ -174,6 +200,12 @@
 
     updatePassword(password).then((result) => {
       if (result.ok) {
+        // Le jeton a servi : il n'a plus aucune raison d'exister.
+        try {
+          sessionStorage.removeItem(STORE_KEY);
+        } catch (_) {
+          /* rien à nettoyer */
+        }
         show(el.done);
         return;
       }
