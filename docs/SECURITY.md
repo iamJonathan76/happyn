@@ -312,7 +312,8 @@ transfert de billet, recursion RLS). C'est exactement ce que cet outil attrape.
 - **Protéger `main`** sur GitHub maintenant que le dépôt est partagé.
 - **Le domaine** est devenu le jalon central : il debloque d'un coup le SMTP
   (§6.3 bis), une adresse de contact propre, et une URL presentable.
-  Achete le 2026-08-23 : happyn.ca. Reste a brancher (Netlify, Resend, Supabase).
+  Achete le 2026-08-23 : happynevents.com. Reste a brancher (Netlify, Resend,
+  Supabase).
 - **Limitation de débit** : rien n'empêche aujourd'hui de marteler
   `unlock_private_event` pour deviner un code d'invitation. Vérifier la longueur
   et l'entropie du code, et envisager une temporisation.

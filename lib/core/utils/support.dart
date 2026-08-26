@@ -6,9 +6,12 @@ import 'package:url_launcher/url_launcher.dart';
 /// config.js`. Les deux doivent rester identiques : un utilisateur qui écrit
 /// depuis le site et un autre depuis l'app doivent arriver au même endroit.
 ///
-/// À remplacer par une adresse sur le domaine le jour où il est acheté — mais
-/// jamais par une adresse qui n'existe pas.
-const String kSupportEmail = 'contact@happyn.ca';
+/// Le nom de marque reste HAPPYN : le domaine n'est qu'une adresse qu'on
+/// clique. `happyn.com` etait pris et `happyn.ca` exige une presence canadienne
+/// que seule l'entreprise, une fois enregistree, permettra d'invoquer — d'ou
+/// `happynevents.com` en attendant. Ne jamais mettre ici une adresse qui
+/// n'existe pas : un lien de contact mort est pire que pas de lien.
+const String kSupportEmail = 'contact@happynevents.com';
 
 /// Ouvre l'app de courriel sur un message pré-rempli à destination du support.
 ///
@@ -41,4 +44,4 @@ Future<bool> contactSupport({String? subject, String? body}) async {
 /// Configuration > Redirect URLs). Sans cette declaration Supabase refuse la
 /// redirection : c'est ce qui empeche quelqu'un de faire pointer le lien vers
 /// son propre site pour recuperer la session de la personne qui clique.
-const String kPasswordResetUrl = 'https://happyn.ca/reset.html';
+const String kPasswordResetUrl = 'https://happynevents.com/reset.html';

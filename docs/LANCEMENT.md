@@ -11,8 +11,14 @@ Dans cet ordre, parce que chaque étape en débloque d'autres.
 
 ### 1.1 Le domaine — ACHETÉ le 2026-08-23
 
-`happyn.ca`, avec une boîte `contact@happyn.ca`. 17 $ la première année,
-~36 $/an ensuite.
+`happynevents.com`, avec une boîte `contact@happynevents.com`. ~17 $ la
+première année, ~27 $/an ensuite.
+
+`happyn.com` était pris et `happyn.ca` exige une catégorie de présence
+canadienne qu'aucun particulier ne remplit ici — elle s'ouvrira le jour où
+l'entreprise sera enregistrée (probablement requise pour Stripe Connect). Le
+nom de marque reste HAPPYN ; le domaine n'est qu'une adresse qu'on clique, et
+il sera remplaçable par redirection le moment venu.
 
 C'était le jalon central : il débloque le SMTP (§1.2), une adresse de contact
 propre, et une URL présentable.
@@ -20,7 +26,7 @@ propre, et une URL présentable.
 Le code est déjà basculé (`kSupportEmail`, `kPasswordResetUrl`, `supportEmail`
 côté site). **Reste à brancher :**
 
-1. **Netlify** → Domain management → ajouter `happyn.ca`, créer les
+1. **Netlify** → Domain management → ajouter `happynevents.com`, créer les
    enregistrements DNS chez le registraire ;
 2. **Resend** → vérifier le domaine, récupérer les identifiants SMTP ;
 3. **Supabase** → SMTP Settings, puis URL Configuration (§1.3).
@@ -47,7 +53,7 @@ Configuration : Project Settings → Authentication → SMTP Settings.
 Le code est écrit et testé des deux côtés (app + `web/reset.html`). Il reste :
 
 - **Supabase → Authentication → URL Configuration** : Site URL =
-  `https://happyn.ca`, Redirect URLs = `https://happyn.ca/**` ;
+  `https://happynevents.com`, Redirect URLs = `https://happynevents.com/**` ;
 - **un essai réel depuis un courriel**, non encore fait, bloqué par la limite
   de débit (§1.2).
 
@@ -59,7 +65,7 @@ gabarit de courriel sur `{{ .TokenHash }}`.
 ### 1.4 Relire l'intégralité du recueil légal
 
 **Bloquant, décidé de longue date.** Onze documents, déjà publics sur
-`happyn.ca/legal.html` puisque la page les lit depuis la base.
+`happynevents.com/legal.html` puisque la page les lit depuis la base.
 
 À ajouter pendant cette relecture : **la description du processus de
 suppression de compte** (le mécanisme existe, le texte non), et la mention de
