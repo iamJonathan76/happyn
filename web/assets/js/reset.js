@@ -70,17 +70,33 @@
   }
 
   async function exchangeTokenHash(tokenHash) {
-    const response = await fetch(`${HAPPYN.supabaseUrl}/auth/v1/verify`, {
-      method: 'POST',
-      headers: {
-        apikey: HAPPYN.supabaseAnonKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ type: 'recovery', token_hash: tokenHash }),
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.access_token || null;
+    // Délai maximum explicite : sans lui, une requête qui n'aboutit jamais
+    // laisse la page sur « vérification » indéfiniment, ce qui est pire qu'une
+    // erreur — l'utilisateur attend quelque chose qui ne viendra pas.
+    const abort = new AbortController();
+    const timer = setTimeout(() => abort.abort(), 10000);
+    try {
+      const response = await fetch(`${HAPPYN.supabaseUrl}/auth/v1/verify`, {
+        method: 'POST',
+        headers: {
+          apikey: HAPPYN.supabaseAnonKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'recovery', token_hash: tokenHash }),
+        signal: abort.signal,
+      });
+      if (!response.ok) {
+        console.warn('[happyn] verify a repondu', response.status);
+        return null;
+      }
+      const data = await response.json();
+      return data.access_token || null;
+    } catch (error) {
+      console.warn('[happyn] verify a echoue :', error);
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   async function resolveSession() {
@@ -183,7 +199,14 @@
       return;
     }
 
-    accessToken = await resolveSession();
+    // Quoi qu'il arrive, on atterrit sur un etat defini. Une exception non
+    // rattrapee laissait la page bloquee sur « verification » pour toujours.
+    try {
+      accessToken = await resolveSession();
+    } catch (error) {
+      console.warn('[happyn] resolution de session impossible :', error);
+      accessToken = null;
+    }
     if (!accessToken) {
       show(el.invalid);
       return;
