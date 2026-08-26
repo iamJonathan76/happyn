@@ -122,9 +122,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             flex: 46,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              // Ce bloc a une hauteur fixe (46 % de l'ecran) mais un contenu
+              // qui varie : la traduction la plus longue, une grande taille de
+              // police systeme ou un ecran court le faisaient deborder.
+              //
+              // Le defilement ne s'active que si necessaire : ConstrainedBox
+              // impose au contenu au moins la hauteur disponible, et
+              // IntrinsicHeight permet au Spacer de continuer a repousser le
+              // bouton vers le bas quand il y a de la place. Sans lui, le
+              // Spacer n'aurait aucune hauteur a distribuer dans une zone
+              // defilante.
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                   // Icon badge
                   Container(
                     width: 44,
@@ -233,7 +249,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
