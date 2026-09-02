@@ -1,6 +1,6 @@
 # HAPPYN — Recueil légal, brouillon complet
 
-**Statut : brouillon rédigé le 2026-09-02. Rien de ceci n'est en ligne.**
+**Statut : brouillon rédigé le 2026-09-02, juridiction corrigée le même jour (Ontario, pas Québec). Rien de ceci n'est en ligne.**
 Les textes actuellement publiés sur `happynevents.com/legal.html` sont les
 ébauches de juillet (7 342 caractères pour onze documents). Ce fichier les
 remplace, une fois relu et validé.
@@ -10,9 +10,29 @@ remplace, une fois relu et validé.
 ## Comment lire ce document
 
 **Ce que j'ai fait :** rédigé onze politiques complètes, structurées selon ce
-que la Loi 25 (Québec), la LPRPDE (fédéral) et les règles des magasins
-d'applications exigent, et fidèles à ce que HAPPYN fait **réellement** — je
-décris le code qu'on a écrit ensemble, pas un produit générique.
+que la **LPRPDE** (fédérale, applicable en Ontario), la *Loi de 2002 sur la
+protection du consommateur* (Ontario) et les règles des magasins d'applications
+exigent, et fidèles à ce que HAPPYN fait **réellement** — je décris le code
+qu'on a écrit ensemble, pas un produit générique.
+
+⚠️ **La double juridiction est le point le plus délicat de tout ce recueil.**
+HAPPYN est établie à **Ottawa, Ontario** : c'est la LPRPDE qui gouverne le
+traitement des données, et le droit ontarien qui s'applique au contrat. Mais le
+marché visé est **Ottawa-Gatineau** — donc une partie de tes utilisateurs
+résideront au **Québec**.
+
+Or la **Loi 25** s'applique en fonction de la résidence de la personne, pas de
+l'adresse de l'entreprise : dès que tu collectes les renseignements personnels
+d'un résident québécois, plusieurs de ses obligations te suivent. Il en va de
+même pour la *Loi sur la protection du consommateur* du Québec vis-à-vis d'un
+acheteur québécois, et pour la Charte de la langue française à l'égard d'un
+contrat de consommation conclu au Québec.
+
+Je n'ai pas retiré ces exigences du texte — je les ai **conservées comme
+prudentes**, parce qu'il est plus sûr de tenir le standard le plus élevé que de
+découvrir après coup qu'il s'appliquait. **Mais c'est la première question à
+poser à ton avocat :** dans quelle mesure le droit québécois te suit de l'autre
+côté de la rivière.
 
 **Ce que je n'ai pas fait, et que je ne peux pas faire :** valider
 juridiquement. Je ne suis pas avocat. Sur les paiements et les données
@@ -26,8 +46,10 @@ texte. Je ne peux pas les prendre à ta place.
 
 ### Deux problèmes de structure à régler avant publication
 
-**1. La version française est légalement requise.** La Charte de la langue
-française impose le français pour les contrats de consommation au Québec. Or
+**1. La version française.** En Ontario, aucune loi ne t'oblige à publier en
+français. Mais la moitié de ton marché est à Gatineau, et pour un contrat de
+consommation conclu avec un résident québécois, la Charte de la langue
+française entre en jeu. Traite-la donc comme requise. Or
 `legal_documents` n'a **aucune colonne de langue** : un slug = une ligne = une
 langue. Il faut ajouter `locale` et une clé unique `(slug, locale)`, puis
 adapter le site et l'app pour demander la bonne. C'est une migration courte,
@@ -67,7 +89,9 @@ Policy, and the Community Guidelines.
 You must be at least **14 years old** to create an account. This threshold
 exists because Quebec's Law 25 requires parental consent for the collection of
 personal information from children under 14, and HAPPYN does not operate a
-parental consent process.
+parental consent process. HAPPYN is established in Ontario, where no fixed
+statutory age applies, but a significant part of our community lives in Quebec —
+so we apply the stricter threshold to everyone.
 
 If you are between 14 and 17:
 
@@ -172,21 +196,25 @@ To the extent permitted by law, HAPPYN is not liable for:
 - content published by users;
 - losses caused by your failure to keep your account secure.
 
-Nothing in these Terms limits liability that cannot be limited by law, including
-under Quebec's *Consumer Protection Act*.
+Nothing in these Terms limits liability that cannot be limited by law,
+including under Ontario's *Consumer Protection Act, 2002* and, for consumers
+resident in Quebec, that province's *Consumer Protection Act*.
 
 `[À DÉCIDER]` — Whether to cap liability at the amount you paid in the previous
-12 months. This is standard, but its enforceability against Quebec consumers is
-a question for your lawyer.
+12 months. This is standard, but its enforceability against consumers — under
+Ontario's Act, and under Quebec's for Gatineau users — is a question for your
+lawyer.
 
 ## 12. Governing law
 
-These Terms are governed by the laws of the Province of Quebec and the laws of
-Canada applicable there. Disputes are subject to the courts of the judicial
-district of Gatineau, Quebec.
+These Terms are governed by the laws of the Province of **Ontario** and the
+laws of Canada applicable there. Disputes are subject to the courts of Ontario,
+sitting in Ottawa.
 
-`[À DÉCIDER]` — Confirm the judicial district with your lawyer. Consumer
-protection rules limit how far a forum selection clause binds a consumer.
+`[À DÉCIDER]` — **A forum selection clause does not reliably bind a consumer.**
+A Gatineau resident who buys a ticket may be entitled to sue where they live,
+whatever this clause says. Confirm the wording with your lawyer, and do not
+assume this clause keeps every dispute in Ontario.
 
 ## 13. Changes
 
@@ -207,17 +235,25 @@ contact@happynevents.com
 **Effective date:** [À DÉCIDER]
 **Version:** 2.0
 
-This policy explains what personal information HAPPYN collects, why, how long we
-keep it, who else sees it, and how you exercise your rights. It is written to
-meet Quebec's *Act respecting the protection of personal information in the
-private sector* (as amended by Law 25) and the federal *PIPEDA*.
+This policy explains what personal information HAPPYN collects, why, how long
+we keep it, who else sees it, and how you exercise your rights.
+
+HAPPYN is established in **Ottawa, Ontario**, so the federal *Personal
+Information Protection and Electronic Documents Act* (**PIPEDA**) governs how we
+handle personal information. Because a substantial part of our community lives
+in **Quebec**, we also apply the standards of Quebec's *Act respecting the
+protection of personal information in the private sector* (as amended by
+**Law 25**) to everyone, rather than treating people differently depending on
+which side of the river they live on.
 
 ## 1. Who is responsible
 
-`[À DÉCIDER]` — Name, address, and the **person in charge of the protection of
-personal information**. Law 25 requires you to designate one and to publish
-their title and contact details. By default this is the highest-ranking person
-in the business — you — until you designate someone else in writing.
+`[À DÉCIDER]` — Name, address, and the **person accountable for personal
+information**. PIPEDA requires you to designate someone accountable for
+compliance and to make their identity available on request; Law 25 goes further
+and requires publishing their title and contact details. We publish them, which
+satisfies both. By default this person is the highest-ranking person in the
+business — you — until you designate someone else in writing.
 
 Contact: contact@happynevents.com
 
@@ -283,11 +319,15 @@ public. This is enforced by our servers, not only by the interface.
 | Netlify | Website hosting | Global CDN |
 | Sentry | Crash reports, when enabled | United States |
 
-`[À DÉCIDER]` — **Law 25 requires a privacy impact assessment before
-transferring personal information outside Quebec**, and the disclosure that such
-transfers occur. Several of these providers process data in the United States.
-Your lawyer should confirm what documentation you need. This is one of the two
-places where I would not launch without advice.
+`[À DÉCIDER]` — Several of these providers process data in the **United
+States**. Under PIPEDA you must disclose that personal information may be
+processed outside Canada, and you remain accountable for protecting it through
+contractual means. Under Law 25, a **privacy impact assessment is required
+before transferring** a Quebec resident's personal information outside the
+province — and your Gatineau users make that relevant.
+
+Your lawyer should confirm what documentation your situation requires. This is
+one of the two places where I would not launch without advice.
 
 ### Legal disclosure
 
@@ -318,7 +358,7 @@ See the Data Retention Policy.
 
 ## 9. Your rights
 
-Under Law 25 and PIPEDA you may:
+Under PIPEDA — and under Law 25 if you reside in Quebec — you may:
 
 - **access** the personal information we hold about you;
 - **correct** it if it is inaccurate;
@@ -326,8 +366,8 @@ Under Law 25 and PIPEDA you may:
   Policy);
 - **obtain portability** of the information you provided, in a structured,
   commonly used technical format;
-- **complain** to the Commission d'accès à l'information du Québec or the Office
-  of the Privacy Commissioner of Canada.
+- **complain** to the Office of the Privacy Commissioner of Canada, or, if you
+  reside in Quebec, to the Commission d'accès à l'information du Québec.
 
 Write to contact@happynevents.com. We respond within **30 days**.
 
@@ -340,9 +380,10 @@ Write to contact@happynevents.com. We respond within **30 days**.
   no equivalent protection**, and screenshots remain possible there.
 - Card data never reaches our servers.
 
-No system is perfectly secure. If we discover a breach that presents a risk of
-serious injury, we will notify you and the Commission d'accès à l'information
-as Law 25 requires.
+No system is perfectly secure. If we discover a breach that creates a real risk
+of significant harm, we will notify you and the Office of the Privacy
+Commissioner of Canada, as PIPEDA requires — and the Commission d'accès à
+l'information du Québec where Quebec residents are affected.
 
 ## 11. Children
 
@@ -535,8 +576,9 @@ you can cancel that event, which notifies the buyers.
 **Effective date:** [À DÉCIDER]
 **Version:** 2.0
 
-Law 25 requires that personal information be destroyed once the purpose it was
-collected for is fulfilled. This is how long each category lives.
+PIPEDA requires that personal information be kept only as long as necessary for
+the purpose it was collected for, and Law 25 requires its destruction once that
+purpose is fulfilled. This is how long each category lives.
 
 | Category | Retention | Reason |
 |---|---|---|
@@ -700,9 +742,13 @@ organizer? Answer this before launch; it is the question people will ask most.
 For a cancelled or misdescribed event, contact the organizer first. If they do
 not respond within 7 days, write to contact@happynevents.com.
 
-`[À DÉCIDER]` — Quebec's *Consumer Protection Act* gives consumers rights that a
-policy cannot remove, including in some cases for distance contracts. Have this
-document reviewed as a priority: it is the one most likely to be tested.
+`[À DÉCIDER]` — Consumer protection statutes give buyers rights that a policy
+cannot remove. **Ontario's *Consumer Protection Act, 2002*** governs distance
+contracts with Ontario consumers, including disclosure requirements before a
+purchase and cancellation rights where those disclosures are missing.
+**Quebec's Act** applies to your Gatineau buyers and is stricter in places. Have
+this document reviewed as a priority: it is the one most likely to be tested,
+and the one where the two provinces diverge most.
 
 ---
 
@@ -828,8 +874,10 @@ paid events must be restricted to HAPPYN's own.
 1. **Trancher les `[À DÉCIDER]`** — onze au total. Les trois plus urgents :
    l'entité juridique, la taxe de vente, et le remboursement automatique ou non
    d'un événement annulé.
-2. **Faire relire par un avocat** en droit des technologies. Priorité :
-   Remboursement, Paiements, Confidentialité (transferts hors Québec), et
+2. **Faire relire par un avocat** en droit des technologies, **admis en Ontario
+   et à l'aise avec le droit québécois** — c'est la combinaison dont tu as
+   besoin pour un marché Ottawa-Gatineau. Priorité : la double juridiction,
+   puis Remboursement, Paiements, Confidentialité (transferts hors Canada), et
    l'escalade pour contenu illégal.
 3. **Migration `locale`** sur `legal_documents`, puis **traduction française** —
    légalement requise pour les consommateurs québécois.
