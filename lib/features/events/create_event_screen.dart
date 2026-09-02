@@ -53,6 +53,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   /// Faux par defaut : exposer sa soiree doit etre un oui explicite. Un
   /// evenement public n'a pas la question — tout y est public.
   bool _postsPublic = false;
+
+  /// Combien d'heures avant le debut un acheteur peut annuler et etre
+  /// rembourse. 0 = jamais. 24 h par defaut : assez pour un imprevu, assez tot
+  /// pour que l'organisateur puisse revendre la place.
+  int _cancellationHours = 24;
   /// Exigence d'âge (0 = All Ages, sinon 14/16/18/21).
   int _minAge = 0;
 
@@ -71,6 +76,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       _isPrivate = (ev['visibility'] ?? 'public') == 'private';
       _existingCode = ev['access_code'] as String?;
       _postsPublic = (ev['posts_visibility'] ?? 'public') == 'public';
+      _cancellationHours = (ev['cancellation_hours'] ?? 24) as int;
       _minAge = (ev['min_age'] ?? 0) as int;
       if (ev['start_date'] != null) {
         _startDate = DateTime.parse(ev['start_date'] as String);
@@ -279,6 +285,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           'visibility': _isPrivate ? 'private' : 'public',
           'posts_visibility':
               (!_isPrivate || _postsPublic) ? 'public' : 'invitees',
+          'cancellation_hours': _cancellationHours,
           'access_code': editCode, // null si repassé en public
           'min_age': _minAge,
         }).eq('id', eventId);
@@ -384,6 +391,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             'visibility': _isPrivate ? 'private' : 'public',
             'posts_visibility':
                 (!_isPrivate || _postsPublic) ? 'public' : 'invitees',
+            'cancellation_hours': _cancellationHours,
             'min_age': _minAge,
             if (accessCode != null) 'access_code': accessCode,
           })
@@ -786,6 +794,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         ),
                       ),
 
+                      // Delai d'annulation : concerne tous les evenements,
+                      // prives ou publics, payants ou gratuits.
+                      _cancellationChoice(l),
+
                       const SizedBox(height: 28),
 
                       // Submit button
@@ -901,6 +913,76 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Delai d'annulation, choisi par l'organisateur.
+  ///
+  /// Le recueil legal dit que les conditions de remboursement lui
+  /// appartiennent. Sans ce reglage, cette phrase serait fausse : l'app
+  /// imposerait une regle unique a tout le monde.
+  Widget _cancellationChoice(AppLocalizations l) {
+    const options = [0, 24, 48, 168];
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.07)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.event_busy_outlined, size: 16, color: AppColors.textMed),
+              const SizedBox(width: 8),
+              Text(l.cancellationWindow,
+                  style: AppText.h4.copyWith(color: Colors.white)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final h in options)
+                GestureDetector(
+                  onTap: () => setState(() => _cancellationHours = h),
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: _cancellationHours == h
+                          ? AppColors.primary.withOpacity(0.18)
+                          : Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _cancellationHours == h
+                            ? AppColors.primary.withOpacity(0.5)
+                            : Colors.white.withOpacity(0.08),
+                      ),
+                    ),
+                    child: Text(
+                      h == 0 ? l.cancellationNone : l.cancellationHours(h),
+                      style: AppText.smallBold.copyWith(
+                        color: _cancellationHours == h
+                            ? AppColors.lavenderLight
+                            : AppColors.textMed,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(l.cancellationWindowHelp,
+              style: AppText.caption.copyWith(fontSize: 11.5, height: 1.35)),
+        ],
       ),
     );
   }

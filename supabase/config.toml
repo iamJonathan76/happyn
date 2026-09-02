@@ -421,3 +421,8 @@ verify_jwt = false
 # le secret partage REPORT_HOOK_SECRET, verifie dans la fonction.
 [functions.notify-report]
 verify_jwt = false
+
+# Exige un JWT : c'est le detenteur du billet qui annule, et la fonction doit
+# savoir qui appelle avant de rembourser quoi que ce soit.
+[functions.cancel-ticket]
+verify_jwt = true

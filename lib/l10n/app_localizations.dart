@@ -896,6 +896,108 @@ abstract class AppLocalizations {
   /// **'Content removed'**
   String get contentRemoved;
 
+  /// No description provided for @cancelTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel my ticket'**
+  String get cancelTicket;
+
+  /// No description provided for @cancelTicketTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this ticket?'**
+  String get cancelTicketTitle;
+
+  /// No description provided for @cancelTicketBodyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Your place is released and {amount} is refunded to the card you paid with. Refunds usually take 5 to 10 business days to appear.'**
+  String cancelTicketBodyPaid(String amount);
+
+  /// No description provided for @cancelTicketBodyFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Your place is released and given back to other people.'**
+  String get cancelTicketBodyFree;
+
+  /// No description provided for @cancelTicketConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel my ticket'**
+  String get cancelTicketConfirm;
+
+  /// No description provided for @cancelTicketKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it'**
+  String get cancelTicketKeep;
+
+  /// No description provided for @cancelTicketDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket cancelled'**
+  String get cancelTicketDone;
+
+  /// No description provided for @cancelTicketDoneRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket cancelled. The refund is on its way.'**
+  String get cancelTicketDoneRefund;
+
+  /// No description provided for @cancelUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'You can cancel until {date}'**
+  String cancelUntil(String date);
+
+  /// No description provided for @cancelErrDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'The cancellation window for this event has closed.'**
+  String get cancelErrDeadline;
+
+  /// No description provided for @cancelErrNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'The organizer does not allow cancellations for this event.'**
+  String get cancelErrNotAllowed;
+
+  /// No description provided for @cancelErrRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'The refund could not be processed, so your ticket was left untouched. Please try again or write to us.'**
+  String get cancelErrRefund;
+
+  /// No description provided for @cancelErrGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not cancel this ticket. Nothing was changed.'**
+  String get cancelErrGeneric;
+
+  /// No description provided for @cancellationWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation window'**
+  String get cancellationWindow;
+
+  /// No description provided for @cancellationWindowHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'How long before the event a buyer can cancel and be refunded. Choose « No cancellation » to refuse them.'**
+  String get cancellationWindowHelp;
+
+  /// No description provided for @cancellationNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No cancellation'**
+  String get cancellationNone;
+
+  /// No description provided for @cancellationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h before'**
+  String cancellationHours(int hours);
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

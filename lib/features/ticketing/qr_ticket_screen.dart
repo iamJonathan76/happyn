@@ -15,6 +15,7 @@ import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/utils/secure_screen.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/providers/cancellation_provider.dart';
 import 'package:happyn/core/utils/dates.dart';
 
 class QrTicketScreen extends ConsumerStatefulWidget {
@@ -38,6 +39,9 @@ class QrTicketScreen extends ConsumerStatefulWidget {
 }
 
 class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
+  /// Empeche un second appui pendant que le remboursement est en cours.
+  bool _busyCancelling = false;
+
   // Payload signé renvoyé par l'Edge Function `mint-qr`, valable 5 min.
   // Régénéré automatiquement avant expiration tant que l'écran est ouvert.
   String? _qrPayload;
@@ -415,6 +419,14 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
                         style: AppText.small,
                       ),
                     ],
+
+                    // ── Annulation ─────────────────────────────────
+                    // Sous le transfert, et volontairement discrete : c'est une
+                    // sortie, pas une action qu'on met en avant. Mais elle doit
+                    // exister — sans elle, quelqu'un qui ne peut plus venir n'a
+                    // aucun recours et sa place reste bloquee.
+                    if (!cancelled && !isEventPast(ev))
+                      _cancelSection(ticket['id'] as String, l),
                   ],
                 ),
               ),
@@ -642,6 +654,121 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
   }
 
   // ── QR (loading / error / code) ────────────────────────────────────────────
+  /// Bloc d'annulation : lien discret + date limite, ou rien du tout.
+  ///
+  /// Si l'annulation n'est pas possible on n'affiche AUCUN bouton grise :
+  /// proposer une action qui echouera est plus frustrant que ne rien proposer.
+  /// Seule exception, le delai depasse — la on explique, parce que l'absence
+  /// serait incomprehensible pour quelqu'un qui a vu l'option la veille.
+  Widget _cancelSection(String ticketId, AppLocalizations l) {
+    final check = ref.watch(cancelCheckProvider(ticketId)).asData?.value;
+    if (check == null) return const SizedBox.shrink();
+
+    if (!check.allowed) {
+      if (check.reason == 'deadline_passed') {
+        return Padding(
+          padding: const EdgeInsets.only(top: 18),
+          child: Text(l.cancelErrDeadline,
+              textAlign: TextAlign.center, style: AppText.small),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: _busyCancelling ? null : () => _confirmCancel(ticketId, check, l),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: _busyCancelling
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.error),
+                    )
+                  : Text(
+                      l.cancelTicket,
+                      style: AppText.smallBold.copyWith(color: AppColors.error),
+                    ),
+            ),
+          ),
+          if (check.deadline != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              l.cancelUntil(AppDates.dayMonthYear(
+                  context, check.deadline!.toIso8601String())),
+              textAlign: TextAlign.center,
+              style: AppText.micro,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Confirmation. Le texte dit ce qui se passe VRAIMENT : un billet gratuit ne
+  /// promet aucun virement, un billet payant annonce le montant et le delai
+  /// bancaire — sinon on recoit un message inquiet trois jours plus tard.
+  Future<void> _confirmCancel(
+      String ticketId, CancelCheck check, AppLocalizations l) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.cancelTicketTitle,
+            style: AppText.h4.copyWith(color: Colors.white)),
+        content: Text(
+          check.isPaid
+              ? l.cancelTicketBodyPaid(
+                  '\$${check.amount.toStringAsFixed(2)}')
+              : l.cancelTicketBodyFree,
+          style: AppText.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(l.cancelTicketKeep, style: AppText.body),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(l.cancelTicketConfirm,
+                style: AppText.smallBold.copyWith(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    setState(() => _busyCancelling = true);
+    final result = await cancelTicket(ticketId);
+    if (!mounted) return;
+    setState(() => _busyCancelling = false);
+
+    if (result.ok) {
+      ref.invalidate(myTicketsProvider);
+      ref.invalidate(cancelCheckProvider(ticketId));
+      showAppSnack(context,
+          result.refunded ? l.cancelTicketDoneRefund : l.cancelTicketDone);
+      Navigator.of(context).pop();
+      return;
+    }
+
+    showAppSnack(context, switch (result.error) {
+      'deadline_passed' => l.cancelErrDeadline,
+      'not_allowed_by_organizer' => l.cancelErrNotAllowed,
+      // Message distinct : ici l'argent n'a PAS bouge et le billet est intact.
+      // Dire « annulation impossible » laisserait croire a une perte.
+      'refund_failed' => l.cancelErrRefund,
+      _ => l.cancelErrGeneric,
+    });
+  }
+
   Widget _qrBox() {
     return GestureDetector(
       onTap: _error != null ? _mintQr : null,

@@ -445,6 +445,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contentRemoved => 'Content removed';
 
   @override
+  String get cancelTicket => 'Cancel my ticket';
+
+  @override
+  String get cancelTicketTitle => 'Cancel this ticket?';
+
+  @override
+  String cancelTicketBodyPaid(String amount) {
+    return 'Your place is released and $amount is refunded to the card you paid with. Refunds usually take 5 to 10 business days to appear.';
+  }
+
+  @override
+  String get cancelTicketBodyFree =>
+      'Your place is released and given back to other people.';
+
+  @override
+  String get cancelTicketConfirm => 'Cancel my ticket';
+
+  @override
+  String get cancelTicketKeep => 'Keep it';
+
+  @override
+  String get cancelTicketDone => 'Ticket cancelled';
+
+  @override
+  String get cancelTicketDoneRefund =>
+      'Ticket cancelled. The refund is on its way.';
+
+  @override
+  String cancelUntil(String date) {
+    return 'You can cancel until $date';
+  }
+
+  @override
+  String get cancelErrDeadline =>
+      'The cancellation window for this event has closed.';
+
+  @override
+  String get cancelErrNotAllowed =>
+      'The organizer does not allow cancellations for this event.';
+
+  @override
+  String get cancelErrRefund =>
+      'The refund could not be processed, so your ticket was left untouched. Please try again or write to us.';
+
+  @override
+  String get cancelErrGeneric =>
+      'Could not cancel this ticket. Nothing was changed.';
+
+  @override
+  String get cancellationWindow => 'Cancellation window';
+
+  @override
+  String get cancellationWindowHelp =>
+      'How long before the event a buyer can cancel and be refunded. Choose « No cancellation » to refuse them.';
+
+  @override
+  String get cancellationNone => 'No cancellation';
+
+  @override
+  String cancellationHours(int hours) {
+    return '$hours h before';
+  }
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

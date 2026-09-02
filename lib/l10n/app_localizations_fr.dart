@@ -449,6 +449,70 @@ class AppLocalizationsFr extends AppLocalizations {
   String get contentRemoved => 'Contenu retiré';
 
   @override
+  String get cancelTicket => 'Annuler mon billet';
+
+  @override
+  String get cancelTicketTitle => 'Annuler ce billet ?';
+
+  @override
+  String cancelTicketBodyPaid(String amount) {
+    return 'Ta place est rendue et $amount est remboursé sur la carte utilisée. Un remboursement met généralement 5 à 10 jours ouvrables à apparaître.';
+  }
+
+  @override
+  String get cancelTicketBodyFree =>
+      'Ta place est rendue et redevient disponible pour les autres.';
+
+  @override
+  String get cancelTicketConfirm => 'Annuler mon billet';
+
+  @override
+  String get cancelTicketKeep => 'Le garder';
+
+  @override
+  String get cancelTicketDone => 'Billet annulé';
+
+  @override
+  String get cancelTicketDoneRefund =>
+      'Billet annulé. Le remboursement est en route.';
+
+  @override
+  String cancelUntil(String date) {
+    return 'Annulation possible jusqu\'au $date';
+  }
+
+  @override
+  String get cancelErrDeadline =>
+      'Le délai d\'annulation pour cet événement est dépassé.';
+
+  @override
+  String get cancelErrNotAllowed =>
+      'L\'organisateur n\'autorise pas l\'annulation pour cet événement.';
+
+  @override
+  String get cancelErrRefund =>
+      'Le remboursement n\'a pas pu être effectué, ton billet est donc resté intact. Réessaie ou écris-nous.';
+
+  @override
+  String get cancelErrGeneric =>
+      'Impossible d\'annuler ce billet. Rien n\'a été modifié.';
+
+  @override
+  String get cancellationWindow => 'Délai d\'annulation';
+
+  @override
+  String get cancellationWindowHelp =>
+      'Combien de temps avant l\'événement un acheteur peut annuler et être remboursé. Choisis « Aucune annulation » pour le refuser.';
+
+  @override
+  String get cancellationNone => 'Aucune annulation';
+
+  @override
+  String cancellationHours(int hours) {
+    return '$hours h avant';
+  }
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override
