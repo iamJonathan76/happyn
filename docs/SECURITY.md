@@ -167,9 +167,32 @@ verrouillerait la modération.
 peut-être acheté des billets, et effacer la ligne les priverait de la trace de
 ce qu'ils ont payé. Une publication, elle, est supprimée.
 
-**Ce qui manque encore :** aucune alerte quand un signalement arrive. Il faut
-penser à ouvrir la file. Le minimum est un déclencheur appelant une fonction
-Edge qui envoie un courriel — donc dépendant du SMTP, donc du domaine.
+**L'alerte.** `notify-report` (fonction Edge) envoie un courriel à chaque
+signalement déposé, pour ne pas dépendre de quelqu'un qui pense à ouvrir la
+file — un signalement du vendredi soir attendrait sinon le lundi, hors des 24 h
+attendues par Apple.
+
+Elle n'exige **pas de JWT** : l'appelant est la base, pas un utilisateur. Sa
+protection est un secret partagé `REPORT_HOOK_SECRET`, comparé **en temps
+constant** (une comparaison naïve s'arrête au premier caractère différent, et
+le temps de réponse laisse deviner le secret caractère par caractère). Sans ce
+contrôle, quiconque connaîtrait l'URL pourrait déclencher des envois, épuiser
+le quota de courriels et noyer les vraies alertes.
+
+Le champ `details` est saisi par un utilisateur : il est échappé avant d'entrer
+dans le HTML du courriel, et tronqué à 500 caractères.
+
+**Configuration hors dépôt** (elle contient un secret) :
+
+1. Secrets Supabase : `REPORT_HOOK_SECRET` (chaîne aléatoire longue),
+   `RESEND_API_KEY`, `MODERATION_EMAIL`.
+2. Déploiement : `supabase functions deploy notify-report --no-verify-jwt`.
+3. Database → Webhooks → nouveau webhook sur `public.reports`, événement
+   INSERT, type HTTP Request, URL de la fonction, en-tête
+   `x-happyn-secret: <REPORT_HOOK_SECRET>`.
+
+C'est la seule configuration volontairement non versionnée du projet, parce
+qu'un webhook ne peut pas porter son secret dans un fichier du dépôt.
 
 ---
 

@@ -73,16 +73,21 @@ toute collecte comportementale si elle est un jour ajoutée.
 
 Ils se corrigent en base, sans redéploiement.
 
-### 1.5 Alerter quand un signalement arrive
+### 1.5 Modération — guideline Apple 1.2
 
-L'outillage est livré (2026-08-14) : rôle administrateur, file de traitement
-dans les réglages, retrait de contenu depuis le contenu lui-même, suspension de
-compte, journal d'audit. Voir `docs/SECURITY.md` §3 bis.
+Outillage livré le 2026-08-14 : rôle administrateur, file de traitement dans
+les réglages, retrait de contenu depuis le contenu lui-même, suspension de
+compte, journal d'audit. Alerte par courriel livrée le 2026-09-01
+(`notify-report`). Voir `docs/SECURITY.md` § 3 bis.
 
-**Reste l'alerte.** Rien ne prévient qu'un signalement est arrivé — il faut
-penser à ouvrir la file, ce qui tient mal la contrainte des 24 h d'Apple. Le
-minimum : un déclencheur en base appelant une fonction Edge qui envoie un
-courriel. Dépend donc du SMTP (§1.2).
+**Reste à faire, côté tableau de bord uniquement** — la fonction est écrite,
+sa configuration porte un secret et ne peut donc pas vivre dans le dépôt :
+
+1. Secrets Supabase : `REPORT_HOOK_SECRET`, `RESEND_API_KEY`,
+   `MODERATION_EMAIL` ;
+2. `supabase functions deploy notify-report --no-verify-jwt` ;
+3. Database → Webhooks → INSERT sur `public.reports` → HTTP Request vers la
+   fonction, avec l'en-tête `x-happyn-secret`.
 
 ---
 

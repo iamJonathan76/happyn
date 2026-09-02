@@ -415,3 +415,9 @@ enabled = true
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+# Appelee par un Database Webhook sur INSERT dans public.reports : l'appelant
+# est la base, pas un utilisateur, donc aucun JWT a presenter. Sa protection est
+# le secret partage REPORT_HOOK_SECRET, verifie dans la fonction.
+[functions.notify-report]
+verify_jwt = false
