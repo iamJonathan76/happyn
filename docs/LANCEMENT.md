@@ -65,13 +65,32 @@ gabarit de courriel sur `{{ .TokenHash }}`.
 ### 1.4 Relire l'intégralité du recueil légal
 
 **Bloquant, décidé de longue date.** Onze documents, déjà publics sur
-`happynevents.com/legal.html` puisque la page les lit depuis la base.
+`happynevents.com/legal.html` puisque la page les lit depuis la base. Ils se
+corrigent en base, sans redéploiement.
 
-À ajouter pendant cette relecture : **la description du processus de
-suppression de compte** (le mécanisme existe, le texte non), et la mention de
-toute collecte comportementale si elle est un jour ajoutée.
+Trois points **doivent** être ajoutés ou vérifiés pendant cette relecture :
 
-Ils se corrigent en base, sans redéploiement.
+**a. La suppression de compte.** Le mécanisme existe (`delete-account`,
+`account_deletion_preview`, `delete_my_account_data`), le texte non. Décrire ce
+qui est effacé, ce qui est conservé et pourquoi (les billets vendus ont une
+valeur comptable), et sous quel délai.
+
+**b. La procédure d'escalade pour contenu illégal.** ⚠️ Ce point ne dépend pas
+du volume : il manque dès le premier utilisateur. Une app qui héberge des
+photos peut recevoir du contenu pédopornographique ou des menaces crédibles.
+La réponse ne peut pas être « je retire la publication » — il existe des
+obligations de signalement aux autorités et de conservation des preuves, que
+« retirer et oublier » viole.
+
+Ce qu'il faut : une politique écrite disant ce qui déclenche un signalement
+externe, à qui, sous quel délai, et qui conserve quoi. Ça doit apparaître dans
+les règles communautaires ET exister comme procédure interne. C'est le genre de
+chose qu'on ne veut pas découvrir le soir où ça arrive.
+
+**c. La collecte comportementale**, si elle est un jour ajoutée — voir
+`docs/RECOMMANDATION.md`. Aucune ligne de journalisation ne doit être écrite
+avant que le texte la couvre (Loi 25 : finalité déclarée, durée de
+conservation, mention explicite).
 
 ### 1.5 Modération — guideline Apple 1.2
 
@@ -88,6 +107,19 @@ sa configuration porte un secret et ne peut donc pas vivre dans le dépôt :
 2. `supabase functions deploy notify-report --no-verify-jwt` ;
 3. Database → Webhooks → INSERT sur `public.reports` → HTTP Request vers la
    fonction, avec l'en-tête `x-happyn-secret`.
+
+**Ce qui cassera à l'échelle**, et le déclencheur pour s'en occuper — rien de
+tout cela maintenant, ce serait une usine pour trois signalements :
+
+| Déclencheur | À construire |
+|---|---|
+| ~10 signalements/semaine | regrouper par cible avec un compteur : 50 signalements sur une même publication apparaissent aujourd'hui comme 50 lignes, alors que c'est le signal le plus utile |
+| Premier contenu vraiment grave | seuil de retrait automatique au-delà de N signalants distincts, en attente de décision |
+| Deuxième modérateur | attribution (qui traite quoi), et résumé horaire au lieu d'une alerte par signalement — sinon le bruit fait cesser de lire |
+| Modération quotidienne | tableau de bord web (les fonctions `admin_*` sont déjà appelables depuis le site) |
+
+Viennent ensuite la pondération par motif (violence ≠ « je n'aime pas ») et la
+réputation des signalants.
 
 ---
 
