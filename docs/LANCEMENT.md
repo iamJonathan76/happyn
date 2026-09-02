@@ -1,6 +1,6 @@
 # HAPPYN — Ce qui reste avant le lancement
 
-État au 2026-08-23. Le produit est construit ; l'essentiel de ce qui reste
+État au 2026-09-02. Le produit est construit ; l'essentiel de ce qui reste
 n'est pas du développement.
 
 ---
@@ -99,14 +99,19 @@ les réglages, retrait de contenu depuis le contenu lui-même, suspension de
 compte, journal d'audit. Alerte par courriel livrée le 2026-09-01
 (`notify-report`). Voir `docs/SECURITY.md` § 3 bis.
 
-**Reste à faire, côté tableau de bord uniquement** — la fonction est écrite,
-sa configuration porte un secret et ne peut donc pas vivre dans le dépôt :
+**Configuration faite et testée de bout en bout le 2026-09-02** : secrets posés,
+fonction déployée, webhook `notify_report_on_insert` actif sur INSERT dans
+`public.reports`. Un signalement déclenche bien un courriel.
 
-1. Secrets Supabase : `REPORT_HOOK_SECRET`, `RESEND_API_KEY`,
-   `MODERATION_EMAIL` ;
-2. `supabase functions deploy notify-report --no-verify-jwt` ;
-3. Database → Webhooks → INSERT sur `public.reports` → HTTP Request vers la
-   fonction, avec l'en-tête `x-happyn-secret`.
+Cette configuration vit dans le tableau de bord, pas dans le dépôt, parce
+qu'elle porte un secret. Pour la recréer : les trois secrets
+(`REPORT_HOOK_SECRET`, `RESEND_API_KEY`, `MODERATION_EMAIL`),
+`supabase functions deploy notify-report --no-verify-jwt`, puis le webhook avec
+l'en-tête `x-happyn-secret`.
+
+⚠️ L'intégration **Database Webhooks** doit être activée au préalable
+(Integrations → Database Webhooks). Sans elle, le schéma `supabase_functions`
+n'existe pas et la création du webhook échoue sur `ERROR: 3F000`.
 
 **Ce qui cassera à l'échelle**, et le déclencheur pour s'en occuper — rien de
 tout cela maintenant, ce serait une usine pour trois signalements :

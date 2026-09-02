@@ -6,7 +6,7 @@ oublier avant publication, permettre au second développeur de travailler sans
 casser un contrôle sans le savoir, et pouvoir répondre à Apple, Google ou à une
 demande Loi 25 sans improviser.
 
-Dernière revue : 2026-08-14.
+Dernière revue : 2026-09-02.
 
 ---
 
@@ -182,7 +182,9 @@ le quota de courriels et noyer les vraies alertes.
 Le champ `details` est saisi par un utilisateur : il est échappé avant d'entrer
 dans le HTML du courriel, et tronqué à 500 caractères.
 
-**Configuration hors dépôt** (elle contient un secret) :
+**Configuration hors dépôt** (elle contient un secret) — posée et testée le
+2026-09-02. L'intégration Database Webhooks doit être activée avant, sinon le
+schéma `supabase_functions` n'existe pas :
 
 1. Secrets Supabase : `REPORT_HOOK_SECRET` (chaîne aléatoire longue),
    `RESEND_API_KEY`, `MODERATION_EMAIL`.
