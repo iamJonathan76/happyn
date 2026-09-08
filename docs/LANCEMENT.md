@@ -1,235 +1,166 @@
-# HAPPYN — Ce qui reste avant le lancement
+# HAPPYN — État et ce qui reste
 
-État au 2026-09-02. Le produit est construit ; l'essentiel de ce qui reste
-n'est pas du développement.
+État au 2026-09-02. Le produit est construit. Ce qui reste se répartit en trois
+familles très inégales : des **décisions** (rapides, mais elles bloquent tout le
+reste), de la **configuration** (mécanique), et du **code** (un seul gros
+chantier).
 
 ---
 
-## 1. Le chemin critique
+## 1. Fait, et vérifié de bout en bout
 
-Dans cet ordre, parce que chaque étape en débloque d'autres.
-
-### 1.1 Le domaine — ACHETÉ le 2026-08-23
-
-`happynevents.com`, avec une boîte `contact@happynevents.com`. ~17 $ la
-première année, ~27 $/an ensuite.
-
-`happyn.com` était pris et `happyn.ca` exige une catégorie de présence
-canadienne qu'aucun particulier ne remplit ici — elle s'ouvrira le jour où
-l'entreprise sera enregistrée (probablement requise pour Stripe Connect). Le
-nom de marque reste HAPPYN ; le domaine n'est qu'une adresse qu'on clique, et
-il sera remplaçable par redirection le moment venu.
-
-C'était le jalon central : il débloque le SMTP (§1.2), une adresse de contact
-propre, et une URL présentable.
-
-Le code est déjà basculé (`kSupportEmail`, `kPasswordResetUrl`, `supportEmail`
-côté site). **Reste à brancher :**
-
-1. **Netlify** → Domain management → ajouter `happynevents.com`, créer les
-   enregistrements DNS chez le registraire ;
-2. **Resend** → vérifier le domaine, récupérer les identifiants SMTP ;
-3. **Supabase** → SMTP Settings, puis URL Configuration (§1.3).
-
-⚠️ Les points 1 et 3 doivent aboutir **ensemble**. Tant que Supabase ne connaît
-pas la nouvelle URL de redirection, il retombe silencieusement sur sa Site URL —
-c'est exactement le bug « le lien pointe sur localhost » rencontré le 2026-08-14.
-
-### 1.2 SMTP externe — gratuit (Resend, 3 000 courriels/mois)
-
-**Bloquant.** Le service intégré de Supabase est plafonné à **2 courriels par
-heure pour tout le projet**, tous utilisateurs confondus, et le plafond ne se
-lève qu'après configuration d'un SMTP externe. Le troisième inscrit d'une
-soirée ne recevrait rien.
-
-S'ajoute la délivrabilité : le service intégré envoie depuis un domaine
-partagé, une bonne part des messages finit en indésirables. Quelqu'un qui perd
-son mot de passe sans recevoir le lien perd ses billets.
-
-Configuration : Project Settings → Authentication → SMTP Settings.
-
-### 1.3 Finir la réinitialisation du mot de passe
-
-Le code est écrit et testé des deux côtés (app + `web/reset.html`). Il reste :
-
-- **Supabase → Authentication → URL Configuration** : Site URL =
-  `https://happynevents.com`, Redirect URLs = `https://happynevents.com/**` ;
-- **un essai réel depuis un courriel**, non encore fait, bloqué par la limite
-  de débit (§1.2).
-
-Une inconnue subsiste : la forme du lien. `#access_token=` → tout fonctionne.
-`?code=` → flux PKCE, dont l'échange exige le « code verifier » généré sur le
-téléphone, qu'une page web ne peut pas avoir ; il faudra alors passer le
-gabarit de courriel sur `{{ .TokenHash }}`.
-
-### 1.4 Relire l'intégralité du recueil légal
-
-**Bloquant, décidé de longue date.** Onze documents, déjà publics sur
-`happynevents.com/legal.html` puisque la page les lit depuis la base. Ils se
-corrigent en base, sans redéploiement.
-
-Trois points **doivent** être ajoutés ou vérifiés pendant cette relecture :
-
-**a. La suppression de compte.** Le mécanisme existe (`delete-account`,
-`account_deletion_preview`, `delete_my_account_data`), le texte non. Décrire ce
-qui est effacé, ce qui est conservé et pourquoi (les billets vendus ont une
-valeur comptable), et sous quel délai.
-
-**b. La procédure d'escalade pour contenu illégal.** ⚠️ Ce point ne dépend pas
-du volume : il manque dès le premier utilisateur. Une app qui héberge des
-photos peut recevoir du contenu pédopornographique ou des menaces crédibles.
-La réponse ne peut pas être « je retire la publication » — il existe des
-obligations de signalement aux autorités et de conservation des preuves, que
-« retirer et oublier » viole.
-
-Ce qu'il faut : une politique écrite disant ce qui déclenche un signalement
-externe, à qui, sous quel délai, et qui conserve quoi. Ça doit apparaître dans
-les règles communautaires ET exister comme procédure interne. C'est le genre de
-chose qu'on ne veut pas découvrir le soir où ça arrive.
-
-**c. La collecte comportementale**, si elle est un jour ajoutée — voir
-`docs/RECOMMANDATION.md`. Aucune ligne de journalisation ne doit être écrite
-avant que le texte la couvre (Loi 25 : finalité déclarée, durée de
-conservation, mention explicite).
-
-### 1.5 Modération — guideline Apple 1.2
-
-Outillage livré le 2026-08-14 : rôle administrateur, file de traitement dans
-les réglages, retrait de contenu depuis le contenu lui-même, suspension de
-compte, journal d'audit. Alerte par courriel livrée le 2026-09-01
-(`notify-report`). Voir `docs/SECURITY.md` § 3 bis.
-
-**Configuration faite et testée de bout en bout le 2026-09-02** : secrets posés,
-fonction déployée, webhook `notify_report_on_insert` actif sur INSERT dans
-`public.reports`. Un signalement déclenche bien un courriel.
-
-Cette configuration vit dans le tableau de bord, pas dans le dépôt, parce
-qu'elle porte un secret. Pour la recréer : les trois secrets
-(`REPORT_HOOK_SECRET`, `RESEND_API_KEY`, `MODERATION_EMAIL`),
-`supabase functions deploy notify-report --no-verify-jwt`, puis le webhook avec
-l'en-tête `x-happyn-secret`.
-
-⚠️ L'intégration **Database Webhooks** doit être activée au préalable
-(Integrations → Database Webhooks). Sans elle, le schéma `supabase_functions`
-n'existe pas et la création du webhook échoue sur `ERROR: 3F000`.
-
-**Ce qui cassera à l'échelle**, et le déclencheur pour s'en occuper — rien de
-tout cela maintenant, ce serait une usine pour trois signalements :
-
-| Déclencheur | À construire |
+| | Livré |
 |---|---|
-| ~10 signalements/semaine | regrouper par cible avec un compteur : 50 signalements sur une même publication apparaissent aujourd'hui comme 50 lignes, alors que c'est le signal le plus utile |
-| Premier contenu vraiment grave | seuil de retrait automatique au-delà de N signalants distincts, en attente de décision |
-| Deuxième modérateur | attribution (qui traite quoi), et résumé horaire au lieu d'une alerte par signalement — sinon le bruit fait cesser de lire |
-| Modération quotidienne | tableau de bord web (les fonctions `admin_*` sont déjà appelables depuis le site) |
-
-Viennent ensuite la pondération par motif (violence ≠ « je n'aime pas ») et la
-réputation des signalants.
+| Découverte, billetterie, QR signé rotatif, scanner | ✅ |
+| Transfert de billet | ✅ |
+| Événements privés, code d'invitation, portée des photos | ✅ |
+| Partie sociale : publications, fil, profils, suivi, « Qui y va » | ✅ |
+| Âge (14 / 18), FR-EN complet dans l'app | ✅ |
+| Suppression de compte | ✅ |
+| Modération complète — Apple 1.2 | ✅ testée |
+| Domaine, SMTP, adresse de contact | ✅ |
+| Réinitialisation du mot de passe | ✅ testée |
+| Compteur de ventes pour l'organisateur | ✅ |
+| Sécurité : RLS versionnée, 3 failles fermées, doc | ✅ |
+| Site en ligne (`happynevents.com`) | ✅ |
 
 ---
 
-## 2. Publier sur les stores
+## 2. Décisions en attente
+
+Elles ne prennent que du temps de réflexion, mais **rien n'avance sans elles**.
+
+### 2.1 Le modèle économique — le plus bloquant
+
+**HAPPYN ne prend aucune commission aujourd'hui.** Stripe prélève 2,9 % + 0,30 $.
+Si le prix intégral du billet va à l'organisateur, **chaque vente coûte de
+l'argent** — 0,88 $ sur un billet à 20 $, de ta poche.
+
+À trancher : commission sur l'organisateur, frais de service à l'acheteur, les
+deux, ou rien (subvention). Le montant du virement en dépend directement, donc
+**Stripe Connect ne peut pas être construit avant**.
+
+### 2.2 Le moment du versement
+
+Recommandation : **jour de l'événement + 3 à 7 jours**. Trois raisons — la
+fenêtre d'annulation doit être fermée avant de verser, un faux événement devient
+impossible à monétiser, et une contestation bancaire reste possible 120 jours.
+
+### 2.3 Le plancher d'annulation
+
+Aujourd'hui l'organisateur peut choisir `0` (aucune annulation), et **rien ne le
+signale à l'acheteur**. C'est le défaut de ce qui vient d'être livré.
+
+- **A** — retirer `0` : minimum 24 h garanti par HAPPYN
+- **B** — garder `0` mais l'afficher clairement à l'achat
+
+Recommandation : **A** pour le lancement.
+
+### 2.4 L'entité juridique
+
+Tant qu'il n'y a pas d'entreprise, les conditions te lient **personnellement**,
+et tu portes la responsabilité des événements d'autrui vendus sur ta plateforme.
+Stripe Connect l'exigera probablement de toute façon. C'est aussi ce qui
+ouvrirait `happyn.ca`.
+
+### 2.5 Les onze `[À DÉCIDER]` du recueil légal
+
+Voir `docs/LEGAL-DRAFT.md`. Les plus urgents : la taxe de vente (TPS/TVH — qui
+perçoit et remet), et le remboursement automatique ou non d'un événement annulé.
+
+---
+
+## 3. Configuration en attente
+
+- **Migration `20260902000000_cancel_ticket.sql`** à appliquer
+- **`supabase functions deploy cancel-ticket`** (avec JWT)
+- **DSN Sentry** — le code est branché, il ne manque que
+  `--dart-define=SENTRY_DSN=…`. Déclencheur : avant la première version donnée à
+  quelqu'un d'autre que nous.
+
+---
+
+## 4. Code restant
+
+### 4.1 Le seul gros chantier — Stripe Connect
+
+Aujourd'hui l'argent d'une vente arrive sur un seul compte et rien ne le
+redistribue. **HAPPYN ne peut pas vendre les billets d'autrui**, ce qui est
+pourtant le produit. Bloqué par les décisions 2.1, 2.2 et 2.4.
+
+Stripe est aussi toujours en **mode test** : aucun vrai paiement n'est possible.
+
+### 4.2 Manques fonctionnels
+
+| | Effet |
+|---|---|
+| **Aucune notification poussée** | Personne n'est prévenu quand l'app est fermée — y compris pour l'annulation d'un événement |
+| **Liste des participants** | L'organisateur voit le nombre vendu, pas qui vient |
+| **Autocomplétion d'adresse** | Saisie libre, donc adresses approximatives |
+
+### 4.3 Dette à traiter avant publication
+
+**⚠️ Les textes légaux existent à trois endroits** : `legal_documents` en base,
+`web/assets/data/legal-fallback.json`, et **254 lignes en dur dans
+`lib/core/legal/legal_content.dart`**. Quand les textes seront remplacés, l'app
+affichera encore ceux de juillet si on ne touche qu'à la base — une app qui
+affiche des conditions périmées est un problème juridique en soi.
+
+- **Migration `locale`** sur `legal_documents` (aucune colonne de langue
+  aujourd'hui), puis traduction française
+- **Deux documents à créer** : `content-moderation`, `account-deletion`
+- **Test avec grande police système** — jamais fait, et un débordement s'y
+  cachait déjà
+- **Version française du site** (l'app est bilingue, le site non)
+
+### 4.4 Sécurité — points ouverts
+
+Détail dans `docs/SECURITY.md` § 6.
+
+- **Buckets publics** → URLs signées
+- **Limitation de débit** sur `unlock_private_event`
+- **Pas de protection capture d'écran iOS** — assumé
+- **`public_profiles` lisible par les comptes bloqués**
+- **Aucun test sur les policies** — les trois failles de ce projet étaient
+  toutes dans des policies, et les 17 tests actuels ne couvrent que de la
+  logique pure
+
+---
+
+## 5. Publier
 
 | | Coût |
 |---|---|
-| Google Play Console | **25 $ US**, une seule fois |
-| Apple Developer Program | **99 $ US/an**, obligatoire même pour une app gratuite |
+| Google Play Console | 25 $ US, une fois |
+| Apple Developer Program | 99 $ US/an |
 
-**Le piège iOS :** compiler pour l'App Store exige macOS. Sans Mac, deux
-sorties — un service de build cloud (Codemagic, gratuit en petit volume) ou un
-Mac mini d'occasion. À trancher avant de s'engager sur une date iOS.
+**Le piège iOS :** compiler exige macOS. Sans Mac — service de build cloud ou
+Mac mini d'occasion.
 
-**Ordre conseillé :** Google Play seul d'abord. 25 $, pas de Mac, en ligne
-rapidement. Apple ensuite.
-
----
-
-## 3. Exploitation — savoir ce qui se passe
-
-Aujourd'hui, « gérer l'app » veut dire ouvrir le tableau de bord Supabase et
-écrire du SQL à la main. Ça marche à dix utilisateurs ; à cent c'est dangereux
-(aucune trace de qui a fait quoi, un `update` sans `where` casse la production)
-et impossible à déléguer.
-
-### 3.1 Rapport de plantage — gratuit (Sentry)
-
-**Déclencheur : avant la première version donnée à quelqu'un d'autre que
-nous** — première bêta, premier APK envoyé à un ami. Pas avant les stores.
-
-Les plantages survenus avant l'installation sont perdus définitivement. Une
-erreur silencieuse dans le tunnel de paiement le soir du lancement, sans cet
-outil, ne serait jamais connue.
-
-### 3.2 Rôle administrateur + actions tracées
-
-Une colonne `is_admin` sur `profiles`, et quelques fonctions `SECURITY
-DEFINER` : dépublier un événement, suspendre un compte, traiter un
-signalement. Chaque action laisse une ligne dans `admin_actions` — qui, quoi,
-quand, pourquoi.
-
-L'intérêt n'est pas le confort : **du SQL à la main ne laisse aucune trace**.
-Le jour où Apple ou un utilisateur demande ce qui a été fait d'un signalement,
-il faut pouvoir répondre.
-
-### 3.3 Requêtes SQL enregistrées
-
-Inscrits, événements, billets de la semaine. Aucun code : les snippets
-enregistrés de Supabase suffisent. Un vrai tableau de bord seulement si ça
-devient pénible.
-
----
-
-## 4. Le seul gros chantier de développement restant
-
-### Stripe Connect — reverser l'argent aux organisateurs
-
-**Non construit.** Aujourd'hui l'argent d'une vente arrive sur un seul compte
-et rien ne le redistribue. Tant que ce n'est pas réglé, HAPPYN ne peut pas
-vendre les billets d'autrui — ce qui est pourtant le produit.
-
-Stripe prélève 2,9 % + 0,30 $ par transaction (0,88 $ sur un billet à 20 $).
-Connect exige presque certainement une **entreprise enregistrée** (Québec :
-~40 à 350 $ selon la forme) — à vérifier directement auprès de Stripe.
-
-Ne bloque pas un lancement en test, bloque toute vente réelle pour un tiers.
-
----
-
-## 5. Points ouverts de sécurité
-
-Détail complet dans `docs/SECURITY.md` §6.
-
-- **Buckets de stockage publics** — les URLs d'images sont imprévisibles mais
-  servies sans authentification. Correction : bucket privé + URLs signées.
-- **Limitation de débit sur `unlock_private_event`** — le code d'invitation
-  compte 33 millions de combinaisons, mais rien n'empêche de le marteler.
-- **Pas de protection capture d'écran sur iOS** — assumé, le jeton QR rotatif
-  limite les dégâts.
-- **`public_profiles` reste lisible par les comptes bloqués** — le blocage
-  filtre l'affichage, il ne rend pas un profil invisible via l'API.
+**Ordre conseillé :** Google Play d'abord. Pas de Mac, 25 $, en ligne
+rapidement.
 
 ---
 
 ## 6. Reporté volontairement
 
-- **Recommandation** — voir `docs/RECOMMANDATION.md`. Un utilisateur voit déjà
-  presque tout en un défilement ; classer n'aurait aucun effet. Signal pour y
-  revenir : quand il ne peut plus tout voir en une page.
-- **Liste des participants** pour l'organisateur — utile à la porte, demande
-  une fonction `SECURITY DEFINER` (l'organisateur n'a par construction aucun
-  accès à `tickets`).
-- **Notifications poussées**, annulation de réservation, autocomplétion
-  d'adresse, version française du site.
+- **Recommandation** — voir `docs/RECOMMANDATION.md`. Signal pour y revenir :
+  quand un utilisateur ne peut plus voir tout ce qui l'intéresse en une page.
+- **Modération à l'échelle** — regroupement par cible, seuil de retrait
+  automatique, attribution entre modérateurs, tableau de bord web. Déclencheurs
+  détaillés dans `docs/SECURITY.md`.
+- **Requêtes SQL enregistrées** pour le suivi produit.
 
 ---
 
-## Récapitulatif des coûts
+## Le chemin le plus court vers un lancement
 
-| Étape | Coût |
-|---|---|
-| Bêta privée | **17 $** — payé |
-| + Google Play | **~45 $** |
-| + Apple | **~145 $ US** la première année |
-| Vendre pour des tiers | Connect + entreprise enregistrée |
+1. **Décider 2.1, 2.2, 2.3** — une soirée de réflexion
+2. **Appliquer la migration d'annulation** et déployer la fonction
+3. **Relire le recueil légal**, trancher les `[À DÉCIDER]`, faire relire par un
+   avocat
+4. **Régler la dette des trois copies** de textes légaux
+5. **Google Play**, en bêta fermée d'abord
 
-Netlify, Supabase, Resend et Sentry restent gratuits au volume prévu.
+Stripe Connect et les notifications poussées viennent après : ils ne bloquent
+pas une bêta où tu es le seul organisateur.
