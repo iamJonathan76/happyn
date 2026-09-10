@@ -7,6 +7,7 @@ import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:happyn/core/push/push_service.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/providers/events_provider.dart';
@@ -93,6 +94,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _signOut() async {
+    // AVANT la deconnexion : sinon la ligne reste attachee a ce compte et la
+    // personne suivante a se connecter sur ce telephone recevrait ses
+    // notifications. C'est une fuite, pas un detail de confort.
+    await PushService.unregister();
     await _supabase.auth.signOut();
     if (mounted) {
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);

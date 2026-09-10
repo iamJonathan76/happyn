@@ -6,6 +6,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/config/auth_config.dart';
 import 'package:happyn/core/utils/age.dart';
+import 'dart:async';
+import 'package:happyn/core/push/push_service.dart';
 import 'package:happyn/core/utils/support.dart';
 import 'package:flutter/foundation.dart';
 import 'package:happyn/l10n/app_localizations.dart';
@@ -52,6 +54,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     if (!mounted) return;
     if (onboarded) {
+      // Apres la connexion, pas au premier lancement : demander la permission
+      // avant que la personne sache ce qu'est l'app la fait refuser, et un
+      // refus Android est definitif jusqu'aux reglages systeme.
+      unawaited(PushService.registerForUser());
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
       Navigator.of(context).pushReplacement(

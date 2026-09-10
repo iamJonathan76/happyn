@@ -13,6 +13,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/features/main_shell.dart';
+import 'package:happyn/core/push/push_service.dart';
 import 'package:happyn/core/config/observability.dart';
 
 /// Tout le demarrage passe par `runWithObservability` : sans lui, une erreur
@@ -39,6 +40,11 @@ Future<void> _start() async {
     Stripe.publishableKey = StripeConfig.publishableKey;
     await Stripe.instance.applySettings();
   }
+
+  // Notifications poussees. Echoue silencieusement sans google-services.json
+  // (absent du depot) : ne pas recevoir de notification est un desagrement,
+  // ne pas demarrer serait une panne.
+  await PushService.init();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

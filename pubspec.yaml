@@ -64,6 +64,8 @@ dependencies:
   # Icons
   cupertino_icons: ^1.0.8
   sentry_flutter: 8.14.2
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
 
 dev_dependencies:
   flutter_test:
