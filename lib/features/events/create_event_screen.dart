@@ -35,7 +35,6 @@ class CreateEventScreen extends ConsumerStatefulWidget {
 class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
   final _cityController = TextEditingController();
 
   /// Adresse resolue par le service de geocodage. Tant qu'elle est nulle, on
@@ -92,7 +91,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     if (ev != null) {
       _titleController.text = (ev['title'] ?? '') as String;
       _descriptionController.text = (ev['description'] ?? '') as String;
-      _locationController.text = (ev['location'] ?? '') as String;
       _cityController.text = (ev['city'] ?? '') as String;
       _loadExistingAddress(ev['id'] as String);
       _selectedCategory = (ev['category'] ?? 'Music') as String;
@@ -146,7 +144,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _locationController.dispose();
     _cityController.dispose();
     _addressController.dispose();
     _addressDebounce?.cancel();
@@ -252,18 +249,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       showAppSnack(context, l.errEnterTitle);
       return;
     }
-    if (_locationController.text.trim().isEmpty) {
-      showAppSnack(context, l.errEnterLocation);
-      return;
-    }
-    if (_cityController.text.trim().isEmpty) {
-      showAppSnack(context, l.errEnterCity);
-      return;
-    }
-
-    // On exige une adresse CHOISIE, pas tapee : sans coordonnees, l'evenement
-    // serait invisible dans « Near You » et sur une carte, definitivement —
-    // du texte libre ne redevient jamais une position.
+    // Une adresse CHOISIE, pas tapee : sans coordonnees, l'evenement serait
+    // invisible dans « Near You » et sur une carte, definitivement — du texte
+    // libre ne redevient jamais une position. Cette seule verification remplace
+    // celles du lieu et de la ville, qui en decoulent.
     if (_address == null) {
       showAppSnack(context, l.errPickAddress);
       return;
@@ -309,7 +298,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           'title': _titleController.text.trim(),
           'description': _descriptionController.text.trim(),
           'category': _selectedCategory,
-          'location': _locationController.text.trim(),
+          'location': _publicLocation,
           'city': _cityController.text.trim(),
           'start_date': _startDate.toIso8601String(),
           'end_date': _endDate.toIso8601String(),
@@ -434,7 +423,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             'title': _titleController.text.trim(),
             'description': _descriptionController.text.trim(),
             'category': _selectedCategory,
-            'location': _locationController.text.trim(),
+            'location': _publicLocation,
             'city': _cityController.text.trim(),
             'start_date': _startDate.toIso8601String(),
             'end_date': _endDate.toIso8601String(),
@@ -624,25 +613,16 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Adresse exacte, choisie dans les suggestions.
-                      AppLabel(l.addressLabel),
-                      _addressField(l),
-
-                      const SizedBox(height: 16),
-
-                      // Location + City
+                      // UNE seule saisie pour le lieu.
+                      //
+                      // Il y en avait trois — adresse exacte, nom du lieu,
+                      // ville — qui posaient toutes la meme question. La ville
+                      // vient de l'adresse choisie, et depuis que « Near You »
+                      // filtre par distance et non par nom, elle n'est plus
+                      // qu'un libelle d'affichage : la saisir a la main
+                      // n'apportait que des fautes de frappe.
                       AppLabel(l.locationLabel),
-                      TextField(
-                        controller: _locationController,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: appInputDecoration(l.venueHint, icon: Icons.location_on_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _cityController,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
-                        decoration: appInputDecoration(l.cityHint, icon: Icons.location_city_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-                      ),
+                      _addressField(l),
 
                       const SizedBox(height: 16),
 
@@ -996,6 +976,19 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
   }
 
+  /// Ce qu'on ecrit dans `events.location`, VISIBLE DE TOUS.
+  ///
+  /// La ville, jamais la rue. C'est le point delicat de la fusion des champs :
+  /// l'organisateur ne saisit plus qu'une adresse, mais elle ne peut pas etre
+  /// publique — y ecrire la rue annulerait la protection des evenements prives
+  /// qu'on vient de mettre en place.
+  ///
+  /// L'adresse precise part dans `event_addresses`, dont la policy exige d'etre
+  /// organisateur, detenteur d'un billet, ou sur un evenement public. La fiche
+  /// affiche donc l'adresse exacte quand on y a droit, et retombe sur cette
+  /// valeur sinon — sans qu'aucun ecran ait a connaitre la regle.
+  String get _publicLocation => _cityController.text.trim();
+
   /// Recharge l'adresse deja enregistree, en mode edition.
   ///
   /// Si elle est absente — evenement cree avant les adresses structurees, ou
@@ -1095,9 +1088,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(_address!.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: AppText.bodySm.copyWith(color: Colors.white)),
                   if (_address!.subtitle.isNotEmpty)
-                    Text(_address!.subtitle, style: AppText.small),
+                    Text(_address!.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.small),
                 ],
               ),
             ),
