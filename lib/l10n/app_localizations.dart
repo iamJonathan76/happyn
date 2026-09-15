@@ -998,6 +998,60 @@ abstract class AppLocalizations {
   /// **'{hours} h before'**
   String cancellationHours(int hours);
 
+  /// No description provided for @addressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact address'**
+  String get addressLabel;
+
+  /// No description provided for @addressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start typing an address…'**
+  String get addressHint;
+
+  /// No description provided for @addressSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get addressSearching;
+
+  /// No description provided for @addressNoResult.
+  ///
+  /// In en, this message translates to:
+  /// **'No address found. Check the spelling, or try the street and city.'**
+  String get addressNoResult;
+
+  /// No description provided for @addressChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get addressChange;
+
+  /// No description provided for @addressConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Address confirmed'**
+  String get addressConfirmed;
+
+  /// No description provided for @addressPrivateNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'For a private event, the exact address is only revealed to people who hold a ticket. The venue name below stays public.'**
+  String get addressPrivateNotice;
+
+  /// No description provided for @addressRevealedWithTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact address revealed once you have a ticket'**
+  String get addressRevealedWithTicket;
+
+  /// No description provided for @errPickAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an address from the suggestions so we can place your event on the map.'**
+  String get errPickAddress;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

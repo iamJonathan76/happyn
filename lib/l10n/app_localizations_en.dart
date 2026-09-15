@@ -509,6 +509,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get addressLabel => 'Exact address';
+
+  @override
+  String get addressHint => 'Start typing an address…';
+
+  @override
+  String get addressSearching => 'Searching…';
+
+  @override
+  String get addressNoResult =>
+      'No address found. Check the spelling, or try the street and city.';
+
+  @override
+  String get addressChange => 'Change';
+
+  @override
+  String get addressConfirmed => 'Address confirmed';
+
+  @override
+  String get addressPrivateNotice =>
+      'For a private event, the exact address is only revealed to people who hold a ticket. The venue name below stays public.';
+
+  @override
+  String get addressRevealedWithTicket =>
+      'Exact address revealed once you have a ticket';
+
+  @override
+  String get errPickAddress =>
+      'Pick an address from the suggestions so we can place your event on the map.';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

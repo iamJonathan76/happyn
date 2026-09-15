@@ -17,6 +17,7 @@ import 'package:happyn/core/utils/maps.dart';
 import 'package:happyn/features/events/widgets/event_moments.dart';
 import 'package:happyn/features/events/widgets/whos_going.dart';
 import 'package:happyn/features/social/create_post_screen.dart';
+import 'package:happyn/core/providers/address_provider.dart';
 import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
@@ -280,8 +281,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   }
 
   /// Ouvre l'app Maps sur l'adresse de l'event (lieu + ville).
-  Future<void> _openDirections(Map<String, dynamic> ev) async {
-    final address = [ev['location'], ev['city']]
+  Future<void> _openDirections(
+      Map<String, dynamic> ev, String? exactAddress) async {
+    // L'adresse exacte quand on y a droit, sinon le repere public et la ville.
+    // Un itineraire vers « Ottawa » est inutile, mais c'est moins grave que de
+    // reveler une adresse qu'on n'est pas cense connaitre.
+    final address = [exactAddress ?? ev['location'], ev['city']]
         .where((s) => s != null && s.toString().trim().isNotEmpty)
         .join(', ');
     final ok = await openInMaps(address);
@@ -307,6 +312,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final ev = widget.event;
+    // Adresse precise, ou null si la base refuse de la donner.
+    final exactAddress =
+        ref.watch(eventAddressProvider(ev['id'] as String)).asData?.value?.addressLine;
+
     final imageUrl = (ev['image_url'] ?? '') as String;
     final price = ev['price'];
     final priceText = (price == null || price == 0) ? l.free : '\$$price';
@@ -633,11 +642,19 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       const SizedBox(height: 12),
 
                       // Location — cliquable : ouvre l'app Maps (itinéraire).
+                      //
+                      // `address` est null quand la base refuse de la donner :
+                      // evenement prive, et ni organisateur ni detenteur de
+                      // billet. Le filtrage est en base, pas ici — l'app ne
+                      // recoit tout simplement pas ce qu'elle n'a pas le droit
+                      // d'afficher.
                       _infoRow(
                         Icons.location_on_outlined,
-                        (ev['location'] ?? 'TBD') as String,
-                        (ev['city'] ?? '') as String,
-                        onTap: () => _openDirections(ev),
+                        exactAddress ?? (ev['location'] ?? 'TBD') as String,
+                        exactAddress == null && isEventPrivate(ev)
+                            ? l.addressRevealedWithTicket
+                            : (ev['city'] ?? '') as String,
+                        onTap: () => _openDirections(ev, exactAddress),
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 7),

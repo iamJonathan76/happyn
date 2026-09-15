@@ -513,6 +513,37 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get addressLabel => 'Adresse exacte';
+
+  @override
+  String get addressHint => 'Commence à taper une adresse…';
+
+  @override
+  String get addressSearching => 'Recherche…';
+
+  @override
+  String get addressNoResult =>
+      'Aucune adresse trouvée. Vérifie l\'orthographe, ou essaie la rue et la ville.';
+
+  @override
+  String get addressChange => 'Modifier';
+
+  @override
+  String get addressConfirmed => 'Adresse confirmée';
+
+  @override
+  String get addressPrivateNotice =>
+      'Pour un événement privé, l\'adresse exacte n\'est révélée qu\'aux personnes qui ont un billet. Le nom du lieu ci-dessous reste public.';
+
+  @override
+  String get addressRevealedWithTicket =>
+      'Adresse exacte révélée une fois le billet obtenu';
+
+  @override
+  String get errPickAddress =>
+      'Choisis une adresse dans les suggestions pour qu\'on puisse placer ton événement sur la carte.';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

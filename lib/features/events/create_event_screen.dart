@@ -15,6 +15,11 @@ import 'package:happyn/core/utils/age.dart';
 import 'widgets/ticket_tier.dart';
 import 'widgets/ticket_tier_card.dart';
 import 'widgets/invite_code_dialog.dart';
+import 'package:happyn/core/providers/address_provider.dart';
+import 'package:happyn/core/location/address_search.dart';
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 
@@ -32,6 +37,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   final _cityController = TextEditingController();
+
+  /// Adresse resolue par le service de geocodage. Tant qu'elle est nulle, on
+  /// n'a que du texte libre — donc aucune coordonnee, donc l'evenement
+  /// n'apparaitra dans aucune recherche de proximite.
+  AddressSuggestion? _address;
+  final _addressController = TextEditingController();
+  List<AddressSuggestion> _suggestions = const [];
+  bool _searchingAddress = false;
+  Timer? _addressDebounce;
   // Tiers de billets : 1 par défaut (« General Admission »), l'organisateur
   // peut en ajouter d'autres (VIP, Early Bird…).
   final List<TicketTier> _tiers = [TicketTier(name: 'General Admission')];
@@ -72,6 +86,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       _descriptionController.text = (ev['description'] ?? '') as String;
       _locationController.text = (ev['location'] ?? '') as String;
       _cityController.text = (ev['city'] ?? '') as String;
+      _loadExistingAddress(ev['id'] as String);
       _selectedCategory = (ev['category'] ?? 'Music') as String;
       _isPrivate = (ev['visibility'] ?? 'public') == 'private';
       _existingCode = ev['access_code'] as String?;
@@ -125,6 +140,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     _descriptionController.dispose();
     _locationController.dispose();
     _cityController.dispose();
+    _addressController.dispose();
+    _addressDebounce?.cancel();
     for (final t in _tiers) {
       t.dispose();
     }
@@ -236,6 +253,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       return;
     }
 
+    // On exige une adresse CHOISIE, pas tapee : sans coordonnees, l'evenement
+    // serait invisible dans « Near You » et sur une carte, definitivement —
+    // du texte libre ne redevient jamais une position.
+    if (_address == null) {
+      showAppSnack(context, l.errPickAddress);
+      return;
+    }
+
     // ── Mode ÉDITION : infos de l'event + tiers (update/insert) ─────────────
     if (_isEditing) {
       // Construit et valide les tiers
@@ -289,6 +314,26 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           'access_code': editCode, // null si repassé en public
           'min_age': _minAge,
         }).eq('id', eventId);
+      // L'adresse precise vit dans sa propre table, protegee par RLS : sur un
+      // evenement prive, seuls l'organisateur et les detenteurs d'un billet la
+      // liront. Ecriture separee et tolerante a l'echec — un evenement sans
+      // coordonnees est recuperable en le modifiant, un evenement perdu parce
+      // que le geocodage a echoue ne l'est pas.
+      if (_address != null) {
+        try {
+          await saveEventAddress(
+            eventId: eventId,
+            addressLine: _address!.addressLine,
+            postalCode: _address!.postalCode,
+            latitude: _address!.latitude,
+            longitude: _address!.longitude,
+            placeId: _address!.placeId,
+          );
+        } catch (e) {
+          debugPrint('saveEventAddress: $e');
+        }
+      }
+
 
         // Upsert des tiers : update si existant, insert si nouveau.
         for (final t in editTiers) {
@@ -397,6 +442,26 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           })
           .select()
           .single();
+
+      // L'adresse precise vit dans sa propre table, protegee par RLS : sur un
+      // evenement prive, seuls l'organisateur et les detenteurs d'un billet la
+      // liront. Ecriture separee et tolerante a l'echec — un evenement sans
+      // coordonnees est recuperable en le modifiant, un evenement perdu parce
+      // que le geocodage a echoue ne l'est pas.
+      if (_address != null) {
+        try {
+          await saveEventAddress(
+            eventId: createdEvent['id'] as String,
+            addressLine: _address!.addressLine,
+            postalCode: _address!.postalCode,
+            latitude: _address!.latitude,
+            longitude: _address!.longitude,
+            placeId: _address!.placeId,
+          );
+        } catch (e) {
+          debugPrint('saveEventAddress: $e');
+        }
+      }
 
       // 2. Crée tous les tiers de billets liés à l'event
       final ticketRows = tiers
@@ -548,6 +613,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         decoration: appInputDecoration(l.descriptionHint, icon: Icons.description_outlined, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16))
                             .copyWith(prefixIcon: null, contentPadding: const EdgeInsets.all(16)),
                       ),
+
+                      const SizedBox(height: 16),
+
+                      // Adresse exacte, choisie dans les suggestions.
+                      AppLabel(l.addressLabel),
+                      _addressField(l),
 
                       const SizedBox(height: 16),
 
@@ -914,6 +985,178 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Recharge l'adresse deja enregistree, en mode edition.
+  ///
+  /// Si elle est absente — evenement cree avant les adresses structurees, ou
+  /// reprise sans coordonnees — le champ reste vide et l'organisateur devra en
+  /// choisir une. C'est voulu : on ne peut pas inventer des coordonnees.
+  Future<void> _loadExistingAddress(String eventId) async {
+    final existing = await ref.read(eventAddressProvider(eventId).future);
+    if (!mounted || existing == null || !existing.hasCoordinates) return;
+    setState(() {
+      _address = AddressSuggestion(
+        addressLine: existing.addressLine ?? '',
+        city: _cityController.text,
+        province: '',
+        country: '',
+        postalCode: existing.postalCode ?? '',
+        latitude: existing.latitude!,
+        longitude: existing.longitude!,
+        placeId: '',
+      );
+      _addressController.text = _address!.full;
+    });
+  }
+
+  /// Lance la recherche apres une pause de frappe.
+  ///
+  /// 400 ms : assez pour ne pas envoyer une requete par lettre — l'instance
+  /// publique de Photon demande un usage raisonnable — assez court pour que la
+  /// liste paraisse reagir a la frappe.
+  void _onAddressTyped(String value) {
+    _addressDebounce?.cancel();
+    if (_address != null) setState(() => _address = null);
+    if (value.trim().length < 3) {
+      setState(() => _suggestions = const []);
+      return;
+    }
+    setState(() => _searchingAddress = true);
+    _addressDebounce = Timer(const Duration(milliseconds: 400), () async {
+      final lang = Localizations.localeOf(context).languageCode;
+      final results = await AddressSearch.search(value, lang: lang);
+      if (!mounted) return;
+      setState(() {
+        _suggestions = results;
+        _searchingAddress = false;
+      });
+    });
+  }
+
+  void _pickAddress(AddressSuggestion s) {
+    setState(() {
+      _address = s;
+      _addressController.text = s.full;
+      _suggestions = const [];
+      // La ville vient de l'adresse choisie : la laisser en saisie libre
+      // reintroduirait exactement les fautes de frappe qu'on elimine ici.
+      if (s.city.isNotEmpty) _cityController.text = s.city;
+    });
+    FocusScope.of(context).unfocus();
+  }
+
+  Widget _addressField(AppLocalizations l) {
+    // Adresse confirmee : on remplace le champ par un resume, pour que
+    // l'organisateur voie ce qui sera reellement enregistre plutot que ce
+    // qu'il a tape.
+    if (_address != null) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.primary.withOpacity(0.35)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle_outline,
+                size: 18, color: AppColors.lavenderLight),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_address!.title,
+                      style: AppText.bodySm.copyWith(color: Colors.white)),
+                  if (_address!.subtitle.isNotEmpty)
+                    Text(_address!.subtitle, style: AppText.small),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () => setState(() {
+                _address = null;
+                _addressController.clear();
+              }),
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Text(l.addressChange,
+                    style: AppText.smallBold
+                        .copyWith(color: AppColors.lavenderLight)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _addressController,
+          onChanged: _onAddressTyped,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          decoration: appInputDecoration(
+            l.addressHint,
+            icon: Icons.search,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+        ),
+        if (_searchingAddress)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 4),
+            child: Text(l.addressSearching, style: AppText.small),
+          )
+        else if (_suggestions.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withOpacity(0.08)),
+            ),
+            child: Column(
+              children: [
+                for (final s in _suggestions)
+                  ListTile(
+                    dense: true,
+                    leading: Icon(Icons.place_outlined,
+                        size: 18, color: AppColors.textMed),
+                    title: Text(s.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.bodySm.copyWith(color: Colors.white)),
+                    subtitle: Text(s.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.small),
+                    onTap: () => _pickAddress(s),
+                  ),
+              ],
+            ),
+          )
+        else if (_addressController.text.trim().length >= 3)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 4),
+            child: Text(l.addressNoResult,
+                style: AppText.small.copyWith(height: 1.35)),
+          ),
+
+        // Sur un evenement prive, dire ce qui sera public et ce qui ne le sera
+        // pas — au moment ou l'organisateur saisit, pas dans une politique
+        // qu'il ne lira jamais.
+        if (_isPrivate)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text(l.addressPrivateNotice,
+                style: AppText.caption.copyWith(fontSize: 11.5, height: 1.35)),
+          ),
+      ],
     );
   }
 
