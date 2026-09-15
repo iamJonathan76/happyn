@@ -64,10 +64,21 @@ class AddressSearch {
   /// liste — le classique affichage qui « revient en arrière ».
   static int _sequence = 0;
 
+  /// Petit cache des recherches recentes.
+  ///
+  /// Effacer une lettre puis la retaper est le geste le plus courant dans un
+  /// champ d'adresse. Sans cache, chaque aller-retour relance une requete et
+  /// l'utilisateur attend deux fois pour un resultat qu'on avait deja. Borne a
+  /// 30 entrees : c'est une aide a la frappe, pas un stockage.
+  static final Map<String, List<AddressSuggestion>> _cache = {};
+
   static Future<List<AddressSuggestion>> search(String query,
       {String lang = 'en'}) async {
     final q = query.trim();
     if (q.length < 3) return const [];
+
+    final cached = _cache[q.toLowerCase()];
+    if (cached != null) return cached;
 
     final seq = ++_sequence;
     final uri = Uri.https(_host, '/api', {
@@ -89,10 +100,13 @@ class AddressSearch {
       }
       final body = json.decode(res.body) as Map<String, dynamic>;
       final features = (body['features'] as List?) ?? const [];
-      return features
+      final results = features
           .map((f) => _parse(f as Map<String, dynamic>))
           .whereType<AddressSuggestion>()
           .toList();
+      if (_cache.length >= 30) _cache.remove(_cache.keys.first);
+      _cache[q.toLowerCase()] = results;
+      return results;
     } on TimeoutException {
       debugPrint('AddressSearch: delai depasse');
       return const [];

@@ -45,6 +45,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _addressController = TextEditingController();
   List<AddressSuggestion> _suggestions = const [];
   bool _searchingAddress = false;
+
+  /// Texte pour lequel la derniere reponse est arrivee.
+  ///
+  /// Sans ca, « aucune adresse trouvee » s'affichait pendant qu'on tapait :
+  /// « 123 Ban » ne donne rien, le message apparaissait, et il se lisait comme
+  /// un echec alors que la saisie etait juste incomplete. On ne l'affiche
+  /// desormais que si la reponse correspond EXACTEMENT au texte courant.
+  String _resolvedFor = '';
   Timer? _addressDebounce;
   // Tiers de billets : 1 par défaut (« General Admission »), l'organisateur
   // peut en ajouter d'autres (VIP, Early Bird…).
@@ -1019,18 +1027,36 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   void _onAddressTyped(String value) {
     _addressDebounce?.cancel();
     if (_address != null) setState(() => _address = null);
+
     if (value.trim().length < 3) {
-      setState(() => _suggestions = const []);
+      setState(() {
+        _suggestions = const [];
+        _searchingAddress = false;
+        _resolvedFor = '';
+      });
       return;
     }
+
+    // On garde les suggestions precedentes affichees pendant la nouvelle
+    // recherche : les vider faisait clignoter la liste a chaque lettre, et une
+    // proposition legerement perimee reste plus utile qu'un vide.
     setState(() => _searchingAddress = true);
-    _addressDebounce = Timer(const Duration(milliseconds: 400), () async {
+
+    // 250 ms et non 400 : le delai s'ajoute a la latence du serveur, et
+    // au-dela d'un quart de seconde l'utilisateur a l'impression que rien ne
+    // repond. Assez court pour paraitre vif, assez long pour ne pas envoyer
+    // une requete par lettre.
+    _addressDebounce = Timer(const Duration(milliseconds: 250), () async {
       final lang = Localizations.localeOf(context).languageCode;
       final results = await AddressSearch.search(value, lang: lang);
       if (!mounted) return;
+      // Une reponse arrivee apres que l'utilisateur a continue de taper ne
+      // doit pas ecraser l'etat courant.
+      if (value != _addressController.text) return;
       setState(() {
         _suggestions = results;
         _searchingAddress = false;
+        _resolvedFor = value;
       });
     });
   }
@@ -1105,14 +1131,24 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             icon: Icons.search,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ).copyWith(
+            // Dans le champ plutot qu'au-dessus de la liste : un indicateur qui
+            // s'insere pousse les suggestions vers le bas, et on finit par
+            // toucher la mauvaise.
+            suffixIcon: _searchingAddress
+                ? const Padding(
+                    padding: EdgeInsets.all(14),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.primary),
+                    ),
+                  )
+                : null,
           ),
         ),
-        if (_searchingAddress)
-          Padding(
-            padding: const EdgeInsets.only(top: 8, left: 4),
-            child: Text(l.addressSearching, style: AppText.small),
-          )
-        else if (_suggestions.isNotEmpty)
+        if (_suggestions.isNotEmpty)
           Container(
             margin: const EdgeInsets.only(top: 8),
             decoration: BoxDecoration(
@@ -1140,7 +1176,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               ],
             ),
           )
-        else if (_addressController.text.trim().length >= 3)
+        // « Aucune adresse trouvee » UNIQUEMENT quand la reponse correspond au
+        // texte courant. Pendant la frappe, l'indicateur du champ suffit —
+        // annoncer un echec sur une saisie inachevee est une fausse mauvaise
+        // nouvelle.
+        else if (!_searchingAddress &&
+            _resolvedFor == _addressController.text &&
+            _addressController.text.trim().length >= 3)
           Padding(
             padding: const EdgeInsets.only(top: 8, left: 4),
             child: Text(l.addressNoResult,
