@@ -1052,6 +1052,114 @@ abstract class AppLocalizations {
   /// **'Pick an address from the suggestions so we can place your event on the map.'**
   String get errPickAddress;
 
+  /// No description provided for @nearYouTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Near You'**
+  String get nearYouTitle;
+
+  /// No description provided for @nearYouIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover events near you'**
+  String get nearYouIntro;
+
+  /// No description provided for @nearYouIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow HAPPYN to use your location to show what\'s happening nearby. You can also just pick a city.'**
+  String get nearYouIntroBody;
+
+  /// No description provided for @useMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my location'**
+  String get useMyLocation;
+
+  /// No description provided for @chooseACity.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a city'**
+  String get chooseACity;
+
+  /// No description provided for @chooseYourCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your city'**
+  String get chooseYourCity;
+
+  /// No description provided for @eventsAround.
+  ///
+  /// In en, this message translates to:
+  /// **'Events around {city}'**
+  String eventsAround(String city);
+
+  /// No description provided for @eventsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Events in {city}'**
+  String eventsIn(String city);
+
+  /// No description provided for @kmAway.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km away'**
+  String kmAway(String km);
+
+  /// No description provided for @locationRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'No problem — pick a city instead and we\'ll show what\'s happening there.'**
+  String get locationRefused;
+
+  /// No description provided for @nothingNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing nearby yet 👀'**
+  String get nothingNearby;
+
+  /// No description provided for @nothingNearbyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re still growing the HAPPYN community in your area.'**
+  String get nothingNearbyBody;
+
+  /// No description provided for @exploreAllEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore all events'**
+  String get exploreAllEvents;
+
+  /// No description provided for @changeLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Change location'**
+  String get changeLocation;
+
+  /// No description provided for @locationSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get locationSection;
+
+  /// No description provided for @locationUsingGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Using your device location'**
+  String get locationUsingGps;
+
+  /// No description provided for @locationUsingCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {city}'**
+  String locationUsingCity(String city);
+
+  /// No description provided for @locationNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get locationNotSet;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

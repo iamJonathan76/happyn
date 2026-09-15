@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.CAMERA" />
+<!-- Localisation approximative uniquement : « Near You » cherche des evenements
+     dans un rayon de kilometres, pas a situer quelqu'un a trois metres.
+     Demander FINE_LOCATION serait collecter plus intime que necessaire, et
+     Android l'affiche differemment a l'utilisateur. -->
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<!-- Android 13+ : sans elle, aucune notification poussee n'est affichee. -->
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
         android:label="Happyn"

@@ -544,6 +544,71 @@ class AppLocalizationsFr extends AppLocalizations {
       'Choisis une adresse dans les suggestions pour qu\'on puisse placer ton événement sur la carte.';
 
   @override
+  String get nearYouTitle => 'Autour de toi';
+
+  @override
+  String get nearYouIntro => 'Découvre ce qui se passe près de toi';
+
+  @override
+  String get nearYouIntroBody =>
+      'Autorise HAPPYN à utiliser ta position pour voir les événements à proximité. Tu peux aussi simplement choisir une ville.';
+
+  @override
+  String get useMyLocation => 'Utiliser ma position';
+
+  @override
+  String get chooseACity => 'Choisir une ville';
+
+  @override
+  String get chooseYourCity => 'Choisis ta ville';
+
+  @override
+  String eventsAround(String city) {
+    return 'Événements autour de $city';
+  }
+
+  @override
+  String eventsIn(String city) {
+    return 'Événements à $city';
+  }
+
+  @override
+  String kmAway(String km) {
+    return 'à $km km';
+  }
+
+  @override
+  String get locationRefused =>
+      'Pas de souci — choisis plutôt une ville et on te montre ce qui s\'y passe.';
+
+  @override
+  String get nothingNearby => 'Rien autour de toi pour l\'instant 👀';
+
+  @override
+  String get nothingNearbyBody =>
+      'La communauté HAPPYN grandit encore dans ton coin.';
+
+  @override
+  String get exploreAllEvents => 'Voir tous les événements';
+
+  @override
+  String get changeLocation => 'Changer de localisation';
+
+  @override
+  String get locationSection => 'Localisation';
+
+  @override
+  String get locationUsingGps => 'Position de l\'appareil';
+
+  @override
+  String locationUsingCity(String city) {
+    return '$city';
+  }
+
+  @override
+  String get locationNotSet => 'Non définie';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

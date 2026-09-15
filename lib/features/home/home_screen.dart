@@ -13,6 +13,7 @@ import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/notifications/notifications_screen.dart';
+import 'package:happyn/features/discover/near_you_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/social/widgets/post_card.dart';
 import 'package:happyn/core/providers/social_provider.dart';
@@ -114,7 +115,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             SliverToBoxAdapter(child: _buildHeroCards(eventsAsync)),
             SliverToBoxAdapter(
                 child: _buildSectionHeader(
-                    AppLocalizations.of(context).popularNearYou, seeAll: true)),
+                    AppLocalizations.of(context).popularNearYou,
+                    seeAll: true,
+                    // Cette section annoncait « pres de toi » sans connaitre la
+                    // position. Elle mene desormais a l'ecran qui la demande.
+                    onSeeAll: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const NearYouScreen())))),
             SliverToBoxAdapter(child: _buildCompactList(eventsAsync)),
             // Puis la couche sociale : des moments vecus autour des events.
             SliverToBoxAdapter(child: _buildMomentsHeader()),
@@ -481,7 +487,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       );
 
-  Widget _buildSectionHeader(String title, {bool seeAll = false}) {
+  Widget _buildSectionHeader(String title,
+      {bool seeAll = false, VoidCallback? onSeeAll}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
       child: Row(
@@ -499,7 +506,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           if (seeAll)
             GestureDetector(
-              onTap: widget.onSearchTap,
+              onTap: onSeeAll ?? widget.onSearchTap,
               child: Row(
                 children: [
                   Text(

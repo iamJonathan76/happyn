@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/providers/admin_provider.dart';
+import 'package:happyn/core/providers/nearby_provider.dart';
+import 'package:happyn/features/discover/near_you_screen.dart';
 import 'package:happyn/core/utils/support.dart';
 import 'package:happyn/features/settings/moderation_screen.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
@@ -63,6 +65,15 @@ class SettingsScreen extends ConsumerWidget {
           _tile(context, Icons.block, l.blockedUsers,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const BlockedUsersScreen()))),
+
+          // ── Localisation ──────────────────────────────────────────
+          // L'utilisateur doit pouvoir revenir sur son choix : une permission
+          // accordee une fois n'est pas un consentement definitif.
+          _section(l.locationSection),
+          _row(Icons.my_location_outlined, l.changeLocation,
+              trailing: Text(_locationSummary(ref, l), style: AppText.small),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const NearYouScreen()))),
 
           // ── Mon activité ──────────────────────────────────────────
           // Mes billets existe vraiment : on y mene, au lieu de promettre un
@@ -177,6 +188,16 @@ class SettingsScreen extends ConsumerWidget {
     if (!ok && context.mounted) {
       showAppSnack(context, l.supportNoMailApp(kSupportEmail));
     }
+  }
+
+  /// Resume du choix courant, affiche a droite de la ligne.
+  String _locationSummary(WidgetRef ref, AppLocalizations l) {
+    final near = ref.watch(nearbyProvider);
+    return switch (near.mode) {
+      LocationMode.gps => l.locationUsingGps,
+      LocationMode.city => l.locationUsingCity(near.cityName ?? ''),
+      LocationMode.unset => l.locationNotSet,
+    };
   }
 
   Widget _section(String title) => Padding(

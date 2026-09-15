@@ -540,6 +540,71 @@ class AppLocalizationsEn extends AppLocalizations {
       'Pick an address from the suggestions so we can place your event on the map.';
 
   @override
+  String get nearYouTitle => 'Near You';
+
+  @override
+  String get nearYouIntro => 'Discover events near you';
+
+  @override
+  String get nearYouIntroBody =>
+      'Allow HAPPYN to use your location to show what\'s happening nearby. You can also just pick a city.';
+
+  @override
+  String get useMyLocation => 'Use my location';
+
+  @override
+  String get chooseACity => 'Choose a city';
+
+  @override
+  String get chooseYourCity => 'Choose your city';
+
+  @override
+  String eventsAround(String city) {
+    return 'Events around $city';
+  }
+
+  @override
+  String eventsIn(String city) {
+    return 'Events in $city';
+  }
+
+  @override
+  String kmAway(String km) {
+    return '$km km away';
+  }
+
+  @override
+  String get locationRefused =>
+      'No problem — pick a city instead and we\'ll show what\'s happening there.';
+
+  @override
+  String get nothingNearby => 'Nothing nearby yet 👀';
+
+  @override
+  String get nothingNearbyBody =>
+      'We\'re still growing the HAPPYN community in your area.';
+
+  @override
+  String get exploreAllEvents => 'Explore all events';
+
+  @override
+  String get changeLocation => 'Change location';
+
+  @override
+  String get locationSection => 'Location';
+
+  @override
+  String get locationUsingGps => 'Using your device location';
+
+  @override
+  String locationUsingCity(String city) {
+    return 'Using $city';
+  }
+
+  @override
+  String get locationNotSet => 'Not set';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override
