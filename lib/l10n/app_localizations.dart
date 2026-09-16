@@ -1946,6 +1946,48 @@ abstract class AppLocalizations {
   /// **'Could not update visibility.'**
   String get visibilityFailed;
 
+  /// No description provided for @myEventsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My events'**
+  String get myEventsTitle;
+
+  /// No description provided for @myEventsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t created an event yet.'**
+  String get myEventsEmpty;
+
+  /// No description provided for @myEventsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Once you do, you\'ll follow your sales and your door from here.'**
+  String get myEventsEmptyBody;
+
+  /// No description provided for @stateDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get stateDraft;
+
+  /// No description provided for @statePublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get statePublished;
+
+  /// No description provided for @stateCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get stateCancelled;
+
+  /// No description provided for @stateFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get stateFinished;
+
   /// No description provided for @myTicketsTitle.
   ///
   /// In en, this message translates to:

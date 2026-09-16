@@ -8,6 +8,7 @@ import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/providers/nearby_provider.dart';
 import 'package:happyn/features/discover/near_you_screen.dart';
 import 'package:happyn/core/utils/support.dart';
+import 'package:happyn/features/events/my_events_screen.dart';
 import 'package:happyn/features/settings/moderation_screen.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/ticketing/my_tickets_screen.dart';
@@ -82,6 +83,11 @@ class SettingsScreen extends ConsumerWidget {
           _tile(context, Icons.confirmation_number_outlined, l.myTicketsTitle,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const MyTicketsScreen()))),
+          // Le pendant organisateur de « Mes billets ». Il manquait : acheter
+          // avait sa porte d'entree, organiser n'en avait aucune.
+          _tile(context, Icons.event_note_outlined, l.myEventsTitle,
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const MyEventsScreen()))),
 
           // ── Modération (administrateurs) ──────────────────────────
           // L'entree n'apparait que pour un administrateur, mais ce n'est pas

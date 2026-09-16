@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/moderation_provider.dart';
 
@@ -61,4 +62,24 @@ final eventSalesProvider =
     total += (row['quantity_total'] as num?)?.toInt() ?? 0;
   }
   return (sold: sold, total: total);
+});
+
+
+/// Les evenements dont JE suis l'organisateur, du plus proche au plus lointain.
+///
+/// Derive de `eventsProvider` plutot que d'une requete a part : celui-ci
+/// remonte deja « les events publics + les miens », brouillons et prives
+/// compris. Une seconde requete pourrait le contredire d'une seconde a
+/// l'autre, et on paierait deux allers-retours pour la meme donnee.
+///
+/// L'ordre est celui de la tenue, pas de la creation : ce qu'un organisateur
+/// veut voir en haut, c'est l'evenement dont il doit s'occuper cette semaine.
+final myOrganizedEventsProvider =
+    Provider<AsyncValue<List<Map<String, dynamic>>>>((ref) {
+  final uid = ref.watch(currentUserIdProvider);
+  return ref.watch(eventsProvider).whenData((events) {
+    if (uid == null) return const <Map<String, dynamic>>[];
+    return sortedByStart(
+        events.where((e) => e['created_by'] == uid).toList());
+  });
 });

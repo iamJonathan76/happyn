@@ -1064,6 +1064,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get visibilityFailed => 'Impossible de mettre à jour la visibilité.';
 
   @override
+  String get myEventsTitle => 'Mes événements';
+
+  @override
+  String get myEventsEmpty => 'Tu n\'as pas encore créé d\'événement.';
+
+  @override
+  String get myEventsEmptyBody =>
+      'Quand ce sera fait, tu suivras tes ventes et ton entrée depuis ici.';
+
+  @override
+  String get stateDraft => 'Brouillon';
+
+  @override
+  String get statePublished => 'Publié';
+
+  @override
+  String get stateCancelled => 'Annulé';
+
+  @override
+  String get stateFinished => 'Terminé';
+
+  @override
   String get myTicketsTitle => 'Mes billets';
 
   @override
