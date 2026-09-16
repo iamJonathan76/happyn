@@ -224,6 +224,48 @@ peut pas en présenter un. Sa seule protection est la vérification de signature
 
 ---
 
+## 4 bis. Webhooks de base de donnees
+
+Deux declencheurs appellent des fonctions Edge :  sur
+, et  sur . Chacun porte un
+secret partage dans un en-tete HTTP, verifie **en temps constant** par la
+fonction.
+
+**Ce secret vit dans la definition du declencheur**, donc en clair pour qui a un
+acces base. C'est la seule exception a la regle « aucun secret en SQL », et elle
+est imposee par le mecanisme : un declencheur doit porter l'en-tete qu'il
+envoie.
+
+C'est acceptable pour une raison precise : **quiconque peut lire
+ a deja la cle **, donc lecture et ecriture sur
+toute la base. Ce secret ne serait pas son objectif. Verifie le 2026-09-16 : avec
+la cle publiable,  et  repondent  — l'API
+REST n'expose que le schema , jamais .
+
+Le vrai maillon faible est donc **l'acces au tableau de bord Supabase**, et la
+2FA sur ce compte protege plus que tout le reste de cette section.
+
+### Creer ces declencheurs en SQL, pas par le formulaire
+
+Le 2026-09-16, les notifications poussees n'arrivaient pas. Cause : le
+formulaire avait enregistre l'en-tete sous le nom  — un tiret
+bas au lieu d'un trait d'union. La fonction cherchait , ne
+trouvait rien, et repondait  sans que rien n'explique pourquoi.
+
+Deux enseignements :
+
+1. **Verifier ce qui est reellement enregistre**, pas ce qu'on croit avoir
+   saisi :
+
+   
+
+2. **Les fonctions journalisent la LONGUEUR du secret recu**, jamais sa valeur.
+   « en-tete recu 0 car., secret attendu 43 car. » distingue immediatement un
+   en-tete absent, un collage tronque et un caractere invisible — sans rien
+   exposer. A garder dans toute nouvelle fonction protegee par secret partage.
+
+---
+
 ## 5. Secrets
 
 **Autorisés dans le code** (publics par conception) : clé publiable Stripe

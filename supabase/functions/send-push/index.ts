@@ -120,7 +120,15 @@ Deno.serve(async (req: Request) => {
     console.error("send-push: configuration incomplete");
     return new Response("not_configured", { status: 500 });
   }
-  if (!secretsMatch(req.headers.get("x-happyn-secret") ?? "", expected)) {
+  const provided = req.headers.get("x-happyn-secret") ?? "";
+  if (!secretsMatch(provided, expected)) {
+    // On journalise les LONGUEURS, jamais les valeurs : c'est suffisant pour
+    // distinguer les trois causes reelles d'un 403 — en-tete absent (0),
+    // valeur tronquee au collage (longueurs differentes), ou caractere
+    // invisible comme un espace ou un retour a la ligne (longueurs proches).
+    console.error(
+      `403 : en-tete recu ${provided.length} car., secret attendu ${expected.length} car.`,
+    );
     return new Response("forbidden", { status: 403 });
   }
 
