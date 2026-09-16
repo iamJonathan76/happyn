@@ -103,7 +103,8 @@ class _EventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final (stateLabel, stateColor) = _state(l);
-    final cover = event['cover_url'] as String?;
+    // `image_url`, comme partout ailleurs dans l'app.
+    final cover = (event['image_url'] ?? '') as String;
 
     return GestureDetector(
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
@@ -112,9 +113,11 @@ class _EventRow extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
+          // Meme contenant que les cartes du tableau de bord : meme fond,
+          // meme rayon, meme bordure. Les deux ecrans se suivent.
           color: AppColors.cardDark,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.07)),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withOpacity(0.06)),
         ),
         child: Row(
           children: [
@@ -123,7 +126,7 @@ class _EventRow extends StatelessWidget {
               child: SizedBox(
                 width: 58,
                 height: 58,
-                child: cover == null || cover.isEmpty
+                child: cover.isEmpty
                     ? Container(
                         color: AppColors.card,
                         child: Icon(Icons.event_outlined,

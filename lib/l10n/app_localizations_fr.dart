@@ -624,10 +624,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get grossSalesLabel => 'Ventes brutes';
 
   @override
-  String get grossSalesHint =>
-      'Avant les frais Stripe et toute commission. Ce n\'est pas ce que tu recevras.';
-
-  @override
   String get byTierSection => 'Par type de billet';
 
   @override
@@ -639,6 +635,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String noCapacity(int sold) {
     return '$sold vendus';
   }
+
+  @override
+  String get remainingSection => 'Places restantes';
 
   @override
   String remainingLabel(int count) {

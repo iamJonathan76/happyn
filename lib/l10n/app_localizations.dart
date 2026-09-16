@@ -1190,12 +1190,6 @@ abstract class AppLocalizations {
   /// **'Gross sales'**
   String get grossSalesLabel;
 
-  /// No description provided for @grossSalesHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Before Stripe fees and any platform commission. This is not what you receive.'**
-  String get grossSalesHint;
-
   /// No description provided for @byTierSection.
   ///
   /// In en, this message translates to:
@@ -1213,6 +1207,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{sold} sold'**
   String noCapacity(int sold);
+
+  /// No description provided for @remainingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Seats left'**
+  String get remainingSection;
 
   /// No description provided for @remainingLabel.
   ///

@@ -620,10 +620,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get grossSalesLabel => 'Gross sales';
 
   @override
-  String get grossSalesHint =>
-      'Before Stripe fees and any platform commission. This is not what you receive.';
-
-  @override
   String get byTierSection => 'By ticket type';
 
   @override
@@ -635,6 +631,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String noCapacity(int sold) {
     return '$sold sold';
   }
+
+  @override
+  String get remainingSection => 'Seats left';
 
   @override
   String remainingLabel(int count) {
