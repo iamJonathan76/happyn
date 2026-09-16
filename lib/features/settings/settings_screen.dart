@@ -83,16 +83,6 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const MyTicketsScreen()))),
 
-          // ── Moderation ────────────────────────────────────────────
-          // N'apparait que pour un administrateur. Ce n'est pas une
-          // protection : chaque action est revérifiée en base.
-          if (ref.watch(isAdminProvider).asData?.value == true) ...[
-            _section(l.moderation),
-            _tile(context, Icons.gavel_outlined, l.moderationQueue,
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const ModerationScreen()))),
-          ],
-
           // ── Modération (administrateurs) ──────────────────────────
           // L'entree n'apparait que pour un administrateur, mais ce n'est pas
           // ce qui protege : chaque action est revérifiée en base
