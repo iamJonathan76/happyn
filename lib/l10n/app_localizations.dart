@@ -2219,7 +2219,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteEventBody.
   ///
   /// In en, this message translates to:
-  /// **'This action cannot be undone.'**
+  /// **'This cannot be undone. If tickets have been sold, cancel the event instead so buyers are refunded.'**
   String get deleteEventBody;
 
   /// No description provided for @cancel.

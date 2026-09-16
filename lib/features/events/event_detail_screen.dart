@@ -41,25 +41,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     _status = (widget.event['status'] ?? 'published') as String;
   }
 
-  Future<void> _setStatus(String newStatus, String toast) async {
-    try {
-      await Supabase.instance.client
-          .from('events')
-          .update({'status': newStatus}).eq('id', widget.event['id']);
-      widget.event['status'] = newStatus; // maj locale pour l'affichage
-      if (!mounted) return;
-      setState(() => _status = newStatus);
-      ref.invalidate(eventsProvider);
-      showAppSnack(context, toast);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).actionFailed)),
-        );
-      }
-    }
-  }
-
   Widget _organizerMenu() {
     final l = AppLocalizations.of(context);
     return PopupMenuButton<String>(
@@ -75,20 +56,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         if (v == 'moment') {
           _shareMoment(widget.event['id'] as String);
         }
-        if (v == 'unpublish') _setStatus('draft', l.eventUnpublishedMsg);
-        if (v == 'publish') _setStatus('published', l.eventPublishedMsg);
-        if (v == 'cancel') _confirmCancel();
       },
+      // Publier, annuler, supprimer ne sont plus ici : ce sont des decisions
+      // qu'on ne devrait pas prendre depuis l'ecran que voient les acheteurs,
+      // sans avoir les ventes sous les yeux. Elles vivent dans « Gerer ».
       itemBuilder: (context) => [
         _menuItem('manage', Icons.insights_outlined, l.manageEvent),
         _menuItem('moment', Icons.add_a_photo_outlined, l.shareMoment),
-        if (_status == 'published')
-          _menuItem('unpublish', Icons.visibility_off_outlined, l.unpublish)
-        else
-          _menuItem('publish', Icons.publish_outlined, l.publish),
-        if (_status != 'cancelled')
-          _menuItem('cancel', Icons.cancel_outlined, l.cancelEvent,
-              danger: true),
       ],
       child: Container(
         width: 38,
@@ -249,38 +223,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           const SizedBox(width: 10),
           Text(label,
               style: AppText.body.copyWith(fontWeight: FontWeight.w600, color: c)),
-        ],
-      ),
-    );
-  }
-
-  void _confirmCancel() {
-    final l = AppLocalizations.of(context);
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l.cancelEventTitle,
-            style: AppText.h4.copyWith(color: Colors.white)),
-        content: Text(
-          l.cancelEventBody,
-          style: AppText.body,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l.keep,
-                style: AppText.body),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _setStatus('cancelled', l.eventCancelledMsg);
-            },
-            child: Text(l.cancelEvent,
-                style: AppText.body.copyWith(fontWeight: FontWeight.w700, color: AppColors.error)),
-          ),
         ],
       ),
     );

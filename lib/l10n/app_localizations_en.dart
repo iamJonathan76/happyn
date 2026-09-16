@@ -1191,7 +1191,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteEventTitle => 'Delete event?';
 
   @override
-  String get deleteEventBody => 'This action cannot be undone.';
+  String get deleteEventBody =>
+      'This cannot be undone. If tickets have been sold, cancel the event instead so buyers are refunded.';
 
   @override
   String get cancel => 'Cancel';

@@ -1207,7 +1207,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deleteEventTitle => 'Supprimer l\'événement ?';
 
   @override
-  String get deleteEventBody => 'Cette action est irréversible.';
+  String get deleteEventBody =>
+      'C\'est définitif. Si des billets ont été vendus, annule plutôt l\'événement : les acheteurs seront remboursés.';
 
   @override
   String get cancel => 'Annuler';

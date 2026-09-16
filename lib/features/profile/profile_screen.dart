@@ -104,25 +104,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  Future<void> _deleteEvent(String id) async {
-    try {
-      await _supabase.from('events').delete().eq('id', id);
-      // Invalide le provider partagé : Home, Discover ET Profile
-      // se rafraîchissent tous automatiquement, sans rien faire de plus.
-      ref.invalidate(eventsProvider);
-      if (mounted) {
-        showAppSnack(context, AppLocalizations.of(context).eventDeleted);
-      }
-    } catch (e) {
-      if (mounted) {
-        final msg = e.toString().contains('event_has_tickets')
-            ? AppLocalizations.of(context).cantDeleteHasTickets
-            : AppLocalizations.of(context).couldNotDeleteEvent;
-        showAppSnack(context, msg);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(eventsProvider);
@@ -707,7 +688,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       itemCount: myEvents.length,
       itemBuilder: (context, i) {
         final ev = myEvents[i];
-        return EventTile(event: ev, onDelete: () => _deleteEvent(ev['id']));
+        return EventTile(event: ev);
       },
     );
   }

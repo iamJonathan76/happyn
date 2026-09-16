@@ -381,7 +381,7 @@
   "couldNotDeleteEvent": "Impossible de supprimer cet événement.",
   "cantDeleteHasTickets": "Suppression impossible : cet événement a des billets vendus. Annule-le plutôt.",
   "deleteEventTitle": "Supprimer l'événement ?",
-  "deleteEventBody": "Cette action est irréversible.",
+  "deleteEventBody": "C'est définitif. Si des billets ont été vendus, annule plutôt l'événement : les acheteurs seront remboursés.",
   "cancel": "Annuler",
   "delete": "Supprimer",
 

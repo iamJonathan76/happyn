@@ -6,11 +6,16 @@ import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
 
+/// Vignette d'evenement sur le profil.
+///
+/// Elle ne fait plus que montrer : supprimer, annuler et depublier ont
+/// rejoint le tableau de bord, ou l'organisateur voit ce qu'il detruit. Cette
+/// vignette apparait aussi sur le profil public d'autrui, ou ces actions
+/// n'auraient de toute facon aucun sens.
 class EventTile extends StatelessWidget {
   final Map<String, dynamic> event;
-  final VoidCallback onDelete;
 
-  const EventTile({required this.event, required this.onDelete});
+  const EventTile({required this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -117,57 +122,8 @@ class EventTile extends StatelessWidget {
             ),
           ),
 
-          // Delete
-          GestureDetector(
-            onTap: () => _confirmDelete(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.delete_outline,
-                color: AppColors.error,
-                size: 16,
-              ),
-            ),
-          ),
         ],
       ),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          AppLocalizations.of(context).deleteEventTitle,
-          style: AppText.h4.copyWith(color: Colors.white),
-        ),
-        content: Text(
-          AppLocalizations.of(context).deleteEventBody,
-          style: AppText.body,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context).cancel,
-                style: AppText.body),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete();
-            },
-            child: Text(AppLocalizations.of(context).delete,
-                style: AppText.body.copyWith(fontWeight: FontWeight.w700, color: AppColors.error)),
-          ),
-        ],
       ),
     );
   }

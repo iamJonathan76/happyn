@@ -410,7 +410,7 @@
   "couldNotDeleteEvent": "Could not delete this event.",
   "cantDeleteHasTickets": "Can't delete: this event has sold tickets. Cancel it instead.",
   "deleteEventTitle": "Delete event?",
-  "deleteEventBody": "This action cannot be undone.",
+  "deleteEventBody": "This cannot be undone. If tickets have been sold, cancel the event instead so buyers are refunded.",
   "cancel": "Cancel",
   "delete": "Delete",
 

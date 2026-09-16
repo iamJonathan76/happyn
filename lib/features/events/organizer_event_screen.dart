@@ -4,7 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/providers/organizer_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/events/event_utils.dart';
+import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 /// Tableau de bord d'un événement, pour son organisateur.
@@ -29,14 +34,183 @@ class OrganizerEventScreen extends ConsumerStatefulWidget {
 class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
   final _search = TextEditingController();
   String _query = '';
+  late String _status;
 
   String get _eventId => widget.event['id'] as String;
 
   @override
   void initState() {
     super.initState();
+    _status = (widget.event['status'] ?? 'published') as String;
     _search.addListener(
         () => setState(() => _query = _search.text.trim().toLowerCase()));
+  }
+
+  // ── Cycle de vie de l'evenement ─────────────────────────────────
+  //
+  // Publier, depublier, annuler, supprimer vivent ici et nulle part ailleurs.
+  // Ces actions etaient dispersees entre la fiche publique et l'onglet du
+  // profil : on annulait un evenement depuis l'ecran que voient les acheteurs,
+  // et on le supprimait depuis une liste qui ne montrait aucun chiffre. Or ce
+  // sont precisement les decisions qu'on ne devrait prendre qu'en ayant les
+  // ventes et les participants sous les yeux.
+
+  Future<void> _setStatus(String newStatus, String toast) async {
+    try {
+      await Supabase.instance.client
+          .from('events')
+          .update({'status': newStatus}).eq('id', _eventId);
+      widget.event['status'] = newStatus;
+      if (!mounted) return;
+      setState(() => _status = newStatus);
+      ref.invalidate(eventsProvider);
+      showAppSnack(context, toast);
+    } catch (_) {
+      if (mounted) {
+        showAppSnack(context, AppLocalizations.of(context).actionFailed);
+      }
+    }
+  }
+
+  Future<void> _edit() async {
+    await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => CreateEventScreen(event: widget.event)));
+    if (!mounted) return;
+    ref.invalidate(eventsProvider);
+    await _refresh();
+  }
+
+  Future<void> _confirmCancel() async {
+    final l = AppLocalizations.of(context);
+    final ok = await _confirm(l.cancelEventTitle, l.cancelEventBody,
+        confirmLabel: l.cancelEvent, keepLabel: l.keep);
+    if (ok) await _setStatus('cancelled', l.eventCancelledMsg);
+  }
+
+  /// La suppression echoue en base si des billets ont ete vendus — c'est la
+  /// base qui tranche, pas cet ecran : un organisateur ne doit pas pouvoir
+  /// faire disparaitre un evenement que des gens ont paye. On traduit alors
+  /// l'erreur en conseil : annuler, ce qui declenche les remboursements.
+  Future<void> _confirmDelete() async {
+    final l = AppLocalizations.of(context);
+    final ok = await _confirm(l.deleteEventTitle, l.deleteEventBody,
+        confirmLabel: l.delete, keepLabel: l.keep);
+    if (!ok) return;
+    try {
+      await Supabase.instance.client
+          .from('events')
+          .delete()
+          .eq('id', _eventId);
+      ref.invalidate(eventsProvider);
+      if (!mounted) return;
+      showAppSnack(context, l.eventDeleted);
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnack(
+          context,
+          e.toString().contains('event_has_tickets')
+              ? l.cantDeleteHasTickets
+              : l.couldNotDeleteEvent);
+    }
+  }
+
+  Future<bool> _confirm(String title, String body,
+      {required String confirmLabel, required String keepLabel}) async {
+    final res = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(title, style: AppText.h4.copyWith(color: Colors.white)),
+        content: Text(body, style: AppText.body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(keepLabel, style: AppText.body),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(confirmLabel,
+                style: AppText.body.copyWith(
+                    fontWeight: FontWeight.w700, color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    return res == true;
+  }
+
+  Widget _lifecycleMenu(AppLocalizations l) {
+    final past = isEventPast(widget.event);
+    return PopupMenuButton<String>(
+      color: AppColors.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      position: PopupMenuPosition.under,
+      icon: const Icon(Icons.more_horiz, color: Colors.white),
+      onSelected: (v) {
+        if (v == 'edit') _edit();
+        if (v == 'unpublish') _setStatus('draft', l.eventUnpublishedMsg);
+        if (v == 'publish') _setStatus('published', l.eventPublishedMsg);
+        if (v == 'cancel') _confirmCancel();
+        if (v == 'delete') _confirmDelete();
+      },
+      itemBuilder: (context) => [
+        _menuItem('edit', Icons.edit_outlined, l.editEventTitle),
+        // Un evenement termine ne se publie ni ne s'annule : proposer l'un ou
+        // l'autre laisserait croire qu'on peut encore agir dessus.
+        if (!past && _status != 'cancelled')
+          _status == 'published'
+              ? _menuItem(
+                  'unpublish', Icons.visibility_off_outlined, l.unpublish)
+              : _menuItem('publish', Icons.publish_outlined, l.publish),
+        if (!past && _status != 'cancelled')
+          _menuItem('cancel', Icons.cancel_outlined, l.cancelEvent,
+              danger: true),
+        _menuItem('delete', Icons.delete_outline, l.delete, danger: true),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _menuItem(String value, IconData icon, String label,
+      {bool danger = false}) {
+    final color = danger ? AppColors.error : Colors.white;
+    return PopupMenuItem<String>(
+      value: value,
+      height: 42,
+      child: Row(
+        children: [
+          Icon(icon, size: 17, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.bodySm.copyWith(color: color)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// L'etat de l'evenement, a cote de son titre : c'est le contexte de toutes
+  /// les actions du menu, il ne doit pas falloir l'ouvrir pour le connaitre.
+  Widget _stateBadge(AppLocalizations l) {
+    final (label, color) = switch (true) {
+      _ when _status == 'cancelled' => (l.stateCancelled, AppColors.pink),
+      _ when isEventPast(widget.event) =>
+        (l.stateFinished, AppColors.textFaint),
+      _ when _status == 'draft' => (l.stateDraft, AppColors.textLow),
+      _ => (l.statePublished, AppColors.success),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.16),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Text(label, style: AppText.microBold.copyWith(color: color)),
+    );
   }
 
   @override
@@ -62,6 +236,8 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
         title: Text(l.manageEventTitle, style: AppText.h3),
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [_lifecycleMenu(l)],
       ),
       body: statsAsync.when(
         loading: () => const Center(
@@ -87,6 +263,8 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
               children: [
                 Text(widget.event['title'] as String? ?? '',
                     style: AppText.h2.copyWith(color: Colors.white)),
+                const SizedBox(height: 8),
+                Align(alignment: Alignment.centerLeft, child: _stateBadge(l)),
                 const SizedBox(height: 18),
                 _overview(l, totals),
                 const SizedBox(height: 24),
