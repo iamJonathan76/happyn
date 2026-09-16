@@ -1160,6 +1160,120 @@ abstract class AppLocalizations {
   /// **'Not set'**
   String get locationNotSet;
 
+  /// No description provided for @manageEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get manageEvent;
+
+  /// No description provided for @manageEventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage event'**
+  String get manageEventTitle;
+
+  /// No description provided for @overviewSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overviewSection;
+
+  /// No description provided for @ticketsSoldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets sold'**
+  String get ticketsSoldLabel;
+
+  /// No description provided for @checkedInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get checkedInLabel;
+
+  /// No description provided for @grossSalesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross sales'**
+  String get grossSalesLabel;
+
+  /// No description provided for @grossSalesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Before Stripe fees and any platform commission. This is not what you receive.'**
+  String get grossSalesHint;
+
+  /// No description provided for @byTierSection.
+  ///
+  /// In en, this message translates to:
+  /// **'By ticket type'**
+  String get byTierSection;
+
+  /// No description provided for @soldOfCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'{sold} of {total}'**
+  String soldOfCapacity(int sold, int total);
+
+  /// No description provided for @noCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'{sold} sold'**
+  String noCapacity(int sold);
+
+  /// No description provided for @remainingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} left'**
+  String remainingLabel(int count);
+
+  /// No description provided for @attendeesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendees'**
+  String get attendeesSection;
+
+  /// No description provided for @attendeeSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a name…'**
+  String get attendeeSearch;
+
+  /// No description provided for @noAttendeesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No one has a ticket yet.'**
+  String get noAttendeesYet;
+
+  /// No description provided for @attendeeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No attendee matches that name.'**
+  String get attendeeNotFound;
+
+  /// No description provided for @checkedInBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get checkedInBadge;
+
+  /// No description provided for @notCheckedInBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected'**
+  String get notCheckedInBadge;
+
+  /// No description provided for @openScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan tickets'**
+  String get openScanner;
+
+  /// No description provided for @attendeePrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You see who holds a ticket for your event, so you can let someone in when their phone is dead. Email addresses are never shared.'**
+  String get attendeePrivacyNote;
+
   /// No description provided for @getTickets.
   ///
   /// In en, this message translates to:

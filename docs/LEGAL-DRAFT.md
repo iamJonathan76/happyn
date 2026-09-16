@@ -309,6 +309,20 @@ met: you and the other person follow each other, and you have explicitly made
 that specific attendance visible. Holding a ticket does not make your attendance
 public. This is enforced by our servers, not only by the interface.
 
+### The organizer of an event you hold a ticket for
+
+The person who created an event can see **the name and profile photo** of
+everyone holding a valid ticket for it, which ticket type they bought, when they
+bought it, and whether they have already been scanned in at the door. They need
+this to run the door — in particular to let you in when your phone is dead.
+
+The organizer **never sees your email address**, your date of birth, or anything
+about the other events you attend. This list is restricted to the one event they
+created; it is enforced by our servers, not by the interface.
+
+Buying a ticket therefore means accepting that the organizer of that event knows
+you are coming. Cancelled tickets are removed from that list.
+
 ### Service providers
 
 | Provider | What they process | Where |

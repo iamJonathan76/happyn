@@ -609,6 +609,71 @@ class AppLocalizationsFr extends AppLocalizations {
   String get locationNotSet => 'Non définie';
 
   @override
+  String get manageEvent => 'Gérer';
+
+  @override
+  String get manageEventTitle => 'Gérer l\'événement';
+
+  @override
+  String get overviewSection => 'Vue d\'ensemble';
+
+  @override
+  String get ticketsSoldLabel => 'Billets vendus';
+
+  @override
+  String get checkedInLabel => 'Entrées';
+
+  @override
+  String get grossSalesLabel => 'Ventes brutes';
+
+  @override
+  String get grossSalesHint =>
+      'Avant les frais Stripe et toute commission. Ce n\'est pas ce que tu recevras.';
+
+  @override
+  String get byTierSection => 'Par type de billet';
+
+  @override
+  String soldOfCapacity(int sold, int total) {
+    return '$sold sur $total';
+  }
+
+  @override
+  String noCapacity(int sold) {
+    return '$sold vendus';
+  }
+
+  @override
+  String remainingLabel(int count) {
+    return '$count restants';
+  }
+
+  @override
+  String get attendeesSection => 'Participants';
+
+  @override
+  String get attendeeSearch => 'Chercher un nom…';
+
+  @override
+  String get noAttendeesYet => 'Personne n\'a encore de billet.';
+
+  @override
+  String get attendeeNotFound => 'Aucun participant ne correspond.';
+
+  @override
+  String get checkedInBadge => 'Entré';
+
+  @override
+  String get notCheckedInBadge => 'Attendu';
+
+  @override
+  String get openScanner => 'Scanner les billets';
+
+  @override
+  String get attendeePrivacyNote =>
+      'Tu vois qui détient un billet pour ton événement, pour pouvoir laisser entrer quelqu\'un dont le téléphone est mort. Les adresses courriel ne sont jamais communiquées.';
+
+  @override
   String get getTickets => 'Obtenir des billets';
 
   @override

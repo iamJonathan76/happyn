@@ -605,6 +605,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationNotSet => 'Not set';
 
   @override
+  String get manageEvent => 'Manage';
+
+  @override
+  String get manageEventTitle => 'Manage event';
+
+  @override
+  String get overviewSection => 'Overview';
+
+  @override
+  String get ticketsSoldLabel => 'Tickets sold';
+
+  @override
+  String get checkedInLabel => 'Checked in';
+
+  @override
+  String get grossSalesLabel => 'Gross sales';
+
+  @override
+  String get grossSalesHint =>
+      'Before Stripe fees and any platform commission. This is not what you receive.';
+
+  @override
+  String get byTierSection => 'By ticket type';
+
+  @override
+  String soldOfCapacity(int sold, int total) {
+    return '$sold of $total';
+  }
+
+  @override
+  String noCapacity(int sold) {
+    return '$sold sold';
+  }
+
+  @override
+  String remainingLabel(int count) {
+    return '$count left';
+  }
+
+  @override
+  String get attendeesSection => 'Attendees';
+
+  @override
+  String get attendeeSearch => 'Search a name…';
+
+  @override
+  String get noAttendeesYet => 'No one has a ticket yet.';
+
+  @override
+  String get attendeeNotFound => 'No attendee matches that name.';
+
+  @override
+  String get checkedInBadge => 'Checked in';
+
+  @override
+  String get notCheckedInBadge => 'Expected';
+
+  @override
+  String get openScanner => 'Scan tickets';
+
+  @override
+  String get attendeePrivacyNote =>
+      'You see who holds a ticket for your event, so you can let someone in when their phone is dead. Email addresses are never shared.';
+
+  @override
   String get getTickets => 'Get Tickets';
 
   @override

@@ -14,6 +14,7 @@ import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/utils/maps.dart';
+import 'package:happyn/features/events/organizer_event_screen.dart';
 import 'package:happyn/features/events/widgets/event_moments.dart';
 import 'package:happyn/features/events/widgets/whos_going.dart';
 import 'package:happyn/features/social/create_post_screen.dart';
@@ -67,6 +68,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       position: PopupMenuPosition.under,
       onSelected: (v) {
+        if (v == 'manage') {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => OrganizerEventScreen(event: widget.event)));
+        }
         if (v == 'moment') {
           _shareMoment(widget.event['id'] as String);
         }
@@ -75,6 +80,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         if (v == 'cancel') _confirmCancel();
       },
       itemBuilder: (context) => [
+        _menuItem('manage', Icons.insights_outlined, l.manageEvent),
         _menuItem('moment', Icons.add_a_photo_outlined, l.shareMoment),
         if (_status == 'published')
           _menuItem('unpublish', Icons.visibility_off_outlined, l.unpublish)
