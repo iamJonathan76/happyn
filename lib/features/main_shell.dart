@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
+import 'dart:async';
+import 'package:happyn/core/push/push_service.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/home/home_screen.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
@@ -19,6 +21,21 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   final ScrollController _homeScrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Enregistrement du jeton de notification.
+    //
+    // Il ne se faisait qu'apres une connexion — or l'app restaure la session
+    // au demarrage et vient directement ici. Un utilisateur deja connecte
+    // n'avait donc AUCUN jeton enregistre : les notifications arrivaient dans
+    // l'app et nulle part ailleurs.
+    //
+    // C'est bien ici et pas dans main() : a ce point la session est restauree,
+    // et on sait que la personne est connectee.
+    unawaited(PushService.registerForUser());
+  }
 
   @override
   void dispose() {
