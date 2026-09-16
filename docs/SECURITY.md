@@ -224,45 +224,51 @@ peut pas en présenter un. Sa seule protection est la vérification de signature
 
 ---
 
-## 4 bis. Webhooks de base de donnees
+## 4 bis. Webhooks de base de données
 
-Deux declencheurs appellent des fonctions Edge :  sur
-, et  sur . Chacun porte un
-secret partage dans un en-tete HTTP, verifie **en temps constant** par la
+Deux déclencheurs appellent des fonctions Edge : `notify_report_on_insert` sur
+`reports`, et `send_push_on_notification` sur `notifications`. Chacun porte un
+secret partagé dans un en-tête HTTP, vérifié **en temps constant** par la
 fonction.
 
-**Ce secret vit dans la definition du declencheur**, donc en clair pour qui a un
-acces base. C'est la seule exception a la regle « aucun secret en SQL », et elle
-est imposee par le mecanisme : un declencheur doit porter l'en-tete qu'il
+**Ce secret vit dans la définition du déclencheur**, donc en clair pour qui a un
+accès base. C'est la seule exception à la règle « aucun secret en SQL », et elle
+est imposée par le mécanisme : un déclencheur doit porter l'en-tête qu'il
 envoie.
 
-C'est acceptable pour une raison precise : **quiconque peut lire
- a deja la cle **, donc lecture et ecriture sur
-toute la base. Ce secret ne serait pas son objectif. Verifie le 2026-09-16 : avec
-la cle publiable,  et  repondent  — l'API
-REST n'expose que le schema , jamais .
+C'est acceptable pour une raison précise : **quiconque peut lire
+`pg_get_triggerdef` a déjà la clé `service_role`**, donc lecture et écriture sur
+toute la base. Ce secret ne serait pas son objectif.
 
-Le vrai maillon faible est donc **l'acces au tableau de bord Supabase**, et la
-2FA sur ce compte protege plus que tout le reste de cette section.
+Vérifié le 2026-09-16 : avec la clé publiable, `pg_trigger` et
+`pg_get_triggerdef` répondent `404` — l'API REST n'expose que le schéma
+`public`, jamais `pg_catalog`. Ni l'app ni le site ne peuvent donc lire ces
+définitions.
 
-### Creer ces declencheurs en SQL, pas par le formulaire
+Le vrai maillon faible est **l'accès au tableau de bord Supabase**, et la 2FA
+sur ce compte protège plus que tout le reste de cette section.
 
-Le 2026-09-16, les notifications poussees n'arrivaient pas. Cause : le
-formulaire avait enregistre l'en-tete sous le nom  — un tiret
-bas au lieu d'un trait d'union. La fonction cherchait , ne
-trouvait rien, et repondait  sans que rien n'explique pourquoi.
+### Créer ces déclencheurs en SQL, pas par le formulaire
+
+Le 2026-09-16, les notifications poussées n'arrivaient pas. Cause : le
+formulaire avait enregistré l'en-tête sous le nom `x-happyn_secret` — un tiret
+bas au lieu d'un trait d'union. La fonction cherchait `x-happyn-secret`, ne
+trouvait rien, et répondait `403` sans que rien n'explique pourquoi.
 
 Deux enseignements :
 
-1. **Verifier ce qui est reellement enregistre**, pas ce qu'on croit avoir
-   saisi :
+**1. Vérifier ce qui est réellement enregistré**, pas ce qu'on croit avoir
+saisi :
 
-   
+```sql
+select tgname, pg_get_triggerdef(oid) from pg_trigger
+where tgrelid = 'public.notifications'::regclass and not tgisinternal;
+```
 
-2. **Les fonctions journalisent la LONGUEUR du secret recu**, jamais sa valeur.
-   « en-tete recu 0 car., secret attendu 43 car. » distingue immediatement un
-   en-tete absent, un collage tronque et un caractere invisible — sans rien
-   exposer. A garder dans toute nouvelle fonction protegee par secret partage.
+**2. Journaliser la LONGUEUR du secret reçu, jamais sa valeur.** Le message
+« en-tête reçu 0 car., secret attendu 43 car. » distingue immédiatement un
+en-tête absent, un collage tronqué et un caractère invisible — sans rien
+exposer. À reprendre dans toute nouvelle fonction protégée par secret partagé.
 
 ---
 
