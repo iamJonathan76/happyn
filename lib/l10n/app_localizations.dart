@@ -506,12 +506,6 @@ abstract class AppLocalizations {
   /// **'For you'**
   String get forYou;
 
-  /// No description provided for @popularNearYou.
-  ///
-  /// In en, this message translates to:
-  /// **'Popular near you'**
-  String get popularNearYou;
-
   /// No description provided for @seeAll.
   ///
   /// In en, this message translates to:
@@ -2533,12 +2527,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Moments'**
   String get moments;
-
-  /// No description provided for @momentsFromEvents.
-  ///
-  /// In en, this message translates to:
-  /// **'What people are living right now'**
-  String get momentsFromEvents;
 
   /// No description provided for @feedDiscover.
   ///

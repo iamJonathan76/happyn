@@ -22,3 +22,22 @@ bool isEventVisible(Map<String, dynamic> event) =>
     eventStatus(event) == 'published' &&
     !isEventPast(event) &&
     !isEventPrivate(event);
+
+/// Trie par date de TENUE croissante — le plus proche d'abord.
+///
+/// A ne pas confondre avec l'ordre de `eventsProvider`, qui est par date de
+/// CREATION : pertinent sur son propre profil (« mes derniers events »), faux
+/// sur un bandeau « Bientot », ou un event de decembre publie hier passerait
+/// devant celui de samedi.
+List<Map<String, dynamic>> sortedByStart(List<Map<String, dynamic>> events) {
+  final list = [...events];
+  list.sort((a, b) {
+    final da = DateTime.tryParse((a['start_date'] ?? '') as String);
+    final db = DateTime.tryParse((b['start_date'] ?? '') as String);
+    // Sans date on ne peut rien promettre : ces events finissent en queue.
+    if (da == null) return db == null ? 0 : 1;
+    if (db == null) return -1;
+    return da.compareTo(db);
+  });
+  return list;
+}

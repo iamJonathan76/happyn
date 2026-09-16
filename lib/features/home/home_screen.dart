@@ -6,14 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
-import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/notifications/notifications_screen.dart';
-import 'package:happyn/features/discover/near_you_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/social/widgets/post_card.dart';
 import 'package:happyn/core/providers/social_provider.dart';
@@ -65,7 +63,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<Map<String, dynamic>> _filterByCategory(
     List<Map<String, dynamic>> events,
   ) {
-    final upcoming = events.where(isEventVisible).toList();
+    final upcoming = sortedByStart(events.where(isEventVisible).toList());
     if (_selectedCat <= 0 || _selectedCat >= _categories.length) return upcoming;
     return upcoming
         .where((e) => e['category'] == _categories[_selectedCat])
@@ -107,21 +105,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             SliverToBoxAdapter(child: _buildSearchBar()),
             SliverToBoxAdapter(child: _buildLocation(eventsAsync)),
             SliverToBoxAdapter(child: _buildCategories()),
-            // Bandeau d'événements : un aperçu, « Tout voir » mène à Découvrir
-            // (qui porte les catégories, filtres et la liste complète).
+            // Un seul bandeau d'evenements, trie par date de tenue : « ce que
+            // je peux faire bientot ». Classer par popularite ou par distance
+            // demanderait du volume qu'on n'a pas encore ; le temps, lui, on
+            // l'a des le premier jour. « Tout voir » mene a Decouvrir.
             SliverToBoxAdapter(
                 child: _buildSectionHeader(
                     AppLocalizations.of(context).onNow, seeAll: true)),
             SliverToBoxAdapter(child: _buildHeroCards(eventsAsync)),
-            SliverToBoxAdapter(
-                child: _buildSectionHeader(
-                    AppLocalizations.of(context).popularNearYou,
-                    seeAll: true,
-                    // Cette section annoncait « pres de toi » sans connaitre la
-                    // position. Elle mene desormais a l'ecran qui la demande.
-                    onSeeAll: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const NearYouScreen())))),
-            SliverToBoxAdapter(child: _buildCompactList(eventsAsync)),
             // Puis la couche sociale : des moments vecus autour des events.
             SliverToBoxAdapter(child: _buildMomentsHeader()),
             _buildFeedSliver(),
@@ -379,21 +370,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// Quelques evenements en liste sous le bandeau. Volontairement court :
   /// la liste complete vit sur Decouvrir.
-  Widget _buildCompactList(AsyncValue<List<Map<String, dynamic>>> eventsAsync) {
-    final events = _filterByCategory(eventsAsync.asData?.value ?? []);
-    if (events.length <= 1) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: events
-            .skip(1)
-            .take(3)
-            .map((ev) => EventListCard(event: ev))
-            .toList(),
-      ),
-    );
-  }
-
   /// En-tete de la couche sociale. Le titre compte : « Moments » dit que ce
   /// contenu documente des experiences, la ou « Fil » aurait dit reseau social.
     /// Onglets du fil : Découvrir (tout le monde) / Abonnements.
@@ -420,8 +396,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppText.h3.copyWith(fontSize: 17)),
-          const SizedBox(height: 3),
-          Text(l.momentsFromEvents, style: AppText.small),
         ],
       ),
     );

@@ -227,9 +227,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forYou => 'For you';
 
   @override
-  String get popularNearYou => 'Popular near you';
-
-  @override
   String get seeAll => 'See all';
 
   @override
@@ -1386,9 +1383,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moments => 'Moments';
-
-  @override
-  String get momentsFromEvents => 'What people are living right now';
 
   @override
   String get feedDiscover => 'Discover';

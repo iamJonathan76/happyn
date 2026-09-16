@@ -82,7 +82,6 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "forYou": "For you",
-  "popularNearYou": "Popular near you",
   "seeAll": "See all",
   "couldNotLoadEvents": "Could not load events",
   "noEventsYet": "No events yet — create the first one! 🎉",
@@ -476,7 +475,6 @@
   "deletionFailed": "Deletion failed. Please try again or contact support@happyn.com.",
 
   "moments": "Moments",
-  "momentsFromEvents": "What people are living right now",
   "feedDiscover": "Discover",
   "feedFollowing": "Following",
   "feedEmpty": "Nothing here yet",

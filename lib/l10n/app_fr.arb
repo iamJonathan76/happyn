@@ -73,7 +73,6 @@
   "searchHint": "Rechercher événements, artistes, lieux...",
   "eventsToDiscover": "{count, plural, =0{Aucun événement à découvrir} =1{1 événement à découvrir} other{{count} événements à découvrir}}",
   "forYou": "Pour toi",
-  "popularNearYou": "Populaire près de toi",
   "seeAll": "Tout voir",
   "couldNotLoadEvents": "Impossible de charger les événements",
   "noEventsYet": "Aucun événement pour l'instant — crée le premier ! 🎉",
@@ -443,7 +442,6 @@
   "deletionFailed": "La suppression a échoué. Réessaie ou écris à support@happyn.com.",
 
   "moments": "Moments",
-  "momentsFromEvents": "Ce que les gens vivent en ce moment",
   "feedDiscover": "Découvrir",
   "feedFollowing": "Abonnements",
   "feedEmpty": "Rien ici pour l'instant",
