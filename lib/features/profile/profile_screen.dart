@@ -169,10 +169,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                         ),
                       ),
-                      // Gear par-dessus la bannière
+                      // Reglages a droite, retour a gauche : ce ne sont pas
+                      // les memes gestes, ils n'ont pas a partager un coin.
                       Positioned(
                         top: 8,
-                        left: 16,
+                        left: _isMe ? null : 16,
+                        right: _isMe ? 16 : null,
                         child: GestureDetector(
                           onTap: () => _isMe
                               ? Navigator.of(context).push(
@@ -385,11 +387,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Icons.photo_camera_outlined,
                       AppLocalizations.of(context).profileTabPosts,
                     ),
-                    _tabChip(
-                      3,
-                      Icons.info_outline,
-                      AppLocalizations.of(context).sectionAbout,
-                    ),
                     // Les favoris sont prives : jamais sur le profil d'autrui.
                     if (_isMe)
                       _tabChip(
@@ -397,6 +394,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         Icons.favorite_border,
                         AppLocalizations.of(context).favorites,
                       ),
+                    _tabChip(
+                      3,
+                      Icons.info_outline,
+                      AppLocalizations.of(context).sectionAbout,
+                    ),
                   ],
                 ),
               ),
