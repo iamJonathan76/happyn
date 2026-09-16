@@ -678,10 +678,52 @@ that a payment succeeded, and its amount.
 The price you see is the price charged, in Canadian dollars, taxes included
 where applicable.
 
-`[À DÉCIDER]` — **Sales tax (GST/QST).** Who charges and remits it: HAPPYN, or
-the organizer? The answer depends on how you structure payouts and on your
-registration thresholds. This must be settled with an accountant before you sell
-a single real ticket, and it must be stated here.
+## Sales tax — who charges it, and when
+
+`[À DÉCIDER]` — **This must be settled with an accountant before a single real
+ticket is sold for someone else.** It is not a wording question; it changes the
+accounting, the Terms, and how Stripe Connect must be configured.
+
+### The question underneath
+
+Everything depends on **who the seller is**:
+
+| Model | Consequence |
+|---|---|
+| HAPPYN sells, the organizer supplies | HAPPYN charges and remits tax on the whole ticket |
+| The organizer sells, HAPPYN collects on their behalf | Each organizer is responsible for their own tax; HAPPYN owes tax only on its commission |
+
+The second model is the intended one. But it has a practical trap: **today all
+money lands in HAPPYN's own Stripe account**, which accounting-wise looks like
+HAPPYN's revenue. Demonstrating that it is collected *for a third party*
+requires a written agreement with the organizer and books that separate the
+flows — which is a strong argument for building Stripe Connect properly, where
+funds are attributed to the organizer's connected account from the moment they
+are charged.
+
+### Most organizers will charge no tax at all
+
+This is the part people get wrong. An organizer who is **not registered** for
+GST/HST — which will be the case for most small organizers, below the
+small-supplier threshold — **charges no tax**. A $20 ticket costs $20.
+
+An organizer who is registered must charge it. Both a tax-included price and a
+price-plus-tax presentation are acceptable, **provided the total is clear before
+payment**. What is not acceptable is a surprise at the end.
+
+| Organizer | $20 ticket |
+|---|---|
+| Not registered | $20 |
+| Registered | $20 tax included, **or** $20 + tax |
+
+### What this means for the product
+
+Organizer onboarding will eventually need to ask: *are you registered for
+GST/HST, and what is your number?* — and the app must price accordingly. That is
+what established ticketing platforms do.
+
+None of this blocks today: HAPPYN is the only organizer and Stripe is in test
+mode. It becomes blocking the day a third party sells here.
 
 ## When your ticket appears
 
