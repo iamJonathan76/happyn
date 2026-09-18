@@ -31,8 +31,32 @@ flutter run
 Prérequis : Flutter avec Dart SDK `^3.11.0`, un émulateur Android ou un
 téléphone en mode développeur.
 
-Ça marche **directement après le clone** : les clés présentes dans le repo sont
-publiques (voir §5). Aucun `.env` à créer.
+Aucun `.env` à créer : les clés présentes dans le repo sont publiques (voir §5).
+Un seul fichier manque, et il manque volontairement — voir juste en dessous.
+
+### Le fichier à récupérer avant le premier build Android
+
+`android/app/google-services.json` **n'est pas dans le dépôt** (§5), et sans lui
+le build Android s'arrête net :
+
+```
+Execution failed for task ':app:processDebugGoogleServices'.
+> File google-services.json is missing.
+```
+
+Ce n'est pas une erreur de ton côté. Le fichier est ignoré par git depuis que
+les notifications poussées existent : il ne peut donc pas arriver par un clone,
+et chaque nouvelle machine rejoue ce blocage. À faire une fois :
+
+```
+console.firebase.google.com
+  → projet HAPPYN → ⚙️ Paramètres du projet
+  → Général → Vos applications → application Android
+  → Télécharger google-services.json
+```
+
+Le déposer dans `android/app/`. Sans accès à la console Firebase, demande-le à
+Jonathan. Git l'ignore, il ne partira jamais dans un commit.
 
 > **Attention** : après un `git pull` qui contient une nouvelle migration SQL,
 > il faut l'exécuter dans Supabase avant de relancer l'app (voir §4).
@@ -117,6 +141,14 @@ change la base de l'autre.
 
 Ces valeurs vivent **uniquement** dans les *Secrets* du projet Supabase, lues
 côté serveur par les Edge Functions.
+
+`google-services.json` est le cas à part de cette liste : il ne se récupère pas
+dans les Secrets Supabase mais dans la console Firebase, et chaque développeur
+doit le poser sur sa machine avant de pouvoir compiler pour Android (§2).
+Techniquement il ne contient pas de secret — sa clé API est expédiée dans
+chaque APK et restreinte par nom de paquet et SHA-1 de signature. Il est écarté
+du dépôt par prudence, pas par nécessité : à rediscuter le jour où l'aller-
+retour manuel coûtera plus cher que ce qu'il protège.
 
 **Avant chaque push, vérifie** :
 

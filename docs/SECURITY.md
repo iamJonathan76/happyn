@@ -284,6 +284,14 @@ exposer. À reprendre dans toute nouvelle fonction protégée par secret partag�
 `.gitignore` couvre `.env`, `.env.*`, `*.env`, `secrets.json`,
 `google-services.json`, `*.keystore`, `*.jks`.
 
+Nuance sur `google-services.json` : il n'est pas de la même nature que les
+autres. Sa clé API est expédiée dans chaque APK et restreinte par nom de paquet
+et SHA-1 de signature — la garder hors du dépôt ne protège donc rien qu'un
+`unzip` sur l'APK ne révèle. Son exclusion a un coût réel : le build Android
+échoue sur toute machine qui ne l'a pas, sans message qui explique pourquoi. La
+marche à suivre est décrite dans `CONTRIBUTING.md` §2, et le classement reste à
+rediscuter.
+
 **Avant chaque commit et chaque push** : balayer le diff à la recherche de
 `sk_live`, `sk_test_`, `whsec_`, `service_role`, `-----BEGIN`. Fait
 systématiquement jusqu'ici, rien n'est jamais sorti.
