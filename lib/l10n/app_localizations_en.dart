@@ -400,6 +400,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get attendeesTitle => 'Attendees';
+
+  @override
+  String get attendeesPeople => 'People';
+
+  @override
+  String get attendeesTickets => 'Tickets';
+
+  @override
+  String get attendeesCheckedIn => 'Checked in';
+
+  @override
+  String get attendeesSearchHint => 'Search a name';
+
+  @override
+  String get attendeesEmpty => 'No tickets sold yet.';
+
+  @override
+  String get attendeesNoMatch => 'No one matches this search.';
+
+  @override
+  String get attendeesError => 'This list could not be loaded.';
+
+  @override
+  String get attendeeNoName => 'Unnamed account';
+
+  @override
+  String attendeesScannedOf(int scanned, int total) {
+    return '$scanned of $total checked in';
+  }
+
+  @override
   String get moderation => 'Moderation';
 
   @override

@@ -812,6 +812,66 @@ abstract class AppLocalizations {
   /// **'{sold} / {total}'**
   String soldOfTotal(int sold, int total);
 
+  /// No description provided for @attendeesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendees'**
+  String get attendeesTitle;
+
+  /// No description provided for @attendeesPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get attendeesPeople;
+
+  /// No description provided for @attendeesTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets'**
+  String get attendeesTickets;
+
+  /// No description provided for @attendeesCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get attendeesCheckedIn;
+
+  /// No description provided for @attendeesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a name'**
+  String get attendeesSearchHint;
+
+  /// No description provided for @attendeesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No tickets sold yet.'**
+  String get attendeesEmpty;
+
+  /// No description provided for @attendeesNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No one matches this search.'**
+  String get attendeesNoMatch;
+
+  /// No description provided for @attendeesError.
+  ///
+  /// In en, this message translates to:
+  /// **'This list could not be loaded.'**
+  String get attendeesError;
+
+  /// No description provided for @attendeeNoName.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed account'**
+  String get attendeeNoName;
+
+  /// No description provided for @attendeesScannedOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{scanned} of {total} checked in'**
+  String attendeesScannedOf(int scanned, int total);
+
   /// No description provided for @moderation.
   ///
   /// In en, this message translates to:

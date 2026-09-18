@@ -9,6 +9,7 @@ import 'package:happyn/core/providers/events_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/events/event_utils.dart';
+import 'package:happyn/features/events/attendees_screen.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
@@ -169,24 +170,41 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   ///
   /// Sans plafond de quantite (`total == 0`), on affiche le nombre vendu seul :
   /// « 12 / 0 » n'aurait aucun sens.
+  ///
+  /// Tactile : le nombre appelle la question « qui ? », la liste des
+  /// participants y repond. Pas de bouton separe — l'endroit ou l'organisateur
+  /// lit deja son chiffre est aussi celui ou il veut le detailler.
   Widget _salesCounter(String eventId, AppLocalizations l) {
     final sales = ref.watch(eventSalesProvider(eventId)).asData?.value;
     if (sales == null) return const SizedBox(width: 16);
 
     return Padding(
       padding: const EdgeInsets.only(right: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(l.soldLabel, style: AppText.small),
-          Text(
-            sales.total > 0
-                ? l.soldOfTotal(sales.sold, sales.total)
-                : '${sales.sold}',
-            style: AppText.display.copyWith(fontSize: 26, color: Colors.white),
-          ),
-        ],
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => AttendeesScreen(eventId: eventId))),
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l.soldLabel, style: AppText.small),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  sales.total > 0
+                      ? l.soldOfTotal(sales.sold, sales.total)
+                      : '${sales.sold}',
+                  style: AppText.display
+                      .copyWith(fontSize: 26, color: Colors.white),
+                ),
+                const SizedBox(width: 2),
+                Icon(Icons.chevron_right, size: 18, color: AppColors.textLow),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

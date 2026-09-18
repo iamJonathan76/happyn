@@ -404,6 +404,38 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get attendeesTitle => 'Participants';
+
+  @override
+  String get attendeesPeople => 'Personnes';
+
+  @override
+  String get attendeesTickets => 'Billets';
+
+  @override
+  String get attendeesCheckedIn => 'Arrivés';
+
+  @override
+  String get attendeesSearchHint => 'Rechercher un nom';
+
+  @override
+  String get attendeesEmpty => 'Aucun billet vendu pour l\'instant.';
+
+  @override
+  String get attendeesNoMatch => 'Personne ne correspond à cette recherche.';
+
+  @override
+  String get attendeesError => 'Cette liste n\'a pas pu être chargée.';
+
+  @override
+  String get attendeeNoName => 'Compte sans nom';
+
+  @override
+  String attendeesScannedOf(int scanned, int total) {
+    return '$scanned arrivés sur $total';
+  }
+
+  @override
   String get moderation => 'Modération';
 
   @override
