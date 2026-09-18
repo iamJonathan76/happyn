@@ -1,6 +1,6 @@
 # HAPPYN — État et ce qui reste
 
-État au 2026-09-02. Le produit est construit. Ce qui reste se répartit en trois
+État au 2026-09-18. Le produit est construit. Ce qui reste se répartit en trois
 familles très inégales : des **décisions** (rapides, mais elles bloquent tout le
 reste), de la **configuration** (mécanique), et du **code** (un seul gros
 chantier).
@@ -23,6 +23,9 @@ chantier).
 | Compteur de ventes pour l'organisateur | ✅ |
 | Sécurité : RLS versionnée, 3 failles fermées, doc | ✅ |
 | Site en ligne (`happynevents.com`) | ✅ |
+| Notifications poussées : envoi, jeton, greffon google-services | ✅ |
+| Adresses structurées, autocomplétion, masquage de l'adresse exacte | ✅ |
+| Liste des participants pour l'organisateur | ⏳ migration à appliquer |
 
 ---
 
@@ -74,6 +77,9 @@ perçoit et remet), et le remboursement automatique ou non d'un événement annu
 
 - **Migration `20260902000000_cancel_ticket.sql`** à appliquer
 - **`supabase functions deploy cancel-ticket`** (avec JWT)
+- **Migration `20260918000000_event_attendees.sql`** à appliquer — sans elle, la
+  liste des participants affiche son message d'erreur : l'écran est livré, la
+  fonction `event_attendees` n'existe pas encore en base
 - **DSN Sentry** — le code est branché, il ne manque que
   `--dart-define=SENTRY_DSN=…`. Déclencheur : avant la première version donnée à
   quelqu'un d'autre que nous.
@@ -92,11 +98,10 @@ Stripe est aussi toujours en **mode test** : aucun vrai paiement n'est possible.
 
 ### 4.2 Manques fonctionnels
 
-| | Effet |
-|---|---|
-| **Aucune notification poussée** | Personne n'est prévenu quand l'app est fermée — y compris pour l'annulation d'un événement |
-| **Liste des participants** | L'organisateur voit le nombre vendu, pas qui vient |
-| **Autocomplétion d'adresse** | Saisie libre, donc adresses approximatives |
+Les trois manques listés ici au 2026-09-02 — notifications poussées, liste des
+participants, autocomplétion d'adresse — ont été livrés depuis. Voir le
+tableau § 1. Il ne reste dans cette famille que la migration de la liste des
+participants à appliquer, notée en § 3.
 
 ### 4.3 Dette à traiter avant publication
 
@@ -156,11 +161,13 @@ rapidement.
 ## Le chemin le plus court vers un lancement
 
 1. **Décider 2.1, 2.2, 2.3** — une soirée de réflexion
-2. **Appliquer la migration d'annulation** et déployer la fonction
+2. **Appliquer les migrations en attente** (annulation, participants) et
+   déployer `cancel-ticket`
 3. **Relire le recueil légal**, trancher les `[À DÉCIDER]`, faire relire par un
    avocat
 4. **Régler la dette des trois copies** de textes légaux
 5. **Google Play**, en bêta fermée d'abord
 
-Stripe Connect et les notifications poussées viennent après : ils ne bloquent
-pas une bêta où tu es le seul organisateur.
+Stripe Connect vient après : il ne bloque pas une bêta où tu es le seul
+organisateur. Les notifications poussées, elles, ne sont plus un sujet — elles
+sont livrées.
