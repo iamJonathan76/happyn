@@ -1501,6 +1501,58 @@ class AppLocalizationsFr extends AppLocalizations {
   String get postDeleted => 'Publication supprimée';
 
   @override
+  String get usernameLabel => 'Identifiant';
+
+  @override
+  String get usernameHint => 'ton.identifiant';
+
+  @override
+  String get usernameAvailable => 'Disponible';
+
+  @override
+  String get usernameTaken => 'Déjà pris';
+
+  @override
+  String get usernameReserved => 'Ce nom est réservé';
+
+  @override
+  String get usernameRules =>
+      '3 à 20 caractères : lettres, chiffres, point, tiret bas';
+
+  @override
+  String get usernameUnchecked =>
+      'Vérification impossible pour l\'instant — on vérifiera à l\'enregistrement';
+
+  @override
+  String get usernameFixFirst => 'Choisis d\'abord un identifiant disponible.';
+
+  @override
+  String get findPeople => 'Trouver des gens';
+
+  @override
+  String get peopleSearchHint => 'Nom ou @identifiant';
+
+  @override
+  String get peopleSearchIntro =>
+      'Cherche quelqu\'un par son nom ou son @identifiant.';
+
+  @override
+  String get peopleSearchFailed =>
+      'La recherche n\'a pas abouti. Vérifie ta connexion.';
+
+  @override
+  String get peopleNoMatch => 'Personne ne correspond à cette recherche.';
+
+  @override
+  String get followListFailed => 'Impossible de charger cette liste.';
+
+  @override
+  String get noFollowersYet => 'Pas encore d\'abonnés.';
+
+  @override
+  String get noFollowingYet => 'Ne suit encore personne.';
+
+  @override
   String get follow => 'Suivre';
 
   @override

@@ -1480,6 +1480,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDeleted => 'Post deleted';
 
   @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get usernameHint => 'your.username';
+
+  @override
+  String get usernameAvailable => 'Available';
+
+  @override
+  String get usernameTaken => 'Already taken';
+
+  @override
+  String get usernameReserved => 'This name is reserved';
+
+  @override
+  String get usernameRules =>
+      '3 to 20 characters: letters, numbers, dot, underscore';
+
+  @override
+  String get usernameUnchecked =>
+      'Couldn\'t check right now — we\'ll check when you save';
+
+  @override
+  String get usernameFixFirst => 'Pick an available username first.';
+
+  @override
+  String get findPeople => 'Find people';
+
+  @override
+  String get peopleSearchHint => 'Name or @username';
+
+  @override
+  String get peopleSearchIntro =>
+      'Search for someone by their name or @username.';
+
+  @override
+  String get peopleSearchFailed =>
+      'The search didn\'t go through. Check your connection.';
+
+  @override
+  String get peopleNoMatch => 'No one matches that search.';
+
+  @override
+  String get followListFailed => 'Couldn\'t load this list.';
+
+  @override
+  String get noFollowersYet => 'No followers yet.';
+
+  @override
+  String get noFollowingYet => 'Not following anyone yet.';
+
+  @override
   String get follow => 'Follow';
 
   @override

@@ -300,7 +300,11 @@ your activity on HAPPYN.
 
 ### Other users
 
-Your **name, profile photo, bio and city** are visible to anyone using HAPPYN.
+Your **name, username, profile photo, bio and city** are visible to anyone
+using HAPPYN, and other signed-in users can find your profile by searching
+your name or username. Accounts you have blocked, and accounts that have
+blocked you, cannot find you this way. The lists of who you follow and who
+follows you are visible to other signed-in users.
 Your **email address and date of birth are never visible to other users** — they
 are technically restricted to your own account row.
 

@@ -12,6 +12,7 @@ import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/notifications/notifications_screen.dart';
+import 'package:happyn/features/social/people_search_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/social/widgets/post_card.dart';
 import 'package:happyn/core/providers/social_provider.dart';
@@ -147,6 +148,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           Row(
             children: [
+              // Trouver quelqu'un. A cote des notifications plutot que dans la
+              // barre de recherche : celle-ci cherche des evenements, et
+              // melanger les deux ferait des resultats qu'on ne sait pas lire.
+              Semantics(
+                button: true,
+                label: AppLocalizations.of(context).findPeople,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const PeopleSearchScreen())),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withOpacity(0.09)),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.person_search_outlined,
+                          color: Colors.white, size: 18),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const NotificationsScreen())),

@@ -8,21 +8,33 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happyn/core/providers/people_provider.dart';
+import 'package:happyn/core/providers/social_provider.dart';
+import 'package:happyn/core/providers/user_profile_provider.dart';
+import 'package:happyn/core/widgets/username_field.dart';
 
 /// Édition du profil : nom + photo (avatar). Stockés dans les user metadata
 /// Supabase (`full_name`, `avatar_url`) et synchronisés dans la table profiles.
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _supabase = Supabase.instance.client;
   late final TextEditingController _nameController;
   final _cityController = TextEditingController();
   final _bioController = TextEditingController();
+  final _usernameController = TextEditingController();
+
+  /// L'identifiant tel qu'il etait a l'ouverture. Inchange, on ne le renvoie
+  /// pas : inutile de faire revalider ce qu'on possede deja.
+  String _originalUsername = '';
+  UsernameStatus? _usernameStatus;
+  UsernameStatus? _forcedUsernameStatus;
   XFile? _pickedAvatar;
   String? _currentAvatarUrl;
   bool _saving = false;
@@ -43,12 +55,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final row = await _supabase
           .from('profiles')
-          .select('city, bio')
+          .select('city, bio, username')
           .eq('id', user.id)
           .maybeSingle();
       if (row != null && mounted) {
         _cityController.text = (row['city'] ?? '') as String;
         _bioController.text = (row['bio'] ?? '') as String;
+        _originalUsername = (row['username'] ?? '') as String;
+        _usernameController.text = _originalUsername;
       }
     } catch (_) {}
   }
@@ -58,6 +72,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _cityController.dispose();
     _bioController.dispose();
+    _usernameController.dispose();
     super.dispose();
   }
 
@@ -104,6 +119,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
+    final username = normalizeUsername(_usernameController.text);
+    final usernameChanged = username != _originalUsername;
+    // On bloque ce qui est connu pour etre refuse, ou pas encore verifie.
+    // « unknown » (reseau) passe : la base tranchera a l'enregistrement.
+    if (usernameChanged &&
+        _usernameStatus != UsernameStatus.ok &&
+        _usernameStatus != UsernameStatus.unknown) {
+      showAppSnack(context, l.usernameFixFirst);
+      return;
+    }
+
     setState(() => _saving = true);
     try {
       final user = _supabase.auth.currentUser!;
@@ -121,14 +147,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (avatarUrl != null) 'avatar_url': avatarUrl,
         'city': _cityController.text.trim(),
         'bio': _bioController.text.trim(),
+        if (usernameChanged && username.isNotEmpty) 'username': username,
       });
+
+      // Rafraichi ici plutot que par l'appelant : cet ecran s'ouvre depuis le
+      // profil ET depuis les reglages, et seul le premier chemin le faisait.
+      // Depuis les reglages, on revenait sur un ancien identifiant.
+      ref.invalidate(userProfileProvider);
+      ref.invalidate(publicProfileProvider(user.id));
 
       if (mounted) {
         showAppSnack(context, l.profileUpdated);
         Navigator.of(context).pop(true);
       }
     } catch (e) {
-      showAppSnack(context, l.couldNotSaveRetry);
+      if (!mounted) return;
+      // Quelqu'un a pu prendre le nom entre la verification et l'envoi.
+      final u = usernameErrorFrom(e);
+      if (u != null) {
+        // Les deux : l'affichage du champ, et ce que la prochaine tentative
+        // d'enregistrement verra — sinon elle renverrait le meme nom refuse.
+        setState(() {
+          _forcedUsernameStatus = u;
+          _usernameStatus = u;
+        });
+        showAppSnack(context, l.usernameFixFirst);
+      } else {
+        showAppSnack(context, l.couldNotSaveRetry);
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -211,6 +257,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             onChanged: (_) => setState(() {}), // maj des initiales du placeholder
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: appInputDecoration(l.yourNameHint, icon: Icons.person_outline),
+          ),
+          const SizedBox(height: 16),
+          AppLabel(l.usernameLabel),
+          UsernameField(
+            controller: _usernameController,
+            forcedStatus: _forcedUsernameStatus,
+            onStatus: (st) => setState(() {
+              _usernameStatus = st;
+              _forcedUsernameStatus = null;
+            }),
           ),
           const SizedBox(height: 16),
           AppLabel(l.cityLabel),

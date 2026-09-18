@@ -10,6 +10,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
+import 'package:happyn/core/providers/people_provider.dart';
+import 'package:happyn/core/widgets/username_field.dart';
 
 /// Écran d'onboarding proposé après l'inscription : photo, ville, centres
 /// d'intérêt, bio. Entièrement optionnel (bouton « Skip »).
@@ -25,6 +27,15 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   final _supabase = Supabase.instance.client;
   final _cityController = TextEditingController();
   final _bioController = TextEditingController();
+
+  /// Pre-rempli a partir du nom, pour que la personne voie tout de suite ce
+  /// qu'elle obtiendra. Si la proposition est deja prise, le champ le dit et
+  /// elle la change ; si elle vide le champ, la base en genere un.
+  late final TextEditingController _usernameController = TextEditingController(
+      text: suggestUsername(
+          _supabase.auth.currentUser?.userMetadata?['full_name'] as String?));
+  UsernameStatus? _usernameStatus;
+  UsernameStatus? _forcedUsernameStatus;
   final Set<String> _interests = {};
   XFile? _avatar;
   bool _saving = false;
@@ -33,6 +44,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   void dispose() {
     _cityController.dispose();
     _bioController.dispose();
+    _usernameController.dispose();
     super.dispose();
   }
 
@@ -91,6 +103,15 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   }
 
   Future<void> _save() async {
+    final username = normalizeUsername(_usernameController.text);
+    // Vide : la base en attribue un. Rempli : il doit etre libre, ou au moins
+    // non verifiable (reseau) — auquel cas la base tranche.
+    if (username.isNotEmpty &&
+        _usernameStatus != UsernameStatus.ok &&
+        _usernameStatus != UsernameStatus.unknown) {
+      showAppSnack(context, AppLocalizations.of(context).usernameFixFirst);
+      return;
+    }
     setState(() => _saving = true);
     try {
       final user = _supabase.auth.currentUser!;
@@ -110,14 +131,28 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         'city': _cityController.text.trim(),
         'bio': _bioController.text.trim(),
         'interests': _interests.toList(),
+        if (username.isNotEmpty) 'username': username,
         'onboarded': true,
       });
 
       if (mounted) _goHome();
     } catch (e) {
       if (mounted) {
-        showAppSnack(context, AppLocalizations.of(context).couldNotSaveLater);
-        setState(() => _saving = false);
+        // Un nom pris entre la verification et l'envoi : on le dit sur le
+        // champ, au lieu d'un « reessaie plus tard » qui echouerait pareil.
+        final u = usernameErrorFrom(e);
+        setState(() {
+          _saving = false;
+          if (u != null) {
+            _forcedUsernameStatus = u;
+            _usernameStatus = u;
+          }
+        });
+        showAppSnack(
+            context,
+            u != null
+                ? AppLocalizations.of(context).usernameFixFirst
+                : AppLocalizations.of(context).couldNotSaveLater);
       }
     }
   }
@@ -222,6 +257,18 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
+
+                  // Identifiant : c'est par lui qu'on sera retrouve.
+                  AppLabel(l.usernameLabel),
+                  UsernameField(
+                    controller: _usernameController,
+                    forcedStatus: _forcedUsernameStatus,
+                    onStatus: (st) => setState(() {
+                      _usernameStatus = st;
+                      _forcedUsernameStatus = null;
+                    }),
+                  ),
+                  const SizedBox(height: 20),
 
                   // City
                   AppLabel(l.cityLabel),

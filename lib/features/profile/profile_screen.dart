@@ -12,6 +12,8 @@ import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
+import 'package:happyn/core/providers/people_provider.dart';
+import 'package:happyn/features/social/follow_list_screen.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
@@ -62,11 +64,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String get _userEmail =>
       _isMe ? (_supabase.auth.currentUser?.email ?? '') : '';
 
+  /// L'identifiant enregistre en base. Il etait fabrique ici : tire de
+  /// l'e-mail sur son propre profil, du nom chez les autres — on ne se voyait
+  /// donc pas comme les autres nous voyaient. Vide tant que la ligne n'est pas
+  /// chargee : mieux vaut rien qu'un identifiant invente.
   String get _userHandle {
-    final e = _userEmail;
-    if (e.contains('@')) return '@${e.split('@').first}';
-    final n = _userName.trim().toLowerCase().replaceAll(' ', '');
-    return n.isEmpty ? '@user' : '@$n';
+    final row = _isMe ? ref.watch(userProfileProvider).asData?.value : _pub;
+    final u = (row?['username'] as String?) ?? '';
+    return u.isEmpty ? '' : '@$u';
   }
 
   String? get _avatarUrl {
@@ -85,12 +90,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return _userName.substring(0, 1).toUpperCase();
   }
 
-  /// Compteurs d'abonnes/abonnements du compte courant, via le meme provider
-  /// que le profil public — une seule source pour les deux ecrans.
+  /// Compteurs d'abonnes/abonnements de la personne REGARDEE.
+  ///
+  /// Cette fonction lisait l'utilisateur connecte : sur le profil de
+  /// quelqu'un d'autre, on voyait donc ses propres compteurs a la place des
+  /// siens.
   Map<String, dynamic>? _counts(Map<String, dynamic>? _) {
-    final uid = _supabase.auth.currentUser?.id;
-    if (uid == null) return null;
-    return ref.watch(publicProfileProvider(uid)).asData?.value;
+    if (_uid.isEmpty) return null;
+    return ref.watch(publicProfileProvider(_uid)).asData?.value;
+  }
+
+  void _openFollows(FollowListKind kind) {
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => FollowListScreen(
+              userId: _uid,
+              title: _userName,
+              initial: kind,
+            )));
   }
 
   Future<void> _signOut() async {
@@ -235,6 +251,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                         color: Colors.white,
                                       ),
                                     ),
+                                    if (_userHandle.isNotEmpty)
                                     Text(
                                       _userHandle,
                                       maxLines: 1,
@@ -269,11 +286,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       _statItem(
                         '${_counts(profileRow)?['followers_count'] ?? 0}',
                         AppLocalizations.of(context).followers,
+                        onTap: () => _openFollows(FollowListKind.followers),
                       ),
                       _divider(),
                       _statItem(
                         '${_counts(profileRow)?['following_count'] ?? 0}',
                         AppLocalizations.of(context).following,
+                        onTap: () => _openFollows(FollowListKind.following),
                       ),
                     ],
                   ),
@@ -765,22 +784,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     ),
   );
 
-  Widget _statItem(String value, String label) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(value, style: AppText.h1.copyWith(color: Colors.white)),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: AppText.small,
-            ),
+  Widget _statItem(String value, String label, {VoidCallback? onTap}) {
+    final column = Column(
+      children: [
+        Text(value, style: AppText.h1.copyWith(color: Colors.white)),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            textAlign: TextAlign.center,
+            style: AppText.small,
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+    return Expanded(
+      child: onTap == null
+          ? column
+          : InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: column,
+              ),
+            ),
     );
   }
 

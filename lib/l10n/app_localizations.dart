@@ -2714,6 +2714,102 @@ abstract class AppLocalizations {
   /// **'Post deleted'**
   String get postDeleted;
 
+  /// No description provided for @usernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get usernameLabel;
+
+  /// No description provided for @usernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'your.username'**
+  String get usernameHint;
+
+  /// No description provided for @usernameAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get usernameAvailable;
+
+  /// No description provided for @usernameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Already taken'**
+  String get usernameTaken;
+
+  /// No description provided for @usernameReserved.
+  ///
+  /// In en, this message translates to:
+  /// **'This name is reserved'**
+  String get usernameReserved;
+
+  /// No description provided for @usernameRules.
+  ///
+  /// In en, this message translates to:
+  /// **'3 to 20 characters: letters, numbers, dot, underscore'**
+  String get usernameRules;
+
+  /// No description provided for @usernameUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check right now — we\'ll check when you save'**
+  String get usernameUnchecked;
+
+  /// No description provided for @usernameFixFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an available username first.'**
+  String get usernameFixFirst;
+
+  /// No description provided for @findPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Find people'**
+  String get findPeople;
+
+  /// No description provided for @peopleSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name or @username'**
+  String get peopleSearchHint;
+
+  /// No description provided for @peopleSearchIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for someone by their name or @username.'**
+  String get peopleSearchIntro;
+
+  /// No description provided for @peopleSearchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The search didn\'t go through. Check your connection.'**
+  String get peopleSearchFailed;
+
+  /// No description provided for @peopleNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No one matches that search.'**
+  String get peopleNoMatch;
+
+  /// No description provided for @followListFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load this list.'**
+  String get followListFailed;
+
+  /// No description provided for @noFollowersYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No followers yet.'**
+  String get noFollowersYet;
+
+  /// No description provided for @noFollowingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not following anyone yet.'**
+  String get noFollowingYet;
+
   /// No description provided for @follow.
   ///
   /// In en, this message translates to:
