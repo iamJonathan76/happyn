@@ -11,11 +11,11 @@
   {
     "slug": "privacy",
     "title": "Privacy Policy",
-    "content": "HAPPYN respects user privacy.\r\n\r\n## Information collected may include:\r\n- Name\r\n- Email address\r\n- Date of birth\r\n- Profile photo\r\n- City and location preferences\r\n- Event activity and attendance history\r\n- Device and usage information\r\n\r\n## We use this information to:\r\n- Provide recommendations\r\n- Confirm eligibility and apply age requirements\r\n- Improve the platform\r\n- Process registrations\r\n- Send important notifications\r\n\r\nWe do not sell personal information.\r\n\r\nUsers may request access, correction, or deletion of their data.",
-    "version": "Version 1.1",
-    "effective_date": "2026-07-23",
+    "content": "HAPPYN respects user privacy.\r\n\r\n## Information collected may include:\r\n- Name\r\n- Email address\r\n- Date of birth\r\n- Profile photo\r\n- City and location preferences\r\n- Event activity and attendance history\r\n- Device and usage information\r\n\r\n## We use this information to:\r\n- Provide recommendations\r\n- Confirm eligibility and apply age requirements\r\n- Improve the platform\r\n- Process registrations\r\n- Send important notifications\r\n\r\nWe do not sell personal information.\r\n\r\nUsers may request access, correction, or deletion of their data.\n\n## Website launch list\r\n\r\nIf you join the launch list on happynevents.com, we collect your email address, the language you used, and the exact consent statement you agreed to, along with the date. We keep the consent statement as proof that you asked to hear from us, as Canada's anti-spam law requires.\r\n\r\nWe use your email only to tell you about HAPPYN's launch and related news. We do not sell it or share it with anyone to market to you.\r\n\r\nThese submissions are stored by our website host, Netlify, in the United States. They may be subject to the laws of that country, including lawful access by its authorities.\r\n\r\nWe keep your email until you unsubscribe or ask us to delete it. You can unsubscribe at any time with the link included in every email we send, or by writing to contact@happynevents.com.",
+    "version": "Version 1.2",
+    "effective_date": "2026-09-18",
     "sort_order": 2,
-    "updated_at": "2026-07-23T05:43:45.440369+00:00"
+    "updated_at": "2026-09-18T05:30:20.554851+00:00"
   },
   {
     "slug": "community",
