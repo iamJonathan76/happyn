@@ -22,6 +22,9 @@
 (function () {
   'use strict';
 
+  const t = (key, vars) =>
+    window.HappynI18n ? window.HappynI18n.t(key, vars) : key;
+
   const el = {
     loading: document.querySelector('[data-reset-loading]'),
     form: document.querySelector('[data-reset-form]'),
@@ -172,13 +175,21 @@
 
     if (response.ok) return { ok: true };
 
-    let message = 'Something went wrong. Please try again.';
+    let message = t('reset.errGeneric');
     try {
       const body = await response.json();
-      // On remonte le message de Supabase quand il en donne un : « password
-      // too short », « same as the old password »… Un message générique
-      // laisserait l'utilisateur réessayer la même chose indéfiniment.
-      message = body.msg || body.error_description || body.message || message;
+      const raw = String(body.msg || body.error_description || body.message || '');
+      // On remonte la cause quand Supabase en donne une : un message générique
+      // laisserait l'utilisateur réessayer la même chose indéfiniment. Les
+      // causes connues sont traduites ; les autres restent telles quelles en
+      // anglais, et deviennent le message générique en français.
+      if (/different from the old|same as the old/i.test(raw)) {
+        message = t('reset.errSame');
+      } else if (/at least \d+ characters|too short/i.test(raw)) {
+        message = t('reset.errTooShort', { n: MIN_LENGTH });
+      } else if (raw && (!window.HappynI18n || window.HappynI18n.lang === 'en')) {
+        message = raw;
+      }
     } catch (_) {
       /* corps illisible : on garde le message générique */
     }
@@ -193,16 +204,16 @@
     const confirm = document.getElementById('confirm').value;
 
     if (password.length < MIN_LENGTH) {
-      showError(`Password must be at least ${MIN_LENGTH} characters.`);
+      showError(t('reset.errTooShort', { n: MIN_LENGTH }));
       return;
     }
     if (password !== confirm) {
-      showError("Both passwords must match.");
+      showError(t('reset.errMismatch'));
       return;
     }
 
     el.submit.disabled = true;
-    el.submit.textContent = 'Updating…';
+    el.submit.textContent = t('reset.updating');
 
     updatePassword(password).then((result) => {
       if (result.ok) {
@@ -216,7 +227,7 @@
         return;
       }
       el.submit.disabled = false;
-      el.submit.textContent = 'Update password';
+      el.submit.textContent = t('reset.submit');
       showError(result.message);
     });
   }
@@ -225,6 +236,7 @@
 
   async function init() {
     applyCommonBits();
+    document.addEventListener('happyn:lang', clearError);
     if (!el.form) return;
 
     if (new URLSearchParams(location.search).get('code')) {

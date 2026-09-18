@@ -271,6 +271,7 @@ Contact: contact@happynevents.com
 | Event details you create | Publishing your event | Cannot create events |
 | Photos and captions | Publishing your content | Cannot publish |
 | Report details | Handling your report | Cannot submit a report |
+| Email address, on our website's launch list | Telling you when HAPPYN launches — only if you ticked the consent box. We also keep the exact consent sentence you accepted, its language and the date, as proof of consent | You won't be told about the launch |
 
 ### Information created by your use of HAPPYN
 
@@ -334,7 +335,7 @@ you are coming. Cancelled tickets are removed from that list.
 | Supabase | Database, authentication, file storage | `[À VÉRIFIER — région du projet]` |
 | Stripe | Payment processing | Canada / United States |
 | Resend | Transactional email delivery | United States |
-| Netlify | Website hosting | Global CDN |
+| Netlify | Website hosting; the launch list on our website (email address and consent record) | United States / global CDN |
 | Sentry | Crash reports, when enabled | United States |
 
 `[À DÉCIDER]` — Several of these providers process data in the **United

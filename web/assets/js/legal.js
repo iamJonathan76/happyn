@@ -19,6 +19,13 @@
 (function () {
   'use strict';
 
+  // Textes et dates dans la langue affichée (voir i18n.js). Sans i18n.js, on
+  // retombe sur la clé — visible, donc repérable, plutôt qu'un texte vide.
+  const t = (key, vars) =>
+    window.HappynI18n ? window.HappynI18n.t(key, vars) : key;
+  const locale = () =>
+    window.HappynI18n ? window.HappynI18n.locale : 'en-CA';
+
   // ── Réglages communs à toutes les pages ────────────────────────────────────
 
   function applyCommonBits() {
@@ -121,6 +128,15 @@
     });
   }
 
+  function renderNotice(container) {
+    const text = t('legal.englishOnly');
+    if (!text) return;
+    const notice = document.createElement('p');
+    notice.className = 'legal-notice';
+    notice.textContent = text;
+    container.appendChild(notice);
+  }
+
   function renderDocument(container, doc) {
     document.title = `${doc.title} — HAPPYN`;
     container.replaceChildren();
@@ -134,13 +150,14 @@
     const meta = document.createElement('p');
     meta.className = 'legal-meta';
     const stamp = doc.effective_date
-      ? `Effective ${formatDate(doc.effective_date)}`
+      ? t('legal.effective', { date: formatDate(doc.effective_date) })
       : doc.updated_at
-        ? `Last updated ${formatDate(doc.updated_at)}`
+        ? t('legal.updated', { date: formatDate(doc.updated_at) })
         : '';
     meta.textContent = [doc.version, stamp].filter(Boolean).join(' · ');
     container.appendChild(meta);
 
+    renderNotice(container);
     renderContent(container, doc.content);
   }
 
@@ -148,15 +165,18 @@
   function renderIndex(container, documents) {
     container.replaceChildren();
 
+    document.title = t('legal.metaTitle');
+
     const title = document.createElement('h1');
-    title.textContent = 'Legal';
+    title.textContent = t('legal.indexTitle');
     container.appendChild(title);
 
     const meta = document.createElement('p');
     meta.className = 'legal-meta';
-    meta.textContent =
-      'The policies that govern the use of HAPPYN, for attendees and organizers alike.';
+    meta.textContent = t('legal.indexLead');
     container.appendChild(meta);
+
+    renderNotice(container);
 
     const grid = document.createElement('div');
     grid.className = 'legal-index';
@@ -186,11 +206,11 @@
     box.className = 'state-message error';
 
     const title = document.createElement('strong');
-    title.textContent = 'These policies are temporarily unavailable.';
+    title.textContent = t('legal.errorTitle');
     box.appendChild(title);
 
     const text = document.createElement('span');
-    text.textContent = `Please try again in a moment, or email us at ${HAPPYN.supportEmail} and we'll send them to you directly.`;
+    text.textContent = t('legal.errorBody', { email: HAPPYN.supportEmail });
     box.appendChild(text);
 
     container.appendChild(box);
@@ -207,7 +227,7 @@
     // pas un détail. On la formate donc en UTC.
     const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
 
-    return date.toLocaleDateString('en-GB', {
+    return date.toLocaleDateString(locale(), {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -283,7 +303,10 @@
       documents = await loadDocuments();
     } catch (error) {
       console.error('[happyn] Unable to load legal documents:', error);
-      if (container) renderError(container);
+      if (container) {
+        renderError(container);
+        document.addEventListener('happyn:lang', () => renderError(container));
+      }
       return;
     }
 
@@ -293,20 +316,22 @@
     const requestedSlug = new URLSearchParams(location.search).get('doc');
     renderSidebar(documents, requestedSlug);
 
-    if (!requestedSlug) {
-      renderIndex(container, documents);
-      return;
-    }
+    const render = (firstTime) => {
+      const doc = requestedSlug
+        ? documents.find((entry) => entry.slug === requestedSlug)
+        : null;
+      if (doc) {
+        renderDocument(container, doc);
+        if (firstTime) revealContent(container);
+      } else {
+        // Pas de ?doc=, ou slug inconnu (lien obsolète) : l'index plutôt
+        // qu'une page vide.
+        renderIndex(container, documents);
+      }
+    };
 
-    const doc = documents.find((entry) => entry.slug === requestedSlug);
-    if (doc) {
-      renderDocument(container, doc);
-      revealContent(container);
-    } else {
-      // Slug inconnu (lien obsolète) : on retombe sur l'index plutôt que sur
-      // une page vide.
-      renderIndex(container, documents);
-    }
+    render(true);
+    document.addEventListener('happyn:lang', () => render(false));
   }
 
   if (document.readyState === 'loading') {

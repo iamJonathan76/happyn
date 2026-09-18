@@ -3,43 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Legal — HAPPYN</title>
+    <title data-i18n="legal.metaTitle">Legal — HAPPYN</title>
     <meta
       name="description"
+      data-i18n-attr="content:legal.metaDescription"
       content="HAPPYN's Terms of Service, Privacy Policy, Community Guidelines and other policies."
     />
-    <meta name="theme-color" content="#0a0817" />
+    <meta name="theme-color" content="#08080f" />
     <link rel="icon" href="assets/img/happyn-mark.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/img/happyn.png" />
     <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/i18n.js"></script>
   </head>
   <body>
+    <a class="skip-link" href="#main" data-i18n="nav.skip">Skip to content</a>
+
     <header class="site-header">
-      <div class="container">
-        <a class="brand" href="/">
-          <img src="assets/img/happyn-mark.svg" alt="" />
+      <div class="container header-row">
+        <a class="brand" href="/" data-i18n-attr="aria-label:nav.home">
+          <img src="assets/img/happyn-mark.svg" alt="" width="30" height="30" />
           <span>HAPPYN</span>
         </a>
-        <nav class="site-nav">
-          <a href="index.html#features">Features</a>
-          <a href="index.html#organizers">For organizers</a>
-          <a href="legal.html">Legal</a>
-          <a href="index.html#contact">Contact</a>
+
+        <nav class="site-nav" aria-label="Primary">
+          <a href="index.html#how" data-i18n="nav.how">How it works</a>
+          <a href="index.html#app" data-i18n="nav.app">The app</a>
+          <a href="index.html#organizers" data-i18n="nav.organizers">Organizers</a>
+          <a href="index.html#contact" data-i18n="nav.contact">Contact</a>
         </nav>
+
+        <div class="header-actions">
+          <div class="lang-switch" role="group" data-i18n-attr="aria-label:lang.label" aria-label="Language">
+            <button type="button" data-set-lang="fr" aria-pressed="false">FR</button>
+            <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+          </div>
+        </div>
       </div>
     </header>
 
-    <main class="container">
+    <main id="main" class="container">
       <div class="legal-layout">
         <aside class="legal-sidebar">
-          <h4>Policies</h4>
+          <h4 data-i18n="legal.policies">Policies</h4>
           <ul data-legal-nav>
-            <li><span class="state-message">Loading…</span></li>
+            <li><span class="state-message" data-i18n="legal.loading">Loading…</span></li>
           </ul>
         </aside>
 
         <article class="legal-content" data-legal-content>
-          <p class="state-message">Loading…</p>
+          <p class="state-message" data-i18n="legal.loading">Loading…</p>
         </article>
       </div>
     </main>
@@ -47,8 +59,8 @@
     <footer class="site-footer">
       <div class="container">
         <div class="footer-bottom">
-          <span>© <span data-current-year>2026</span> HAPPYN. All rights reserved.</span>
-          <span><a href="#" data-support-link>Contact support</a></span>
+          <span>© <span data-current-year>2026</span> HAPPYN. <span data-i18n="footer.rights">All rights reserved.</span></span>
+          <span><a href="#" data-support-link data-i18n="footer.contactSupport">Contact support</a></span>
         </div>
       </div>
     </footer>

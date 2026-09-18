@@ -3,23 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reset your password — HAPPYN</title>
-    <meta name="description" content="Choose a new password for your HAPPYN account." />
-    <meta name="theme-color" content="#0a0817" />
+    <title data-i18n="reset.metaTitle">Reset your password — HAPPYN</title>
+    <meta name="description" data-i18n-attr="content:reset.metaDescription" content="Choose a new password for your HAPPYN account." />
+    <meta name="theme-color" content="#08080f" />
     <!-- Une page de mot de passe n'a rien à faire dans un index de moteur de
          recherche : elle n'a de sens que via le lien reçu par courriel. -->
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" href="assets/img/happyn-mark.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/img/happyn.png" />
     <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/i18n.js"></script>
   </head>
   <body>
     <header class="site-header">
-      <div class="container">
-        <a class="brand" href="/">
-          <img src="assets/img/happyn-mark.svg" alt="" />
+      <div class="container header-row">
+        <a class="brand" href="/" data-i18n-attr="aria-label:nav.home">
+          <img src="assets/img/happyn-mark.svg" alt="" width="30" height="30" />
           <span>HAPPYN</span>
         </a>
+        <div class="header-actions">
+          <div class="lang-switch" role="group" data-i18n-attr="aria-label:lang.label" aria-label="Language">
+            <button type="button" data-set-lang="fr" aria-pressed="false">FR</button>
+            <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -29,19 +36,19 @@
              validé. Afficher le formulaire tout de suite puis le retirer
              donnerait l'impression que quelque chose a cassé. -->
         <div data-reset-loading>
-          <h1>Checking your link…</h1>
-          <p class="muted">One moment.</p>
+          <h1 data-i18n="reset.checking">Checking your link…</h1>
+          <p class="muted" data-i18n="reset.moment">One moment.</p>
         </div>
 
         <!-- Lien valide : le formulaire. -->
         <form data-reset-form hidden novalidate>
-          <h1>Choose a new password</h1>
-          <p class="muted">
-            Pick something you don't use anywhere else. You'll be signed in on
-            the app with this password.
+          <h1 data-i18n="reset.chooseTitle">Choose a new password</h1>
+          <p class="muted" data-i18n="reset.chooseBody">
+            Pick something you don't use anywhere else. You'll sign in to the
+            app with this password.
           </p>
 
-          <label for="password">New password</label>
+          <label for="password" data-i18n="reset.newPassword">New password</label>
           <input
             id="password"
             name="password"
@@ -51,7 +58,7 @@
             required
           />
 
-          <label for="confirm">Confirm password</label>
+          <label for="confirm" data-i18n="reset.confirm">Confirm password</label>
           <input
             id="confirm"
             name="confirm"
@@ -61,18 +68,18 @@
             required
           />
 
-          <p class="hint">At least 8 characters.</p>
+          <p class="hint" data-i18n="reset.hint">At least 8 characters.</p>
           <p class="form-error" data-reset-error hidden role="alert"></p>
 
-          <button type="submit" class="btn-primary" data-reset-submit>
+          <button type="submit" class="btn-primary" data-reset-submit data-i18n="reset.submit">
             Update password
           </button>
         </form>
 
         <!-- Succès. -->
         <div data-reset-done hidden>
-          <h1>Password updated</h1>
-          <p class="muted">
+          <h1 data-i18n="reset.doneTitle">Password updated</h1>
+          <p class="muted" data-i18n="reset.doneBody">
             Open HAPPYN and sign in with your new password. You can close this
             page.
           </p>
@@ -80,15 +87,15 @@
 
         <!-- Lien invalide, expiré ou déjà utilisé. -->
         <div data-reset-invalid hidden>
-          <h1>This link doesn't work anymore</h1>
-          <p class="muted">
+          <h1 data-i18n="reset.invalidTitle">This link doesn't work anymore</h1>
+          <p class="muted" data-i18n="reset.invalidBody">
             Reset links expire, and each one can only be used once. Open HAPPYN
-            and tap “Forgot password” to get a fresh one.
+            and tap “Forgot password?” to get a fresh one.
           </p>
           <p class="muted">
-            Still stuck? Write to
-            <a href="#" data-support-link>our support address</a> and we'll sort
-            it out.
+            <span data-i18n="reset.stuckBefore">Still stuck? Write to</span>
+            <a href="#" data-support-link data-i18n="reset.stuckLink">our support address</a>
+            <span data-i18n="reset.stuckAfter">and we'll sort it out.</span>
           </p>
         </div>
       </section>
@@ -97,8 +104,8 @@
     <footer class="site-footer">
       <div class="container">
         <div class="footer-bottom">
-          <span>© <span data-current-year>2026</span> HAPPYN. All rights reserved.</span>
-          <span><a href="#" data-support-link>Contact support</a></span>
+          <span>© <span data-current-year>2026</span> HAPPYN. <span data-i18n="footer.rights">All rights reserved.</span></span>
+          <span><a href="#" data-support-link data-i18n="footer.contactSupport">Contact support</a></span>
         </div>
       </div>
     </footer>
