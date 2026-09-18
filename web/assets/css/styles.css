@@ -409,9 +409,19 @@ h4 {
   box-shadow: 0 0 0 4px rgba(29, 185, 84, 0.16);
 }
 
+.hero-copy {
+  container-type: inline-size;
+}
+
+/* La taille suit la largeur de la COLONNE, pas de l'écran. Le mot le plus
+   long (« déplacement. », en Poppins 800) doit tenir sur une ligne : il
+   débordait et se faisait couper sur les petits téléphones, et aux largeurs
+   d'ordinateur où la colonne de texte rétrécit. La première valeur sert de
+   repli aux navigateurs sans requêtes de conteneur. */
 .hero h1 {
   margin: 0 0 22px;
-  font-size: clamp(2.7rem, 6.2vw, 4.6rem);
+  font-size: clamp(2rem, 8.5vw, 4.6rem);
+  font-size: clamp(2rem, 11.5cqi, 4.6rem);
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.035em;
