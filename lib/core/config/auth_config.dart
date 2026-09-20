@@ -15,6 +15,14 @@ class AuthConfig {
   /// la clé `GIDClientID` avec cette même valeur, et un `CFBundleURLTypes`
   /// portant le client ID inversé — sans quoi Google n'a pas de chemin de
   /// retour vers l'app après l'authentification.
+  ///
+  /// Et une troisième fois, ailleurs : cet identifiant doit figurer dans les
+  /// « Authorized Client IDs » du fournisseur Google de Supabase, à côté du
+  /// web. Sur iOS, `serverClientId` ne sert qu'à obtenir un code pour le
+  /// serveur : l'audience du jeton reste l'identifiant iOS. Sans lui dans la
+  /// liste, Supabase refuse la session avec
+  /// « unacceptable audience in id_token ». Sur Android c'est l'inverse,
+  /// l'audience y est le web — d'où les deux valeurs dans le champ.
   static const String googleIosClientId =
       '271216442225-c40tfrbhn2u4rh458i7h9khd0o8e1jdp.apps.googleusercontent.com';
 
