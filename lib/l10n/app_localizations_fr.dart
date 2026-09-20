@@ -1543,7 +1543,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get postEdited => 'modifié';
 
   @override
-  String get postNeedsText => 'Une publication sans photo a besoin d\'un texte.';
+  String get postNeedsText =>
+      'Une publication sans photo a besoin d\'un texte.';
 
   @override
   String get deletePost => 'Supprimer la publication';
