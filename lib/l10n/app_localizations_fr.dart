@@ -1495,6 +1495,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reportPost => 'Signaler cette publication';
 
   @override
+  String get editPost => 'Modifier la publication';
+
+  @override
+  String get postUpdated => 'Publication modifiée';
+
+  @override
+  String get postEdited => 'modifié';
+
+  @override
+  String get postNeedsText => 'Une publication sans photo a besoin d\'un texte.';
+
+  @override
   String get deletePost => 'Supprimer la publication';
 
   @override

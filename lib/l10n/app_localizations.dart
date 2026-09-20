@@ -2702,6 +2702,30 @@ abstract class AppLocalizations {
   /// **'Report this post'**
   String get reportPost;
 
+  /// No description provided for @editPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit post'**
+  String get editPost;
+
+  /// No description provided for @postUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Post updated'**
+  String get postUpdated;
+
+  /// No description provided for @postEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'edited'**
+  String get postEdited;
+
+  /// No description provided for @postNeedsText.
+  ///
+  /// In en, this message translates to:
+  /// **'A post without a photo needs some text.'**
+  String get postNeedsText;
+
   /// No description provided for @deletePost.
   ///
   /// In en, this message translates to:

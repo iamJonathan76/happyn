@@ -79,7 +79,37 @@ Le code est branché, il ne manque que `--dart-define=SENTRY_DSN=…`.
 plantages — les gens ne les signalent pas, ils désinstallent. Et les plantages
 survenus avant l'installation de l'outil sont perdus définitivement.
 
-### 3.2 Les textes légaux existent à trois endroits
+### 3.2 Le contrôle du nonce est désactivé sur la connexion Google
+
+Le fournisseur Google de Supabase tourne avec **« Skip Nonce Check » activé**.
+Il a fallu le désactiver pour que la connexion Google fonctionne sur iPhone : le
+SDK iOS de Google renvoie un nonce haché dont la valeur d'origine est
+irrécupérable, et `google_sign_in` 6.x n'expose aucun paramètre pour en fournir
+un. Supabase attendait donc un nonce que personne ne pouvait lui donner.
+
+Ce que ça coûte : Supabase accepte désormais **n'importe quel** jeton Google
+valide et non expiré dont l'audience est un de nos client IDs, sans vérifier
+qu'il a été émis pour cette tentative de connexion précise. Un jeton qui fuit
+— journal de plantage, log serveur, appareil compromis — peut être rejoué pour
+ouvrir une session au nom de son propriétaire, dans l'heure qui suit son
+émission.
+
+Ce qui limite la portée : le jeton est signé par Google, son audience doit être
+un de nos client IDs, Google lie l'émission d'un client iOS au bundle
+`com.happyn.happyn`, et le jeton expire en une heure.
+
+**Déclencheur atteint** : avant d'ouvrir les inscriptions à des gens qu'on ne
+connaît pas. Tant que l'app est entre nos mains, la fenêtre est étroite ; elle
+s'élargit avec chaque compte réel.
+
+**Le correctif** : migrer vers `google_sign_in` 7.x, adossé au SDK
+GoogleSignIn-iOS 9.0, qui permet enfin de passer un nonce. On le génère, on le
+donne à Google *et* à `signInWithIdToken`, et on redécoche la case. La 7.x casse
+l'API (`signIn()` devient `authenticate()`), il faut donc réécrire
+`_signInWithGoogle` dans `login_screen.dart` — compter un cycle de compilation
+et de test sur appareil.
+
+### 3.3 Les textes légaux existent à trois endroits
 
 `legal_documents` en base, `web/assets/data/legal-fallback.json`, et **254
 lignes en dur dans `lib/core/legal/legal_content.dart`**. Quand les textes
@@ -87,7 +117,7 @@ seront remplacés, l'app affichera encore ceux de juillet si on ne touche qu'à 
 base — une app qui affiche des conditions périmées est un problème juridique en
 soi.
 
-### 3.3 La relecture légale
+### 3.4 La relecture légale
 
 Le brouillon complet est écrit (`docs/LEGAL-DRAFT.md`, 31 000 caractères contre
 7 300 pour les textes en ligne). Il reste à trancher les `[À DÉCIDER]` et à

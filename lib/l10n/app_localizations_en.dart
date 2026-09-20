@@ -1475,6 +1475,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportPost => 'Report this post';
 
   @override
+  String get editPost => 'Edit post';
+
+  @override
+  String get postUpdated => 'Post updated';
+
+  @override
+  String get postEdited => 'edited';
+
+  @override
+  String get postNeedsText => 'A post without a photo needs some text.';
+
+  @override
   String get deletePost => 'Delete post';
 
   @override

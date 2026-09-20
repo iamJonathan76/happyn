@@ -114,6 +114,100 @@ class _PostCardState extends ConsumerState<PostCard> {
     );
   }
 
+  /// Corriger sa légende, sans avoir à supprimer puis republier.
+  ///
+  /// Republier coûtait les mentions « j'aime » déjà reçues et remontait la
+  /// publication en tête du fil pour une virgule — deux raisons de laisser la
+  /// faute plutôt que de la corriger.
+  ///
+  /// La photo n'est pas modifiable ici : c'est elle que les gens ont aimée,
+  /// et la remplacer changerait le contenu sous leur approbation. Une légende
+  /// corrigée, elle, reste la même publication — et la base marque l'édition.
+  Future<void> _editCaption(AppLocalizations l) async {
+    final controller =
+        TextEditingController(text: (_p['caption'] as String?) ?? '');
+    final hasImage = ((_p['image_url'] as String?) ?? '').isNotEmpty;
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.sheet,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) => Padding(
+        // Sans ça, le clavier recouvre le champ qu'on est en train d'écrire.
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.editPost, style: AppText.h4.copyWith(color: Colors.white)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLines: 5,
+              minLines: 3,
+              style: AppText.body.copyWith(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: AppColors.card,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(sheetCtx).pop(false),
+                  child: Text(l.cancel, style: AppText.body),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () {
+                    // Une publication sans photo ET sans texte n'existe pas :
+                    // la contrainte `post_not_empty` la refuse en base. Mieux
+                    // vaut le dire ici que laisser partir une erreur SQL.
+                    if (!hasImage && controller.text.trim().isEmpty) {
+                      showAppSnack(sheetCtx, l.postNeedsText);
+                      return;
+                    }
+                    Navigator.of(sheetCtx).pop(true);
+                  },
+                  child: Text(l.saveChanges,
+                      style: AppText.smallBold
+                          .copyWith(color: AppColors.lavenderLight)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (saved != true || !mounted) return;
+    try {
+      await updatePost(_p['id'] as String, controller.text);
+    } catch (e) {
+      debugPrint('updatePost: $e');
+      if (mounted) showAppSnack(context, l.actionFailed);
+      return;
+    }
+    if (!mounted) return;
+    showAppSnack(context, l.postUpdated);
+    widget.onChanged?.call();
+  }
+
   Future<void> _confirmDelete(AppLocalizations l) async {
     final ok = await showDialog<bool>(
       context: context,
@@ -328,9 +422,16 @@ class _PostCardState extends ConsumerState<PostCard> {
                       ],
                     ],
                   ),
+                  // « modifié » à côté de la date, pas à la place : on garde
+                  // la date de publication (c'est elle qui situe le moment) et
+                  // on signale que le texte a bougé depuis. Sans cette
+                  // mention, une publication aimée par dix personnes pourrait
+                  // dire autre chose que ce qu'elles ont approuvé.
                   Text(
-                      AppDates.dayMonthYear(
-                          context, _p['created_at'] as String?),
+                      _p['edited_at'] == null
+                          ? AppDates.dayMonthYear(
+                              context, _p['created_at'] as String?)
+                          : '${AppDates.dayMonthYear(context, _p['created_at'] as String?)} · ${l.postEdited}',
                       style: AppText.micro),
                 ],
               ),
@@ -348,6 +449,8 @@ class _PostCardState extends ConsumerState<PostCard> {
               } else if (v == 'report') {
                 await showReportSheet(context,
                     targetType: 'post', targetId: _p['id'] as String);
+              } else if (v == 'edit') {
+                await _editCaption(l);
               } else if (v == 'delete') {
                 await _confirmDelete(l);
               }
@@ -365,6 +468,18 @@ class _PostCardState extends ConsumerState<PostCard> {
                     const SizedBox(width: 10),
                     Text(l.actionRemove,
                         style: AppText.body.copyWith(color: AppColors.error)),
+                  ]),
+                ),
+              // Modifier avant supprimer : c'est l'action qu'on cherche le
+              // plus souvent, et la plus reversible des deux.
+              if (_isMine)
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(children: [
+                    const Icon(Icons.edit_outlined,
+                        size: 18, color: Colors.white),
+                    const SizedBox(width: 10),
+                    Text(l.editPost, style: AppText.body),
                   ]),
                 ),
               if (_isMine)

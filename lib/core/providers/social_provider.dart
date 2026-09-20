@@ -170,6 +170,24 @@ Future<void> createPost({
   });
 }
 
+/// Corrige la légende d'une publication.
+///
+/// L'image ne se change pas ici : la remplacer suppose de téléverser la
+/// nouvelle PUIS de nettoyer l'ancienne dans le stockage, et un échec entre
+/// les deux laisse un fichier orphelin que personne ne vient ramasser. Une
+/// légende corrigée couvre le besoin courant — une faute, un mot de trop.
+///
+/// `edited_at` n'est volontairement pas envoyé : un trigger le pose en base.
+/// L'app ne peut donc pas réécrire un texte sans que ça se voie.
+Future<void> updatePost(String postId, String caption) async {
+  final trimmed = caption.trim();
+  await Supabase.instance.client.from('posts').update({
+    // Une légende vidée redevient nulle plutôt que chaîne vide : c'est ce que
+    // la contrainte `post_not_empty` regarde pour juger une publication vide.
+    'caption': trimmed.isEmpty ? null : trimmed,
+  }).eq('id', postId);
+}
+
 Future<void> deletePost(String postId) async {
   await Supabase.instance.client.from('posts').delete().eq('id', postId);
 }

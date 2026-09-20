@@ -151,21 +151,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // Bannière (dégradé)
-                      Container(
-                        height: 120,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFF4C1D95),
-                              AppColors.primary,
-                              AppColors.pink,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                      ),
+                      // Bandeau du haut.
+                      //
+                      // Un dégradé violet-rose occupait ces 120 px. Il ne
+                      // portait aucune information et coupait la page en deux
+                      // juste au-dessus de la photo : le regard s'arrêtait sur
+                      // lui au lieu d'aller au profil. Le fond de page le
+                      // remplace, et la photo devient ce qu'on voit en premier.
+                      Container(height: 120, color: AppColors.background),
                       // Reglages a droite, retour a gauche : ce ne sont pas
                       // les memes gestes, ils n'ont pas a partager un coin.
                       Positioned(
