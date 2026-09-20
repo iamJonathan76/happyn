@@ -138,6 +138,7 @@
   "resetSendBody": "We'll email you a link to choose a new password. Enter the address you signed up with.",
   "resetSendAction": "Send link",
   "resetSent": "If that address has an account, a reset link is on its way. Check your inbox and your spam folder.",
+  "resetFailed": "We couldn't send the email right now. This is on our side, not yours — please try again in a few minutes.",
   "resetNeedEmail": "Enter your email address first.",
   "soldLabel": "Tickets sold",
   "soldOfTotal": "{sold} / {total}",

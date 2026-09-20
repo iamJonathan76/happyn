@@ -242,9 +242,30 @@ class _LoginScreenState extends State<LoginScreen> {
         // lien vers un site tiers pour recuperer la session.
         redirectTo: kPasswordResetUrl,
       );
-    } catch (e) {
+    } on AuthException catch (e) {
       debugPrint('resetPasswordForEmail: $e');
+      // Un 5xx n'est pas une reponse sur le compte, c'est une panne chez nous
+      // (courriel sortant mal configure, service indisponible). Le dire ne
+      // revele rien : l'adresse n'a meme pas ete regardee.
+      //
+      // En dessous, on garde le message neutre. Un 4xx distingue les comptes
+      // existants des autres, et l'annoncer transformerait ce bouton en
+      // detecteur d'adresses inscrites.
+      final code = e.statusCode?.toString() ?? '';
+      if (code.isEmpty || code.startsWith('5')) {
+        if (mounted) showAppSnack(context, l.resetFailed);
+        return;
+      }
+    } catch (e) {
+      // Panne reseau, delai depasse : rien n'est parti, et le dire n'apprend
+      // rien sur le compte non plus.
+      debugPrint('resetPasswordForEmail: $e');
+      if (mounted) showAppSnack(context, l.resetFailed);
+      return;
     }
+    // Message volontairement neutre (« si cette adresse a un compte… ») : il
+    // ne dit pas si le compte existe, sinon n'importe qui saurait quelles
+    // adresses sont inscrites en les essayant une par une.
     if (mounted) showAppSnack(context, l.resetSent);
   }
 

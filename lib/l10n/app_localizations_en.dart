@@ -386,6 +386,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'If that address has an account, a reset link is on its way. Check your inbox and your spam folder.';
 
   @override
+  String get resetFailed =>
+      'We couldn\'t send the email right now. This is on our side, not yours — please try again in a few minutes.';
+
+  @override
   String get resetNeedEmail => 'Enter your email address first.';
 
   @override

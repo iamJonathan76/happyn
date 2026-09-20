@@ -390,6 +390,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Si cette adresse a un compte, un lien vient de partir. Regarde ta boîte de réception et tes indésirables.';
 
   @override
+  String get resetFailed =>
+      'L\'envoi du courriel a échoué. Le problème vient de nous, pas de toi — réessaie dans quelques minutes.';
+
+  @override
   String get resetNeedEmail => 'Entre d\'abord ton adresse courriel.';
 
   @override

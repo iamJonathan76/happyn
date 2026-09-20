@@ -788,6 +788,12 @@ abstract class AppLocalizations {
   /// **'If that address has an account, a reset link is on its way. Check your inbox and your spam folder.'**
   String get resetSent;
 
+  /// No description provided for @resetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t send the email right now. This is on our side, not yours — please try again in a few minutes.'**
+  String get resetFailed;
+
   /// No description provided for @resetNeedEmail.
   ///
   /// In en, this message translates to:

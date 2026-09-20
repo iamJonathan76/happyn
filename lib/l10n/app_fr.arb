@@ -123,6 +123,7 @@
   "resetSendBody": "On t'envoie un lien par courriel pour choisir un nouveau mot de passe. Entre l'adresse utilisée à l'inscription.",
   "resetSendAction": "Envoyer le lien",
   "resetSent": "Si cette adresse a un compte, un lien vient de partir. Regarde ta boîte de réception et tes indésirables.",
+  "resetFailed": "L'envoi du courriel a échoué. Le problème vient de nous, pas de toi — réessaie dans quelques minutes.",
   "resetNeedEmail": "Entre d'abord ton adresse courriel.",
   "soldLabel": "Billets vendus",
   "soldOfTotal": "{sold} / {total}",
