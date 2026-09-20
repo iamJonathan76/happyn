@@ -63,7 +63,13 @@ dependencies:
   
   # Icons
   cupertino_icons: ^1.0.8
-  sentry_flutter: 8.14.2
+  # Epingle en 8.14.2, le greffon iOS ne compilait plus : son manifeste Swift
+  # Package Manager accepte n'importe quel sentry-cocoa 8.x, et les versions
+  # recentes (8.58) ont renomme des API que son code Swift appelle encore
+  # (SentryBinaryImageCache.image). La 9.x epingle correctement le SDK natif.
+  # Cote Dart rien ne bouge ici : on n'utilise que dsn, sendDefaultPii,
+  # attachScreenshot, environment et tracesSampleRate, tous inchanges.
+  sentry_flutter: ^9.30.0
   firebase_core: ^4.14.0
   firebase_messaging: ^16.6.0
   http: ^1.6.0
