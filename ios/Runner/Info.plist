@@ -6,8 +6,10 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>HAPPYN needs camera access to scan event tickets at entry.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>HAPPYN uses your location only to show events near you, and only while the app is open. Your position stays on your device — it is never uploaded or saved. You can pick a city by hand instead.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>HAPPYN needs photo access to set a cover image for your events.</string>
+	<string>HAPPYN needs access to your photos so you can choose a profile picture, a poster for an event, or a photo to publish. Only the photo you pick is uploaded.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
