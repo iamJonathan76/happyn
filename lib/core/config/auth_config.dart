@@ -23,6 +23,16 @@ class AuthConfig {
   /// liste, Supabase refuse la session avec
   /// « unacceptable audience in id_token ». Sur Android c'est l'inverse,
   /// l'audience y est le web — d'où les deux valeurs dans le champ.
+  ///
+  /// Le même écran Supabase demande « Skip Nonce Check », qu'il faut ACTIVER.
+  /// Le SDK iOS de Google ne respecte pas OpenID Connect sur ce point : son
+  /// jeton porte un nonce haché dont la valeur d'origine est irrécupérable, et
+  /// `google_sign_in` 6.x n'expose aucun paramètre pour en fournir un. Supabase
+  /// attend donc un nonce que personne ne peut lui donner, et refuse avec
+  /// « Passed nonce and nonce in id_token should either both exist or not ».
+  /// On y perd une protection contre le rejeu du jeton — acceptable ici : il
+  /// est obtenu du SDK Google et échangé dans la foulée, donc en profiter
+  /// suppose déjà d'en avoir volé un valide.
   static const String googleIosClientId =
       '271216442225-c40tfrbhn2u4rh458i7h9khd0o8e1jdp.apps.googleusercontent.com';
 
