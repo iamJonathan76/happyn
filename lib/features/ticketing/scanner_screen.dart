@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
@@ -25,9 +27,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
   _ResultKind _result = _ResultKind.none;
   String _resultDetail = '';
 
+  /// Depuis `mobile_scanner` 7, le widget n'expose plus de `onDetect` : on
+  /// s'abonne au flux du contrôleur. Il faut donc penser à se désabonner —
+  /// sinon une détection arrivée après la fermeture de l'écran appellerait
+  /// `setState` sur un widget mort.
+  StreamSubscription<BarcodeCapture>? _barcodes;
+
+  @override
+  void initState() {
+    super.initState();
+    _barcodes = _controller.barcodes.listen(_onDetect);
+  }
+
   @override
   void dispose() {
-    _controller.dispose();
+    _barcodes?.cancel();
+    unawaited(_controller.dispose());
     super.dispose();
   }
 
@@ -111,7 +126,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       body: Stack(
         children: [
           // Caméra
-          MobileScanner(controller: _controller, onDetect: _onDetect),
+          MobileScanner(controller: _controller),
 
           // Overlay sombre + cadre de visée
           Container(color: Colors.black.withOpacity(0.35)),

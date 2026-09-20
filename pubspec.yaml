@@ -36,7 +36,17 @@ dependencies:
   intl: any
   qr_flutter: ^4.1.0
   # QR scanning (organizer)
-  mobile_scanner: ^5.2.3
+  # 7.x plutot que 5.x : sur iOS, la 7 abandonne MLKit au profit de l'API
+  # Vision d'Apple. MLKit exigeait GoogleDataTransport < 10, Firebase 12 exige
+  # >= 10.1 — deux contraintes inconciliables, que Swift Package Manager
+  # masquait en livrant une copie a chacun. D'ou le plantage au demarrage
+  # (« -[GULUserDefaults synchronize]: unrecognized selector ») : deux versions
+  # de GoogleUtilities chargees en meme temps.
+  #
+  # Supprimer MLKit d'iOS regle le conflit a sa source, au lieu de chercher un
+  # accord de versions qui n'existe pas. L'app y perd aussi un gros greffon
+  # natif et les avertissements TensorFlow Lite au demarrage.
+  mobile_scanner: ^7.4.2
   # Payments
   flutter_stripe: ^11.1.0
   # Image picking (event covers)
