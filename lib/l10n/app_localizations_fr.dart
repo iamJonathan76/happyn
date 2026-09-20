@@ -408,6 +408,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get moderation => 'Modération';
 
   @override
+  String get reportSeeDetails => 'Voir le détail';
+
+  @override
+  String get reportTargetGone =>
+      'Ce contenu n\'existe plus. Il a sans doute déjà été retiré.';
+
+  @override
+  String reportTicketsSold(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count billets vendus',
+      one: '1 billet vendu',
+      zero: 'Aucun billet vendu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reportAuthorActivity(int posts, int events) {
+    return '$posts publications · $events événements';
+  }
+
+  @override
+  String get reportPrivateEvent => 'Événement privé';
+
+  @override
+  String reportLikes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count j\'aime',
+      one: '1 j\'aime',
+      zero: 'Aucun j\'aime',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get moderationQueue => 'Signalements à traiter';
 
   @override

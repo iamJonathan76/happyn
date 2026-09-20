@@ -68,16 +68,33 @@ Deno.serve(async (req: Request) => {
 
   const targetType = escapeHtml(record.target_type);
   const reason = escapeHtml(record.reason);
+  // Le nom de la cible, posé par trigger sur la ligne elle-même (migration
+  // `report_context`). Un webhook de base transmet la ligne sans jointure : la
+  // seule autre façon de nommer l'événement serait de donner une clé de
+  // service à cette fonction, donc de lui ouvrir toute la base pour afficher
+  // un titre.
+  //
+  // Tronqué : un titre à rallonge ne doit pas noyer le motif juste en dessous.
+  const targetLabel = escapeHtml(
+    String(record.target_label ?? "").slice(0, 120),
+  );
   // Le détail est saisi par un utilisateur : il est échappé avant d'entrer dans
   // le HTML du courriel, et tronqué pour qu'un pavé ne rende pas l'alerte
   // illisible. Le texte complet reste dans la file de modération.
   const rawDetails = String(record.details ?? "").slice(0, 500);
   const details = escapeHtml(rawDetails);
 
-  const subject = `HAPPYN — signalement (${targetType})`;
+  // Le sujet porte le nom de la cible : c'est la seule ligne visible depuis la
+  // liste des courriels, et c'est elle qui permet de trier l'urgent du reste
+  // sans ouvrir. « signalement (event) » ne le permettait pas.
+  const subject = targetLabel
+    ? `HAPPYN — signalement : ${targetLabel}`
+    : `HAPPYN — signalement (${targetType})`;
+
   const html = `
     <h2>Nouveau signalement</h2>
     <p><strong>Type :</strong> ${targetType}</p>
+    ${targetLabel ? `<p><strong>Cible :</strong> ${targetLabel}</p>` : ""}
     <p><strong>Motif :</strong> ${reason}</p>
     ${details ? `<p><strong>Détails :</strong> ${details}</p>` : ""}
     <p>Ouvre HAPPYN → Réglages → Modération pour le traiter.</p>

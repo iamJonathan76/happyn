@@ -818,6 +818,42 @@ abstract class AppLocalizations {
   /// **'Moderation'**
   String get moderation;
 
+  /// No description provided for @reportSeeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'See details'**
+  String get reportSeeDetails;
+
+  /// No description provided for @reportTargetGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This content no longer exists. It was probably already removed.'**
+  String get reportTargetGone;
+
+  /// No description provided for @reportTicketsSold.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No tickets sold} =1{1 ticket sold} other{{count} tickets sold}}'**
+  String reportTicketsSold(int count);
+
+  /// No description provided for @reportAuthorActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'{posts} posts · {events} events'**
+  String reportAuthorActivity(int posts, int events);
+
+  /// No description provided for @reportPrivateEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Private event'**
+  String get reportPrivateEvent;
+
+  /// No description provided for @reportLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No likes} =1{1 like} other{{count} likes}}'**
+  String reportLikes(int count);
+
   /// No description provided for @moderationQueue.
   ///
   /// In en, this message translates to:

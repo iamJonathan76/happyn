@@ -31,6 +31,24 @@ final adminReportsProvider = FutureProvider.autoDispose
   return List<Map<String, dynamic>>.from(data as List);
 });
 
+/// Tout ce qu'il faut pour juger un signalement, sans avoir à sortir de la
+/// file : description, dates, lieu, auteur, et selon le cas le nombre de
+/// billets vendus ou de publications du compte.
+///
+/// Passe par une fonction SECURITY DEFINER : un événement privé signalé n'est
+/// pas visible du modérateur par les policies normales, et lui refuser la
+/// lecture reviendrait à lui demander de trancher sans regarder.
+///
+/// Renvoie `null` quand la cible n'existe plus — contenu déjà retiré, compte
+/// supprimé. L'écran doit le dire au lieu d'afficher un cadre vide.
+final adminReportTargetProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>?, String>((ref, reportId) async {
+  final data = await Supabase.instance.client
+      .rpc('admin_report_target', params: {'p_report': reportId});
+  if (data == null) return null;
+  return Map<String, dynamic>.from(data as Map);
+});
+
 /// Marque un signalement traité. `reviewed` (vu, rien à faire), `actioned`
 /// (contenu retiré ou compte suspendu), `dismissed` (non fondé).
 Future<void> resolveReport(String reportId, String status,

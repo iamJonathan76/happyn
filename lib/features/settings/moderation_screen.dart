@@ -152,6 +152,166 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
     );
   }
 
+  /// Le dossier complet du signalement, avant de trancher.
+  ///
+  /// Retirer un événement prive des gens de ce qu'ils ont payé ; suspendre un
+  /// compte fait taire quelqu'un. Ces deux gestes ne se décident pas sur un
+  /// titre et une vignette de 58 px — il faut la description, les dates, le
+  /// lieu, et surtout combien de personnes sont concernées.
+  ///
+  /// Les actions restent sur la carte, pas ici : on lit, on referme, on
+  /// décide. Un bouton « Suspendre » au bas d'un écran de lecture s'appuie
+  /// trop facilement.
+  void _openDossier(AppLocalizations l) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.sheet,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) => Consumer(
+          builder: (ctx, ref, _) {
+            final target =
+                ref.watch(adminReportTargetProvider(_r['id'] as String));
+            return target.when(
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary)),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('$e',
+                      textAlign: TextAlign.center,
+                      style: AppText.small.copyWith(color: AppColors.textLow)),
+                ),
+              ),
+              data: (t) => t == null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(l.reportTargetGone,
+                            textAlign: TextAlign.center,
+                            style: AppText.body
+                                .copyWith(color: AppColors.textLow)),
+                      ),
+                    )
+                  : ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                      children: _dossierLines(l, t),
+                    ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Ce qu'on affiche dépend du type : un événement se juge sur ses dates et
+  /// ses billets, une publication sur son texte et son audience, un compte sur
+  /// ce qu'il a produit.
+  List<Widget> _dossierLines(AppLocalizations l, Map<String, dynamic> t) {
+    final image = (t['image_url'] ?? t['avatar_url']) as String?;
+    final lines = <Widget>[];
+
+    if (image != null && image.isNotEmpty) {
+      lines.add(ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: CachedNetworkImage(
+          imageUrl: image,
+          height: 200,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => Container(
+              height: 200, color: AppColors.card),
+          errorWidget: (_, __, ___) => Container(
+              height: 200, color: AppColors.card),
+        ),
+      ));
+      lines.add(const SizedBox(height: 18));
+    }
+
+    void title(String? value) {
+      if (value == null || value.trim().isEmpty) return;
+      lines.add(Text(value,
+          style: AppText.h3.copyWith(color: Colors.white)));
+      lines.add(const SizedBox(height: 10));
+    }
+
+    void row(IconData icon, String? value) {
+      if (value == null || value.trim().isEmpty) return;
+      lines.add(Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: AppColors.textFaint),
+            const SizedBox(width: 10),
+            Expanded(child: Text(value, style: AppText.small)),
+          ],
+        ),
+      ));
+    }
+
+    int count(String key) => (t[key] as num?)?.toInt() ?? 0;
+
+    switch (t['type'] as String?) {
+      case 'event':
+        title(t['title'] as String?);
+        row(Icons.person_outline, t['author_name'] as String?);
+        row(Icons.calendar_today_outlined,
+            AppDates.dayMonthYear(context, t['start_date'] as String?));
+        row(Icons.place_outlined,
+            [t['location'], t['city']]
+                .where((v) => v != null && '$v'.trim().isNotEmpty)
+                .join(' · '));
+        row(Icons.sell_outlined, t['category'] as String?);
+        row(Icons.info_outline, t['status'] as String?);
+        if (t['visibility'] == 'private') {
+          row(Icons.lock_outline, l.reportPrivateEvent);
+        }
+        // Le chiffre qui pèse le plus dans la décision.
+        row(Icons.confirmation_number_outlined,
+            l.reportTicketsSold(count('tickets_sold')));
+        final desc = (t['description'] as String?)?.trim();
+        if (desc != null && desc.isNotEmpty) {
+          lines.add(const SizedBox(height: 10));
+          lines.add(Text(desc, style: AppText.body.copyWith(height: 1.5)));
+        }
+        break;
+
+      case 'post':
+        title((t['caption'] as String?)?.trim().isEmpty ?? true
+            ? null
+            : t['caption'] as String?);
+        row(Icons.person_outline, t['author_name'] as String?);
+        row(Icons.event_outlined, t['event_title'] as String?);
+        row(Icons.schedule,
+            AppDates.dayMonthYear(context, t['created_at'] as String?));
+        row(Icons.favorite_border, l.reportLikes(count('like_count')));
+        break;
+
+      case 'user':
+        title(t['full_name'] as String?);
+        final username = (t['username'] as String?)?.trim();
+        row(Icons.alternate_email,
+            username == null || username.isEmpty ? null : '@$username');
+        row(Icons.article_outlined,
+            l.reportAuthorActivity(count('post_count'), count('event_count')));
+        if (t['is_suspended'] == true) {
+          row(Icons.block, l.actionSuspend);
+        }
+        break;
+    }
+
+    return lines;
+  }
+
   void _openFullSize(String url) {
     showDialog<void>(
       context: context,
@@ -263,6 +423,10 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
               spacing: 8,
               runSpacing: 8,
               children: [
+                // En premier, et dans une couleur qui n'alarme pas : c'est
+                // l'action a faire AVANT les deux autres, pas une de plus.
+                _action(l.reportSeeDetails, AppColors.lavenderLight,
+                    () => _openDossier(l)),
                 // Un signalement visant un compte n'a pas de contenu a retirer.
                 if (_type != 'user')
                   _action(l.actionRemove, AppColors.error,
