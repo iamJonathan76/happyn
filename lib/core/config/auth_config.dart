@@ -15,7 +15,8 @@ class AuthConfig {
   /// la clé `GIDClientID` avec cette même valeur, et un `CFBundleURLTypes`
   /// portant le client ID inversé — sans quoi Google n'a pas de chemin de
   /// retour vers l'app après l'authentification.
-  static const String googleIosClientId = '';
+  static const String googleIosClientId =
+      '271216442225-c40tfrbhn2u4rh458i7h9khd0o8e1jdp.apps.googleusercontent.com';
 
   static bool _isClientId(String value) =>
       value.endsWith('.apps.googleusercontent.com') &&
