@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/providers/admin_provider.dart';
@@ -110,6 +111,75 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
         _ => l.reportedUser,
       };
 
+  IconData get _fallbackIcon => switch (_type) {
+        'event' => Icons.event_outlined,
+        'post' => Icons.image_outlined,
+        _ => Icons.person_outline,
+      };
+
+  /// La vignette du contenu visé.
+  ///
+  /// Une vignette de 58 px suffit pour reconnaître une affiche, pas pour juger
+  /// une image litigieuse : un appui l'ouvre en grand. Sans image (contenu déjà
+  /// retiré, publication de texte seul, compte sans avatar) on montre une
+  /// pastille, jamais un trou — un vide se lit comme un bug.
+  Widget _thumbnail(String? url) {
+    final placeholder = Container(
+      color: AppColors.card,
+      child: Icon(_fallbackIcon, color: AppColors.textFaint, size: 22),
+    );
+
+    final thumb = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 58,
+        height: 58,
+        child: url == null || url.isEmpty
+            ? placeholder
+            : CachedNetworkImage(
+                imageUrl: url,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(color: AppColors.card),
+                errorWidget: (_, __, ___) => placeholder,
+              ),
+      ),
+    );
+
+    if (url == null || url.isEmpty) return thumb;
+    return GestureDetector(
+      onTap: () => _openFullSize(url),
+      child: thumb,
+    );
+  }
+
+  void _openFullSize(String url) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.92),
+      builder: (dialogContext) => GestureDetector(
+        // N'importe où en dehors de l'image referme : à ce moment-là on regarde,
+        // on ne manipule pas, et chercher une croix fait perdre du temps.
+        onTap: () => Navigator.of(dialogContext).pop(),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          child: InteractiveViewer(
+            minScale: 1,
+            maxScale: 4,
+            child: CachedNetworkImage(
+              imageUrl: url,
+              fit: BoxFit.contain,
+              placeholder: (_, __) => const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary)),
+              errorWidget: (_, __, ___) => Icon(Icons.broken_image_outlined,
+                  color: AppColors.textFaint, size: 48),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -147,17 +217,31 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
             ],
           ),
           const SizedBox(height: 10),
-          Text(
-            label == null || label.isEmpty ? '—' : label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppText.bodySm.copyWith(color: Colors.white),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _thumbnail(_r['target_image'] as String?),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label == null || label.isEmpty ? '—' : label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.bodySm.copyWith(color: Colors.white),
+                    ),
+                    if (authorName != null && authorName.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(authorName, style: AppText.micro),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-          if (authorName != null && authorName.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text(authorName, style: AppText.micro),
-          ],
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(l.reportedBy(_r['reason'] as String), style: AppText.small),
           if ((_r['details'] as String?)?.trim().isNotEmpty == true) ...[
             const SizedBox(height: 4),
