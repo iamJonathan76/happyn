@@ -1693,4 +1693,125 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get blockedUsersEmptyBody =>
       'Les comptes bloqués et leurs événements n\'apparaîtront pas dans tes fils.';
+
+  @override
+  String get payoutsTitle => 'Recevoir mes paiements';
+
+  @override
+  String get payoutsHistory => 'Par événement';
+
+  @override
+  String get payoutsEmpty => 'Aucune vente pour l\'instant';
+
+  @override
+  String get payoutsEmptyBody => 'Dès qu\'un billet payant sera vendu, tu verras ici ce qu\'il te rapporte, événement par événement.';
+
+  @override
+  String get payoutStatusUnknown => 'Impossible de vérifier';
+
+  @override
+  String get payoutStatusUnknownBody => 'On n\'a pas pu joindre le serveur. Tire vers le bas pour réessayer.';
+
+  @override
+  String get payoutReady => 'Tu peux recevoir tes paiements';
+
+  @override
+  String get payoutReadyBody => 'Ton compte est vérifié. Pour chaque événement, ton argent est viré 3 jours après la fin — ce délai permet de rembourser un participant jusqu\'au dernier moment.';
+
+  @override
+  String get payoutManageAccount => 'Gérer mon compte bancaire';
+
+  @override
+  String get payoutPending => 'Vérification en cours';
+
+  @override
+  String get payoutPendingBody => 'Stripe examine tes informations. Ça prend généralement quelques minutes, parfois un jour ouvrable. Tu n\'as rien à faire — on t\'affichera ici quand ce sera bon.';
+
+  @override
+  String get payoutBlocked => 'Ton compte est bloqué';
+
+  @override
+  String get payoutBlockedBody => 'Stripe a besoin d\'une information ou d\'une pièce supplémentaire avant de pouvoir t\'envoyer de l\'argent. Tant que ce n\'est pas réglé, tes événements payants ne peuvent pas vendre.';
+
+  @override
+  String get payoutFixAccount => 'Régler le problème';
+
+  @override
+  String get payoutIncomplete => 'Inscription à terminer';
+
+  @override
+  String get payoutIncompleteBody => 'Tu as commencé mais le formulaire n\'a pas été envoyé. Tes événements payants ne pourront pas vendre avant.';
+
+  @override
+  String get payoutResume => 'Reprendre où j\'en étais';
+
+  @override
+  String get payoutNotStarted => 'Pas encore configuré';
+
+  @override
+  String get payoutNotStartedBody => 'Pour vendre des billets payants, il faut d\'abord indiquer où envoyer ton argent. Stripe, notre partenaire de paiement, te demandera ton identité et un compte bancaire. Ça prend environ 5 minutes.';
+
+  @override
+  String get payoutStart => 'Configurer mes paiements';
+
+  @override
+  String get payoutLinkFailed => 'Impossible d\'ouvrir le formulaire. Réessaie dans un moment.';
+
+  @override
+  String get payoutAccountSuspended => 'Ton compte HAPPYN est suspendu : tu ne peux pas configurer de paiements pour l\'instant.';
+
+  @override
+  String get payoutNoAccountYet => 'Commence par configurer tes paiements.';
+
+  @override
+  String get payoutStatusPaid => 'Versé';
+
+  @override
+  String get payoutStatusFailed => 'Échoué';
+
+  @override
+  String get payoutStatusNothing => 'Rien à verser';
+
+  @override
+  String get payoutStatusScheduled => 'À venir';
+
+  @override
+  String get payoutNetLabel => 'Ce que tu reçois';
+
+  @override
+  String get payoutGross => 'Billets vendus';
+
+  @override
+  String get payoutRefunded => 'Remboursements et contestations';
+
+  @override
+  String get payoutProcessingFees => 'Frais de paiement';
+
+  @override
+  String get payoutCommission => 'Commission HAPPYN';
+
+  @override
+  String payoutPaidOn(String date) {
+    return 'Versé le $date';
+  }
+
+  @override
+  String get payoutFailedBody => 'Le virement n\'est pas passé. On s\'en occupe — écris-nous si rien ne bouge d\'ici 2 jours ouvrables.';
+
+  @override
+  String get payoutNothingBody => 'Il ne reste rien à verser pour cet événement.';
+
+  @override
+  String get payoutAfterEvent => 'Versé après la fin de l\'événement.';
+
+  @override
+  String payoutScheduledFor(String date) {
+    return 'Versement prévu vers le $date';
+  }
+
+  @override
+  String get payoutUntitledEvent => 'Événement sans titre';
+
+  @override
+  String get errSalesNotOpen => 'Les ventes ne sont pas encore ouvertes pour cet événement. Réessaie plus tard.';
 }

@@ -197,7 +197,13 @@ class _TicketSelectionScreenState
     } catch (e) {
       if (mounted) {
         final msg = e.toString();
-        final friendly = msg.contains('event_ended')
+        // `organizer_not_payable` : l'organisateur n'a pas terminé son
+        // inscription Stripe, donc HAPPYN encaisserait un argent qu'il ne
+        // pourrait pas lui reverser. L'acheteur n'a rien fait de mal et n'a rien
+        // à corriger — le message le dit sans le renvoyer à ses réglages.
+        final friendly = msg.contains('organizer_not_payable')
+            ? l.errSalesNotOpen
+            : msg.contains('event_ended')
             ? l.errEventEndedTickets
             : msg.contains('exceeds_max_per_order')
             ? l.errLimitPerPerson

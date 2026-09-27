@@ -3043,6 +3043,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blocked accounts and their events won\'t appear in your feeds.'**
   String get blockedUsersEmptyBody;
+
+  /// No description provided for @payoutsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get paid'**
+  String get payoutsTitle;
+
+  /// No description provided for @payoutsHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'By event'**
+  String get payoutsHistory;
+
+  /// No description provided for @payoutsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales yet'**
+  String get payoutsEmpty;
+
+  /// No description provided for @payoutsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'As soon as a paid ticket sells, you\'ll see what it earns you here, event by event.'**
+  String get payoutsEmptyBody;
+
+  /// No description provided for @payoutStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check'**
+  String get payoutStatusUnknown;
+
+  /// No description provided for @payoutStatusUnknownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t reach the server. Pull down to try again.'**
+  String get payoutStatusUnknownBody;
+
+  /// No description provided for @payoutReady.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re set up to get paid'**
+  String get payoutReady;
+
+  /// No description provided for @payoutReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is verified. For each event, your money is transferred 3 days after it ends — that delay is what lets us refund an attendee up to the last minute.'**
+  String get payoutReadyBody;
+
+  /// No description provided for @payoutManageAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage my bank account'**
+  String get payoutManageAccount;
+
+  /// No description provided for @payoutPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification in progress'**
+  String get payoutPending;
+
+  /// No description provided for @payoutPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe is reviewing your information. This usually takes a few minutes, sometimes one business day. Nothing to do on your side — we\'ll show it here when it\'s done.'**
+  String get payoutPendingBody;
+
+  /// No description provided for @payoutBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is on hold'**
+  String get payoutBlocked;
+
+  /// No description provided for @payoutBlockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe needs one more piece of information or a document before it can send you money. Until that\'s resolved, your paid events can\'t sell.'**
+  String get payoutBlockedBody;
+
+  /// No description provided for @payoutFixAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix this'**
+  String get payoutFixAccount;
+
+  /// No description provided for @payoutIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup unfinished'**
+  String get payoutIncomplete;
+
+  /// No description provided for @payoutIncompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You started but the form wasn\'t submitted. Your paid events can\'t sell until it is.'**
+  String get payoutIncompleteBody;
+
+  /// No description provided for @payoutResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where I left off'**
+  String get payoutResume;
+
+  /// No description provided for @payoutNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set up yet'**
+  String get payoutNotStarted;
+
+  /// No description provided for @payoutNotStartedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To sell paid tickets, you first need to tell us where to send your money. Stripe, our payment partner, will ask for your identity and a bank account. It takes about 5 minutes.'**
+  String get payoutNotStartedBody;
+
+  /// No description provided for @payoutStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up payments'**
+  String get payoutStart;
+
+  /// No description provided for @payoutLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the form. Try again in a moment.'**
+  String get payoutLinkFailed;
+
+  /// No description provided for @payoutAccountSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Your HAPPYN account is suspended: you can\'t set up payments right now.'**
+  String get payoutAccountSuspended;
+
+  /// No description provided for @payoutNoAccountYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your payments first.'**
+  String get payoutNoAccountYet;
+
+  /// No description provided for @payoutStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get payoutStatusPaid;
+
+  /// No description provided for @payoutStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get payoutStatusFailed;
+
+  /// No description provided for @payoutStatusNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing owed'**
+  String get payoutStatusNothing;
+
+  /// No description provided for @payoutStatusScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get payoutStatusScheduled;
+
+  /// No description provided for @payoutNetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What you receive'**
+  String get payoutNetLabel;
+
+  /// No description provided for @payoutGross.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets sold'**
+  String get payoutGross;
+
+  /// No description provided for @payoutRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunds and disputes'**
+  String get payoutRefunded;
+
+  /// No description provided for @payoutProcessingFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing fees'**
+  String get payoutProcessingFees;
+
+  /// No description provided for @payoutCommission.
+  ///
+  /// In en, this message translates to:
+  /// **'HAPPYN commission'**
+  String get payoutCommission;
+
+  /// No description provided for @payoutPaidOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid on {date}'**
+  String payoutPaidOn(String date);
+
+  /// No description provided for @payoutFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The transfer didn\'t go through. We\'re on it — write to us if nothing moves within 2 business days.'**
+  String get payoutFailedBody;
+
+  /// No description provided for @payoutNothingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing left to pay out for this event.'**
+  String get payoutNothingBody;
+
+  /// No description provided for @payoutAfterEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid out after the event ends.'**
+  String get payoutAfterEvent;
+
+  /// No description provided for @payoutScheduledFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout expected around {date}'**
+  String payoutScheduledFor(String date);
+
+  /// No description provided for @payoutUntitledEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled event'**
+  String get payoutUntitledEvent;
+
+  /// No description provided for @errSalesNotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales aren\'t open for this event yet. Try again later.'**
+  String get errSalesNotOpen;
 }
 
 class _AppLocalizationsDelegate
