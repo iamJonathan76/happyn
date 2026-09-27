@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
   // Ventes fermées si l'event n'est pas publié ou est terminé
   const { data: evRow } = await admin
     .from("events")
-    .select("end_date, status")
+    .select("end_date, status, created_by, platform_fee_bps")
     .eq("id", tt.event_id)
     .maybeSingle();
   if (evRow?.status && evRow.status !== "published") {
@@ -95,6 +95,29 @@ Deno.serve(async (req) => {
   }
   if (evRow?.end_date && new Date(evRow.end_date as string) < new Date()) {
     return jsonResponse({ error: "event_ended" }, 409);
+  }
+
+  // ── L'organisateur peut-il être payé ? ─────────────────────────────────────
+  //
+  // Encaisser pour quelqu'un à qui on ne sait pas reverser, c'est créer une
+  // dette en attendant qu'il s'inscrive — et rembourser tout le monde s'il ne le
+  // fait jamais. Le contrôle est ici, avant le PaymentIntent : plus tard, il
+  // faudrait annuler un paiement déjà accepté.
+  //
+  // Ne concerne que les billets payants : un événement gratuit ne bouge pas
+  // d'argent, il est rejeté plus bas par `free_event_no_payment`.
+  const organizerId = evRow?.created_by as string | undefined;
+  if (!organizerId) {
+    return jsonResponse({ error: "event_not_available" }, 409);
+  }
+  const { data: payable, error: payableErr } = await admin
+    .rpc("organizer_is_payable", { p_organizer: organizerId });
+  if (payableErr) {
+    console.error("organizer_is_payable:", payableErr.message);
+    return jsonResponse({ error: "check_failed" }, 500);
+  }
+  if (payable !== true) {
+    return jsonResponse({ error: "organizer_not_payable" }, 409);
   }
 
   const maxPerOrder = (tt.max_per_order ?? 10) as number;
@@ -126,6 +149,23 @@ Deno.serve(async (req) => {
   form.append("metadata[ticket_type_id]", ticketTypeId);
   form.append("metadata[quantity]", String(quantity));
   form.append("metadata[user_id]", user.id);
+  // Ce que le webhook doit savoir pour écrire le registre, sans avoir à
+  // remonter la chaîne palier → événement → organisateur. Un webhook qui fait
+  // trois requêtes de plus est un webhook qui échoue plus souvent, et Stripe le
+  // rejoue alors pour rien.
+  form.append("metadata[event_id]", String(tt.event_id));
+  form.append("metadata[organizer_id]", organizerId);
+  // Le taux est figé ici, à l'achat. Même si l'événement était modifié ensuite,
+  // c'est celui-ci qui s'applique à ce paiement.
+  form.append(
+    "metadata[platform_fee_bps]",
+    String(evRow?.platform_fee_bps ?? 0),
+  );
+  // Regroupe, côté Stripe, les encaissements et le virement d'un même
+  // événement. Purement descriptif — mais c'est ce qui rend un rapprochement
+  // possible dans le tableau de bord le jour où un organisateur conteste son
+  // versement.
+  form.append("transfer_group", `event_${tt.event_id}`);
 
   const stripeRes = await fetch("https://api.stripe.com/v1/payment_intents", {
     method: "POST",

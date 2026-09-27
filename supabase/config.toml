@@ -426,3 +426,18 @@ verify_jwt = false
 # savoir qui appelle avant de rembourser quoi que ce soit.
 [functions.cancel-ticket]
 verify_jwt = true
+
+# Stripe Connect. Les deux fonctions d'inscription agissent AU NOM de
+# l'organisateur connecte : sans JWT, n'importe qui pourrait ouvrir un compte de
+# paiement rattache a un autre utilisateur.
+[functions.connect-onboard]
+verify_jwt = true
+
+[functions.connect-refresh]
+verify_jwt = true
+
+# Appelee par pg_cron, pas par un utilisateur : aucun JWT a presenter. C'est la
+# fonction qui deplace l'argent, donc la plus sensible du projet — sa protection
+# est le secret partage PAYOUT_HOOK_SECRET, verifie en temps constant.
+[functions.run-payouts]
+verify_jwt = false
