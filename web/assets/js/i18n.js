@@ -215,6 +215,26 @@
       'reset.errMismatch': 'Both passwords must match.',
       'reset.errSame': 'Choose a password different from your old one.',
       'reset.errGeneric': 'Something went wrong. Please try again.',
+
+      // ── Retour du formulaire Stripe Connect ────────────────────────────────
+      // Deux pages, deux situations distinctes : le formulaire a ete mene au
+      // bout, ou le lien a expire avant d'etre ouvert. Les confondre ferait
+      // croire a un echec dans le premier cas.
+      'connect.returnMetaTitle': 'Payment setup — HAPPYN',
+      'connect.returnMetaDescription':
+        'You can go back to HAPPYN — your payment setup has been submitted.',
+      'connect.returnTitle': 'All set — head back to HAPPYN',
+      'connect.returnBody':
+        'Your information has been sent to Stripe, our payment partner. Open HAPPYN and go to Settings \u203a Organizer \u203a Payouts to see where things stand.',
+      'connect.returnNote':
+        'Verification is usually instant, but it can take up to one business day. You have nothing else to do — the app will show it when it clears.',
+      'connect.refreshMetaTitle': 'Link expired — HAPPYN',
+      'connect.refreshMetaDescription':
+        'This payment setup link has expired. Start again from the HAPPYN app.',
+      'connect.refreshTitle': 'This link has expired',
+      'connect.refreshBody':
+        'Stripe setup links are single-use and short-lived, for your security. Nothing is lost — open HAPPYN, go to Settings \u203a Organizer \u203a Payouts, and tap the button again to get a fresh one.',
+      'connect.close': 'You can close this page.',
     },
 
     fr: {
@@ -402,6 +422,22 @@
       'reset.errMismatch': 'Les deux mots de passe doivent être identiques.',
       'reset.errSame': "Choisis un mot de passe différent de l'ancien.",
       'reset.errGeneric': 'Un problème est survenu. Réessaie.',
+
+      'connect.returnMetaTitle': 'Configuration des paiements — HAPPYN',
+      'connect.returnMetaDescription':
+        'Tu peux retourner dans HAPPYN — ta configuration de paiement a été envoyée.',
+      'connect.returnTitle': "C'est envoyé — retourne dans HAPPYN",
+      'connect.returnBody':
+        'Tes informations ont été transmises à Stripe, notre partenaire de paiement. Ouvre HAPPYN et va dans Réglages \u203a Organisateur \u203a Versements pour voir où ça en est.',
+      'connect.returnNote':
+        "La vérification est généralement immédiate, mais elle peut prendre jusqu'à un jour ouvrable. Tu n'as rien d'autre à faire — l'app te l'affichera dès que ce sera bon.",
+      'connect.refreshMetaTitle': 'Lien expiré — HAPPYN',
+      'connect.refreshMetaDescription':
+        'Ce lien de configuration de paiement a expiré. Recommence depuis l\'app HAPPYN.',
+      'connect.refreshTitle': 'Ce lien a expiré',
+      'connect.refreshBody':
+        "Les liens de configuration Stripe sont à usage unique et de courte durée, pour ta sécurité. Rien n'est perdu — ouvre HAPPYN, va dans Réglages \u203a Organisateur \u203a Versements, et appuie de nouveau sur le bouton pour en obtenir un neuf.",
+      'connect.close': 'Tu peux fermer cette page.',
     },
   };
 

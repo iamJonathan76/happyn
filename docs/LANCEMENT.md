@@ -276,6 +276,100 @@ et l'app arrive sur de vrais téléphones sans passer par la validation publique
 
 ---
 
+## 8. Le Mac part — ce qui devient invérifiable
+
+Le Mac était emprunté et retourne à son propriétaire (semaine du 2026-09-28). Le
+développement continue sur Windows + Android sans perte : c'est un seul code
+source, et tout ce qui reste au § 2, § 4 et § 6 est indépendant de la plateforme.
+
+**Ce qui devient impossible, en revanche, est net : aucun build iOS.** Xcode ne
+tourne que sur macOS, c'est une contrainte d'Apple, pas de Flutter. Donc plus de
+TestFlight, plus de soumission App Store, et plus de signature — un compte Apple
+gratuit fait expirer l'app installée au bout de 7 jours, et la ré-signer demande
+le Mac.
+
+### À faire AVANT de le rendre
+
+- [ ] **Committer le vrai `ios/Podfile.lock`.** Celui du dépôt est périmé depuis
+      `9f4abec` : il ne contient que `Flutter` et `flutter_secure_storage`, au
+      lieu des 41 pods réels. **C'est la seule chose de cette liste qui soit
+      irrécupérable une fois le Mac parti**, et ce n'est pas cosmétique — un lock
+      absent est exactement ce qui a produit le plantage `GULUserDefaults`, deux
+      copies de GoogleUtilities installées parce que rien ne figeait les
+      versions.
+- [ ] **Confirmer que les avertissements `objc[...] Class ... is implemented in
+      both` ont disparu** de la console Xcode après le passage à
+      mobile_scanner 7. S'il en reste un seul, le plantage peut revenir, et on ne
+      le saura plus.
+- [ ] **Vérifier un build en mode Release**, pas seulement Debug : le plantage
+      `GULUserDefaults` n'apparaissait qu'en Release.
+- [x] **Versions exactes qui produisent un build vert** — relevées ci-dessous.
+      Une machine d'intégration continue en a besoin pour reproduire, et personne
+      ne s'en souviendra dans six mois.
+
+  | | Version |
+  |---|---|
+  | macOS | 26 (26A428) |
+  | Xcode | 27 (27A266a) |
+  | Flutter | 3.44.1 — installé par Homebrew dans `/opt/homebrew/share/flutter` |
+  | Dart | 3.12.1 |
+  | CocoaPods | 1.16.2 |
+  | Firebase SDK (iOS) | 12.18.0, imposée par `firebase_core` |
+  | iPhone de test | iOS 27 |
+  | Pods installés | 41, zéro MLKit |
+
+  Les versions des pods eux-mêmes ne sont pas recopiées ici : `ios/Podfile.lock`
+  les porte toutes, et deux listes finiraient par se contredire. C'est
+  exactement pour ça que ce fichier doit rester versionné.
+
+  Deux contournements liés à cette chaîne, à ne pas redécouvrir :
+  `IPHONEOS_DEPLOYMENT_TARGET` doit valoir **15.0** partout (Xcode 27 refuse
+  13.0, et Firebase 12 exige 15), et `flutter run` échoue sur
+  `Failed to codesign Flutter.framework` à cause de l'attribut étendu
+  `com.apple.provenance` de macOS 26 — bogue Flutter ouvert, sans correctif
+  fusionné. Le contournement est de lancer depuis **Xcode** puis
+  `flutter attach` ; Xcode tolère l'échec, `flutter run` le traite comme fatal.
+- [ ] **Tester le parcours Stripe Connect sur l'iPhone** pendant que c'est
+      possible (le formulaire s'ouvre dans Safari, et le retour au premier plan
+      déclenche le rafraîchissement).
+
+### Retrouver iOS plus tard, sans posséder de Mac
+
+Par ordre de coût croissant :
+
+1. **Intégration continue avec exécuteurs macOS** — Codemagic (orienté Flutter)
+   ou GitHub Actions. Ça construit, signe et envoie vers TestFlight sans Mac sur
+   le bureau. Les deux ont un palier gratuit, mais les minutes macOS sont
+   facturées bien plus cher que les minutes Linux : **vérifier les quotas du
+   moment avant de compter dessus.**
+2. **Mac en location à l'heure** (MacStadium, MacinCloud) pour une session de
+   mise au point.
+3. **Mac mini d'occasion** — la porte d'entrée la moins chère au matériel Apple.
+
+Le bon moment pour configurer l'option 1 est **maintenant**, tant qu'un build
+local vert existe pour servir de référence. Plus tard, un échec d'intégration
+continue sera impossible à attribuer : le code ou la machine ?
+
+### La vraie dette de cette période
+
+Ce n'est pas le code, c'est **la divergence silencieuse**. Le volet iOS de ce
+projet a déjà produit cinq pannes qu'aucun test Android n'aurait révélées : clés
+d'usage manquantes dans `Info.plist` (plantage impossible à intercepter depuis
+Dart), identifiant client Google spécifique à iOS, Swift Package Manager et
+CocoaPods chargeant deux fois la même classe, `com.apple.provenance` cassant
+`codesign`, et une version de sentry-cocoa incompatible.
+
+Tant qu'iOS n'est pas reconstruit, **tout ce qui touche un greffon natif, une
+permission ou une dépendance est non vérifié sur iPhone.** Le noter au fil de
+l'eau ici coûte une ligne ; le redécouvrir la veille d'une soumission coûte une
+semaine.
+
+#### Non vérifié sur iOS depuis le départ du Mac
+
+_(rien pour l'instant — à compléter à chaque changement natif)_
+
+---
+
 ## Le chemin le plus court vers de vrais utilisateurs
 
 1. **Brancher Sentry** — avant que l'app quitte tes mains
