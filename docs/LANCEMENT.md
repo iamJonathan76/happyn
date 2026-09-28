@@ -305,12 +305,14 @@ le Mac.
   de Swift Package Manager. Les 8 références SPM ont été retirées du `pbxproj`
   (`8b126f1`), donc en principe c'est réglé — mais c'est une déduction. Seule la
   console Xcode peut le confirmer, d'où le point suivant.
-- [ ] **Confirmer que les avertissements `objc[...] Class ... is implemented in
-      both` ont disparu** de la console Xcode après le passage à
-      mobile_scanner 7. S'il en reste un seul, le plantage peut revenir, et on ne
-      le saura plus.
-- [ ] **Vérifier un build en mode Release**, pas seulement Debug : le plantage
-      `GULUserDefaults` n'apparaissait qu'en Release.
+- [x] **Les avertissements `objc[...] Class ... is implemented in both` ont
+      disparu** — console Xcode en Release, zéro ligne. Avec le `Podfile.lock`
+      qui ne montre qu'une version de GoogleUtilities, la question est close :
+      le plantage `GULUserDefaults` ne reviendra pas.
+- [x] **Build Release vérifié** — il compile, s'installe et démarre : les cinq
+      étapes de `main.dart` passent et `runApp` est atteint, sans exception.
+      Reste un blocage APRÈS `runApp`, dans l'interface (voir ci-dessous) — ce
+      n'est plus un problème de chaîne de compilation.
 - [x] **Versions exactes qui produisent un build vert** — relevées ci-dessous.
       Une machine d'intégration continue en a besoin pour reproduire, et personne
       ne s'en souviendra dans six mois.
@@ -372,9 +374,29 @@ permission ou une dépendance est non vérifié sur iPhone.** Le noter au fil de
 l'eau ici coûte une ligne ; le redécouvrir la veille d'une soumission coûte une
 semaine.
 
+#### Trouvé pendant la dernière session Mac, non résolu
+
+- **`GoogleService-Info.plist` est absent** du projet iOS et du dépôt. Firebase
+  ne s'initialise donc pas sur iPhone (`Could not locate configuration file`), et
+  `PushService` renonce proprement. Conséquence : **les notifications poussées
+  ne fonctionneront jamais sur iOS** tant que ce fichier n'est pas ajouté depuis
+  la console Firebase. Rien à voir avec le compte Apple payant exigé par APNs —
+  c'est une étape antérieure, et gratuite.
+
+  Le démarrage n'en souffre pas, et c'est délibéré : le `try/catch` et le délai
+  de 8 s de `main.dart` existent exactement pour ça. Ne pas recevoir de
+  notification est un désagrément ; ne pas démarrer serait une panne.
+
+- **Blocage après `runApp` en Release.** Les cinq étapes de démarrage passent en
+  quelques millisecondes, `runApp` est atteint, aucune exception n'est levée —
+  et l'app reste sur son écran d'ouverture. Le même code fonctionne en Debug.
+  Diagnostic interrompu par le départ du Mac : il faut savoir si l'écran affiché
+  est l'image de lancement iOS, le `SplashScreen` Flutter, ou l'écran d'arrivée
+  vide, parce que les trois mènent à des causes opposées.
+
 #### Non vérifié sur iOS depuis le départ du Mac
 
-_(rien pour l'instant — à compléter à chaque changement natif)_
+_(à compléter à chaque changement natif : greffon, permission, dépendance)_
 
 ---
 
