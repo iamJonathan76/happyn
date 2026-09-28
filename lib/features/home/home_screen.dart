@@ -327,10 +327,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCategories() {
+    // La pastille garde sa taille (56 px) ; seul le libellé grandit avec la
+    // police système. Une hauteur et une largeur figées le rognaient donc au
+    // lieu de le laisser respirer — les captures en très grande police
+    // montraient « Ot », « Co », « Te » au lieu des vraies catégories, ce qui
+    // rend la rangée inutilisable puisqu'on ne sait plus ce qu'on filtre.
+    //
+    // On mesure ici la hauteur réelle d'une ligne de `AppText.micro` (10 px) à
+    // l'échelle courante, et on donne de la place pour deux lignes : à 300 %,
+    // « Community » ne tient sur aucune largeur raisonnable en une seule.
+    final scaler = MediaQuery.textScalerOf(context);
+    final lineHeight = scaler.scale(10) * 1.35;
+    final rowHeight = 56 + 6 + lineHeight * 2 + 4;
+    // La largeur suit l'échelle, mais bornée : au-delà de 120 px on ne verrait
+    // plus que deux catégories à l'écran, ce qui coûterait plus que ça ne rend.
+    final tileWidth = (66.0 * scaler.scale(1.0)).clamp(66.0, 120.0);
+
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: SizedBox(
-        height: 86,
+        height: rowHeight,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.only(left: 20, right: 8),
@@ -345,7 +361,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             return GestureDetector(
               onTap: () => setState(() => _selectedCat = i),
               child: SizedBox(
-                width: 66,
+                width: tileWidth,
                 child: Column(
                   children: [
                     AnimatedContainer(
@@ -376,8 +392,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const SizedBox(height: 6),
                     Text(
                       label,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                       style: AppText.micro.copyWith(
                           fontWeight: FontWeight.w600,
                           color: isActive

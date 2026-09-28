@@ -134,11 +134,20 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
             child: Row(
               children: [
-                Text(
-                  l.discoverTitle,
-                  style: AppText.display.copyWith(color: Colors.white),
+                // `Expanded` et non un `Text` nu suivi d'un `Spacer` : en très
+                // grande police, le titre prenait sa largeur naturelle et
+                // poussait le bouton « code d'invitation » hors de l'écran.
+                // Entre un titre entier et un bouton atteignable, c'est le
+                // bouton qui gagne — le titre, on sait déjà où on est.
+                Expanded(
+                  child: Text(
+                    l.discoverTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.display.copyWith(color: Colors.white),
+                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
                 // Accès aux events privés via code d'invitation
                 GestureDetector(
                   onTap: () => Navigator.of(context).push(
@@ -159,9 +168,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         const Icon(Icons.vpn_key,
                             size: 14, color: AppColors.lavenderLight),
                         const SizedBox(width: 6),
-                        Text(
-                          l.haveACode,
-                          style: AppText.captionBold,
+                        Flexible(
+                          child: Text(
+                            l.haveACode,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppText.captionBold,
+                          ),
                         ),
                       ],
                     ),

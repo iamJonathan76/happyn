@@ -249,7 +249,13 @@ et l'app arrive sur de vrais téléphones sans passer par la validation publique
   les correctifs de sécurité
 - **Aucun test sur les policies** — les trois failles de ce projet étaient
   toutes dans des policies, et les 17 tests ne couvrent que de la logique pure
-- **Test avec grande police système** jamais fait
+- ~~**Test avec grande police système** jamais fait~~ — fait sur iPhone, et il
+  révélait cinq casses : barre d'onglets aux libellés collés (« TicketsProfile »),
+  catégories tronquées à deux lettres sur l'accueil, statistiques du profil
+  soudées (« FollowersFollowing »), et les titres de Découvrir et Créer un
+  événement débordant hors de l'écran. Corrigé. Reste à reprendre le même
+  passage sur les écrans non couverts par ces captures : détail d'événement,
+  billets, achat
 - **Trois clés de traduction orphelines** (`venueHint`, `cityHint`,
   `errEnterLocation`) — plus `analytics` et `attendeeManagement`, restes des
   entrées « bientôt » retirées des Réglages

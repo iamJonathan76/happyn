@@ -781,13 +781,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final column = Column(
       children: [
         Text(value, style: AppText.h1.copyWith(color: Colors.white)),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            label,
-            maxLines: 1,
-            textAlign: TextAlign.center,
-            style: AppText.small,
+        // Le `FittedBox` réduit le libellé jusqu'à ce qu'il tienne dans sa
+        // colonne — donc en très grande police il en occupe TOUTE la largeur,
+        // et deux colonnes voisines finissent collées : « FollowersFollowing »
+        // se lisait comme un seul mot. Cette marge garantit la séparation
+        // quelle que soit l'échelle, là où un `SizedBox` entre les colonnes
+        // n'aurait rien changé (le texte débordait déjà jusqu'au bord).
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: AppText.small,
+            ),
           ),
         ),
       ],

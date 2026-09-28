@@ -137,6 +137,20 @@ class _MainShellState extends State<MainShell> {
       {'icon': Icons.person_outline, 'label': l.navProfile},
     ];
 
+    // Cinq éléments côte à côte ne peuvent pas honorer une police système à
+    // 300 % : les libellés se chevauchent et la barre devient illisible.
+    //
+    // On plafonne l'échelle ICI seulement, et pas dans toute l'app. Brider
+    // globalement reviendrait à ignorer un réglage d'accessibilité que la
+    // personne a choisi exprès, y compris sur les écrans qui savent très bien
+    // grandir. Une barre d'onglets est le seul endroit où la contrainte est
+    // physique : cinq colonnes, une largeur d'écran.
+    //
+    // 1.3 reste une augmentation réelle et lisible. Au-delà, iOS lui-même passe
+    // ses barres d'onglets à une autre disposition plutôt que d'agrandir.
+    final navScaler =
+        MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background.withOpacity(0.96),
@@ -146,8 +160,12 @@ class _MainShellState extends State<MainShell> {
         bottom: MediaQuery.of(context).padding.bottom + 8,
         top: 8,
       ),
+      // `Expanded` sur chaque colonne plutôt que `spaceAround` : ainsi chaque
+      // onglet reçoit exactement un cinquième de la largeur, quelle que soit la
+      // longueur de son libellé. Avec `spaceAround`, les colonnes prenaient leur
+      // largeur naturelle et « Discover » poussait « Profile » hors de l'écran
+      // dès que la police grossissait.
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: items.asMap().entries.map((entry) {
           final i = entry.key;
           final item = entry.value;
@@ -155,64 +173,84 @@ class _MainShellState extends State<MainShell> {
 
           // FAB center button
           if (i == 2) {
-            return GestureDetector(
-              onTap: _openCreateSheet,
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.pink],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.55),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
+            return Expanded(
+              child: Center(
+                child: GestureDetector(
+                  onTap: _openCreateSheet,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primary, AppColors.pink],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.55),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
+                    child:
+                        const Icon(Icons.add, color: Colors.white, size: 24),
+                  ),
                 ),
-                child: const Icon(Icons.add, color: Colors.white, size: 24),
               ),
             );
           }
 
-          return GestureDetector(
-            onTap: () {
-              // Retaper Home en y étant déjà → remonter en haut de la page.
-              if (i == 0 &&
-                  _currentIndex == 0 &&
-                  _homeScrollController.hasClients) {
-                _homeScrollController.animateTo(
-                  0,
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.easeOut,
-                );
-              } else {
-                setState(() => _currentIndex = i);
-              }
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  item['icon'] as IconData,
-                  size: 22,
-                  color: isActive
-                      ? AppColors.lavender
-                      : AppColors.textLow,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item['label'] as String,
-                  style: AppText.microBold.copyWith(fontWeight: FontWeight.w600, color: isActive
-                        ? AppColors.lavender
-                        : AppColors.textLow),
-                ),
-              ],
+          return Expanded(
+            child: GestureDetector(
+              // `opaque` : sans lui, seule la colonne dessinée réagit au
+              // toucher, et les marges de l'onglet sont mortes. Sur une barre
+              // d'onglets, rater sa cible d'un demi-millimètre est fréquent.
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                // Retaper Home en y étant déjà → remonter en haut de la page.
+                if (i == 0 &&
+                    _currentIndex == 0 &&
+                    _homeScrollController.hasClients) {
+                  _homeScrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOut,
+                  );
+                } else {
+                  setState(() => _currentIndex = i);
+                }
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    item['icon'] as IconData,
+                    size: 22,
+                    color: isActive ? AppColors.lavender : AppColors.textLow,
+                  ),
+                  const SizedBox(height: 2),
+                  Padding(
+                    // Deux libellés voisins ne doivent jamais se toucher :
+                    // « TicketsProfile » se lit comme un seul mot.
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Text(
+                      item['label'] as String,
+                      textScaler: navScaler,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: AppText.microBold.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color:
+                            isActive ? AppColors.lavender : AppColors.textLow,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),

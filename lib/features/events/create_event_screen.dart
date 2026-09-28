@@ -546,9 +546,16 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    Text(
-                      _isEditing ? l.editEventTitle : l.createEventTitle,
-                      style: AppText.h1.copyWith(color: Colors.white),
+                    // Sans `Expanded`, « Create Event » débordait à droite en
+                    // très grande police, et la partie coupée emportait le mot
+                    // qui dit ce qu'on est en train de créer.
+                    Expanded(
+                      child: Text(
+                        _isEditing ? l.editEventTitle : l.createEventTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.h1.copyWith(color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
