@@ -290,13 +290,21 @@ le Mac.
 
 ### À faire AVANT de le rendre
 
-- [ ] **Committer le vrai `ios/Podfile.lock`.** Celui du dépôt est périmé depuis
-      `9f4abec` : il ne contient que `Flutter` et `flutter_secure_storage`, au
-      lieu des 41 pods réels. **C'est la seule chose de cette liste qui soit
-      irrécupérable une fois le Mac parti**, et ce n'est pas cosmétique — un lock
-      absent est exactement ce qui a produit le plantage `GULUserDefaults`, deux
-      copies de GoogleUtilities installées parce que rien ne figeait les
-      versions.
+- [x] **`ios/Podfile.lock` committé** (`fd31710`, 313 lignes, 74 entrées). C'était
+      le seul point irrécupérable : le dépôt portait un lock périmé depuis
+      `9f4abec`, avec deux entrées au lieu des pods réels.
+
+  Le lock apporte au passage la preuve que le conflit est résolu côté
+  CocoaPods : **une seule version de GoogleUtilities (8.1.3)** alors que les
+  exigences allaient de `~> 8.0` à `~> 8.1`, **une seule de GoogleDataTransport
+  (10.1.1)** là où Firebase voulait `~> 10.1` et MLKit `< 10.0`, et **zéro
+  MLKit**. C'est ce double chargement qui produisait le plantage
+  `GULUserDefaults` en Release.
+
+  Ça ne clôt pas la question pour autant : le doublon venait de CocoaPods **et**
+  de Swift Package Manager. Les 8 références SPM ont été retirées du `pbxproj`
+  (`8b126f1`), donc en principe c'est réglé — mais c'est une déduction. Seule la
+  console Xcode peut le confirmer, d'où le point suivant.
 - [ ] **Confirmer que les avertissements `objc[...] Class ... is implemented in
       both` ont disparu** de la console Xcode après le passage à
       mobile_scanner 7. S'il en reste un seul, le plantage peut revenir, et on ne
