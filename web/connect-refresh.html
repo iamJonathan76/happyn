@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="connect.refreshMetaTitle">Link expired — HAPPYN</title>
+    <meta name="description" data-i18n-attr="content:connect.refreshMetaDescription" content="This payment setup link has expired. Start again from the HAPPYN app." />
+    <meta name="theme-color" content="#08080f" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="assets/img/happyn-mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/img/happyn.png" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/i18n.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="/" data-i18n-attr="aria-label:nav.home">
+          <img src="assets/img/happyn-mark.svg" alt="" width="30" height="30" />
+          <span>HAPPYN</span>
+        </a>
+        <div class="header-actions">
+          <div class="lang-switch" role="group" data-i18n-attr="aria-label:lang.label" aria-label="Language">
+            <button type="button" data-set-lang="fr" aria-pressed="false">FR</button>
+            <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container reset-wrap">
+      <section class="reset-card">
+        <!-- Stripe appelle cette adresse quand le lien a expiré avant d'être
+             ouvert. C'est une situation distincte du retour normal, et les
+             confondre ferait croire à un échec : le message doit dire que rien
+             n'est perdu, et où retrouver le bouton. -->
+        <h1 data-i18n="connect.refreshTitle">This link has expired</h1>
+        <p class="muted" data-i18n="connect.refreshBody">
+          Stripe setup links are single-use and short-lived, for your security.
+          Nothing is lost — open HAPPYN, go to Settings › Organizer › Payouts,
+          and tap the button again to get a fresh one.
+        </p>
+        <p class="muted">
+          <span data-i18n="reset.stuckBefore">Still stuck? Write to</span>
+          <a href="#" data-support-link data-i18n="reset.stuckLink">our support address</a>
+          <span data-i18n="reset.stuckAfter">and we'll sort it out.</span>
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-bottom">
+          <span>© <span data-current-year>2026</span> HAPPYN. <span data-i18n="footer.rights">All rights reserved.</span></span>
+          <span><a href="#" data-support-link data-i18n="footer.contactSupport">Contact support</a></span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/connect.js"></script>
+  </body>
+</html>
