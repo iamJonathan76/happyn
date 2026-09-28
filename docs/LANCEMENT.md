@@ -387,12 +387,30 @@ semaine.
   de 8 s de `main.dart` existent exactement pour ça. Ne pas recevoir de
   notification est un désagrément ; ne pas démarrer serait une panne.
 
-- **Blocage après `runApp` en Release.** Les cinq étapes de démarrage passent en
-  quelques millisecondes, `runApp` est atteint, aucune exception n'est levée —
-  et l'app reste sur son écran d'ouverture. Le même code fonctionne en Debug.
-  Diagnostic interrompu par le départ du Mac : il faut savoir si l'écran affiché
-  est l'image de lancement iOS, le `SplashScreen` Flutter, ou l'écran d'arrivée
-  vide, parce que les trois mènent à des causes opposées.
+- **Premier lancement lent en Release** — pas un blocage : l'app finit par
+  démarrer. Les cinq étapes de `main.dart` passent en quelques millisecondes et
+  `runApp` est atteint sans exception, donc l'attente est dans le premier rendu,
+  pas dans le code de démarrage. Durée non mesurée avant le départ du Mac.
+
+  Deux causes connues se cumulent sur un premier lancement Release iOS, et il
+  faut les distinguer avant de conclure :
+
+  1. **Impeller compile ses pipelines de rendu** au premier affichage. Coût
+     ponctuel, propre à la première ouverture après installation.
+  2. **Les polices ne sont PAS embarquées.** `AppText` appelle
+     `GoogleFonts.poppins()` et `GoogleFonts.inter()`, et `pubspec.yaml` n'a
+     aucune section `fonts:` active — donc `google_fonts` va chercher les
+     fichiers sur `fonts.gstatic.com` **à l'exécution**, à chaque installation
+     neuve.
+
+  Le point 2 mérite d'être corrigé indépendamment de la lenteur, pour trois
+  raisons : une première ouverture sans réseau s'affiche dans la police de
+  repli (donc pas dans la charte), chaque installation neuve fait une requête
+  vers un serveur Google — ce qui est une communication à un tiers à déclarer
+  sous la Loi 25, alors que rien ne l'exige ici — et le correctif est
+  mécanique : télécharger les deux familles dans `assets/fonts/`, les déclarer
+  dans `pubspec.yaml`, et `google_fonts` les utilisera sans réseau. C'est
+  faisable depuis Windows et vérifiable sur Android.
 
 #### Non vérifié sur iOS depuis le départ du Mac
 
