@@ -303,9 +303,32 @@ le Mac.
       le saura plus.
 - [ ] **Vérifier un build en mode Release**, pas seulement Debug : le plantage
       `GULUserDefaults` n'apparaissait qu'en Release.
-- [ ] **Noter les versions exactes** de Flutter, Xcode et CocoaPods qui
-      produisent un build vert, pour qu'une machine d'intégration continue puisse
-      les reproduire.
+- [x] **Versions exactes qui produisent un build vert** — relevées ci-dessous.
+      Une machine d'intégration continue en a besoin pour reproduire, et personne
+      ne s'en souviendra dans six mois.
+
+  | | Version |
+  |---|---|
+  | macOS | 26 (26A428) |
+  | Xcode | 27 (27A266a) |
+  | Flutter | 3.44.1 — installé par Homebrew dans `/opt/homebrew/share/flutter` |
+  | Dart | 3.12.1 |
+  | CocoaPods | 1.16.2 |
+  | Firebase SDK (iOS) | 12.18.0, imposée par `firebase_core` |
+  | iPhone de test | iOS 27 |
+  | Pods installés | 41, zéro MLKit |
+
+  Les versions des pods eux-mêmes ne sont pas recopiées ici : `ios/Podfile.lock`
+  les porte toutes, et deux listes finiraient par se contredire. C'est
+  exactement pour ça que ce fichier doit rester versionné.
+
+  Deux contournements liés à cette chaîne, à ne pas redécouvrir :
+  `IPHONEOS_DEPLOYMENT_TARGET` doit valoir **15.0** partout (Xcode 27 refuse
+  13.0, et Firebase 12 exige 15), et `flutter run` échoue sur
+  `Failed to codesign Flutter.framework` à cause de l'attribut étendu
+  `com.apple.provenance` de macOS 26 — bogue Flutter ouvert, sans correctif
+  fusionné. Le contournement est de lancer depuis **Xcode** puis
+  `flutter attach` ; Xcode tolère l'échec, `flutter run` le traite comme fatal.
 - [ ] **Tester le parcours Stripe Connect sur l'iPhone** pendant que c'est
       possible (le formulaire s'ouvre dans Safari, et le retour au premier plan
       déclenche le rafraîchissement).
