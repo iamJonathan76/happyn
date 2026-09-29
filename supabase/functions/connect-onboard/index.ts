@@ -171,17 +171,37 @@ Deno.serve(async (req: Request) => {
     // créent pas deux comptes Stripe. Sans elle, le doublon serait invisible
     // (la contrainte en base arrive trop tard, le compte existe déjà chez
     // Stripe) et impossible à supprimer proprement.
+    //
+    // La DATE fait partie de la clé, et ce n'est pas un détail : Stripe
+    // mémorise la réponse d'une clé pendant 24 h, ÉCHECS COMPRIS. Une clé
+    // purement dérivée de l'utilisateur figeait donc le premier refus — on
+    // corrigeait la cause, on réappuyait, et Stripe rejouait l'ancienne
+    // erreur sans jamais rappeler l'API. Observé le 2026-09-29 avec le refus
+    // « Accounts v1 ».
+    //
+    // Le jour comme granularité : les appuis répétés d'une même session
+    // restent protégés du doublon — c'est le cas qui compte —, et un échec
+    // corrigé se retente sans attendre demain. Le garde-fou de fond reste la
+    // lecture de `stripe_accounts` juste au-dessus.
+    const day = new Date().toISOString().slice(0, 10);
     const created = await stripe(
       stripeKey,
       "/accounts",
       form,
-      `connect-account-${caller.id}`,
+      `connect-account-${caller.id}-${day}`,
     );
     if (!created.ok) {
+      // Le MESSAGE, pas seulement le code : le refus « Accounts v1 » du
+      // 2026-09-29 n'avait pas de code, et il a fallu aller le lire dans le
+      // tableau de bord Stripe faute de l'avoir ici.
+      const err = (created.body as {
+        error?: { code?: string; message?: string };
+      })?.error;
       console.error(
         "connect-onboard: creation refusee",
         created.status,
-        (created.body as { error?: { code?: string } })?.error?.code,
+        err?.code ?? "sans code",
+        err?.message ?? "",
       );
       return json({ error: "stripe_error" }, 502);
     }

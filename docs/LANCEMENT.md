@@ -288,6 +288,30 @@ et l'app arrive sur de vrais téléphones sans passer par la validation publique
 
 ## 6. Dette technique connue
 
+### Stripe Accounts v1 — compatibilité activée, migration v2 à prévoir
+
+Le 2026-09-29, la création de compte connecté a été refusée :
+
+> Stripe no longer recommends Accounts v1 for new Connect integrations.
+> Create connected accounts with POST /v2/core/accounts instead.
+
+Stripe a changé de modèle de comptes entre l'écriture de `connect-onboard` et
+sa première exécution réelle. Débloqué en activant **Accounts v1 support** dans
+le tableau de bord (un scénario de compatibilité que Stripe supporte
+explicitement) :
+`dashboard.stripe.com/settings/developers/api-policies/feat_accounts_v1_support`
+
+**À faire un jour** : porter `connect-onboard` sur `POST /v2/core/accounts` et
+le parcours d'inscription associé. Ce n'est pas urgent — l'interrupteur tient —
+mais une compatibilité finit toujours par être retirée.
+
+Au passage, la clé d'idempotence était purement dérivée de l'utilisateur. Stripe
+mémorise la réponse d'une clé pendant 24 h, **échecs compris** : le premier refus
+était donc rejoué à chaque nouvelle tentative, même après correction de la cause.
+La date fait maintenant partie de la clé.
+
+
+
 - **Buckets de stockage publics** → URLs signées
 - **Limitation de débit** sur `unlock_private_event`
 - **`path_provider_foundation` figé en 2.4.1** (surcharge dans `pubspec.yaml`) —
