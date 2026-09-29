@@ -39,22 +39,46 @@ que Google est proposé.
 
 ## 2. Décisions en attente
 
-### 2.1 Le taux de commission — la dernière décision d'affaires
+### 2.1 Le taux de commission — décidé : 5 %
 
-Le mécanisme existe désormais (§ 4), mais **le taux est un placeholder à 5 %**,
-posé dans `public.platform_fee_bps()`. Il faut le trancher avant la première
-vente réelle : le taux est **figé sur chaque événement à sa création**, donc le
-changer ne corrigera pas les événements déjà publiés.
+**5 %**, confirmé le 2026-09-29. `public.platform_fee_bps()` vaut déjà 500 : il
+n'y a rien à changer. (Le commentaire « placeholder » dans
+`20260927000000_stripe_connect.sql` est désormais périmé ; la migration est
+appliquée, on ne la réécrit pas.)
 
-Le calcul actuel : l'organisateur touche `brut − remboursements − frais Stripe −
-commission`. C'est-à-dire que **les frais Stripe sont à la charge de
-l'organisateur**, pas de HAPPYN. C'est ce qui rend le modèle viable : à 5 % de
-commission sur un billet à 20 $, HAPPYN garde 1,00 $ ; si HAPPYN absorbait aussi
-les 0,88 $ de Stripe, il resterait 0,12 $ par billet.
+Le taux est **figé sur chaque événement à sa création**. Le changer plus tard
+ne touchera que les événements créés ensuite.
 
-Reste à décider si un **frais de service à l'acheteur** s'ajoute. Les deux
-modèles coexistent dans l'industrie ; le choix se voit à l'achat, donc il change
-le texte affiché, pas seulement le calcul.
+**Pas de frais de service à l'acheteur.** Le prix affiché est le prix payé.
+Ajouter des frais à la dernière étape du paiement est précisément ce que la loi
+ontarienne sur la protection du consommateur regarde de travers, et ce serait en
+contradiction avec le reste du produit.
+
+#### Le prix se saisit en NET, pas en brut
+
+L'organisateur dit ce qu'il veut **toucher** ; l'app calcule ce que l'acheteur
+paiera :
+
+    prix affiché = (net + 0,30) / (1 − 0,029 − commission)
+
+20 $ voulus donnent 22,05 $ affichés (arrondi au cent **supérieur** : on ne
+rend jamais moins que demandé). Les deux champs se suivent dans les deux sens,
+et des pastilles d'arrondi (0,25 / 0,50 / 1 / 5 $) permettent d'éviter un
+« 22,05 $ » disgracieux — l'organisateur voit aussitôt ce que l'arrondi lui
+rapporte.
+
+Le calcul vit dans `lib/core/payments/pricing.dart`, couvert par
+`test/pricing_test.dart`, et reproduit `event_ledger` : *brut − frais Stripe −
+commission*. Le taux est **lu en base** (`platformFeeBpsProvider`) et non
+recopié : deux définitions finiraient par diverger.
+
+**C'est une estimation, et l'interface le dit** (« Tu reçois environ »). Une
+carte étrangère coûte ~3,5 % à Stripe au lieu de 2,9 % : le montant exact
+n'existe qu'après la vente, et c'est celui de l'écran Versements.
+
+Reste ouvert : **qui absorbe les frais Stripe d'un billet remboursé** (Stripe ne
+les rend pas). Faible enjeu tant que les annulations sont rares, mais à trancher
+une fois.
 
 ### 2.2 Le moment du versement — décidé et implémenté
 

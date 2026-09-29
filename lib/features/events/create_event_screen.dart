@@ -21,6 +21,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/payments/pricing.dart';
+import 'package:happyn/core/providers/pricing_provider.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
@@ -672,6 +674,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           _tiers.length,
                           (i) => TicketTierCard(
                             tier: _tiers[i],
+                            // Le taux vient de la base : l'app ne doit pas en
+                            // avoir sa propre idee.
+                            platformFeeBps:
+                                ref.watch(platformFeeBpsProvider).asData?.value ??
+                                    Pricing.defaultPlatformFeeBps,
                             canRemove: _tiers[i].id == null &&
                                 _tiers.length > 1,
                             onRemove: () => _removeTier(i),

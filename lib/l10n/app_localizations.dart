@@ -1412,6 +1412,42 @@ abstract class AppLocalizations {
   /// **'Qty e.g. 100'**
   String get qtyHint;
 
+  /// No description provided for @youReceiveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU RECEIVE'**
+  String get youReceiveLabel;
+
+  /// No description provided for @buyerPaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'BUYER PAYS'**
+  String get buyerPaysLabel;
+
+  /// No description provided for @feeBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe {stripe} · HAPPYN {platform}'**
+  String feeBreakdown(String stripe, String platform);
+
+  /// No description provided for @youReceiveApprox.
+  ///
+  /// In en, this message translates to:
+  /// **'You receive about {amount}'**
+  String youReceiveApprox(String amount);
+
+  /// No description provided for @priceTooLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Too low to cover the fees. Minimum {amount}.'**
+  String priceTooLow(String amount);
+
+  /// No description provided for @roundUpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Round up to'**
+  String get roundUpTo;
+
   /// No description provided for @priceFreeHint.
   ///
   /// In en, this message translates to:

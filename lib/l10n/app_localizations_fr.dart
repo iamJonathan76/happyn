@@ -773,6 +773,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get qtyHint => 'Qté ex. 100';
 
   @override
+  String get youReceiveLabel => 'TU REÇOIS';
+
+  @override
+  String get buyerPaysLabel => 'L\'ACHETEUR PAIE';
+
+  @override
+  String feeBreakdown(String stripe, String platform) {
+    return 'Stripe $stripe · HAPPYN $platform';
+  }
+
+  @override
+  String youReceiveApprox(String amount) {
+    return 'Tu reçois environ $amount';
+  }
+
+  @override
+  String priceTooLow(String amount) {
+    return 'Trop bas pour couvrir les frais. Minimum $amount.';
+  }
+
+  @override
+  String get roundUpTo => 'Arrondir à';
+
+  @override
   String get priceFreeHint => '0 = gratuit';
 
   @override
