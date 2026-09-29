@@ -163,18 +163,31 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       border:
                           Border.all(color: Colors.white.withOpacity(0.1)),
                     ),
+                    // `mainAxisSize.min` et AUCUN enfant flexible ici : ce
+                    // bouton n'est pas un enfant flexible de la rangée du
+                    // titre, donc il reçoit une largeur NON BORNÉE pendant la
+                    // mise en page. Un `Flexible` dans ce contexte est une
+                    // erreur de mise en page qui fait planter le rendu de tout
+                    // l'écran — « non-zero flex but incoming width constraints
+                    // are unbounded ».
+                    //
+                    // Pour empêcher quand même le bouton de s'étendre hors de
+                    // l'écran en très grande police, on plafonne son libellé,
+                    // comme pour la barre d'onglets : une pastille avec une
+                    // icône ne peut pas honorer 300 %.
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.vpn_key,
                             size: 14, color: AppColors.lavenderLight),
                         const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            l.haveACode,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppText.captionBold,
-                          ),
+                        Text(
+                          l.haveACode,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textScaler: MediaQuery.textScalerOf(context)
+                              .clamp(maxScaleFactor: 1.3),
+                          style: AppText.captionBold,
                         ),
                       ],
                     ),
