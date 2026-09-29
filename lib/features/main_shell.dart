@@ -174,7 +174,15 @@ class _MainShellState extends State<MainShell> {
           // FAB center button
           if (i == 2) {
             return Expanded(
+              // `heightFactor: 1` : sans lui, ce `Center` prend TOUTE la
+              // hauteur qu'on lui laisse. Dans une `Row` les enfants recoivent
+              // des contraintes laches, et un `bottomNavigationBar` en recoit
+              // de laches aussi — la barre occupait donc l'ecran entier, ses
+              // icones se retrouvaient centrees au milieu, et il ne restait
+              // plus aucune place pour la page. Avec ce facteur, le `Center`
+              // se dimensionne sur son enfant : 48 points, la hauteur voulue.
               child: Center(
+                heightFactor: 1,
                 child: GestureDetector(
                   onTap: _openCreateSheet,
                   child: Container(
