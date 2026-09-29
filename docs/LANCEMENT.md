@@ -99,6 +99,28 @@ Le code est branché, il ne manque que `--dart-define=SENTRY_DSN=…`.
 plantages — les gens ne les signalent pas, ils désinstallent. Et les plantages
 survenus avant l'installation de l'outil sont perdus définitivement.
 
+### 3.1 bis L'écran de consentement Google bloque tout le monde sauf toi
+
+Symptôme observé : la connexion Google marche sur le téléphone du développeur,
+pas sur celui d'un ami. Ce n'est pas un bug de l'app.
+
+Tant que l'écran de consentement OAuth est en statut **« Test »**, Google
+n'autorise QUE les comptes inscrits dans la liste des testeurs — 100 au maximum,
+ajoutés un par un à la main. Tout autre compte reçoit un refus de Google avant
+même d'atteindre l'app.
+
+**C'est un bloqueur de lancement, pas un détail** : publier l'app dans cet état
+signifie que personne ne peut se connecter avec Google.
+
+Le correctif est le passage en **« Production »** dans Google Cloud Console →
+API et services → Écran de consentement OAuth. Bonne nouvelle : l'app ne demande
+que les portées `email` et `profile` (voir `login_screen.dart`), qui ne sont pas
+sensibles — le passage en production n'exige donc pas l'examen de vérification
+de Google, qui prend des semaines.
+
+Dans l'intervalle, ajouter un compte à la liste des testeurs prend trente
+secondes et prend effet immédiatement.
+
 ### 3.2 Le contrôle du nonce est désactivé sur la connexion Google
 
 Le fournisseur Google de Supabase tourne avec **« Skip Nonce Check » activé**.
