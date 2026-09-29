@@ -1412,6 +1412,42 @@ abstract class AppLocalizations {
   /// **'Qty e.g. 100'**
   String get qtyHint;
 
+  /// No description provided for @youReceiveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU RECEIVE'**
+  String get youReceiveLabel;
+
+  /// No description provided for @buyerPaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'BUYER PAYS'**
+  String get buyerPaysLabel;
+
+  /// No description provided for @feeBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe {stripe} · HAPPYN {platform}'**
+  String feeBreakdown(String stripe, String platform);
+
+  /// No description provided for @youReceiveApprox.
+  ///
+  /// In en, this message translates to:
+  /// **'You receive about {amount}'**
+  String youReceiveApprox(String amount);
+
+  /// No description provided for @priceTooLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Too low to cover the fees. Minimum {amount}.'**
+  String priceTooLow(String amount);
+
+  /// No description provided for @roundUpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Round up to'**
+  String get roundUpTo;
+
   /// No description provided for @priceFreeHint.
   ///
   /// In en, this message translates to:
@@ -3140,12 +3176,6 @@ abstract class AppLocalizations {
   /// **'You started but the form wasn\'t submitted. Your paid events can\'t sell until it is.'**
   String get payoutIncompleteBody;
 
-  /// No description provided for @payoutResume.
-  ///
-  /// In en, this message translates to:
-  /// **'Pick up where I left off'**
-  String get payoutResume;
-
   /// No description provided for @payoutNotStarted.
   ///
   /// In en, this message translates to:
@@ -3157,6 +3187,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To sell paid tickets, you first need to tell us where to send your money. Stripe, our payment partner, will ask for your identity and a bank account. It takes about 5 minutes.'**
   String get payoutNotStartedBody;
+
+  /// No description provided for @payoutResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where I left off'**
+  String get payoutResume;
 
   /// No description provided for @payoutStart.
   ///
