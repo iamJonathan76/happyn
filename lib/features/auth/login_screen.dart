@@ -98,10 +98,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) await _routeAfterAuth();
     } on AuthException catch (e) {
+      debugPrint('Google sign-in — Supabase a refuse le jeton : ${e.message}');
       if (mounted) showAppSnack(context, e.message);
+<<<<<<< HEAD
     } catch (error, stackTrace) {
       debugPrint('Google sign-in failed: $error');
       debugPrintStack(stackTrace: stackTrace);
+=======
+    } catch (e) {
+      // Le message affiché reste volontairement générique — « DEVELOPER_ERROR »
+      // ne veut rien dire pour la personne qui essaie de se connecter. Mais
+      // l'avaler SANS TRACE rendait tout diagnostic impossible : un « ça marche
+      // pas » sur le téléphone de quelqu'un d'autre ne donnait aucune prise.
+      //
+      // Les deux causes à reconnaître ici :
+      //   * `status code: 10` (DEVELOPER_ERROR) → l'empreinte SHA-1 de l'APK
+      //     n'est pas déclarée pour ce client OAuth Android.
+      //   * `access_denied` / écran Google « n'a pas terminé la vérification »
+      //     → l'écran de consentement est en mode Test et ce compte n'est pas
+      //     dans la liste des testeurs.
+      debugPrint('Google sign-in echoue : $e');
+>>>>>>> 5cb7d26 (Connexion Google : tracer l'echec, et documenter le vrai bloqueur)
       if (mounted) showAppSnack(context, 'Google sign-in failed. Please try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
