@@ -99,7 +99,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) await _routeAfterAuth();
     } on AuthException catch (e) {
       if (mounted) showAppSnack(context, e.message);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      debugPrint('Google sign-in failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
       if (mounted) showAppSnack(context, 'Google sign-in failed. Please try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);

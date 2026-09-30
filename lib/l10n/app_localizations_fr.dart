@@ -1704,19 +1704,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get payoutsEmpty => 'Aucune vente pour l\'instant';
 
   @override
-  String get payoutsEmptyBody => 'Dès qu\'un billet payant sera vendu, tu verras ici ce qu\'il te rapporte, événement par événement.';
+  String get payoutsEmptyBody =>
+      'Dès qu\'un billet payant sera vendu, tu verras ici ce qu\'il te rapporte, événement par événement.';
 
   @override
   String get payoutStatusUnknown => 'Impossible de vérifier';
 
   @override
-  String get payoutStatusUnknownBody => 'On n\'a pas pu joindre le serveur. Tire vers le bas pour réessayer.';
+  String get payoutStatusUnknownBody =>
+      'On n\'a pas pu joindre le serveur. Tire vers le bas pour réessayer.';
 
   @override
   String get payoutReady => 'Tu peux recevoir tes paiements';
 
   @override
-  String get payoutReadyBody => 'Ton compte est vérifié. Pour chaque événement, ton argent est viré 3 jours après la fin — ce délai permet de rembourser un participant jusqu\'au dernier moment.';
+  String get payoutReadyBody =>
+      'Ton compte est vérifié. Pour chaque événement, ton argent est viré 3 jours après la fin — ce délai permet de rembourser un participant jusqu\'au dernier moment.';
 
   @override
   String get payoutManageAccount => 'Gérer mon compte bancaire';
@@ -1725,13 +1728,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get payoutPending => 'Vérification en cours';
 
   @override
-  String get payoutPendingBody => 'Stripe examine tes informations. Ça prend généralement quelques minutes, parfois un jour ouvrable. Tu n\'as rien à faire — on t\'affichera ici quand ce sera bon.';
+  String get payoutPendingBody =>
+      'Stripe examine tes informations. Ça prend généralement quelques minutes, parfois un jour ouvrable. Tu n\'as rien à faire — on t\'affichera ici quand ce sera bon.';
 
   @override
   String get payoutBlocked => 'Ton compte est bloqué';
 
   @override
-  String get payoutBlockedBody => 'Stripe a besoin d\'une information ou d\'une pièce supplémentaire avant de pouvoir t\'envoyer de l\'argent. Tant que ce n\'est pas réglé, tes événements payants ne peuvent pas vendre.';
+  String get payoutBlockedBody =>
+      'Stripe a besoin d\'une information ou d\'une pièce supplémentaire avant de pouvoir t\'envoyer de l\'argent. Tant que ce n\'est pas réglé, tes événements payants ne peuvent pas vendre.';
 
   @override
   String get payoutFixAccount => 'Régler le problème';
@@ -1740,25 +1745,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get payoutIncomplete => 'Inscription à terminer';
 
   @override
-  String get payoutIncompleteBody => 'Tu as commencé mais le formulaire n\'a pas été envoyé. Tes événements payants ne pourront pas vendre avant.';
-
-  @override
-  String get payoutResume => 'Reprendre où j\'en étais';
+  String get payoutIncompleteBody =>
+      'Tu as commencé mais le formulaire n\'a pas été envoyé. Tes événements payants ne pourront pas vendre avant.';
 
   @override
   String get payoutNotStarted => 'Pas encore configuré';
 
   @override
-  String get payoutNotStartedBody => 'Pour vendre des billets payants, il faut d\'abord indiquer où envoyer ton argent. Stripe, notre partenaire de paiement, te demandera ton identité et un compte bancaire. Ça prend environ 5 minutes.';
+  String get payoutNotStartedBody =>
+      'Pour vendre des billets payants, il faut d\'abord indiquer où envoyer ton argent. Stripe, notre partenaire de paiement, te demandera ton identité et un compte bancaire. Ça prend environ 5 minutes.';
+
+  @override
+  String get payoutResume => 'Reprendre où j\'en étais';
 
   @override
   String get payoutStart => 'Configurer mes paiements';
 
   @override
-  String get payoutLinkFailed => 'Impossible d\'ouvrir le formulaire. Réessaie dans un moment.';
+  String get payoutLinkFailed =>
+      'Impossible d\'ouvrir le formulaire. Réessaie dans un moment.';
 
   @override
-  String get payoutAccountSuspended => 'Ton compte HAPPYN est suspendu : tu ne peux pas configurer de paiements pour l\'instant.';
+  String get payoutAccountSuspended =>
+      'Ton compte HAPPYN est suspendu : tu ne peux pas configurer de paiements pour l\'instant.';
 
   @override
   String get payoutNoAccountYet => 'Commence par configurer tes paiements.';
@@ -1796,10 +1805,12 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get payoutFailedBody => 'Le virement n\'est pas passé. On s\'en occupe — écris-nous si rien ne bouge d\'ici 2 jours ouvrables.';
+  String get payoutFailedBody =>
+      'Le virement n\'est pas passé. On s\'en occupe — écris-nous si rien ne bouge d\'ici 2 jours ouvrables.';
 
   @override
-  String get payoutNothingBody => 'Il ne reste rien à verser pour cet événement.';
+  String get payoutNothingBody =>
+      'Il ne reste rien à verser pour cet événement.';
 
   @override
   String get payoutAfterEvent => 'Versé après la fin de l\'événement.';
@@ -1813,5 +1824,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get payoutUntitledEvent => 'Événement sans titre';
 
   @override
-  String get errSalesNotOpen => 'Les ventes ne sont pas encore ouvertes pour cet événement. Réessaie plus tard.';
+  String get errSalesNotOpen =>
+      'Les ventes ne sont pas encore ouvertes pour cet événement. Réessaie plus tard.';
 }

@@ -1682,19 +1682,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payoutsEmpty => 'No sales yet';
 
   @override
-  String get payoutsEmptyBody => 'As soon as a paid ticket sells, you\'ll see what it earns you here, event by event.';
+  String get payoutsEmptyBody =>
+      'As soon as a paid ticket sells, you\'ll see what it earns you here, event by event.';
 
   @override
   String get payoutStatusUnknown => 'Couldn\'t check';
 
   @override
-  String get payoutStatusUnknownBody => 'We couldn\'t reach the server. Pull down to try again.';
+  String get payoutStatusUnknownBody =>
+      'We couldn\'t reach the server. Pull down to try again.';
 
   @override
   String get payoutReady => 'You\'re set up to get paid';
 
   @override
-  String get payoutReadyBody => 'Your account is verified. For each event, your money is transferred 3 days after it ends — that delay is what lets us refund an attendee up to the last minute.';
+  String get payoutReadyBody =>
+      'Your account is verified. For each event, your money is transferred 3 days after it ends — that delay is what lets us refund an attendee up to the last minute.';
 
   @override
   String get payoutManageAccount => 'Manage my bank account';
@@ -1703,13 +1706,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payoutPending => 'Verification in progress';
 
   @override
-  String get payoutPendingBody => 'Stripe is reviewing your information. This usually takes a few minutes, sometimes one business day. Nothing to do on your side — we\'ll show it here when it\'s done.';
+  String get payoutPendingBody =>
+      'Stripe is reviewing your information. This usually takes a few minutes, sometimes one business day. Nothing to do on your side — we\'ll show it here when it\'s done.';
 
   @override
   String get payoutBlocked => 'Your account is on hold';
 
   @override
-  String get payoutBlockedBody => 'Stripe needs one more piece of information or a document before it can send you money. Until that\'s resolved, your paid events can\'t sell.';
+  String get payoutBlockedBody =>
+      'Stripe needs one more piece of information or a document before it can send you money. Until that\'s resolved, your paid events can\'t sell.';
 
   @override
   String get payoutFixAccount => 'Fix this';
@@ -1718,25 +1723,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payoutIncomplete => 'Setup unfinished';
 
   @override
-  String get payoutIncompleteBody => 'You started but the form wasn\'t submitted. Your paid events can\'t sell until it is.';
-
-  @override
-  String get payoutResume => 'Pick up where I left off';
+  String get payoutIncompleteBody =>
+      'You started but the form wasn\'t submitted. Your paid events can\'t sell until it is.';
 
   @override
   String get payoutNotStarted => 'Not set up yet';
 
   @override
-  String get payoutNotStartedBody => 'To sell paid tickets, you first need to tell us where to send your money. Stripe, our payment partner, will ask for your identity and a bank account. It takes about 5 minutes.';
+  String get payoutNotStartedBody =>
+      'To sell paid tickets, you first need to tell us where to send your money. Stripe, our payment partner, will ask for your identity and a bank account. It takes about 5 minutes.';
+
+  @override
+  String get payoutResume => 'Pick up where I left off';
 
   @override
   String get payoutStart => 'Set up payments';
 
   @override
-  String get payoutLinkFailed => 'Couldn\'t open the form. Try again in a moment.';
+  String get payoutLinkFailed =>
+      'Couldn\'t open the form. Try again in a moment.';
 
   @override
-  String get payoutAccountSuspended => 'Your HAPPYN account is suspended: you can\'t set up payments right now.';
+  String get payoutAccountSuspended =>
+      'Your HAPPYN account is suspended: you can\'t set up payments right now.';
 
   @override
   String get payoutNoAccountYet => 'Set up your payments first.';
@@ -1774,7 +1783,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get payoutFailedBody => 'The transfer didn\'t go through. We\'re on it — write to us if nothing moves within 2 business days.';
+  String get payoutFailedBody =>
+      'The transfer didn\'t go through. We\'re on it — write to us if nothing moves within 2 business days.';
 
   @override
   String get payoutNothingBody => 'Nothing left to pay out for this event.';
@@ -1791,5 +1801,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payoutUntitledEvent => 'Untitled event';
 
   @override
-  String get errSalesNotOpen => 'Sales aren\'t open for this event yet. Try again later.';
+  String get errSalesNotOpen =>
+      'Sales aren\'t open for this event yet. Try again later.';
 }

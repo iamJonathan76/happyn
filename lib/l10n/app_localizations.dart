@@ -3140,12 +3140,6 @@ abstract class AppLocalizations {
   /// **'You started but the form wasn\'t submitted. Your paid events can\'t sell until it is.'**
   String get payoutIncompleteBody;
 
-  /// No description provided for @payoutResume.
-  ///
-  /// In en, this message translates to:
-  /// **'Pick up where I left off'**
-  String get payoutResume;
-
   /// No description provided for @payoutNotStarted.
   ///
   /// In en, this message translates to:
@@ -3157,6 +3151,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To sell paid tickets, you first need to tell us where to send your money. Stripe, our payment partner, will ask for your identity and a bank account. It takes about 5 minutes.'**
   String get payoutNotStartedBody;
+
+  /// No description provided for @payoutResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where I left off'**
+  String get payoutResume;
 
   /// No description provided for @payoutStart.
   ///
