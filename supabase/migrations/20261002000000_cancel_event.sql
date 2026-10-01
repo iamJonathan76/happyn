@@ -118,7 +118,9 @@ as $$
   left join public.ticket_types tt on tt.id = t.ticket_type_id
   where t.event_id = p_event
     and t.status = 'valid'
-  order by t.created_at;
+  -- `purchased_at`, et non `created_at` : la table `tickets` n'a pas ete creee
+  -- par une migration de ce depot, et c'est ce nom-la qu'elle porte.
+  order by t.purchased_at;
 $$;
 
 revoke all on function public.event_tickets_to_refund(uuid)
