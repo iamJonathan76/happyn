@@ -674,6 +674,42 @@ abstract class AppLocalizations {
   /// **'Cancel this event?'**
   String get cancelEventTitle;
 
+  /// No description provided for @cancelEventBodyWithSales.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tickets sold. Cancelling refunds {amount} to the buyers and cannot be undone — an event that had sales never comes back.'**
+  String cancelEventBodyWithSales(int count, String amount);
+
+  /// No description provided for @eventCancelledRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Event cancelled. {count} tickets refunded.'**
+  String eventCancelledRefunded(int count);
+
+  /// No description provided for @eventCancelledPartly.
+  ///
+  /// In en, this message translates to:
+  /// **'Event cancelled. {refunded} refunded, {failed} failed — reopen this screen and cancel again to retry.'**
+  String eventCancelledPartly(int refunded, int failed);
+
+  /// No description provided for @restoreEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Put back as draft'**
+  String get restoreEvent;
+
+  /// No description provided for @eventRestoredMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Back in drafts. Publish it when you\'re ready.'**
+  String get eventRestoredMsg;
+
+  /// No description provided for @errEventHadSales.
+  ///
+  /// In en, this message translates to:
+  /// **'This event had sales, so it can\'t come back. Create a new one.'**
+  String get errEventHadSales;
+
   /// No description provided for @cancelEventBody.
   ///
   /// In en, this message translates to:

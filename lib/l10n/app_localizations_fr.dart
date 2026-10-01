@@ -328,6 +328,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cancelEventTitle => 'Annuler cet événement ?';
 
   @override
+  String cancelEventBodyWithSales(int count, String amount) {
+    return '$count billets vendus. L\'annulation rembourse $amount aux acheteurs et ne peut pas être annulée — un événement qui a eu des ventes ne revient jamais.';
+  }
+
+  @override
+  String eventCancelledRefunded(int count) {
+    return 'Événement annulé. $count billets remboursés.';
+  }
+
+  @override
+  String eventCancelledPartly(int refunded, int failed) {
+    return 'Événement annulé. $refunded remboursés, $failed en échec — rouvre cet écran et relance l\'annulation pour réessayer.';
+  }
+
+  @override
+  String get restoreEvent => 'Remettre en brouillon';
+
+  @override
+  String get eventRestoredMsg =>
+      'De retour dans les brouillons. Publie-le quand tu veux.';
+
+  @override
+  String get errEventHadSales =>
+      'Cet événement a eu des ventes : il ne peut pas revenir. Crée-en un nouveau.';
+
+  @override
   String get cancelEventBody =>
       'Les détenteurs de billets seront notifiés et l\'événement sera marqué comme annulé. C\'est irréversible.';
 

@@ -325,6 +325,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelEventTitle => 'Cancel this event?';
 
   @override
+  String cancelEventBodyWithSales(int count, String amount) {
+    return '$count tickets sold. Cancelling refunds $amount to the buyers and cannot be undone — an event that had sales never comes back.';
+  }
+
+  @override
+  String eventCancelledRefunded(int count) {
+    return 'Event cancelled. $count tickets refunded.';
+  }
+
+  @override
+  String eventCancelledPartly(int refunded, int failed) {
+    return 'Event cancelled. $refunded refunded, $failed failed — reopen this screen and cancel again to retry.';
+  }
+
+  @override
+  String get restoreEvent => 'Put back as draft';
+
+  @override
+  String get eventRestoredMsg =>
+      'Back in drafts. Publish it when you\'re ready.';
+
+  @override
+  String get errEventHadSales =>
+      'This event had sales, so it can\'t come back. Create a new one.';
+
+  @override
   String get cancelEventBody =>
       'Ticket holders will be notified and this event will be marked as cancelled. This can\'t be undone.';
 

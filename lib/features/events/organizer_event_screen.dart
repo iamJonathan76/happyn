@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happyn/core/payments/pricing.dart';
 import 'package:happyn/core/providers/organizer_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
@@ -36,6 +37,10 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
   final _search = TextEditingController();
   String _query = '';
   late String _status;
+
+  /// Une annulation rembourse N billets : ca prend du temps, et deux appuis
+  /// lanceraient deux series de remboursements.
+  bool _busyLifecycle = false;
 
   String get _eventId => widget.event['id'] as String;
 
@@ -81,11 +86,102 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
     await _refresh();
   }
 
+  /// Annuler : on dit d'abord ce que ca coute, puis on rembourse vraiment.
+  ///
+  /// Le dialogue annonce « 12 billets vendus, 180 $ a rembourser » avant de
+  /// laisser toucher le bouton rouge. Une action irreversible qui rend de
+  /// l'argent merite qu'on la regarde en face — ca arrete une fausse manoeuvre
+  /// bien mieux qu'un simple avertissement.
   Future<void> _confirmCancel() async {
     final l = AppLocalizations.of(context);
-    final ok = await _confirm(l.cancelEventTitle, l.cancelEventBody,
+
+    // Le cout, lu en base. En cas d'echec on continue avec le texte generique
+    // plutot que de bloquer une annulation : l'organisateur a peut-etre une
+    // vraie urgence.
+    int sold = 0;
+    double refund = 0;
+    try {
+      final rows = await Supabase.instance.client
+          .rpc('event_cancellation_preview', params: {'p_event': _eventId});
+      final row = (rows as List).isEmpty
+          ? null
+          : Map<String, dynamic>.from((rows).first as Map);
+      sold = (row?['ticket_count'] as num?)?.toInt() ?? 0;
+      refund = (row?['refund_total'] as num?)?.toDouble() ?? 0;
+    } catch (e) {
+      debugPrint('apercu d\'annulation indisponible : $e');
+    }
+
+    if (!mounted) return;
+    final lang = Localizations.localeOf(context).languageCode;
+    final body = sold == 0
+        ? l.cancelEventBody
+        : l.cancelEventBodyWithSales(sold, Pricing.money(refund, lang));
+
+    final ok = await _confirm(l.cancelEventTitle, body,
         confirmLabel: l.cancelEvent, keepLabel: l.keep);
-    if (ok) await _setStatus('cancelled', l.eventCancelledMsg);
+    if (!ok || !mounted) return;
+
+    setState(() => _busyLifecycle = true);
+    try {
+      final res = await Supabase.instance.client.functions
+          .invoke('cancel-event', body: {'event_id': _eventId});
+      final data = Map<String, dynamic>.from(res.data as Map? ?? {});
+      final failed = (data['failed'] as num?)?.toInt() ?? 0;
+      final refunded = (data['refunded'] as num?)?.toInt() ?? 0;
+
+      widget.event['status'] = 'cancelled';
+      if (!mounted) return;
+      setState(() => _status = 'cancelled');
+      ref.invalidate(eventsProvider);
+      await _refresh();
+      if (!mounted) return;
+
+      // Un remboursement rate ne doit pas se cacher derriere « evenement
+      // annule ». L'organisateur doit savoir qu'il reste de l'argent a rendre.
+      showAppSnack(
+        context,
+        failed > 0
+            ? l.eventCancelledPartly(refunded, failed)
+            : (refunded > 0
+                ? l.eventCancelledRefunded(refunded)
+                : l.eventCancelledMsg),
+      );
+    } catch (e) {
+      debugPrint('annulation echouee : $e');
+      if (mounted) showAppSnack(context, AppLocalizations.of(context).actionFailed);
+    } finally {
+      if (mounted) setState(() => _busyLifecycle = false);
+    }
+  }
+
+  /// Faire revivre un evenement annule. La base refuse si quoi que ce soit a
+  /// ete vendu : les acheteurs ont ete prevenus et rembourses, le ressusciter
+  /// les obligerait a racheter. L'app ne fait que relayer ce refus.
+  Future<void> _restore() async {
+    final l = AppLocalizations.of(context);
+    setState(() => _busyLifecycle = true);
+    try {
+      await Supabase.instance.client
+          .rpc('restore_cancelled_event', params: {'p_event': _eventId});
+      widget.event['status'] = 'draft';
+      if (!mounted) return;
+      setState(() => _status = 'draft');
+      ref.invalidate(eventsProvider);
+      showAppSnack(context, l.eventRestoredMsg);
+    } catch (e) {
+      debugPrint('republication refusee : $e');
+      if (mounted) {
+        showAppSnack(
+          context,
+          e.toString().contains('event_had_sales')
+              ? l.errEventHadSales
+              : l.actionFailed,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busyLifecycle = false);
+    }
   }
 
   /// La suppression echoue en base si des billets ont ete vendus — c'est la
@@ -150,10 +246,12 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
       position: PopupMenuPosition.under,
       icon: const Icon(Icons.more_horiz, color: Colors.white),
       onSelected: (v) {
+        if (_busyLifecycle) return;
         if (v == 'edit') _edit();
         if (v == 'unpublish') _setStatus('draft', l.eventUnpublishedMsg);
         if (v == 'publish') _setStatus('published', l.eventPublishedMsg);
         if (v == 'cancel') _confirmCancel();
+        if (v == 'restore') _restore();
         if (v == 'delete') _confirmDelete();
       },
       itemBuilder: (context) => [
@@ -168,6 +266,11 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
         if (!past && _status != 'cancelled')
           _menuItem('cancel', Icons.cancel_outlined, l.cancelEvent,
               danger: true),
+        // Republier n'apparait que sur un evenement annule. La base refusera
+        // de toute facon si quelque chose a ete vendu — ce menu n'est qu'un
+        // confort, pas une protection.
+        if (_status == 'cancelled' && !past)
+          _menuItem('restore', Icons.restart_alt, l.restoreEvent),
         _menuItem('delete', Icons.delete_outline, l.delete, danger: true),
       ],
     );
