@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-      /// Après auth : si le profil n'est pas encore « onboardé », on propose
+  /// Après auth : si le profil n'est pas encore « onboardé », on propose
   /// l'écran « Complete your profile » ; sinon on va direct au Home.
   Future<void> _routeAfterAuth() async {
     final user = Supabase.instance.client.auth.currentUser;
@@ -100,12 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       debugPrint('Google sign-in — Supabase a refuse le jeton : ${e.message}');
       if (mounted) showAppSnack(context, e.message);
-<<<<<<< HEAD
     } catch (error, stackTrace) {
-      debugPrint('Google sign-in failed: $error');
-      debugPrintStack(stackTrace: stackTrace);
-=======
-    } catch (e) {
       // Le message affiché reste volontairement générique — « DEVELOPER_ERROR »
       // ne veut rien dire pour la personne qui essaie de se connecter. Mais
       // l'avaler SANS TRACE rendait tout diagnostic impossible : un « ça marche
@@ -117,16 +112,39 @@ class _LoginScreenState extends State<LoginScreen> {
       //   * `access_denied` / écran Google « n'a pas terminé la vérification »
       //     → l'écran de consentement est en mode Test et ce compte n'est pas
       //     dans la liste des testeurs.
-      debugPrint('Google sign-in echoue : $e');
->>>>>>> 5cb7d26 (Connexion Google : tracer l'echec, et documenter le vrai bloqueur)
-      if (mounted) showAppSnack(context, 'Google sign-in failed. Please try again.');
+      debugPrint('Google sign-in echoue : $error');
+      debugPrintStack(
+        label: 'Google sign-in failure details',
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        showAppSnack(
+          context,
+          kDebugMode
+              ? 'Google sign-in failed: $error'
+              : 'Google sign-in failed. Please try again.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   String _formatDob(DateTime d) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
   }
 
@@ -193,8 +211,10 @@ class _LoginScreenState extends State<LoginScreen> {
           password: password,
           data: {
             'full_name': _nameController.text.trim(),
-            'date_of_birth':
-                _dob!.toIso8601String().split('T').first, // YYYY-MM-DD
+            'date_of_birth': _dob!
+                .toIso8601String()
+                .split('T')
+                .first, // YYYY-MM-DD
           },
         );
 
@@ -205,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
 
-       /* final user = response.user;
+        /* final user = response.user;
 
         if (user != null) {
           await Supabase.instance.client.from('profiles').insert({
@@ -217,9 +237,9 @@ class _LoginScreenState extends State<LoginScreen> {
         } */
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l.accountCreatedCheckEmail)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l.accountCreatedCheckEmail)));
         }
       }
     } on AuthException catch (e) {
@@ -317,7 +337,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ).createShader(bounds),
                   child: Text(
                     'HAPPYN',
-                    style: AppText.display.copyWith(fontSize: 38, color: Colors.white, letterSpacing: -0.5),
+                    style: AppText.display.copyWith(
+                      fontSize: 38,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                 ),
 
@@ -325,7 +349,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 Text(
                   _isLogin ? l.welcomeBack : l.joinExperience,
-                  style: AppText.body.copyWith(color: AppColors.textLight.withOpacity(0.42)),
+                  style: AppText.body.copyWith(
+                    color: AppColors.textLight.withOpacity(0.42),
+                  ),
                 ),
 
                 const SizedBox(height: 28),
@@ -362,7 +388,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               boxShadow: isActive
                                   ? [
                                       BoxShadow(
-                                        color: AppColors.primary.withOpacity(0.55),
+                                        color: AppColors.primary.withOpacity(
+                                          0.55,
+                                        ),
                                         blurRadius: 16,
                                       ),
                                     ]
@@ -371,9 +399,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Text(
                               e.value,
                               textAlign: TextAlign.center,
-                              style: AppText.h5.copyWith(color: isActive
+                              style: AppText.h5.copyWith(
+                                color: isActive
                                     ? Colors.white
-                                    : AppColors.textLow),
+                                    : AppColors.textLow,
+                              ),
                             ),
                           ),
                         ),
@@ -388,8 +418,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   children: [
                     _oauthButton(
-                      Text('G',
-                          style: AppText.h2.copyWith(fontWeight: FontWeight.w900, color: Colors.white)),
+                      Text(
+                        'G',
+                        style: AppText.h2.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
                       'Google',
                       _signInWithGoogle,
                     ),
@@ -417,7 +452,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
                         l.orEmail,
-                        style: AppText.small.copyWith(color: AppColors.textFaint),
+                        style: AppText.small.copyWith(
+                          color: AppColors.textFaint,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -436,7 +473,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: _nameController,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: appInputDecoration(l.fullName, icon: Icons.person_outline, radius: 16, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
+                    decoration: appInputDecoration(
+                      l.fullName,
+                      icon: Icons.person_outline,
+                      radius: 16,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   // Date of birth (sign up only)
@@ -444,17 +489,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: _pickDob,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 15),
+                        horizontal: 14,
+                        vertical: 15,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(14),
-                        border:
-                            Border.all(color: Colors.white.withOpacity(0.08)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.08),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.cake_outlined,
-                              color: AppColors.textLow, size: 18),
+                          Icon(
+                            Icons.cake_outlined,
+                            color: AppColors.textLow,
+                            size: 18,
+                          ),
                           const SizedBox(width: 12),
                           Text(
                             _dob == null ? l.dateOfBirth : _formatDob(_dob!),
@@ -477,7 +528,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: appInputDecoration(l.emailAddress, icon: Icons.mail_outline, radius: 16, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
+                  decoration: appInputDecoration(
+                    l.emailAddress,
+                    icon: Icons.mail_outline,
+                    radius: 16,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 10),
@@ -487,8 +546,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: appInputDecoration(l.password, icon: Icons.lock_outline, radius: 16, contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16))
-                      .copyWith(
+                  decoration:
+                      appInputDecoration(
+                        l.password,
+                        icon: Icons.lock_outline,
+                        radius: 16,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ).copyWith(
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -513,7 +580,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () => _sendPasswordReset(l),
                       child: Text(
                         l.forgotPassword,
-                        style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: AppColors.lavender),
+                        style: AppText.bodySm.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.lavender,
+                        ),
                       ),
                     ),
                   ),
@@ -600,7 +670,10 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
+                style: AppText.bodySm.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),

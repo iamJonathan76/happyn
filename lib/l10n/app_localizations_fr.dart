@@ -63,6 +63,39 @@ class AppLocalizationsFr extends AppLocalizations {
   String get followers => 'Abonnés';
 
   @override
+  String get messages => 'Messages';
+
+  @override
+  String get messageAction => 'Message';
+
+  @override
+  String get noMessagesYet =>
+      'Aucun message. Ouvre le profil d\'une personne pour démarrer une conversation.';
+
+  @override
+  String get messagesLoadFailed =>
+      'Impossible de charger les messages. Fais glisser vers le bas pour réessayer.';
+
+  @override
+  String get userLabel => 'Utilisateur';
+
+  @override
+  String get startConversation => 'Dis bonjour pour démarrer la conversation.';
+
+  @override
+  String get messageHint => 'Écrire un message…';
+
+  @override
+  String get sendMessage => 'Envoyer';
+
+  @override
+  String get messageSendFailed => 'Message non envoyé. Réessaie.';
+
+  @override
+  String get messageStartFailed =>
+      'Impossible de démarrer la conversation. Réessaie.';
+
+  @override
   String get blockedUsers => 'Utilisateurs bloqués';
 
   @override
