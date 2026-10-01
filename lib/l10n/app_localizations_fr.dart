@@ -1757,6 +1757,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reportFailed => 'Impossible d\'envoyer le signalement. Réessaie.';
 
   @override
+  String get organizedBy => 'ORGANISÉ PAR';
+
+  @override
   String get blockOrganizer => 'Bloquer l\'organisateur';
 
   @override

@@ -588,6 +588,7 @@
   "reportThanks": "Thanks — our team will review this.",
   "reportFailed": "Could not send the report. Please try again.",
 
+  "organizedBy": "ORGANIZED BY",
   "blockOrganizer": "Block organizer",
   "blockConfirmTitle": "Block this organizer?",
   "blockConfirmBody": "You will no longer see their events. You can unblock them at any time from Settings.",

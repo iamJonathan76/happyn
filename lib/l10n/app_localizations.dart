@@ -3134,6 +3134,12 @@ abstract class AppLocalizations {
   /// **'Could not send the report. Please try again.'**
   String get reportFailed;
 
+  /// No description provided for @organizedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'ORGANIZED BY'**
+  String get organizedBy;
+
   /// No description provided for @blockOrganizer.
   ///
   /// In en, this message translates to:

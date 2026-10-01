@@ -1736,6 +1736,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportFailed => 'Could not send the report. Please try again.';
 
   @override
+  String get organizedBy => 'ORGANIZED BY';
+
+  @override
   String get blockOrganizer => 'Block organizer';
 
   @override

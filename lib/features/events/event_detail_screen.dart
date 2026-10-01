@@ -21,6 +21,7 @@ import 'package:happyn/features/social/create_post_screen.dart';
 import 'package:happyn/core/providers/address_provider.dart';
 import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
+import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
@@ -627,6 +628,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         ),
                       ),
 
+                      // Qui organise. Absent jusqu'ici : son identifiant ne
+                      // servait qu'au bouton « bloquer ». Sur une app ou l'on
+                      // paie un inconnu pour entrer quelque part, savoir QUI
+                      // organise fait partie de la confiance — et c'est le
+                      // chemin pour lui ecrire.
+                      _organizerRow(ev, l),
+
                       // Preuve sociale, placee au moment de la decision.
                       WhosGoing(eventId: ev['id'] as String),
 
@@ -810,6 +818,89 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// La ligne « organise par ». Muette tant que le profil n'est pas charge :
+  /// un emplacement vide vaut mieux qu'un nom qui apparait en sautant.
+  Widget _organizerRow(Map<String, dynamic> ev, AppLocalizations l) {
+    final organizerId = ev['created_by'] as String?;
+    if (organizerId == null) return const SizedBox.shrink();
+
+    final profile = ref.watch(publicProfileProvider(organizerId)).asData?.value;
+    if (profile == null) return const SizedBox.shrink();
+
+    final name = ((profile['full_name'] as String?) ?? '').trim();
+    final username = (profile['username'] as String?) ?? '';
+    final avatar = (profile['avatar_url'] as String?) ?? '';
+    if (name.isEmpty && username.isEmpty) return const SizedBox.shrink();
+
+    final initial = name.isNotEmpty
+        ? name[0].toUpperCase()
+        : (username.isNotEmpty ? username[0].toUpperCase() : '?');
+    final fallback = Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      color: AppColors.primary.withOpacity(0.22),
+      child: Text(initial,
+          style: AppText.bodySm.copyWith(
+              color: AppColors.lavenderLight, fontWeight: FontWeight.w700)),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => ProfileScreen(userId: organizerId))),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            children: [
+              ClipOval(
+                child: avatar.isEmpty
+                    ? fallback
+                    : CachedNetworkImage(
+                        imageUrl: avatar,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => fallback,
+                        errorWidget: (_, _, _) => fallback,
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l.organizedBy,
+                        style: AppText.micro.copyWith(
+                            letterSpacing: 0.8,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textMuted)),
+                    const SizedBox(height: 2),
+                    Text(
+                      name.isNotEmpty ? name : '@$username',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.bodySm.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.w700),
+                    ),
+                    if (name.isNotEmpty && username.isNotEmpty)
+                      Text('@$username',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.micro),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: AppColors.textFaint, size: 18),
+            ],
+          ),
+        ),
       ),
     );
   }

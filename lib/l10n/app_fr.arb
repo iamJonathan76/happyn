@@ -555,6 +555,7 @@
   "reportThanks": "Merci — notre équipe va examiner ça.",
   "reportFailed": "Impossible d'envoyer le signalement. Réessaie.",
 
+  "organizedBy": "ORGANISÉ PAR",
   "blockOrganizer": "Bloquer l'organisateur",
   "blockConfirmTitle": "Bloquer cet organisateur ?",
   "blockConfirmBody": "Tu ne verras plus ses événements. Tu peux le débloquer à tout moment depuis les Paramètres.",
