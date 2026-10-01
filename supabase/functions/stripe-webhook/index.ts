@@ -194,6 +194,17 @@ Deno.serve(async (req) => {
 
       // Sans `chargeId` on interroge quand meme : la fonction sait repasser
       // par le PaymentIntent.
+      //
+      // L'absence de cle etait SILENCIEUSE : les frais tombaient a 0 sans une
+      // ligne de journal, et le 2026-10-01 il a fallu constater l'absence de
+      // tout appel a Stripe pour le deviner. Un oubli de configuration qui
+      // coute de l'argent doit se voir.
+      if (!stripeKey) {
+        console.error(
+          "stripe-webhook: STRIPE_SECRET_KEY absente — frais Stripe comptes a",
+          "0, donc absorbes par la plateforme",
+        );
+      }
       const feeCents = stripeKey
         ? await stripeFeeCents(stripeKey, chargeId, pi.id)
         : null;
