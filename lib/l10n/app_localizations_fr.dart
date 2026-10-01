@@ -613,6 +613,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Adresse exacte révélée une fois le billet obtenu';
 
   @override
+  String get errEndBeforeStart => 'La fin doit venir après le début.';
+
+  @override
   String get errPickAddress =>
       'Choisis une adresse dans les suggestions pour qu\'on puisse placer ton événement sur la carte.';
 

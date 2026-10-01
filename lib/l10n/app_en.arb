@@ -205,6 +205,7 @@
   "addressConfirmed": "Address confirmed",
   "addressPrivateNotice": "For a private event, the exact address is only revealed to people who hold a ticket. The venue name below stays public.",
   "addressRevealedWithTicket": "Exact address revealed once you have a ticket",
+  "errEndBeforeStart": "The end must come after the start.",
   "errPickAddress": "Pick an address from the suggestions so we can place your event on the map.",
   "nearYouTitle": "Near You",
   "nearYouIntro": "Discover events near you",

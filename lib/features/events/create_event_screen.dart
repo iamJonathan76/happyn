@@ -160,6 +160,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   void _removeTier(int i) => setState(() => _tiers.removeAt(i).dispose());
 
     Future<void> _pickDate({required bool isStart}) async {
+    final l = AppLocalizations.of(context);
     final picked = await showDatePicker(
       context: context,
       initialDate: isStart ? _startDate : _endDate,
@@ -199,8 +200,23 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           time.hour, time.minute,
         );
         setState(() {
-          if (isStart) _startDate = dt;
-          else _endDate = dt;
+          if (isStart) {
+            // Deplacer le debut deplace la fin d'autant : on garde la duree
+            // que la personne avait choisie, plutot que de la laisser avec
+            // deux dates incoherentes a corriger elle-meme.
+            final duration = _endDate.difference(_startDate);
+            _startDate = dt;
+            _endDate = dt.add(
+              duration > Duration.zero ? duration : const Duration(hours: 3),
+            );
+          } else if (dt.isAfter(_startDate)) {
+            _endDate = dt;
+          } else {
+            // On refuse tout de suite plutot qu'a l'enregistrement : corriger
+            // une date qu'on vient de choisir est plus facile que de revenir
+            // dessus apres un message d'erreur en bas d'ecran.
+            showAppSnack(context, l.errEndBeforeStart);
+          }
         });
       }
     }
@@ -257,6 +273,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     // celles du lieu et de la ville, qui en decoulent.
     if (_address == null) {
       showAppSnack(context, l.errPickAddress);
+      return;
+    }
+
+    // La date de fin sert au calcul du versement : une fin anterieure au debut
+    // rendait l'organisateur payable AVANT son evenement, et faisait
+    // disparaitre celui-ci des fils des sa creation.
+    if (!_endDate.isAfter(_startDate)) {
+      showAppSnack(context, l.errEndBeforeStart);
       return;
     }
 

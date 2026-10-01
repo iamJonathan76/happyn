@@ -1142,6 +1142,12 @@ abstract class AppLocalizations {
   /// **'Exact address revealed once you have a ticket'**
   String get addressRevealedWithTicket;
 
+  /// No description provided for @errEndBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'The end must come after the start.'**
+  String get errEndBeforeStart;
+
   /// No description provided for @errPickAddress.
   ///
   /// In en, this message translates to:

@@ -610,6 +610,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Exact address revealed once you have a ticket';
 
   @override
+  String get errEndBeforeStart => 'The end must come after the start.';
+
+  @override
   String get errPickAddress =>
       'Pick an address from the suggestions so we can place your event on the map.';
 
