@@ -526,6 +526,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reportedPost => 'Publication';
 
   @override
+  String get reportedMessage => 'Message';
+
+  @override
+  String get reportMessage => 'Signaler ce message';
+
+  @override
+  String get reportConversationBefore => 'JUSTE AVANT';
+
+  @override
   String get reportedUser => 'Compte';
 
   @override

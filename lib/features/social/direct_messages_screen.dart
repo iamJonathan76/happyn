@@ -6,6 +6,7 @@ import 'package:happyn/core/providers/direct_messages_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/utils/dates.dart';
+import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 class DirectMessagesScreen extends ConsumerWidget {
@@ -296,6 +297,20 @@ class _DirectMessageThreadScreenState
                       alignment: isMine
                           ? Alignment.centerRight
                           : Alignment.centerLeft,
+                      // Appui long pour signaler. Pas de bouton visible :
+                      // une messagerie couverte d'icones de denonciation
+                      // donne un ton de surveillance, alors que le cas
+                      // courant est une conversation ordinaire. Le geste
+                      // reste decouvrable, et le blocage existe deja sur le
+                      // profil pour la reponse immediate.
+                      child: GestureDetector(
+                        onLongPress: isMine
+                            ? null
+                            : () => showReportSheet(
+                                  context,
+                                  targetType: 'message',
+                                  targetId: message['id'] as String,
+                                ),
                       child: Container(
                         constraints: BoxConstraints(
                           maxWidth: MediaQuery.sizeOf(context).width * 0.78,
@@ -337,6 +352,7 @@ class _DirectMessageThreadScreenState
                             ),
                           ],
                         ),
+                      ),
                       ),
                     );
                   },

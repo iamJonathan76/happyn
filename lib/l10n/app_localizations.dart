@@ -986,6 +986,24 @@ abstract class AppLocalizations {
   /// **'Post'**
   String get reportedPost;
 
+  /// No description provided for @reportedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get reportedMessage;
+
+  /// No description provided for @reportMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Report this message'**
+  String get reportMessage;
+
+  /// No description provided for @reportConversationBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'SENT JUST BEFORE'**
+  String get reportConversationBefore;
+
   /// No description provided for @reportedUser.
   ///
   /// In en, this message translates to:

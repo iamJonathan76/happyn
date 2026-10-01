@@ -108,12 +108,14 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
   String _typeLabel(AppLocalizations l) => switch (_type) {
         'event' => l.reportedEvent,
         'post' => l.reportedPost,
+        'message' => l.reportedMessage,
         _ => l.reportedUser,
       };
 
   IconData get _fallbackIcon => switch (_type) {
         'event' => Icons.event_outlined,
         'post' => Icons.image_outlined,
+        'message' => Icons.chat_bubble_outline,
         _ => Icons.person_outline,
       };
 
@@ -294,6 +296,52 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
         row(Icons.schedule,
             AppDates.dayMonthYear(context, t['created_at'] as String?));
         row(Icons.favorite_border, l.reportLikes(count('like_count')));
+        break;
+
+      case 'message':
+        title((t['body'] as String?)?.trim());
+        row(Icons.person_outline, t['author_name'] as String?);
+        row(Icons.schedule,
+            AppDates.dayMonthYear(context, t['created_at'] as String?));
+
+        // Le contexte, car un message isole est souvent illisible :
+        // « ferme-la » apres une menace et « ferme-la » sans raison ne se
+        // jugent pas pareil. Trois messages, pas la conversation entiere.
+        final context_ = (t['context'] as List?) ?? const [];
+        if (context_.isNotEmpty) {
+          lines.add(const SizedBox(height: 12));
+          lines.add(Text(l.reportConversationBefore,
+              style: AppText.micro.copyWith(
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted)));
+          for (final raw in context_) {
+            final m = Map<String, dynamic>.from(raw as Map);
+            final mine = m['mine'] == true;
+            lines.add(Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Align(
+                // Aligne comme dans la discussion : savoir QUI a dit quoi
+                // est la moitie du jugement.
+                alignment:
+                    mine ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 260),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 11, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: mine
+                        ? AppColors.primary.withOpacity(0.18)
+                        : Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text('${m['body'] ?? ''}',
+                      style: AppText.small.copyWith(height: 1.35)),
+                ),
+              ),
+            ));
+          }
+        }
         break;
 
       case 'user':

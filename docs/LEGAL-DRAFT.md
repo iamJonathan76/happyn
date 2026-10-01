@@ -314,6 +314,20 @@ met: you and the other person follow each other, and you have explicitly made
 that specific attendance visible. Holding a ticket does not make your attendance
 public. This is enforced by our servers, not only by the interface.
 
+### Moderators, when a message is reported
+
+Private messages are private: nobody at HAPPYN reads a conversation at will,
+and there is no feature that would allow it.
+
+The single exception is a report. When someone reports a message they
+received, a moderator sees that message, the three messages sent immediately
+before it in that conversation, and who wrote them. The context is included
+because a single line is often impossible to judge — the same words can be an
+insult or a reply to one.
+
+Nothing else of the conversation is shown, and only the reported conversation
+is involved.
+
 ### The organizer of an event you hold a ticket for
 
 The person who created an event can see **the name and profile photo** of

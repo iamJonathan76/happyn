@@ -523,6 +523,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportedPost => 'Post';
 
   @override
+  String get reportedMessage => 'Message';
+
+  @override
+  String get reportMessage => 'Report this message';
+
+  @override
+  String get reportConversationBefore => 'SENT JUST BEFORE';
+
+  @override
   String get reportedUser => 'Account';
 
   @override
