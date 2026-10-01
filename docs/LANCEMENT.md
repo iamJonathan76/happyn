@@ -90,6 +90,58 @@ remboursement ne peut être demandé depuis l'app. Les contestations bancaires
 restent possibles 120 jours : elles sont traitées à part (§ 4), en neutralisant
 le paiement contesté au lieu d'attendre.
 
+### 2.2 bis Remboursements — décidé : intégral des deux côtés
+
+**2026-10-02.** Qu'il s'agisse d'une annulation par l'organisateur ou par
+l'acheteur, le remboursement est **intégral**. HAPPYN ne retient aucun frais.
+
+Ce que ça coûte : Stripe ne rend pas sa commission sur un remboursement, donc
+chaque billet remboursé coûte ~0,88 $ (sur 20 $) à la plateforme.
+
+Pourquoi ne pas retenir ce dollar : une retenue d'un dollar déclenche des
+contestations bancaires à **15 $**. Et au stade d'un lancement, un acheteur
+mécontent coûte plus cher qu'un dollar. Le levier existe déjà ailleurs —
+`cancellation_hours` à 0 interdit purement l'annulation par l'acheteur.
+
+Révisable plus tard : une condition peut se durcir pour les achats à venir,
+jamais rétroactivement.
+
+#### L'asymétrie qui compte
+
+Les deux cas n'ont pas la même forme de risque :
+
+- **L'acheteur annule** : minoritaire au sein d'un événement. Les billets
+  gardés du même événement couvrent la perte (1,00 $ de commission contre
+  0,88 $ de frais perdus).
+- **L'organisateur annule** : 100 % des billets remboursés, donc aucune
+  commission sur cet événement. Rien ne le couvre à l'intérieur. Ce sont les
+  AUTRES événements qui paient — 200 billets annulés coûtent 176 $, soit la
+  marge de 3 520 $ de ventes réussies ailleurs.
+
+Aujourd'hui le versement est borné à zéro (`greatest(..., 0)`) : le solde
+négatif est effacé, pas reporté. **C'est donc HAPPYN qui absorbe**, et qui ne
+récupère jamais.
+
+#### La dette organisateur — à construire avant d'ouvrir à des tiers
+
+La réponse à ce cas est de reporter le solde négatif sur les **prochains**
+versements de l'organisateur : la plateforme avance, puis récupère. C'est ce
+que font Eventbrite et Stripe.
+
+Déclencheur : **avant d'accepter des organisateurs tiers**, pas avant le
+lancement — tant que tu es seul organisateur, personne d'autre ne peut te
+faire perdre d'argent en annulant.
+
+Deux faiblesses connues du modèle, à traiter en même temps :
+
+- l'organisateur qui ne revient jamais : dette irrécupérable. Parade —
+  interdire de publier un événement payant tant qu'une dette existe ;
+- l'organisateur découragé : il faut annoncer le coût **dans le dialogue
+  d'annulation**, à côté de « 200 billets, 4 000 $ à rembourser ».
+
+En attendant, la vraie protection est de **choisir à la main** qui a le droit
+de vendre.
+
 ### 2.3 Le plancher d'annulation
 
 L'organisateur peut choisir `0` (aucune annulation), et **rien ne le signale à
