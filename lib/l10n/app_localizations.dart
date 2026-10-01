@@ -746,6 +746,18 @@ abstract class AppLocalizations {
   /// **'TBD'**
   String get tbd;
 
+  /// No description provided for @ticketRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded {amount} — allow 5 to 10 business days to see it on your card.'**
+  String ticketRefunded(String amount);
+
+  /// No description provided for @ticketRefundPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund on its way.'**
+  String get ticketRefundPending;
+
   /// No description provided for @statusCancelled.
   ///
   /// In en, this message translates to:

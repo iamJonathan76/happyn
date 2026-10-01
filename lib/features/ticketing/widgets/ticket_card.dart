@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/payments/pricing.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
@@ -23,6 +24,14 @@ class TicketCard extends StatelessWidget {
     final cat = (event['category'] ?? '') as String;
     final accent = categoryColor(cat);
     final isValid = status == 'valid' && !eventCancelled;
+
+    // L'argent, quand il y en a. Un acheteur dont l'evenement est annule
+    // voyait un badge rouge et plus rien : ni qu'un remboursement partait, ni
+    // quand il arriverait. C'est la premiere question qu'il se pose, et la
+    // seule a laquelle l'app ne repondait pas.
+    final refundedAt = ticket['refunded_at'] as String?;
+    final price = (ticketType['price'] as num?)?.toDouble() ?? 0;
+    final lang = Localizations.localeOf(context).languageCode;
     const bg = AppColors.cardDark;
 
     String formatDate(String? d) {
@@ -176,6 +185,48 @@ class TicketCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: AppText.h5.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                             ),
+                            if (refundedAt != null && price > 0) ...[
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.undo,
+                                      color: AppColors.success, size: 12),
+                                  const SizedBox(width: 5),
+                                  Flexible(
+                                    child: Text(
+                                      // Le delai est annonce parce qu'il est
+                                      // reel : Stripe rend l'argent tout de
+                                      // suite, la banque met 5 a 10 jours
+                                      // ouvrables a l'afficher. Sans cette
+                                      // phrase, l'acheteur croit a une erreur.
+                                      l.ticketRefunded(
+                                          Pricing.money(price, lang)),
+                                      maxLines: 2,
+                                      style: AppText.micro.copyWith(
+                                          color: AppColors.success,
+                                          height: 1.3),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ] else if (eventCancelled && price > 0) ...[
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Icon(Icons.schedule,
+                                      color: AppColors.textLow, size: 12),
+                                  const SizedBox(width: 5),
+                                  Flexible(
+                                    child: Text(
+                                      l.ticketRefundPending,
+                                      maxLines: 2,
+                                      style: AppText.micro
+                                          .copyWith(height: 1.3),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),

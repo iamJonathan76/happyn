@@ -373,6 +373,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tbd => 'À définir';
 
   @override
+  String ticketRefunded(String amount) {
+    return 'Remboursé $amount — compte 5 à 10 jours ouvrables avant de le voir sur ta carte.';
+  }
+
+  @override
+  String get ticketRefundPending => 'Remboursement en route.';
+
+  @override
   String get statusCancelled => 'Annulé';
 
   @override
