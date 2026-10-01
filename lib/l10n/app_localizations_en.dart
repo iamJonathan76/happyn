@@ -63,6 +63,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followers => 'Followers';
 
   @override
+  String get messages => 'Messages';
+
+  @override
+  String get messageAction => 'Message';
+
+  @override
+  String get noMessagesYet =>
+      'No messages yet. Visit someone\'s profile to start a conversation.';
+
+  @override
+  String get messagesLoadFailed =>
+      'Couldn\'t load messages. Pull down to try again.';
+
+  @override
+  String get userLabel => 'User';
+
+  @override
+  String get startConversation => 'Say hello to start the conversation.';
+
+  @override
+  String get messageHint => 'Write a message…';
+
+  @override
+  String get sendMessage => 'Send message';
+
+  @override
+  String get messageSendFailed =>
+      'Message couldn\'t be sent. Please try again.';
+
+  @override
+  String get messageStartFailed =>
+      'Couldn\'t start a conversation. Please try again.';
+
+  @override
   String get blockedUsers => 'Blocked Users';
 
   @override

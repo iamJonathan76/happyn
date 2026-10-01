@@ -206,6 +206,66 @@ abstract class AppLocalizations {
   /// **'Followers'**
   String get followers;
 
+  /// No description provided for @messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messages;
+
+  /// No description provided for @messageAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get messageAction;
+
+  /// No description provided for @noMessagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Visit someone\'s profile to start a conversation.'**
+  String get noMessagesYet;
+
+  /// No description provided for @messagesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load messages. Pull down to try again.'**
+  String get messagesLoadFailed;
+
+  /// No description provided for @userLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get userLabel;
+
+  /// No description provided for @startConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Say hello to start the conversation.'**
+  String get startConversation;
+
+  /// No description provided for @messageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message…'**
+  String get messageHint;
+
+  /// No description provided for @sendMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Send message'**
+  String get sendMessage;
+
+  /// No description provided for @messageSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Message couldn\'t be sent. Please try again.'**
+  String get messageSendFailed;
+
+  /// No description provided for @messageStartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start a conversation. Please try again.'**
+  String get messageStartFailed;
+
   /// No description provided for @blockedUsers.
   ///
   /// In en, this message translates to:

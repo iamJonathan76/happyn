@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       debugPrint('Google sign-in — Supabase a refuse le jeton : ${e.message}');
       if (mounted) showAppSnack(context, e.message);
-    } catch (e) {
+    } catch (error, stackTrace) {
       // Le message affiché reste volontairement générique — « DEVELOPER_ERROR »
       // ne veut rien dire pour la personne qui essaie de se connecter. Mais
       // l'avaler SANS TRACE rendait tout diagnostic impossible : un « ça marche
@@ -112,8 +112,24 @@ class _LoginScreenState extends State<LoginScreen> {
       //   * `access_denied` / écran Google « n'a pas terminé la vérification »
       //     → l'écran de consentement est en mode Test et ce compte n'est pas
       //     dans la liste des testeurs.
-      debugPrint('Google sign-in echoue : $e');
-      if (mounted) showAppSnack(context, 'Google sign-in failed. Please try again.');
+      debugPrint('Google sign-in echoue : $error');
+      // La pile d'appels en plus du message : « DEVELOPER_ERROR » seul ne dit
+      // pas d'ou vient l'echec, et c'est ce qui a coute le plus de temps a
+      // diagnostiquer.
+      debugPrintStack(
+        label: 'Google sign-in failure details',
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        // L'erreur brute en debogage seulement : en production elle ne veut
+        // rien dire pour la personne qui essaie de se connecter.
+        showAppSnack(
+          context,
+          kDebugMode
+              ? 'Google sign-in failed: $error'
+              : 'Google sign-in failed. Please try again.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

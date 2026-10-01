@@ -35,6 +35,16 @@ class AppDates {
     return DateFormat.jm(_loc(c)).format(dt);
   }
 
+  /// Date et heure locales pour les messages. Les horodatages Supabase sont
+  /// stockés en UTC ; les convertir avant affichage évite une heure erronée.
+  static String messageDateTime(BuildContext c, String? iso) {
+    final parsed = _parse(iso);
+    if (parsed == null) return '';
+    final dt = parsed.toLocal();
+    final locale = _loc(c);
+    return '${DateFormat.yMMMd(locale).format(dt)} · ${DateFormat.jm(locale).format(dt)}';
+  }
+
   /// Mois court en MAJUSCULES pour les badges. Ex. « JAN » / « JANV. ».
   static String monthBadge(BuildContext c, String? iso) {
     final dt = _parse(iso);

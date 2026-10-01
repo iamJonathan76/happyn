@@ -17,6 +17,9 @@ import 'package:happyn/features/social/follow_list_screen.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
+import 'package:happyn/core/providers/direct_messages_provider.dart';
+import 'package:happyn/core/providers/moderation_provider.dart';
+import 'package:happyn/features/social/direct_messages_screen.dart';
 import 'package:happyn/features/social/widgets/post_card.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
@@ -41,6 +44,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _supabase = Supabase.instance.client;
   // 0 = evenements, 1 = moments, 2 = favoris (soi), 3 = a propos
   int _selectedTab = 0;
+  bool _openingConversation = false;
 
   String get _uid => widget.userId ?? _supabase.auth.currentUser?.id ?? '';
 
@@ -101,12 +105,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _openFollows(FollowListKind kind) {
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => FollowListScreen(
-              userId: _uid,
-              title: _userName,
-              initial: kind,
-            )));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            FollowListScreen(userId: _uid, title: _userName, initial: kind),
+      ),
+    );
   }
 
   Future<void> _signOut() async {
@@ -192,6 +196,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       if (!_isMe)
                         Positioned(top: 8, right: 12, child: _moreMenu()),
+                      if (_isMe)
+                        Positioned(top: 8, left: 16, child: _inboxButton()),
                       // Avatar (anneau dégradé) + nom + @handle
                       Positioned(
                         left: 20,
@@ -245,14 +251,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       ),
                                     ),
                                     if (_userHandle.isNotEmpty)
-                                    Text(
-                                      _userHandle,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: AppText.caption.copyWith(
-                                        color: AppColors.textLow,
+                                      Text(
+                                        _userHandle,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppText.caption.copyWith(
+                                          color: AppColors.textLow,
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -354,7 +360,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           ),
                         )
-                      : _followButton(),
+                      : _profileActions(),
                 ),
 
                 const SizedBox(height: 16),
@@ -476,7 +482,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 style: AppText.h4.copyWith(color: Colors.white),
               ),
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -500,6 +506,92 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _profileActions() {
+    final isFollowing =
+        (ref.watch(followingProvider).asData?.value ?? const <String>{})
+            .contains(_uid);
+    final blocked =
+        ref.watch(blockedUsersProvider).asData?.value ?? const <String>{};
+
+    if (!isFollowing || blocked.contains(_uid)) return _followButton();
+
+    return Row(
+      children: [
+        Expanded(child: _followButton()),
+        const SizedBox(width: 10),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: _openingConversation ? null : _openConversation,
+            icon: _openingConversation
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.chat_bubble_outline, size: 17),
+            label: Text(
+              AppLocalizations.of(context).messageAction,
+              style: AppText.h4.copyWith(color: Colors.white),
+            ),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(46),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _openConversation() async {
+    setState(() => _openingConversation = true);
+    try {
+      final conversationId = await startDirectConversation(_uid);
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => DirectMessageThreadScreen(
+            conversationId: conversationId,
+            recipientName: _userName,
+            recipientAvatar: _avatarUrl ?? '',
+          ),
+        ),
+      );
+      ref.invalidate(directConversationsProvider);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).messageStartFailed),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _openingConversation = false);
+    }
+  }
+
+  Widget _inboxButton() {
+    final l = AppLocalizations.of(context);
+    return IconButton(
+      tooltip: l.messages,
+      onPressed: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const DirectMessagesScreen())),
+      icon: const Icon(Icons.forum_outlined, color: Colors.white),
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.black.withValues(alpha: 0.35),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
