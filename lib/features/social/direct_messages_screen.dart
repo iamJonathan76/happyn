@@ -149,6 +149,10 @@ class _DirectMessageThreadScreenState
   bool _sending = false;
   bool _didInitialScroll = false;
 
+  /// Nombre de messages au dernier rendu, pour reperer l'arrivee d'un message
+  /// de l'autre personne. L'envoi, lui, descend deja de son cote.
+  int _lastCount = 0;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -254,10 +258,29 @@ class _DirectMessageThreadScreenState
                 }
                 if (!_didInitialScroll) {
                   _didInitialScroll = true;
+                  _lastCount = items.length;
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (_scrollController.hasClients) {
                       _scrollController.jumpTo(
                         _scrollController.position.maxScrollExtent,
+                      );
+                    }
+                  });
+                } else if (items.length > _lastCount) {
+                  _lastCount = items.length;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!_scrollController.hasClients) return;
+                    final pos = _scrollController.position;
+                    // Seulement si la personne lisait deja le bas. La ramener
+                    // de force pendant qu'elle remonte l'historique serait
+                    // pire que de ne rien faire. Le seuil se mesure APRES
+                    // l'ajout : s'il ne reste qu'une bulle sous elle, c'est
+                    // qu'elle y etait.
+                    if (pos.maxScrollExtent - pos.pixels < 160) {
+                      _scrollController.animateTo(
+                        pos.maxScrollExtent,
+                        duration: const Duration(milliseconds: 240),
+                        curve: Curves.easeOut,
                       );
                     }
                   });

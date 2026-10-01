@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/moderation_provider.dart';
 
@@ -65,21 +64,25 @@ final eventSalesProvider =
 });
 
 
-/// Les evenements dont JE suis l'organisateur, du plus proche au plus lointain.
+/// Les evenements dont JE suis l'organisateur, du dernier cree au plus ancien.
 ///
 /// Derive de `eventsProvider` plutot que d'une requete a part : celui-ci
 /// remonte deja « les events publics + les miens », brouillons et prives
 /// compris. Une seconde requete pourrait le contredire d'une seconde a
 /// l'autre, et on paierait deux allers-retours pour la meme donnee.
 ///
-/// L'ordre est celui de la tenue, pas de la creation : ce qu'un organisateur
-/// veut voir en haut, c'est l'evenement dont il doit s'occuper cette semaine.
+/// L'ordre est celui de la CREATION, pas de la tenue. Trier par date de tenue
+/// remontait les evenements PASSES tout en haut — les dates les plus anciennes
+/// d'abord — et enterrait celui qu'on venait de creer tout en bas. Ici on
+/// cherche ce qu'on vient de faire, pas ce qui arrive bientot : c'est l'accueil
+/// qui repond a « qu'est-ce qui arrive ».
 final myOrganizedEventsProvider =
     Provider<AsyncValue<List<Map<String, dynamic>>>>((ref) {
   final uid = ref.watch(currentUserIdProvider);
   return ref.watch(eventsProvider).whenData((events) {
     if (uid == null) return const <Map<String, dynamic>>[];
-    return sortedByStart(
-        events.where((e) => e['created_by'] == uid).toList());
+    // `eventsProvider` renvoie deja les plus recents d'abord : on filtre sans
+    // retrier.
+    return events.where((e) => e['created_by'] == uid).toList();
   });
 });

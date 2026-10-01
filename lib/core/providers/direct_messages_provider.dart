@@ -15,7 +15,10 @@ final directMessagesProvider = StreamProvider.family
           .from('direct_messages')
           .stream(primaryKey: ['id'])
           .eq('conversation_id', conversationId)
-          .order('created_at')
+          // `ascending: true` EXPLICITEMENT : dans le client Dart, `order()`
+          // trie par defaut en DESCENDANT — l'inverse du client JavaScript.
+          // Sans ce parametre, les nouveaux messages apparaissaient en haut.
+          .order('created_at', ascending: true)
           .map((rows) => List<Map<String, dynamic>>.from(rows));
     });
 
