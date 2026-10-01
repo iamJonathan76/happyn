@@ -74,26 +74,54 @@ async function verifyStripeSignature(
 /// Renvoie `null` si l'information n'est pas encore disponible. Le registre
 /// l'accepte, et le calcul compte alors 0 : c'est HAPPYN qui absorbe ces frais,
 /// jamais l'organisateur qui se voit débiter un montant inventé.
+///
+/// Deux chemins, parce qu'un seul ne suffisait pas : le 2026-10-01, une vente
+/// reelle a ete enregistree avec des frais a 0. Le paiement portait pourtant
+/// bien ses frais chez Stripe — c'est `latest_charge` qui manquait dans le
+/// message recu, donc la lecture n'etait meme pas tentee. L'ecran annoncait
+/// alors a l'organisateur 14,25 $ la ou l'ecran de creation lui avait promis
+/// 13,52 $. Deux chiffres qui se contredisent sur de l'argent, c'est un litige.
+///
+/// On repasse donc par le PaymentIntent quand la charge n'est pas nommee.
 async function stripeFeeCents(
   stripeKey: string,
-  chargeId: string,
+  chargeId: string | undefined,
+  paymentIntentId: string,
 ): Promise<number | null> {
+  const url = chargeId
+    ? `https://api.stripe.com/v1/charges/${chargeId}?expand[]=balance_transaction`
+    : `https://api.stripe.com/v1/payment_intents/${paymentIntentId}` +
+      `?expand[]=latest_charge.balance_transaction`;
+
   try {
-    const res = await fetch(
-      `https://api.stripe.com/v1/charges/${chargeId}?expand[]=balance_transaction`,
-      { headers: { Authorization: `Bearer ${stripeKey}` } },
-    );
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${stripeKey}` },
+    });
+    const body = await res.json().catch(() => null);
+
     if (!res.ok) {
-      console.error("stripe-webhook: lecture de la charge refusee", res.status);
+      // Le message de Stripe, pas seulement le code : un refus sans
+      // explication nous a deja coute une heure sur `connect-onboard`.
+      console.error(
+        "stripe-webhook: lecture des frais refusee",
+        res.status,
+        body?.error?.message ?? "",
+      );
       return null;
     }
-    const charge = await res.json();
+
+    // Selon le chemin, la charge est l'objet lui-meme ou `latest_charge`.
+    const charge = chargeId ? body : body?.latest_charge;
     const bt = charge?.balance_transaction;
     if (bt && typeof bt === "object" && typeof bt.fee === "number") {
       return bt.fee as number;
     }
+
+    // Cas reel : la transaction de solde n'existe pas encore au moment du
+    // webhook (paiement non encore « disponible »). On ne devine pas.
     console.warn(
-      "stripe-webhook: frais indisponibles pour la charge", chargeId,
+      "stripe-webhook: frais indisponibles",
+      chargeId ? `charge ${chargeId}` : `pi ${paymentIntentId}`,
       "— comptes a 0, a la charge de la plateforme",
     );
     return null;
@@ -164,8 +192,10 @@ Deno.serve(async (req) => {
         ? pi.latest_charge
         : pi.latest_charge?.id;
 
-      const feeCents = (stripeKey && chargeId)
-        ? await stripeFeeCents(stripeKey, chargeId)
+      // Sans `chargeId` on interroge quand meme : la fonction sait repasser
+      // par le PaymentIntent.
+      const feeCents = stripeKey
+        ? await stripeFeeCents(stripeKey, chargeId, pi.id)
         : null;
 
       const { error: ledgerErr } = await admin.rpc("record_payment", {
