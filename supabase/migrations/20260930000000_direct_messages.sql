@@ -174,4 +174,18 @@ $$;
 revoke all on function public.my_direct_conversations() from public, anon;
 grant execute on function public.my_direct_conversations() to authenticated;
 
-alter publication supabase_realtime add table public.direct_messages;
+-- Rejouable : `alter publication ... add table` echoue si la table y est deja
+-- (« already member of publication »), et ce script doit pouvoir etre relance
+-- sans tout faire echouer. Constate le 2026-10-01.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'direct_messages'
+  ) then
+    alter publication supabase_realtime add table public.direct_messages;
+  end if;
+end;
+$$;
