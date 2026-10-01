@@ -254,6 +254,42 @@ Deno.serve(async (req) => {
   // Émis pour un remboursement partiel comme total. `amount_refunded` est le
   // cumul depuis le début, ce qui rend le traitement naturellement idempotent :
   // on pose une valeur absolue, on n'additionne pas.
+  // ── Les frais Stripe, quand ils arrivent ──────────────────────────────────
+  //
+  // Au moment de `payment_intent.succeeded`, la `balance_transaction` du
+  // paiement n'existe pas encore : mesure le 2026-10-01, elle apparait deux
+  // secondes plus tard. Les frais etaient donc enregistres a zero et absorbes
+  // par la plateforme, et l'organisateur voyait un montant plus eleve que
+  // celui promis a la creation de son tarif.
+  //
+  // `charge.updated` est precisement le message qui annonce cette publication.
+  // L'ecriture ne remplace jamais un chiffre deja etabli, donc les autres
+  // `charge.updated` (un remboursement, par exemple) ne cassent rien.
+  if (event.type === "charge.updated") {
+    const charge = event.data.object as {
+      id?: string;
+      payment_intent?: string;
+    };
+    if (charge.id && charge.payment_intent && stripeKey) {
+      const feeCents = await stripeFeeCents(
+        stripeKey,
+        charge.id,
+        charge.payment_intent,
+      );
+      if (feeCents !== null) {
+        const { error } = await admin.rpc("record_stripe_fee", {
+          p_payment_intent_id: charge.payment_intent,
+          p_fee_cents: feeCents,
+        });
+        if (error) {
+          console.error("record_stripe_fee:", error.message);
+          return new Response("ledger_failed", { status: 500 });
+        }
+      }
+    }
+    return new Response("ok", { status: 200 });
+  }
+
   if (event.type === "charge.refunded") {
     const charge = event.data.object as {
       payment_intent?: string;
