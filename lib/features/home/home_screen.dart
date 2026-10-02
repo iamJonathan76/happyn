@@ -570,8 +570,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           );
         }
+        // 252 px figés : la carte en demandait 253, d'où le « BOTTOM OVERFLOWED
+        // BY 1.00 PIXELS » barré de jaune et de noir en bas de chaque carte.
+        //
+        // Passer à 253 aurait réglé l'écran d'aujourd'hui et rien d'autre : le
+        // bloc de texte de la carte grandit avec la police système, donc la
+        // hauteur juste n'est pas un nombre, c'est un calcul.
+        //
+        // Ce qui est fixe : l'image (150) et les marges du bas de carte (12 en
+        // haut, 14 en bas). Ce qui bouge : les trois lignes de texte — titre
+        // (`h3`, 15), catégorie (`small`, 11), ville et prix (`h4`, 14) — plus
+        // les 11 px qui les séparent.
+        //
+        // Le facteur 1,7 couvre l'interligne réel de Poppins, mesuré sur le
+        // débordement observé, et laisse deux pixels de marge. Un pixel de trop
+        // barre la carte ; deux pixels de libre ne se voient pas.
+        final scaler = MediaQuery.textScalerOf(context);
+        final cardHeight = 150 + 12 + 14 +
+            scaler.scale(15) * 1.7 +
+            scaler.scale(11) * 1.7 +
+            scaler.scale(14) * 1.7 +
+            11;
+
         return SizedBox(
-          height: 252,
+          height: cardHeight,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 20, right: 8),
