@@ -149,7 +149,14 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
       );
     } catch (e) {
       debugPrint('annulation echouee : $e');
-      if (mounted) showAppSnack(context, AppLocalizations.of(context).actionFailed);
+      if (mounted) {
+        showAppSnack(
+          context,
+          e.toString().contains('already_paid_out')
+              ? AppLocalizations.of(context).errAlreadyPaidOut
+              : AppLocalizations.of(context).actionFailed,
+        );
+      }
     } finally {
       if (mounted) setState(() => _busyLifecycle = false);
     }

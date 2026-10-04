@@ -350,6 +350,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'De retour dans les brouillons. Publie-le quand tu veux.';
 
   @override
+  String get errAlreadyPaidOut =>
+      'Cet événement a déjà été versé : il ne peut plus être annulé ici. Écris-nous, on règle ça avec toi.';
+
+  @override
   String get errEventHadSales =>
       'Cet événement a eu des ventes : il ne peut pas revenir. Crée-en un nouveau.';
 

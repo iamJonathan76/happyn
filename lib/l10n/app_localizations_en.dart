@@ -347,6 +347,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Back in drafts. Publish it when you\'re ready.';
 
   @override
+  String get errAlreadyPaidOut =>
+      'This event has already been paid out, so it can no longer be cancelled here. Write to us and we\'ll sort it out.';
+
+  @override
   String get errEventHadSales =>
       'This event had sales, so it can\'t come back. Create a new one.';
 

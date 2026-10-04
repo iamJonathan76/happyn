@@ -126,6 +126,7 @@
   "@eventCancelledPartly": {"placeholders": {"refunded": {"type": "int"}, "failed": {"type": "int"}}},
   "restoreEvent": "Put back as draft",
   "eventRestoredMsg": "Back in drafts. Publish it when you're ready.",
+  "errAlreadyPaidOut": "This event has already been paid out, so it can no longer be cancelled here. Write to us and we'll sort it out.",
   "errEventHadSales": "This event had sales, so it can't come back. Create a new one.",
   "cancelEventBody": "Ticket holders will be notified and this event will be marked as cancelled. This can't be undone.",
   "keep": "Keep",

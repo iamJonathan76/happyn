@@ -90,6 +90,12 @@ Deno.serve(async (req: Request) => {
     const msg = closeErr.message ?? "";
     if (msg.includes("not_organizer")) return json({ error: "not_organizer" }, 403);
     if (msg.includes("not_found")) return json({ error: "not_found" }, 404);
+    // Deja verse : rembourser maintenant ferait payer HAPPYN deux fois, une
+    // fois a l'organisateur et une fois aux acheteurs. L'app doit le dire,
+    // pas reessayer.
+    if (msg.includes("already_paid_out")) {
+      return json({ error: "already_paid_out" }, 409);
+    }
     console.error("cancel-event: fermeture impossible:", msg);
     return json({ error: "cancel_failed" }, 500);
   }

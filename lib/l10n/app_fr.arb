@@ -111,6 +111,7 @@
   "@eventCancelledPartly": {"placeholders": {"refunded": {"type": "int"}, "failed": {"type": "int"}}},
   "restoreEvent": "Remettre en brouillon",
   "eventRestoredMsg": "De retour dans les brouillons. Publie-le quand tu veux.",
+  "errAlreadyPaidOut": "Cet événement a déjà été versé : il ne peut plus être annulé ici. Écris-nous, on règle ça avec toi.",
   "errEventHadSales": "Cet événement a eu des ventes : il ne peut pas revenir. Crée-en un nouveau.",
   "cancelEventBody": "Les détenteurs de billets seront notifiés et l'événement sera marqué comme annulé. C'est irréversible.",
   "keep": "Conserver",
