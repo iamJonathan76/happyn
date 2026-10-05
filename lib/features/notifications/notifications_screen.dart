@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
+import 'package:happyn/features/social/direct_messages_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -57,6 +58,8 @@ class NotificationsScreen extends ConsumerWidget {
         return (Icons.cancel, AppColors.error);
       case 'event_updated':
         return (Icons.edit_calendar, AppColors.amber);
+      case 'direct_message':
+        return (Icons.chat_bubble, AppColors.lavender);
       default:
         return (Icons.notifications, AppColors.lavender);
     }
@@ -138,11 +141,27 @@ class NotificationsScreen extends ConsumerWidget {
     final (icon, color) = _visual(type);
     final unread = n['read'] == false;
     final eventId = n['event_id'] as String?;
+    final conversationId = n['conversation_id'] as String?;
 
     return GestureDetector(
       onTap: () {
         if (unread) _markRead(ref, n['id'] as String);
-        if (eventId != null) _openEvent(context, eventId);
+        // La conversation d'abord : une notification de message n'a pas
+        // d'événement, et la laisser inerte serait pire que de ne rien
+        // notifier du tout.
+        if (conversationId != null) {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => DirectMessageThreadScreen(
+              conversationId: conversationId,
+              // Le titre de la notification EST le nom de l'expéditeur.
+              // L'avatar, lui, se recharge dans l'écran.
+              recipientName: (n['title'] ?? '') as String,
+              recipientAvatar: '',
+            ),
+          ));
+        } else if (eventId != null) {
+          _openEvent(context, eventId);
+        }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

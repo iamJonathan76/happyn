@@ -143,6 +143,7 @@ Deno.serve(async (req: Request) => {
   const userId = String(record.user_id ?? "");
   const title = String(record.title ?? "HAPPYN");
   const body = String(record.body ?? "");
+  const conversationId = String(record.conversation_id ?? "");
   if (!userId) return new Response("bad_request", { status: 400 });
 
   const admin = createClient(url, serviceKey);
@@ -200,8 +201,18 @@ Deno.serve(async (req: Request) => {
           data: {
             type: String(record.type ?? ""),
             event_id: String(record.event_id ?? ""),
+            conversation_id: String(record.conversation_id ?? ""),
           },
-          android: { priority: "high" },
+          android: {
+            priority: "high",
+            // Regroupement : dix messages d'affilee dans la meme conversation
+            // remplacent la bulle precedente au lieu d'en empiler dix. Sans
+            // cle, chaque notification reste distincte — ce qu'on veut pour
+            // un achat ou une annulation, qui ne se remplacent jamais.
+            ...(conversationId
+              ? { collapse_key: `dm-${conversationId}` }
+              : {}),
+          },
         },
       }),
     });
