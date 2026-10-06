@@ -18,41 +18,63 @@ L'historique git est volontairement bavard : les messages de commit expliquent
 POURQUOI, pas quoi. `git log --format=%B -5` en dit plus qu'une relecture du
 diff.
 
-## Ce que l'environnement infonuagique ne peut pas faire
+## Commencer par savoir où tu tournes
 
-**Aucun SDK Flutter.** Pas de `flutter analyze`, pas de `flutter test`, pas de
-`dart`, pas de `flutter gen-l10n`. Trois conséquences, toutes apprises à mes
+Ce projet se travaille depuis deux environnements très différents, et ils
+n'autorisent pas les mêmes vérifications. **Le déterminer est le premier geste**,
+avant toute modification de code :
+
+```bash
+flutter --version 2>/dev/null && echo "LOCAL (Mac)" || echo "INFONUAGIQUE"
+```
+
+### Sur le Mac — vérifier avant de pousser, toujours
+
+Tout est là : `flutter analyze`, `flutter test`, `flutter run`, `pod install`,
+Xcode, un iPhone et un Android branchés.
+
+**Aucune modification de code Dart ne se pousse sans `flutter analyze` propre.**
+Et un changement de mise en page se LANCE avant d'être poussé — c'est la seule
+preuve qui vaille. Les deux régressions ci-dessous auraient été attrapées en
+dix secondes.
+
+Après avoir touché aux `.arb` : `flutter gen-l10n` régénère les trois fichiers
+`app_localizations*.dart`. Ne jamais les éditer à la main ici.
+
+### Dans l'environnement infonuagique — compenser l'absence de Flutter
+
+Pas de `flutter`, pas de `dart`. Trois conséquences, toutes apprises à mes
 dépens :
 
-- **Les changements de mise en page ne peuvent pas être validés ici.** Deux
+- **Les changements de mise en page ne peuvent pas être validés.** Deux
   régressions sont parties en production de cette façon : un `Flexible` dans une
   `Row` à largeur non bornée, et un `Center` sans `heightFactor` qui a fait
   occuper tout l'écran à la barre d'onglets. L'équilibre des parenthèses ne dit
   rien des contraintes de Flutter. **Pousser un écran à la fois, et attendre que
   la personne l'ait lancé avant d'en modifier un autre.**
-- **Les fichiers `lib/l10n/app_localizations*.dart` sont générés**, mais ils
-  doivent être édités à la main ici. Toujours modifier les deux `.arb` ET les
-  trois `.dart`, puis vérifier la parité des clés et la validité du JSON avant
-  de pousser.
-- Un `Expanded` ou un `Flexible` n'est légal que si l'ancêtre `Row`/`Column`
-  reçoit une contrainte bornée. Dans une `Row`, les enfants NON flexibles sont
-  posés avec une largeur infinie — y mettre un `Flexible` fait planter le rendu
-  de tout l'écran.
-
-## Ce que l'environnement PEUT faire — et qu'il faut utiliser
-
-**Postgres est installé.** Une migration SQL se vérifie pour de vrai au lieu
-d'être relue : monter une instance jetable, recréer un schéma minimal
-(`auth.users`, `events`, `tickets`, `ticket_types`, `profiles`, plus un
-`auth.uid()` qui lit une variable de session), exécuter la migration, puis
-tester les comportements — idempotence, valeurs figées, et surtout les droits
-(`set role authenticated` doit se voir refuser les fonctions serveur).
-
-**Node et TypeScript sont disponibles.** Les fonctions Edge se vérifient avec
-`tsc --noEmit` et un fichier qui déclare le global `Deno`.
+- **Les fichiers `app_localizations*.dart` doivent être édités à la main.**
+  Modifier les deux `.arb` ET les trois `.dart`, puis vérifier la parité des
+  clés et la validité du JSON avant de pousser.
+- **Postgres est installé**, et il faut s'en servir. Une migration SQL se
+  vérifie pour de vrai au lieu d'être relue : monter une instance jetable,
+  recréer un schéma minimal (`auth.users`, `events`, `tickets`, `ticket_types`,
+  `profiles`, plus un `auth.uid()` qui lit une variable de session), exécuter la
+  migration, puis tester les comportements — idempotence, valeurs figées, et
+  surtout les droits (`set role authenticated` doit se voir refuser les
+  fonctions serveur). **Node et TypeScript** y sont aussi : les fonctions Edge
+  se vérifient avec `tsc --noEmit` et un fichier déclarant le global `Deno`.
 
 Une migration poussée sans avoir été exécutée, ou une fonction Edge poussée sans
-avoir été typée, est une négligence : les outils sont là.
+avoir été typée, est une négligence dans les deux environnements : les outils
+sont là.
+
+### La règle de Flutter qui a coûté ces deux régressions
+
+Un `Expanded` ou un `Flexible` n'est légal que si l'ancêtre `Row`/`Column`
+reçoit une contrainte bornée. Dans une `Row`, les enfants NON flexibles sont
+posés avec une largeur **infinie** — y mettre un `Flexible` fait planter le
+rendu de tout l'écran. Et un `Center` sans `heightFactor` prend toute la hauteur
+qu'on lui laisse.
 
 ## Git
 
