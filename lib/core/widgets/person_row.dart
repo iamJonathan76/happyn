@@ -126,10 +126,10 @@ class _FollowChip extends StatelessWidget {
               ? null
               : const LinearGradient(
                   colors: [AppColors.primary, AppColors.pink]),
-          color: following ? Colors.white.withOpacity(0.06) : null,
+          color: following ? Colors.white.withValues(alpha: 0.06) : null,
           borderRadius: BorderRadius.circular(10),
           border: following
-              ? Border.all(color: Colors.white.withOpacity(0.14))
+              ? Border.all(color: Colors.white.withValues(alpha: 0.14))
               : null,
         ),
         child: busy
@@ -159,7 +159,7 @@ class _Avatar extends StatelessWidget {
       width: 44,
       height: 44,
       alignment: Alignment.center,
-      color: AppColors.primary.withOpacity(0.22),
+      color: AppColors.primary.withValues(alpha: 0.22),
       child: Text(initial,
           style: AppText.bodySm.copyWith(
               color: AppColors.lavenderLight, fontWeight: FontWeight.w700)),

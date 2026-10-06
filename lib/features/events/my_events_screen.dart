@@ -46,7 +46,7 @@ class MyEventsScreen extends ConsumerWidget {
           loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
-          error: (_, __) => _empty(l.couldNotLoadEvents, ''),
+          error: (_, _) => _empty(l.couldNotLoadEvents, ''),
           data: (list) => list.isEmpty
               ? _empty(l.myEventsEmpty, l.myEventsEmptyBody)
               : ListView.builder(
@@ -117,7 +117,7 @@ class _EventRow extends StatelessWidget {
           // meme rayon, meme bordure. Les deux ecrans se suivent.
           color: AppColors.cardDark,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: Row(
           children: [
@@ -135,9 +135,9 @@ class _EventRow extends StatelessWidget {
                     : CachedNetworkImage(
                         imageUrl: cover,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) =>
+                        placeholder: (_, _) =>
                             Container(color: AppColors.card),
-                        errorWidget: (_, __, ___) =>
+                        errorWidget: (_, _, _) =>
                             Container(color: AppColors.card),
                       ),
               ),
@@ -165,7 +165,7 @@ class _EventRow extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: stateColor.withOpacity(0.16),
+                      color: stateColor.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(stateLabel,

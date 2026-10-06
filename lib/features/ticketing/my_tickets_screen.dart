@@ -77,11 +77,11 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
                               end: Alignment.bottomRight,
                             )
                           : null,
-                      color: isActive ? null : Colors.white.withOpacity(0.05),
+                      color: isActive ? null : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(20),
                       border: isActive
                           ? null
-                          : Border.all(color: Colors.white.withOpacity(0.09)),
+                          : Border.all(color: Colors.white.withValues(alpha: 0.09)),
                     ),
                     child: Text(
                       e.value,
@@ -102,7 +102,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
             child: ticketsAsync.when(
               loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.primary)),
-              error: (_, __) => _buildEmptyState(),
+              error: (_, _) => _buildEmptyState(),
               data: (all) {
                 final filtered = _filtered(all);
                 return RefreshIndicator(

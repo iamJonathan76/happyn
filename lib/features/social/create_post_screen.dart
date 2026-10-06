@@ -147,9 +147,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             child: Container(
               height: 210,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.04),
+                color: Colors.white.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white.withOpacity(0.09)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
               ),
               child: _image == null
                   ? Column(
@@ -177,7 +177,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.55),
+                                color: Colors.black.withValues(alpha: 0.55),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.close,
@@ -209,10 +209,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.10),
+                color: AppColors.warning.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(14),
                 border:
-                    Border.all(color: AppColors.warning.withOpacity(0.35)),
+                    Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
               ),
               child: Text(l.noAttachableEvents,
                   style: AppText.bodySm.copyWith(height: 1.45)),
@@ -221,9 +221,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withOpacity(0.09)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String?>(

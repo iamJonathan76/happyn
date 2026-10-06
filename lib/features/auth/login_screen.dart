@@ -335,7 +335,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 Text(
                   _isLogin ? l.welcomeBack : l.joinExperience,
-                  style: AppText.body.copyWith(color: AppColors.textLight.withOpacity(0.42)),
+                  style: AppText.body.copyWith(color: AppColors.textLight.withValues(alpha: 0.42)),
                 ),
 
                 const SizedBox(height: 28),
@@ -344,9 +344,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.04),
+                    color: Colors.white.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                   ),
                   child: Row(
                     children: [l.logIn, l.signUp].asMap().entries.map((e) {
@@ -372,7 +372,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               boxShadow: isActive
                                   ? [
                                       BoxShadow(
-                                        color: AppColors.primary.withOpacity(0.55),
+                                        color: AppColors.primary.withValues(alpha: 0.55),
                                         blurRadius: 16,
                                       ),
                                     ]
@@ -419,7 +419,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Expanded(
                       child: Divider(
-                        color: Colors.white.withOpacity(0.07),
+                        color: Colors.white.withValues(alpha: 0.07),
                         thickness: 1,
                       ),
                     ),
@@ -432,7 +432,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     Expanded(
                       child: Divider(
-                        color: Colors.white.withOpacity(0.07),
+                        color: Colors.white.withValues(alpha: 0.07),
                         thickness: 1,
                       ),
                     ),
@@ -456,10 +456,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 15),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(14),
                         border:
-                            Border.all(color: Colors.white.withOpacity(0.08)),
+                            Border.all(color: Colors.white.withValues(alpha: 0.08)),
                       ),
                       child: Row(
                         children: [
@@ -545,7 +545,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.55),
+                          color: AppColors.primary.withValues(alpha: 0.55),
                           blurRadius: 20,
                           offset: const Offset(0, 6),
                         ),
@@ -599,9 +599,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Container(
           height: 48,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.09)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

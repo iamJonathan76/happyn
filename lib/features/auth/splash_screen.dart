@@ -89,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 260,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withOpacity(0.28),
+                  color: AppColors.primary.withValues(alpha: 0.28),
                 ),
               ),
             ),
@@ -102,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.pink.withOpacity(0.22),
+                  color: AppColors.pink.withValues(alpha: 0.22),
                 ),
               ),
             ),
@@ -115,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 140,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.warning.withOpacity(0.18),
+                  color: AppColors.warning.withValues(alpha: 0.18),
                 ),
               ),
             ),
@@ -145,7 +145,7 @@ class _SplashScreenState extends State<SplashScreen>
                     // Tagline
                     Text(
                       AppLocalizations.of(context).splashTagline,
-                      style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: AppColors.textLight.withOpacity(0.38), letterSpacing: 3.2),
+                      style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: AppColors.textLight.withValues(alpha: 0.38), letterSpacing: 3.2),
                     ),
 
                     const SizedBox(height: 48),

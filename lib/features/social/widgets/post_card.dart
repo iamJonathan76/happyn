@@ -290,7 +290,7 @@ class _PostCardState extends ConsumerState<PostCard> {
       decoration: BoxDecoration(
         color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -514,7 +514,7 @@ class _PostCardState extends ConsumerState<PostCard> {
         width: 36,
         height: 36,
         alignment: Alignment.center,
-        color: AppColors.primary.withOpacity(0.2),
+        color: AppColors.primary.withValues(alpha: 0.2),
         child: Text(label[0].toUpperCase(),
             style: AppText.captionBold.copyWith(color: AppColors.lavenderLight)),
       );
@@ -527,9 +527,9 @@ class _PostCardState extends ConsumerState<PostCard> {
   Widget _organizerBadge(AppLocalizations l) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.18),
+          color: AppColors.primary.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -563,10 +563,10 @@ class _PostCardState extends ConsumerState<PostCard> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(upcoming ? 0.18 : 0.10),
+          color: AppColors.primary.withValues(alpha: upcoming ? 0.18 : 0.10),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-              color: AppColors.primary.withOpacity(upcoming ? 0.45 : 0.25)),
+              color: AppColors.primary.withValues(alpha: upcoming ? 0.45 : 0.25)),
         ),
         child: Row(
           children: [

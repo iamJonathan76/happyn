@@ -147,9 +147,9 @@ class _TicketTierCardState extends State<TicketTierCard> {
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.09)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
       ),
       child: Column(
         children: [
@@ -171,7 +171,7 @@ class _TicketTierCardState extends State<TicketTierCard> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.1),
+                      color: AppColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.close,
@@ -274,18 +274,18 @@ class _TicketTierCardState extends State<TicketTierCard> {
     final net =
         Pricing.netFromDisplay(display, platformFeeBps: widget.platformFeeBps);
     final tooLow = net <= 0;
-    final money = (double v) => Pricing.money(v, lang);
+    String money(double v) => Pricing.money(v, lang);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.25),
+        color: Colors.black.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
             color: tooLow
-                ? AppColors.error.withOpacity(0.35)
-                : Colors.white.withOpacity(0.06)),
+                ? AppColors.error.withValues(alpha: 0.35)
+                : Colors.white.withValues(alpha: 0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,7 +327,7 @@ class _TicketTierCardState extends State<TicketTierCard> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 9, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.16),
+                        color: AppColors.primary.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(7),
                       ),
                       child: Text(money(step),

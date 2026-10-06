@@ -129,7 +129,7 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen>
           children: [
             account.when(
               loading: () => const _LoadingCard(),
-              error: (_, __) => _MessageCard(
+              error: (_, _) => _MessageCard(
                 icon: Icons.cloud_off,
                 color: AppColors.textLow,
                 title: l.payoutStatusUnknown,
@@ -144,7 +144,7 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen>
             const SizedBox(height: 10),
             payouts.when(
               loading: () => const _LoadingCard(),
-              error: (_, __) => _MessageCard(
+              error: (_, _) => _MessageCard(
                 icon: Icons.cloud_off,
                 color: AppColors.textLow,
                 title: l.payoutStatusUnknown,
@@ -301,7 +301,7 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.15),
+                  color: statusColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(statusLabel,
@@ -411,7 +411,7 @@ class _MessageCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: color.withOpacity(0.35)),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -78,7 +78,7 @@ class _PeopleSearchScreenState extends ConsumerState<PeopleSearchScreen> {
                       },
                     ),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.06),
+              fillColor: Colors.white.withValues(alpha: 0.06),
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),

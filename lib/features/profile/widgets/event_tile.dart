@@ -15,7 +15,7 @@ import 'package:happyn/features/events/event_detail_screen.dart';
 class EventTile extends StatelessWidget {
   final Map<String, dynamic> event;
 
-  const EventTile({required this.event});
+  const EventTile({super.key, required this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +32,9 @@ class EventTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Row(
         children: [
@@ -76,7 +76,7 @@ class EventTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -106,7 +106,7 @@ class EventTile extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.15),
+                            color: color.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(

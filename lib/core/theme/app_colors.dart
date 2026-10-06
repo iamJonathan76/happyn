@@ -65,11 +65,11 @@ class AppColors {
   /// Emphase haute (≈ blanc plein). Titres, valeurs importantes.
   static const Color textHigh = Color(0xFFFFFFFF);
   /// Emphase moyenne. Corps de texte secondaire.
-  static final Color textMed = Colors.white.withOpacity(0.65);
+  static final Color textMed = Colors.white.withValues(alpha: 0.65);
   /// Emphase basse. Légendes, méta.
-  static final Color textLow = Colors.white.withOpacity(0.40);
+  static final Color textLow = Colors.white.withValues(alpha: 0.40);
   /// Emphase très basse. Placeholders, hints.
-  static final Color textFaint = Colors.white.withOpacity(0.25);
+  static final Color textFaint = Colors.white.withValues(alpha: 0.25);
 
   // ── Divers ───────────────────────────────────────────────────────────────
   static const Color border = Color(0xFF2A2448);

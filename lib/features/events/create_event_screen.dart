@@ -19,7 +19,6 @@ import 'package:happyn/core/providers/address_provider.dart';
 import 'package:happyn/core/location/address_search.dart';
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/payments/pricing.dart';
 import 'package:happyn/core/providers/pricing_provider.dart';
@@ -159,7 +158,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
   void _removeTier(int i) => setState(() => _tiers.removeAt(i).dispose());
 
-    Future<void> _pickDate({required bool isStart}) async {
+  Future<void> _pickDate({required bool isStart}) async {
     final l = AppLocalizations.of(context);
     final picked = await showDatePicker(
       context: context,
@@ -178,7 +177,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         );
       },
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       final time = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(isStart ? _startDate : _endDate),
@@ -329,7 +328,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           'start_date': _startDate.toIso8601String(),
           'end_date': _endDate.toIso8601String(),
           'price': eventPrice,
-          if (imageUrl != null) 'image_url': imageUrl,
+          'image_url': ?imageUrl,
           'visibility': _isPrivate ? 'private' : 'public',
           'posts_visibility':
               (!_isPrivate || _postsPublic) ? 'public' : 'invitees',
@@ -395,7 +394,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           if (mounted) Navigator.of(context).pop(true);
         }
       } catch (e) {
-        showAppSnack(context, l.errGeneric(e.toString()));
+        if (mounted) showAppSnack(context, l.errGeneric(e.toString()));
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -461,7 +460,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 (!_isPrivate || _postsPublic) ? 'public' : 'invitees',
             'cancellation_hours': _cancellationHours,
             'min_age': _minAge,
-            if (accessCode != null) 'access_code': accessCode,
+            'access_code': ?accessCode,
           })
           .select()
           .single();
@@ -509,7 +508,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         }
       }
     } catch (e) {
-      showAppSnack(context, l.errGeneric(e.toString()));
+      if (mounted) showAppSnack(context, l.errGeneric(e.toString()));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -564,9 +563,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         width: 38,
                         height: 38,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
+                          color: Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withOpacity(0.09)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
                         ),
                         child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 16),
                       ),
@@ -612,9 +611,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.055),
+                          color: Colors.white.withValues(alpha: 0.055),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.white.withOpacity(0.09)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
@@ -719,10 +718,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           height: 160,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                                color: Colors.white.withOpacity(0.09)),
+                                color: Colors.white.withValues(alpha: 0.09)),
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: _pickedImage == null
@@ -765,7 +764,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                         child: Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
-                                            color: Colors.black.withOpacity(0.6),
+                                            color: Colors.black.withValues(alpha: 0.6),
                                             borderRadius:
                                                 BorderRadius.circular(10),
                                           ),
@@ -811,12 +810,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       // ── Event privé ────────────────────────────────
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.04),
+                          color: Colors.white.withValues(alpha: 0.04),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: _isPrivate
-                                ? AppColors.primary.withOpacity(0.5)
-                                : Colors.white.withOpacity(0.07),
+                                ? AppColors.primary.withValues(alpha: 0.5)
+                                : Colors.white.withValues(alpha: 0.07),
                           ),
                         ),
                         child: Column(
@@ -824,7 +823,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             SwitchListTile(
                               value: _isPrivate,
                               onChanged: (v) => setState(() => _isPrivate = v),
-                              activeColor: AppColors.primary,
+                              activeThumbColor: AppColors.primary,
                               contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 2),
                               title: Row(
@@ -882,7 +881,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       child: Icon(Icons.copy,
                                           size: 16,
                                           color: Colors.white
-                                              .withOpacity(0.5)),
+                                              .withValues(alpha: 0.5)),
                                     ),
                                   ],
                                 ),
@@ -912,7 +911,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.55),
+                                color: AppColors.primary.withValues(alpha: 0.55),
                                 blurRadius: 20,
                                 offset: const Offset(0, 6),
                               ),
@@ -971,12 +970,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               ? const LinearGradient(
                   colors: [AppColors.primary, AppColors.pink])
               : null,
-          color: selected ? null : Colors.white.withOpacity(0.05),
+          color: selected ? null : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
               color: selected
                   ? Colors.transparent
-                  : Colors.white.withOpacity(0.09)),
+                  : Colors.white.withValues(alpha: 0.09)),
         ),
         child: Text(
           label,
@@ -992,9 +991,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.055),
+          color: Colors.white.withValues(alpha: 0.055),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withOpacity(0.09)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1112,9 +1111,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       return Container(
         padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.10),
+          color: AppColors.primary.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.primary.withOpacity(0.35)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
         ),
         child: Row(
           children: [
@@ -1190,7 +1189,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             ),
             child: Column(
               children: [
@@ -1251,7 +1250,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.07)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1279,13 +1278,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         horizontal: 12, vertical: 9),
                     decoration: BoxDecoration(
                       color: _cancellationHours == h
-                          ? AppColors.primary.withOpacity(0.18)
-                          : Colors.white.withOpacity(0.04),
+                          ? AppColors.primary.withValues(alpha: 0.18)
+                          : Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: _cancellationHours == h
-                            ? AppColors.primary.withOpacity(0.5)
-                            : Colors.white.withOpacity(0.08),
+                            ? AppColors.primary.withValues(alpha: 0.5)
+                            : Colors.white.withValues(alpha: 0.08),
                       ),
                     ),
                     child: Text(
@@ -1349,13 +1348,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected
-                ? AppColors.primary.withOpacity(0.18)
-                : Colors.white.withOpacity(0.04),
+                ? AppColors.primary.withValues(alpha: 0.18)
+                : Colors.white.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: selected
-                  ? AppColors.primary.withOpacity(0.5)
-                  : Colors.white.withOpacity(0.08),
+                  ? AppColors.primary.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.08),
             ),
           ),
           child: Row(

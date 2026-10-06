@@ -158,10 +158,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                       border:
-                          Border.all(color: Colors.white.withOpacity(0.1)),
+                          Border.all(color: Colors.white.withValues(alpha: 0.1)),
                     ),
                     // `mainAxisSize.min` et AUCUN enfant flexible ici : ce
                     // bouton n'est pas un enfant flexible de la rangée du
@@ -205,9 +205,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withOpacity(0.09)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
               ),
               child: Row(
                 children: [
@@ -279,15 +279,15 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               end: Alignment.bottomRight,
                             )
                           : null,
-                      color: isActive ? null : Colors.white.withOpacity(0.055),
+                      color: isActive ? null : Colors.white.withValues(alpha: 0.055),
                       borderRadius: BorderRadius.circular(20),
                       border: isActive
                           ? null
-                          : Border.all(color: Colors.white.withOpacity(0.09)),
+                          : Border.all(color: Colors.white.withValues(alpha: 0.09)),
                       boxShadow: isActive
                           ? [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.55),
+                                color: AppColors.primary.withValues(alpha: 0.55),
                                 blurRadius: 10,
                               ),
                             ]

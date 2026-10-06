@@ -141,8 +141,8 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
             : CachedNetworkImage(
                 imageUrl: url,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: AppColors.card),
-                errorWidget: (_, __, ___) => placeholder,
+                placeholder: (_, _) => Container(color: AppColors.card),
+                errorWidget: (_, _, _) => placeholder,
               ),
       ),
     );
@@ -229,9 +229,9 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
           height: 200,
           width: double.infinity,
           fit: BoxFit.cover,
-          placeholder: (_, __) => Container(
+          placeholder: (_, _) => Container(
               height: 200, color: AppColors.card),
-          errorWidget: (_, __, ___) => Container(
+          errorWidget: (_, _, _) => Container(
               height: 200, color: AppColors.card),
         ),
       ));
@@ -331,8 +331,8 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
                       horizontal: 11, vertical: 7),
                   decoration: BoxDecoration(
                     color: mine
-                        ? AppColors.primary.withOpacity(0.18)
-                        : Colors.white.withOpacity(0.05),
+                        ? AppColors.primary.withValues(alpha: 0.18)
+                        : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text('${m['body'] ?? ''}',
@@ -363,7 +363,7 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
   void _openFullSize(String url) {
     showDialog<void>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.92),
+      barrierColor: Colors.black.withValues(alpha: 0.92),
       builder: (dialogContext) => GestureDetector(
         // N'importe où en dehors de l'image referme : à ce moment-là on regarde,
         // on ne manipule pas, et chercher une croix fait perdre du temps.
@@ -377,9 +377,9 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
             child: CachedNetworkImage(
               imageUrl: url,
               fit: BoxFit.contain,
-              placeholder: (_, __) => const Center(
+              placeholder: (_, _) => const Center(
                   child: CircularProgressIndicator(color: AppColors.primary)),
-              errorWidget: (_, __, ___) => Icon(Icons.broken_image_outlined,
+              errorWidget: (_, _, _) => Icon(Icons.broken_image_outlined,
                   color: AppColors.textFaint, size: 48),
             ),
           ),
@@ -401,7 +401,7 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
       decoration: BoxDecoration(
         color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.07)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,7 +412,7 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.18),
+                  color: AppColors.primary.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(_typeLabel(l),
@@ -505,9 +505,9 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: color.withOpacity(0.35)),
+            border: Border.all(color: color.withValues(alpha: 0.35)),
           ),
           child: Text(label,
               style: AppText.smallBold.copyWith(color: color)),

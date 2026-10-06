@@ -166,7 +166,7 @@ Future<void> createPost({
     'author_id': uid,
     'event_id': eventId,
     if (caption != null && caption.trim().isNotEmpty) 'caption': caption.trim(),
-    if (imageUrl != null) 'image_url': imageUrl,
+    'image_url': ?imageUrl,
   });
 }
 

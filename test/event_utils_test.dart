@@ -15,10 +15,10 @@ void main() {
     String? end,
   }) =>
       {
-        if (status != null) 'status': status,
-        if (visibility != null) 'visibility': visibility,
-        if (start != null) 'start_date': start,
-        if (end != null) 'end_date': end,
+        'status': ?status,
+        'visibility': ?visibility,
+        'start_date': ?start,
+        'end_date': ?end,
       };
 
   group('isEventPast', () {

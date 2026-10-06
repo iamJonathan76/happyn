@@ -111,7 +111,7 @@ class NotificationsScreen extends ConsumerWidget {
       body: async.when(
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (_, __) => _empty(l),
+        error: (_, _) => _empty(l),
         data: (list) {
           if (list.isEmpty) return _empty(l);
           return RefreshIndicator(
@@ -171,19 +171,19 @@ class NotificationsScreen extends ConsumerWidget {
           gradient: unread
               ? LinearGradient(
                   colors: [
-                    color.withOpacity(0.12),
-                    color.withOpacity(0.04),
+                    color.withValues(alpha: 0.12),
+                    color.withValues(alpha: 0.04),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
               : null,
-          color: unread ? null : Colors.white.withOpacity(0.035),
+          color: unread ? null : Colors.white.withValues(alpha: 0.035),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: unread
-                ? color.withOpacity(0.35)
-                : Colors.white.withOpacity(0.06),
+                ? color.withValues(alpha: 0.35)
+                : Colors.white.withValues(alpha: 0.06),
           ),
         ),
         child: Row(
@@ -193,7 +193,7 @@ class NotificationsScreen extends ConsumerWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.16),
+                color: color.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(icon, color: color, size: 20),
@@ -262,7 +262,7 @@ class NotificationsScreen extends ConsumerWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.04),
+                color: Colors.white.withValues(alpha: 0.04),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.notifications_none,

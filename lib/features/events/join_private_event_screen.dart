@@ -94,7 +94,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
+                  color: AppColors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Icon(Icons.lock_open,
@@ -123,12 +123,12 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                   hintText: AppLocalizations.of(context).inviteCodePlaceholder,
                   hintStyle: AppText.display.copyWith(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textFaint, letterSpacing: 3),
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.05),
+                  fillColor: Colors.white.withValues(alpha: 0.05),
                   errorText: _error,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide:
-                        BorderSide(color: Colors.white.withOpacity(0.1)),
+                        BorderSide(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -137,7 +137,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide:
-                        BorderSide(color: Colors.white.withOpacity(0.1)),
+                        BorderSide(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                 ),
                 onSubmitted: (_) => _submit(),
@@ -151,7 +151,7 @@ class _JoinPrivateEventScreenState extends State<JoinPrivateEventScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     disabledBackgroundColor:
-                        AppColors.primary.withOpacity(0.5),
+                        AppColors.primary.withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),

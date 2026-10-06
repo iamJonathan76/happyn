@@ -117,7 +117,7 @@ class _MainShellState extends State<MainShell> {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.15),
+            color: AppColors.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: AppColors.lavenderLight, size: 20),
@@ -153,8 +153,8 @@ class _MainShellState extends State<MainShell> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background.withOpacity(0.96),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.07))),
+        color: AppColors.background.withValues(alpha: 0.96),
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).padding.bottom + 8,
@@ -197,7 +197,7 @@ class _MainShellState extends State<MainShell> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.55),
+                          color: AppColors.primary.withValues(alpha: 0.55),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),

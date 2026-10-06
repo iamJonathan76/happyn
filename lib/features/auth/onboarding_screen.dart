@@ -87,7 +87,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 // Color tint
                 Container(
-                  color: (slide['color'] as Color).withOpacity(0.18),
+                  color: (slide['color'] as Color).withValues(alpha: 0.18),
                 ),
                 // Skip button
                 Positioned(
@@ -100,7 +100,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: AppColors.textFaint,
@@ -154,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.55),
+                          color: AppColors.primary.withValues(alpha: 0.55),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
@@ -180,7 +180,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Subtitle
                   Text(
                     subs[_currentSlide],
-                    style: AppText.body.copyWith(color: AppColors.textLight.withOpacity(0.5), height: 1.6),
+                    style: AppText.body.copyWith(color: AppColors.textLight.withValues(alpha: 0.5), height: 1.6),
                   ),
 
                   const Spacer(),
@@ -229,7 +229,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.55),
+                            color: AppColors.primary.withValues(alpha: 0.55),
                             blurRadius: 20,
                             offset: const Offset(0, 6),
                           ),

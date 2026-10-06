@@ -45,10 +45,10 @@ Future<void> showInviteCodeDialog(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(14),
                 border:
-                    Border.all(color: AppColors.primary.withOpacity(0.4)),
+                    Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
               ),
               child: Center(
                 child: Text(

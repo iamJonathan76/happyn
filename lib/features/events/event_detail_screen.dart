@@ -69,9 +69,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.45),
+          color: Colors.black.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.12)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
         ),
         child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
       ),
@@ -137,9 +137,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.45),
+          color: Colors.black.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.12)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
         ),
         child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
       ),
@@ -349,10 +349,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                   width: 38,
                                   height: 38,
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.45),
+                                    color: Colors.black.withValues(alpha: 0.45),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.white.withOpacity(0.12),
+                                      color: Colors.white.withValues(alpha: 0.12),
                                     ),
                                   ),
                                   child: const Icon(
@@ -378,7 +378,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                         );
                                         // Event modifié → on revient à la liste
                                         // (déjà rafraîchie via le provider).
-                                        if (result == true && mounted) {
+                                        if (result == true && context.mounted) {
                                           Navigator.of(context).pop();
                                         }
                                       },
@@ -386,12 +386,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                         width: 38,
                                         height: 38,
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.45),
+                                          color: Colors.black.withValues(alpha: 0.45),
                                           borderRadius:
                                               BorderRadius.circular(12),
                                           border: Border.all(
                                               color: Colors.white
-                                                  .withOpacity(0.12)),
+                                                  .withValues(alpha: 0.12)),
                                         ),
                                         child: const Icon(Icons.edit_outlined,
                                             color: Colors.white, size: 16),
@@ -420,10 +420,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                       width: 38,
                                       height: 38,
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.45),
+                                        color: Colors.black.withValues(alpha: 0.45),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: Colors.white.withOpacity(0.12),
+                                          color: Colors.white.withValues(alpha: 0.12),
                                         ),
                                       ),
                                       child: const Icon(
@@ -457,12 +457,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                           height: 38,
                                           decoration: BoxDecoration(
                                             color:
-                                                Colors.black.withOpacity(0.45),
+                                                Colors.black.withValues(alpha: 0.45),
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             border: Border.all(
                                               color:
-                                                  Colors.white.withOpacity(0.12),
+                                                  Colors.white.withValues(alpha: 0.12),
                                             ),
                                           ),
                                           child: Icon(
@@ -524,8 +524,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                 horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: cancelled
-                                  ? AppColors.error.withOpacity(0.9)
-                                  : Colors.black.withOpacity(0.6),
+                                  ? AppColors.error.withValues(alpha: 0.9)
+                                  : Colors.black.withValues(alpha: 0.6),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                   color: AppColors.textFaint),
@@ -608,10 +608,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 7),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.15),
+                            color: AppColors.primary.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color: AppColors.primary.withOpacity(0.35)),
+                                color: AppColors.primary.withValues(alpha: 0.35)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -695,7 +695,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.background.withOpacity(0),
+                    AppColors.background.withValues(alpha: 0),
                     AppColors.background,
                   ],
                 ),
@@ -754,14 +754,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
-                          color: blocked ? Colors.white.withOpacity(0.08) : null,
+                          color: blocked ? Colors.white.withValues(alpha: 0.08) : null,
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: blocked
                               ? null
                               : [
                                   BoxShadow(
                                     color: AppColors.primary
-                                        .withOpacity(0.55),
+                                        .withValues(alpha: 0.55),
                                     blurRadius: 20,
                                     offset: const Offset(0, 6),
                                   ),
@@ -843,7 +843,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       width: 40,
       height: 40,
       alignment: Alignment.center,
-      color: AppColors.primary.withOpacity(0.22),
+      color: AppColors.primary.withValues(alpha: 0.22),
       child: Text(initial,
           style: AppText.bodySm.copyWith(
               color: AppColors.lavenderLight, fontWeight: FontWeight.w700)),
@@ -912,9 +912,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.07)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
       child: Row(
         children: [
@@ -922,7 +922,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: AppColors.lavenderLight, size: 18),
@@ -964,9 +964,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.13),
+        color: AppColors.primary.withValues(alpha: 0.13),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.28)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.28)),
       ),
       child: Text(
         '#$label',

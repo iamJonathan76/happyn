@@ -181,7 +181,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             width: 38,
                             height: 38,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.35),
+                              color: Colors.black.withValues(alpha: 0.35),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -605,7 +605,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.35),
+          color: Colors.black.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
@@ -673,11 +673,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         end: Alignment.bottomRight,
                       )
                     : null,
-                color: isActive ? null : Colors.white.withOpacity(0.05),
+                color: isActive ? null : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(14),
                 border: isActive
                     ? null
-                    : Border.all(color: Colors.white.withOpacity(0.09)),
+                    : Border.all(color: Colors.white.withValues(alpha: 0.09)),
               ),
               // Icone seule : les libelles rendaient la barre chargee et sautaient
               // de largeur entre FR et EN. Le libelle reste expose aux lecteurs
@@ -836,9 +836,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               width: double.infinity,
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.12),
+                color: AppColors.error.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -911,7 +911,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Container(
       width: 1,
       height: 32,
-      color: Colors.white.withOpacity(0.1),
+      color: Colors.white.withValues(alpha: 0.1),
     );
   }
 
@@ -920,9 +920,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.07)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
       child: Row(
         children: [

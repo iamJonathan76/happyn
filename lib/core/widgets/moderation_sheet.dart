@@ -76,13 +76,13 @@ Future<void> showReportSheet(
                       horizontal: 14, vertical: 13),
                   decoration: BoxDecoration(
                     color: selected == key
-                        ? AppColors.primary.withOpacity(0.15)
-                        : Colors.white.withOpacity(0.04),
+                        ? AppColors.primary.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: selected == key
                           ? AppColors.primary
-                          : Colors.white.withOpacity(0.08),
+                          : Colors.white.withValues(alpha: 0.08),
                     ),
                   ),
                   child: Row(
@@ -146,7 +146,7 @@ Future<void> showReportSheet(
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  disabledBackgroundColor: AppColors.primary.withOpacity(0.4),
+                  disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),

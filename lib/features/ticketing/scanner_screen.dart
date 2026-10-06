@@ -129,7 +129,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           MobileScanner(controller: _controller),
 
           // Overlay sombre + cadre de visée
-          Container(color: Colors.black.withOpacity(0.35)),
+          Container(color: Colors.black.withValues(alpha: 0.35)),
           Center(
             child: Container(
               width: 250,
@@ -153,7 +153,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(Icons.arrow_back_ios_new,
@@ -177,7 +177,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           // Spinner pendant validation
           if (_processing)
             Container(
-              color: Colors.black.withOpacity(0.6),
+              color: Colors.black.withValues(alpha: 0.6),
               child: const Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
@@ -201,7 +201,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     };
 
     return Container(
-      color: Colors.black.withOpacity(0.85),
+      color: Colors.black.withValues(alpha: 0.85),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),

@@ -317,7 +317,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.16),
+        color: color.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(7),
       ),
       child: Text(label, style: AppText.microBold.copyWith(color: color)),
@@ -462,7 +462,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
                     AppDates.dowDayMonthYear(
                         context, widget.event['start_date'] as String?),
                     style: AppText.small
-                        .copyWith(color: Colors.white.withOpacity(0.72)),
+                        .copyWith(color: Colors.white.withValues(alpha: 0.72)),
                   ),
                 ],
               ),
@@ -553,7 +553,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
         decoration: BoxDecoration(
           color: AppColors.cardDark,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: child,
       );
@@ -579,7 +579,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
       borderRadius: BorderRadius.circular(8),
       child: Stack(
         children: [
-          Container(height: 7, color: Colors.white.withOpacity(0.07)),
+          Container(height: 7, color: Colors.white.withValues(alpha: 0.07)),
           FractionallySizedBox(
             widthFactor: (sold / total).clamp(0.0, 1.0),
             child: Container(
@@ -615,7 +615,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.32),
+                color: AppColors.primary.withValues(alpha: 0.32),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
@@ -758,7 +758,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
       width: 34,
       height: 34,
       alignment: Alignment.center,
-      color: AppColors.primary.withOpacity(0.2),
+      color: AppColors.primary.withValues(alpha: 0.2),
       child: Text(initial,
           style:
               AppText.captionBold.copyWith(color: AppColors.lavenderLight)),
@@ -770,7 +770,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
       decoration: BoxDecoration(
         color: AppColors.cardDark,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Row(
         children: [
@@ -802,8 +802,8 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(
               color: a.checkedIn
-                  ? AppColors.success.withOpacity(0.15)
-                  : Colors.white.withOpacity(0.05),
+                  ? AppColors.success.withValues(alpha: 0.15)
+                  : Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

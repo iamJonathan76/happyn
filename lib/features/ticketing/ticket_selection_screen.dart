@@ -263,9 +263,9 @@ class _TicketSelectionScreenState
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.45),
+                        color: Colors.black.withValues(alpha: 0.45),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withOpacity(0.12)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
                       ),
                       child: const Icon(Icons.arrow_back_ios_new,
                           color: Colors.white, size: 16),
@@ -344,13 +344,13 @@ class _TicketSelectionScreenState
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? AppColors.primary.withOpacity(0.12)
-                                        : Colors.white.withOpacity(0.04),
+                                        ? AppColors.primary.withValues(alpha: 0.12)
+                                        : Colors.white.withValues(alpha: 0.04),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: isSelected
                                           ? AppColors.primary
-                                          : Colors.white.withOpacity(0.08),
+                                          : Colors.white.withValues(alpha: 0.08),
                                       width: isSelected ? 1.5 : 1,
                                     ),
                                   ),
@@ -404,7 +404,7 @@ class _TicketSelectionScreenState
                                                         horizontal: 6, vertical: 2),
                                                     decoration: BoxDecoration(
                                                       color: AppColors.pink
-                                                          .withOpacity(0.2),
+                                                          .withValues(alpha: 0.2),
                                                       borderRadius:
                                                           BorderRadius.circular(6),
                                                     ),
@@ -489,7 +489,7 @@ class _TicketSelectionScreenState
               decoration: BoxDecoration(
                 color: const Color(0xFF0D0B1A),
                 border: Border(
-                    top: BorderSide(color: Colors.white.withOpacity(0.07))),
+                    top: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
               ),
               child: Row(
                 children: [
@@ -522,7 +522,7 @@ class _TicketSelectionScreenState
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.55),
+                              color: AppColors.primary.withValues(alpha: 0.55),
                               blurRadius: 20,
                               offset: const Offset(0, 6),
                             ),
@@ -589,9 +589,9 @@ class _TicketSelectionScreenState
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.07),
+          color: Colors.white.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Icon(icon, color: Colors.white, size: 18),
       ),

@@ -11,7 +11,7 @@ class TicketCard extends StatelessWidget {
   final Map<String, dynamic> ticket;
   final VoidCallback onTap;
 
-  const TicketCard({required this.ticket, required this.onTap});
+  const TicketCard({super.key, required this.ticket, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +50,7 @@ class TicketCard extends StatelessWidget {
             boxShadow: isValid
                 ? [
                     BoxShadow(
-                      color: accent.withOpacity(0.22),
+                      color: accent.withValues(alpha: 0.22),
                       blurRadius: 26,
                       offset: const Offset(0, 8),
                     )
@@ -84,7 +84,7 @@ class TicketCard extends StatelessWidget {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.black.withOpacity(0.15),
+                              Colors.black.withValues(alpha: 0.15),
                               Colors.transparent,
                               bg,
                             ],
@@ -104,7 +104,7 @@ class TicketCard extends StatelessWidget {
                                 ? AppColors.error
                                 : isValid
                                     ? AppColors.success
-                                    : Colors.black.withOpacity(0.55),
+                                    : Colors.black.withValues(alpha: 0.55),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -242,7 +242,7 @@ class TicketCard extends StatelessWidget {
                                   ],
                                 )
                               : null,
-                          color: isValid ? null : Colors.white.withOpacity(0.08),
+                          color: isValid ? null : Colors.white.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Row(
@@ -297,7 +297,7 @@ class TicketCard extends StatelessWidget {
                   (_) => Container(
                     width: 5,
                     height: 1.5,
-                    color: Colors.white.withOpacity(0.14),
+                    color: Colors.white.withValues(alpha: 0.14),
                   ),
                 ),
               ),

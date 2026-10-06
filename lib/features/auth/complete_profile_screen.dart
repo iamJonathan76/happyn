@@ -127,7 +127,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
         'email': user.email,
         'full_name': user.userMetadata?['full_name'],
         'date_of_birth': user.userMetadata?['date_of_birth'],
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'avatar_url': ?avatarUrl,
         'city': _cityController.text.trim(),
         'bio': _bioController.text.trim(),
         'interests': _interests.toList(),
@@ -301,13 +301,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                               horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
                             color: selected
-                                ? color.withOpacity(0.18)
-                                : Colors.white.withOpacity(0.04),
+                                ? color.withValues(alpha: 0.18)
+                                : Colors.white.withValues(alpha: 0.04),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: selected
                                   ? color
-                                  : Colors.white.withOpacity(0.1),
+                                  : Colors.white.withValues(alpha: 0.1),
                             ),
                           ),
                           child: Row(

@@ -129,7 +129,7 @@ class SettingsScreen extends ConsumerWidget {
                       (d['title'] ?? 'Document') as String,
                       d['slug'] as String))
                   : _fallbackLegalTiles(context))
-              .toList(),
+              ,
 
           // ── About ─────────────────────────────────────────────────
           _section(l.sectionAbout),
@@ -363,9 +363,9 @@ class SettingsScreen extends ConsumerWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.error.withOpacity(0.08),
+            color: AppColors.error.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.error.withOpacity(0.2)),
+            border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
@@ -389,21 +389,21 @@ class SettingsScreen extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.04),
+          color: Colors.white.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: Row(
           children: [
-            Icon(icon, color: Colors.white.withOpacity(opacity), size: 18),
+            Icon(icon, color: Colors.white.withValues(alpha: opacity), size: 18),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
-                style: AppText.body.copyWith(color: Colors.white.withOpacity(dimmed ? 0.55 : 1)),
+                style: AppText.body.copyWith(color: Colors.white.withValues(alpha: dimmed ? 0.55 : 1)),
               ),
             ),
-            if (trailing != null) trailing,
+            ?trailing,
           ],
         ),
       ),

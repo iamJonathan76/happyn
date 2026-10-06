@@ -46,9 +46,9 @@ class EventListCard extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.04),
+          color: Colors.white.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.07)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
         ),
         child: Row(
           children: [
@@ -77,7 +77,7 @@ class EventListCard extends ConsumerWidget {
                     right: 0,
                     bottom: 0,
                     child: Container(
-                      color: Colors.black.withOpacity(0.55),
+                      color: Colors.black.withValues(alpha: 0.55),
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       child: Text(
                         '$mon $day',

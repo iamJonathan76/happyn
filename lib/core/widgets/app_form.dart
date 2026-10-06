@@ -28,9 +28,9 @@ InputDecoration appInputDecoration(
     prefixIcon:
         icon == null ? null : Icon(icon, color: AppColors.textLow, size: 18),
     filled: true,
-    fillColor: Colors.white.withOpacity(0.055),
-    border: border(Colors.white.withOpacity(0.09)),
-    enabledBorder: border(Colors.white.withOpacity(0.09)),
+    fillColor: Colors.white.withValues(alpha: 0.055),
+    border: border(Colors.white.withValues(alpha: 0.09)),
+    enabledBorder: border(Colors.white.withValues(alpha: 0.09)),
     focusedBorder: border(AppColors.primary, width: 1.5),
     contentPadding: contentPadding,
   );

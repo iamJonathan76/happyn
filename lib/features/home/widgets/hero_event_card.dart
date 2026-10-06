@@ -11,7 +11,7 @@ import 'package:happyn/core/utils/dates.dart';
 
 class HeroEventCard extends ConsumerWidget {
   final Map<String, dynamic> event;
-  const HeroEventCard({required this.event});
+  const HeroEventCard({super.key, required this.event});
 
   (String, String) _dateParts(BuildContext context, String? s) {
     final dt = s == null ? null : DateTime.tryParse(s);
@@ -43,10 +43,10 @@ class HeroEventCard extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.cardDark,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.45),
+              color: Colors.black.withValues(alpha: 0.45),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -109,7 +109,7 @@ class HeroEventCard extends ConsumerWidget {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.4),
+                          color: Colors.black.withValues(alpha: 0.4),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(

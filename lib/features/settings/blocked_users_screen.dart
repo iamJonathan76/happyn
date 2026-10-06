@@ -68,9 +68,9 @@ class BlockedUsersScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.07)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
       ),
       child: Row(
         children: [
@@ -106,7 +106,7 @@ class BlockedUsersScreen extends ConsumerWidget {
       width: 44,
       height: 44,
       alignment: Alignment.center,
-      color: AppColors.primary.withOpacity(0.18),
+      color: AppColors.primary.withValues(alpha: 0.18),
       child: Text(initial,
           style: AppText.h4.copyWith(color: AppColors.lavenderLight)),
     );

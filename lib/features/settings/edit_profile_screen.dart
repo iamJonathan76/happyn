@@ -137,14 +137,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       await _supabase.auth.updateUser(UserAttributes(data: {
         'full_name': name,
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'avatar_url': ?avatarUrl,
       }));
       // upsert : crée la ligne profiles si elle n'existe pas encore.
       await _supabase.from('profiles').upsert({
         'id': user.id,
         'email': user.email,
         'full_name': name,
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'avatar_url': ?avatarUrl,
         'city': _cityController.text.trim(),
         'bio': _bioController.text.trim(),
         if (usernameChanged && username.isNotEmpty) 'username': username,
@@ -291,9 +291,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
+              color: Colors.white.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withOpacity(0.06)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
             ),
             child: Row(
               children: [

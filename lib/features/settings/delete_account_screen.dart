@@ -135,10 +135,10 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.error.withOpacity(0.1),
+                    color: AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border:
-                        Border.all(color: AppColors.error.withOpacity(0.35)),
+                        Border.all(color: AppColors.error.withValues(alpha: 0.35)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +202,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.error,
                         disabledBackgroundColor:
-                            AppColors.error.withOpacity(0.5),
+                            AppColors.error.withValues(alpha: 0.5),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14)),
                       ),

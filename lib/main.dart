@@ -51,7 +51,7 @@ Future<void> _start() async {
     'Supabase',
     Supabase.initialize(
       url: 'https://jvjvuozvlzqqmcjanvnh.supabase.co',
-      anonKey: 'sb_publishable_wkRU0rXDmrPaDyhP2b5Mdw_rkbXBrmO',
+      publishableKey: 'sb_publishable_wkRU0rXDmrPaDyhP2b5Mdw_rkbXBrmO',
     ),
   );
 

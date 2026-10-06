@@ -45,7 +45,7 @@ class FollowListScreen extends StatelessWidget {
             labelColor: Colors.white,
             unselectedLabelColor: AppColors.textLow,
             labelStyle: AppText.smallBold,
-            dividerColor: Colors.white.withOpacity(0.06),
+            dividerColor: Colors.white.withValues(alpha: 0.06),
             tabs: [Tab(text: l.followers), Tab(text: l.following)],
           ),
         ),

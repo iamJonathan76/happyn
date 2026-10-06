@@ -29,9 +29,9 @@ class WhosGoing extends ConsumerWidget {
         margin: const EdgeInsets.only(top: 16),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.04),
+          color: Colors.white.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.07)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
         ),
         child: Row(
           children: [
@@ -93,7 +93,7 @@ class WhosGoing extends ConsumerWidget {
       width: size,
       height: size,
       alignment: Alignment.center,
-      color: AppColors.primary.withOpacity(0.25),
+      color: AppColors.primary.withValues(alpha: 0.25),
       child: Text(initial,
           style: AppText.micro.copyWith(
               fontWeight: FontWeight.w800, color: AppColors.lavenderLight)),
