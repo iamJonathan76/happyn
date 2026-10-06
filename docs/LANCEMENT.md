@@ -23,7 +23,9 @@ que Google est proposé.
 | Événements privés, code d'invitation, portée des photos | ✅ |
 | Partie sociale : publications, fil, profils, suivi, « Qui y va » | ✅ |
 | Âge (14 / 18), FR-EN dans l'app | ✅ |
-| Suppression de compte | ✅ |
+| Suppression de compte — v2 : ne fait perdre ni argent ni preuves | ✅ code, en prod (2026-10-06) |
+| Page publique de suppression, exigée par Google Play | ✅ code, `web/delete-account.html` |
+| Annulation et versement ne peuvent plus se croiser | ✅ en prod (2026-10-06) |
 | Modération complète + alerte courriel — Apple 1.2 | ✅ testée |
 | Domaine, SMTP, adresse de contact | ✅ |
 | Réinitialisation du mot de passe | ✅ testée |
@@ -412,12 +414,14 @@ choses qu'un nouveau contexte ne peut pas deviner.
 - **Le taux de commission** — `platform_fee_bps()` est à 500 (5 %), un
   placeholder. Figé par événement à sa création, donc le changer ne corrige pas
   les événements déjà publiés. Voir § 2.1.
-- **Annuler un événement déjà versé.** `cancel_event` ne vérifie que la
-  propriété : ni la date, ni l'existence d'un versement. Un organisateur peut
-  donc annuler après avoir été payé, et HAPPYN rembourse les acheteurs de sa
-  poche. Correctif proposé : refuser l'annulation si `event_payouts.status =
-  'paid'`, refuser aussi un événement déjà terminé, et exclure les événements
-  annulés de `events_due_for_payout()`. Une trentaine de lignes, non écrites.
+- **L'historique des migrations côté Supabase est vide.** Les migrations ont
+  toujours été appliquées à la main (éditeur SQL, `db query`), jamais par
+  `db push` : la CLI croit donc qu'aucune n'est passée. **Ne jamais lancer
+  `supabase db push`** — il rejouerait les 57. Proposé, pas fait :
+  `supabase migration repair --status applied` sur chacune, qui ne touche que
+  la table de suivi. Vérifié le 2026-10-06 : la base de production contient
+  bien tout, jusqu'à `20261006000000` incluse, et les 12 fonctions Edge
+  déployées sont identiques au dépôt.
 - **Les fichiers l10n générés** — ils sont versionnés et Flutter les réécrit à
   chaque `flutter pub get`, ce qui bloque un `git pull` sur deux. Soit on cesse
   de les versionner (recommandé), soit on garde l'habitude du
@@ -429,7 +433,15 @@ choses qu'un nouveau contexte ne peut pas deviner.
 ### L'état du poste de développement
 
 Un Mac dédié au projet depuis le 2026-10-06, donc plus de fenêtre iOS qui se
-referme. Les versions connues pour donner un build vert : macOS 26, Xcode 27,
+referme. Depuis : Flutter 3.47.6 et CocoaPods 1.17.0, `flutter build ios
+--release --no-codesign` vert.
+
+**Swift Package Manager est interdit dans `pubspec.yaml`**, pas dans la config
+d'une machine : le premier build sur ce Mac l'avait réactivé, avec le retour
+assuré de `GoogleUtilities` en double (voir le commit `8b126f1`). CocoaPods
+1.17 plante sans `LANG=en_US.UTF-8` dans le terminal. Et Firebase cesse de
+publier sur CocoaPods après octobre 2026 : passer en SPM complet le jour où
+`flutter_secure_storage` le supportera. Les versions connues pour donner un build vert : macOS 26, Xcode 27,
 Flutter 3.44.1, Dart 3.12.1, CocoaPods 1.16.2, Firebase iOS 12.18.0, 41 pods.
 
 Deux contournements à ne pas redécouvrir : `IPHONEOS_DEPLOYMENT_TARGET` doit
