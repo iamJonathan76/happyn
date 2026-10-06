@@ -404,145 +404,51 @@ La date fait maintenant partie de la clé.
 
 ---
 
-## 8. Le Mac part — ce qui devient invérifiable
+## 8. Décisions en attente de ta réponse
 
-Le Mac était emprunté et retourne à son propriétaire (semaine du 2026-09-28). Le
-développement continue sur Windows + Android sans perte : c'est un seul code
-source, et tout ce qui reste au § 2, § 4 et § 6 est indépendant de la plateforme.
+Regroupées ici parce qu'elles traversent les sessions : ce sont les seules
+choses qu'un nouveau contexte ne peut pas deviner.
 
-**Ce qui devient impossible, en revanche, est net : aucun build iOS.** Xcode ne
-tourne que sur macOS, c'est une contrainte d'Apple, pas de Flutter. Donc plus de
-TestFlight, plus de soumission App Store, et plus de signature — un compte Apple
-gratuit fait expirer l'app installée au bout de 7 jours, et la ré-signer demande
-le Mac.
+- **Le taux de commission** — `platform_fee_bps()` est à 500 (5 %), un
+  placeholder. Figé par événement à sa création, donc le changer ne corrige pas
+  les événements déjà publiés. Voir § 2.1.
+- **Annuler un événement déjà versé.** `cancel_event` ne vérifie que la
+  propriété : ni la date, ni l'existence d'un versement. Un organisateur peut
+  donc annuler après avoir été payé, et HAPPYN rembourse les acheteurs de sa
+  poche. Correctif proposé : refuser l'annulation si `event_payouts.status =
+  'paid'`, refuser aussi un événement déjà terminé, et exclure les événements
+  annulés de `events_due_for_payout()`. Une trentaine de lignes, non écrites.
+- **Les fichiers l10n générés** — ils sont versionnés et Flutter les réécrit à
+  chaque `flutter pub get`, ce qui bloque un `git pull` sur deux. Soit on cesse
+  de les versionner (recommandé), soit on garde l'habitude du
+  `git checkout --`. Décision d'équipe, Soumare est concerné.
+- **Le passage de l'écran de consentement Google en production** — § 3.1 bis.
+  Tant qu'il est en « Test », personne d'autre que les comptes listés ne peut se
+  connecter.
 
-### À faire AVANT de le rendre
+### L'état du poste de développement
 
-- [x] **`ios/Podfile.lock` committé** (`fd31710`, 313 lignes, 74 entrées). C'était
-      le seul point irrécupérable : le dépôt portait un lock périmé depuis
-      `9f4abec`, avec deux entrées au lieu des pods réels.
+Un Mac dédié au projet depuis le 2026-10-06, donc plus de fenêtre iOS qui se
+referme. Les versions connues pour donner un build vert : macOS 26, Xcode 27,
+Flutter 3.44.1, Dart 3.12.1, CocoaPods 1.16.2, Firebase iOS 12.18.0, 41 pods.
 
-  Le lock apporte au passage la preuve que le conflit est résolu côté
-  CocoaPods : **une seule version de GoogleUtilities (8.1.3)** alors que les
-  exigences allaient de `~> 8.0` à `~> 8.1`, **une seule de GoogleDataTransport
-  (10.1.1)** là où Firebase voulait `~> 10.1` et MLKit `< 10.0`, et **zéro
-  MLKit**. C'est ce double chargement qui produisait le plantage
-  `GULUserDefaults` en Release.
+Deux contournements à ne pas redécouvrir : `IPHONEOS_DEPLOYMENT_TARGET` doit
+valoir **15.0** partout (Xcode 27 refuse 13.0, Firebase 12 exige 15), et
+`flutter run` échoue sur `Failed to codesign Flutter.framework` à cause de
+l'attribut étendu `com.apple.provenance` de macOS 26 — bogue Flutter ouvert.
+Lancer depuis **Xcode** puis `flutter attach` ; Xcode tolère l'échec,
+`flutter run` le traite comme fatal.
 
-  Ça ne clôt pas la question pour autant : le doublon venait de CocoaPods **et**
-  de Swift Package Manager. Les 8 références SPM ont été retirées du `pbxproj`
-  (`8b126f1`), donc en principe c'est réglé — mais c'est une déduction. Seule la
-  console Xcode peut le confirmer, d'où le point suivant.
-- [x] **Les avertissements `objc[...] Class ... is implemented in both` ont
-      disparu** — console Xcode en Release, zéro ligne. Avec le `Podfile.lock`
-      qui ne montre qu'une version de GoogleUtilities, la question est close :
-      le plantage `GULUserDefaults` ne reviendra pas.
-- [x] **Build Release vérifié** — il compile, s'installe et démarre : les cinq
-      étapes de `main.dart` passent et `runApp` est atteint, sans exception.
-      Reste un blocage APRÈS `runApp`, dans l'interface (voir ci-dessous) — ce
-      n'est plus un problème de chaîne de compilation.
-- [x] **Versions exactes qui produisent un build vert** — relevées ci-dessous.
-      Une machine d'intégration continue en a besoin pour reproduire, et personne
-      ne s'en souviendra dans six mois.
+Ce qui n'est PAS dans le dépôt et ne descend pas avec un clone :
+`android/app/google-services.json` (console Firebase),
+`ios/Runner/GoogleService-Info.plist` (jamais créé — d'où l'absence de
+notifications sur iOS), le DSN Sentry passé en `--dart-define`, et l'empreinte
+SHA-1 du `debug.keystore`, propre à chaque machine : une machine neuve casse la
+connexion Google sur Android tant que sa nouvelle empreinte n'est pas déclarée
+dans Google Cloud.
 
-  | | Version |
-  |---|---|
-  | macOS | 26 (26A428) |
-  | Xcode | 27 (27A266a) |
-  | Flutter | 3.44.1 — installé par Homebrew dans `/opt/homebrew/share/flutter` |
-  | Dart | 3.12.1 |
-  | CocoaPods | 1.16.2 |
-  | Firebase SDK (iOS) | 12.18.0, imposée par `firebase_core` |
-  | iPhone de test | iOS 27 |
-  | Pods installés | 41, zéro MLKit |
-
-  Les versions des pods eux-mêmes ne sont pas recopiées ici : `ios/Podfile.lock`
-  les porte toutes, et deux listes finiraient par se contredire. C'est
-  exactement pour ça que ce fichier doit rester versionné.
-
-  Deux contournements liés à cette chaîne, à ne pas redécouvrir :
-  `IPHONEOS_DEPLOYMENT_TARGET` doit valoir **15.0** partout (Xcode 27 refuse
-  13.0, et Firebase 12 exige 15), et `flutter run` échoue sur
-  `Failed to codesign Flutter.framework` à cause de l'attribut étendu
-  `com.apple.provenance` de macOS 26 — bogue Flutter ouvert, sans correctif
-  fusionné. Le contournement est de lancer depuis **Xcode** puis
-  `flutter attach` ; Xcode tolère l'échec, `flutter run` le traite comme fatal.
-- [ ] **Tester le parcours Stripe Connect sur l'iPhone** pendant que c'est
-      possible (le formulaire s'ouvre dans Safari, et le retour au premier plan
-      déclenche le rafraîchissement).
-
-### Retrouver iOS plus tard, sans posséder de Mac
-
-Par ordre de coût croissant :
-
-1. **Intégration continue avec exécuteurs macOS** — Codemagic (orienté Flutter)
-   ou GitHub Actions. Ça construit, signe et envoie vers TestFlight sans Mac sur
-   le bureau. Les deux ont un palier gratuit, mais les minutes macOS sont
-   facturées bien plus cher que les minutes Linux : **vérifier les quotas du
-   moment avant de compter dessus.**
-2. **Mac en location à l'heure** (MacStadium, MacinCloud) pour une session de
-   mise au point.
-3. **Mac mini d'occasion** — la porte d'entrée la moins chère au matériel Apple.
-
-Le bon moment pour configurer l'option 1 est **maintenant**, tant qu'un build
-local vert existe pour servir de référence. Plus tard, un échec d'intégration
-continue sera impossible à attribuer : le code ou la machine ?
-
-### La vraie dette de cette période
-
-Ce n'est pas le code, c'est **la divergence silencieuse**. Le volet iOS de ce
-projet a déjà produit cinq pannes qu'aucun test Android n'aurait révélées : clés
-d'usage manquantes dans `Info.plist` (plantage impossible à intercepter depuis
-Dart), identifiant client Google spécifique à iOS, Swift Package Manager et
-CocoaPods chargeant deux fois la même classe, `com.apple.provenance` cassant
-`codesign`, et une version de sentry-cocoa incompatible.
-
-Tant qu'iOS n'est pas reconstruit, **tout ce qui touche un greffon natif, une
-permission ou une dépendance est non vérifié sur iPhone.** Le noter au fil de
-l'eau ici coûte une ligne ; le redécouvrir la veille d'une soumission coûte une
-semaine.
-
-#### Trouvé pendant la dernière session Mac, non résolu
-
-- **`GoogleService-Info.plist` est absent** du projet iOS et du dépôt. Firebase
-  ne s'initialise donc pas sur iPhone (`Could not locate configuration file`), et
-  `PushService` renonce proprement. Conséquence : **les notifications poussées
-  ne fonctionneront jamais sur iOS** tant que ce fichier n'est pas ajouté depuis
-  la console Firebase. Rien à voir avec le compte Apple payant exigé par APNs —
-  c'est une étape antérieure, et gratuite.
-
-  Le démarrage n'en souffre pas, et c'est délibéré : le `try/catch` et le délai
-  de 8 s de `main.dart` existent exactement pour ça. Ne pas recevoir de
-  notification est un désagrément ; ne pas démarrer serait une panne.
-
-- **Premier lancement lent en Release** — pas un blocage : l'app finit par
-  démarrer. Les cinq étapes de `main.dart` passent en quelques millisecondes et
-  `runApp` est atteint sans exception, donc l'attente est dans le premier rendu,
-  pas dans le code de démarrage. Durée non mesurée avant le départ du Mac.
-
-  Deux causes connues se cumulent sur un premier lancement Release iOS, et il
-  faut les distinguer avant de conclure :
-
-  1. **Impeller compile ses pipelines de rendu** au premier affichage. Coût
-     ponctuel, propre à la première ouverture après installation.
-  2. **Les polices ne sont PAS embarquées.** `AppText` appelle
-     `GoogleFonts.poppins()` et `GoogleFonts.inter()`, et `pubspec.yaml` n'a
-     aucune section `fonts:` active — donc `google_fonts` va chercher les
-     fichiers sur `fonts.gstatic.com` **à l'exécution**, à chaque installation
-     neuve.
-
-  Le point 2 mérite d'être corrigé indépendamment de la lenteur, pour trois
-  raisons : une première ouverture sans réseau s'affiche dans la police de
-  repli (donc pas dans la charte), chaque installation neuve fait une requête
-  vers un serveur Google — ce qui est une communication à un tiers à déclarer
-  sous la Loi 25, alors que rien ne l'exige ici — et le correctif est
-  mécanique : télécharger les deux familles dans `assets/fonts/`, les déclarer
-  dans `pubspec.yaml`, et `google_fonts` les utilisera sans réseau. C'est
-  faisable depuis Windows et vérifiable sur Android.
-
-#### Non vérifié sur iOS depuis le départ du Mac
-
-_(à compléter à chaque changement natif : greffon, permission, dépendance)_
+Et ne jamais mettre le dépôt dans un dossier synchronisé (Bureau, iCloud, Google
+Drive) : c'est ce qui avait corrompu `.git` avec 332 doublons « 2 ».
 
 ---
 
