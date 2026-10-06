@@ -116,6 +116,12 @@ flutter:
   # Génère les classes de localisation (AppLocalizations) depuis lib/l10n/*.arb
   generate: true
 
+  # Pas de Swift Package Manager sur iOS : mêlé à CocoaPods, il chargeait
+  # GoogleUtilities en double et l'app plantait au démarrage (voir 8b126f1).
+  # Écrit ici plutôt que dans `flutter config` pour valoir sur toute machine.
+  config:
+    enable-swift-package-manager: false
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
