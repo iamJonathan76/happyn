@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "site-vitrine",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "5173", "--directory", "web"],
       "port": 5173
     }
