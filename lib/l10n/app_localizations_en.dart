@@ -1391,7 +1391,85 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fullNameLabel => 'Full Name';
 
   @override
-  String get emailChangesSoon => 'Email changes are coming soon.';
+  String get emailChangeTap => 'Tap to change the address you sign in with.';
+
+  @override
+  String get emailChangeTitle => 'Change email';
+
+  @override
+  String get emailChangeCurrent => 'Current address';
+
+  @override
+  String get emailChangeNew => 'New address';
+
+  @override
+  String get emailChangeNewHint => 'you@example.com';
+
+  @override
+  String get emailChangeConfirm => 'Confirm new address';
+
+  @override
+  String get emailChangeConfirmHint => 'Type it again';
+
+  @override
+  String get emailChangeSend => 'Send confirmation links';
+
+  @override
+  String get emailChangeHowItWorks =>
+      'For your security we send a link to your current address and one to the new address. Your address changes only once both links are opened.';
+
+  @override
+  String get emailChangeOauthNotice =>
+      'You sign in with Google. Changing this address changes where HAPPYN writes to you — you\'ll still sign in with Google.';
+
+  @override
+  String emailChangePendingNotice(String address) {
+    return 'Waiting for confirmation of $address. Your address hasn\'t changed yet.';
+  }
+
+  @override
+  String get emailChangeNeedAddress => 'Enter your new address.';
+
+  @override
+  String get emailChangeMalformed => 'That doesn\'t look like an email address.';
+
+  @override
+  String get emailChangeSameAddress => 'That\'s already your address.';
+
+  @override
+  String get emailChangeMismatch => 'The two addresses don\'t match.';
+
+  @override
+  String get emailChangeFailed =>
+      'Couldn\'t start the change. Check the address and try again.';
+
+  @override
+  String get emailChangeTooSoon =>
+      'Too many attempts. Wait a minute, then try again.';
+
+  @override
+  String get emailChangeSentTitle => 'Check both inboxes';
+
+  @override
+  String get emailChangeSentBody =>
+      'Two links are on their way. Your address changes only after both have been opened — until then nothing has changed.';
+
+  @override
+  String emailChangeStepOld(String address) {
+    return 'Open the link sent to $address — your current address.';
+  }
+
+  @override
+  String emailChangeStepNew(String address) {
+    return 'Open the link sent to $address — your new address.';
+  }
+
+  @override
+  String get emailChangeUntilThen =>
+      'Until both links are opened, keep signing in with your current address.';
+
+  @override
+  String get emailChangeDone => 'Got it';
 
   @override
   String get profileUpdated => 'Profile updated ✓';

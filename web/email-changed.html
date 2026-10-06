@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="emailChange.metaTitle">Email address — HAPPYN</title>
+    <meta name="description" data-i18n-attr="content:emailChange.metaDescription" content="Confirm the email address on your HAPPYN account." />
+    <meta name="theme-color" content="#08080f" />
+    <!-- Comme les autres pages d'atterrissage : elle n'a de sens qu'ouverte
+         depuis le lien reçu par courriel, jamais depuis une recherche. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="assets/img/happyn-mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/img/happyn.png" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/i18n.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="/" data-i18n-attr="aria-label:nav.home">
+          <img src="assets/img/happyn-mark.svg" alt="" width="30" height="30" />
+          <span>HAPPYN</span>
+        </a>
+        <div class="header-actions">
+          <div class="lang-switch" role="group" data-i18n-attr="aria-label:lang.label" aria-label="Language">
+            <button type="button" data-set-lang="fr" aria-pressed="false">FR</button>
+            <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container reset-wrap">
+      <section class="reset-card">
+        <!-- Lien accepté. On ne dit pas « ton adresse a changé » : avec la
+             confirmation double, un seul lien ouvert ne change rien, et cette
+             page ne sait pas si le second l'a été. Elle dit ce qui est
+             certain, et renvoie à l'app pour le reste. -->
+        <div data-email-ok>
+          <h1 data-i18n="emailChange.okTitle">Link confirmed</h1>
+          <p class="muted" data-i18n="emailChange.okBody">
+            Thanks — this link has been used. For your security HAPPYN sends one
+            link to your current address and one to the new address, and the
+            change takes effect only once both have been opened.
+          </p>
+          <p class="hint" data-i18n="emailChange.okNote">
+            If you haven't opened the other one yet, it's waiting in the other
+            inbox. Open HAPPYN and go to Settings › Edit profile to see which
+            address your account uses now.
+          </p>
+        </div>
+
+        <!-- Lien refusé : expiré, ou déjà utilisé. Hidden par défaut, le
+             script le révèle seulement si l'adresse porte une erreur. -->
+        <div data-email-error hidden>
+          <h1 data-i18n="emailChange.errTitle">This link doesn't work anymore</h1>
+          <p class="muted" data-i18n="emailChange.errBody">
+            Confirmation links expire, and each one can only be used once. Your
+            address has not changed — you can still sign in with the one you
+            had before.
+          </p>
+          <p class="hint" data-i18n="emailChange.errNote">
+            Open HAPPYN and go to Settings › Edit profile to ask for the change
+            again.
+          </p>
+        </div>
+
+        <p class="muted" data-i18n="connect.close">You can close this page.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-bottom">
+          <span>© <span data-current-year>2026</span> HAPPYN. <span data-i18n="footer.rights">All rights reserved.</span></span>
+          <span><a href="#" data-support-link data-i18n="footer.contactSupport">Contact support</a></span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/email-changed.js"></script>
+  </body>
+</html>

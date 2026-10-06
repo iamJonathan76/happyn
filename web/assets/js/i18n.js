@@ -216,6 +216,24 @@
       'reset.errSame': 'Choose a password different from your old one.',
       'reset.errGeneric': 'Something went wrong. Please try again.',
 
+      // ── Atterrissage d'un lien de changement d'adresse ─────────────────────
+      // Le texte ne promet jamais que l'adresse a changé : avec la
+      // confirmation double, un seul lien ouvert ne change rien, et la
+      // redirection ne dit pas si le second l'a été.
+      'emailChange.metaTitle': 'Email address — HAPPYN',
+      'emailChange.metaDescription':
+        'Confirm the email address on your HAPPYN account.',
+      'emailChange.okTitle': 'Link confirmed',
+      'emailChange.okBody':
+        'Thanks — this link has been used. For your security HAPPYN sends one link to your current address and one to the new address, and the change takes effect only once both have been opened.',
+      'emailChange.okNote':
+        "If you haven't opened the other one yet, it's waiting in the other inbox. Open HAPPYN and go to Settings › Edit profile to see which address your account uses now.",
+      'emailChange.errTitle': "This link doesn't work anymore",
+      'emailChange.errBody':
+        'Confirmation links expire, and each one can only be used once. Your address has not changed — you can still sign in with the one you had before.',
+      'emailChange.errNote':
+        'Open HAPPYN and go to Settings › Edit profile to ask for the change again.',
+
       // ── Retour du formulaire Stripe Connect ────────────────────────────────
       // Deux pages, deux situations distinctes : le formulaire a ete mene au
       // bout, ou le lien a expire avant d'etre ouvert. Les confondre ferait
@@ -422,6 +440,20 @@
       'reset.errMismatch': 'Les deux mots de passe doivent être identiques.',
       'reset.errSame': "Choisis un mot de passe différent de l'ancien.",
       'reset.errGeneric': 'Un problème est survenu. Réessaie.',
+
+      'emailChange.metaTitle': 'Adresse e-mail — HAPPYN',
+      'emailChange.metaDescription':
+        'Confirme l\'adresse e-mail de ton compte HAPPYN.',
+      'emailChange.okTitle': 'Lien confirmé',
+      'emailChange.okBody':
+        'Merci — ce lien a bien été utilisé. Par sécurité, HAPPYN envoie un lien à ton adresse actuelle et un à la nouvelle, et le changement ne prend effet qu\'une fois les deux ouverts.',
+      'emailChange.okNote':
+        'Si tu n\'as pas encore ouvert l\'autre, il t\'attend dans la seconde boîte. Ouvre HAPPYN et va dans Réglages › Modifier le profil pour voir quelle adresse ton compte porte maintenant.',
+      'emailChange.errTitle': 'Ce lien ne fonctionne plus',
+      'emailChange.errBody':
+        "Les liens de confirmation expirent et ne servent qu'une fois. Ton adresse n'a pas changé — tu peux toujours te connecter avec la précédente.",
+      'emailChange.errNote':
+        'Ouvre HAPPYN et va dans Réglages › Modifier le profil pour redemander le changement.',
 
       'connect.returnMetaTitle': 'Configuration des paiements — HAPPYN',
       'connect.returnMetaDescription':

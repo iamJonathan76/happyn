@@ -246,6 +246,28 @@ Les magasins d'applications exigent une politique de confidentialité
 accessible : c'est aussi un prérequis de publication, pas seulement une
 précaution.
 
+### 3.5 Déclarer l'URL de changement d'adresse — 2 minutes
+
+L'écran **Réglages → Modifier le profil → adresse e-mail** demande à Supabase
+d'envoyer les liens de confirmation, et indique où le clic doit atterrir :
+`https://happynevents.com/email-changed.html`.
+
+Supabase refuse toute redirection non déclarée — c'est ce qui empêche de faire
+pointer un lien de confirmation vers un site tiers. Il faut donc ajouter cette
+adresse dans **Authentication → URL Configuration → Redirect URLs**, là où
+`reset.html` doit déjà figurer pour la réinitialisation du mot de passe.
+
+Sans cette ligne, le lien part quand même mais ramène sur l'URL par défaut du
+projet : la personne ne voit pas la page qui lui dit qu'il reste un second lien
+à ouvrir, et croit son changement terminé alors qu'il ne l'est pas.
+
+**À vérifier au même endroit** : que **Secure email change** reste activé
+(Authentication → Providers → Email). C'est lui qui exige la confirmation
+depuis l'ANCIENNE adresse en plus de la nouvelle, et donc ce qui empêche
+quelqu'un passant devant un téléphone déverrouillé de s'approprier le compte en
+changeant l'adresse. L'écran de l'app annonce deux liens : le désactiver
+rendrait ce texte faux.
+
 ---
 
 ## 4. Stripe Connect — écrit, reste à activer

@@ -32,6 +32,9 @@ web/
 │                                  confiance, organisateurs, liste d'attente
 ├── legal.html                     Pages légales — ?doc=privacy, ?doc=terms, …
 ├── reset.html                     Réinitialisation du mot de passe
+├── email-changed.html             Atterrissage d'un lien de changement d'adresse
+├── connect-return.html            Retour du formulaire Stripe Connect
+├── connect-refresh.html           Lien Stripe Connect expiré
 ├── assets/
 │   ├── css/styles.css             Toute la mise en forme
 │   ├── fonts/                     Poppins + Inter, hébergées ici (voir § Polices)
@@ -40,6 +43,8 @@ web/
 │   ├── js/config.js               URL + clé anon Supabase, email support
 │   ├── js/legal.js                Chargement et rendu des documents légaux
 │   ├── js/reset.js                Échange du jeton + nouveau mot de passe
+│   ├── js/email-changed.js        Lien de changement d'adresse : accepté ou expiré
+│   ├── js/connect.js              Pages de retour Stripe Connect (pied de page)
 │   ├── data/legal-fallback.json   Copie locale — GÉNÉRÉE, ne pas éditer
 │   ├── img/screens/               Captures de l'app pour la galerie
 │   ├── img/og-card.png            Aperçu au partage (1200×630)
@@ -50,7 +55,7 @@ web/
 
 ## Bilingue
 
-Tout le texte des trois pages vit dans `assets/js/i18n.js`, en français et en
+Tout le texte du site vit dans `assets/js/i18n.js`, en français et en
 anglais. Le HTML est écrit en anglais ; chaque élément traduisible porte
 `data-i18n="clé"` (son texte) ou `data-i18n-attr="attribut:clé"` (un
 placeholder, un aria-label…).

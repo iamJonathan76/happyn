@@ -1407,7 +1407,87 @@ class AppLocalizationsFr extends AppLocalizations {
   String get fullNameLabel => 'Nom complet';
 
   @override
-  String get emailChangesSoon => 'La modification de l\'e-mail arrive bientôt.';
+  String get emailChangeTap =>
+      'Touche pour changer l\'adresse qui te sert à te connecter.';
+
+  @override
+  String get emailChangeTitle => 'Changer d\'adresse';
+
+  @override
+  String get emailChangeCurrent => 'Adresse actuelle';
+
+  @override
+  String get emailChangeNew => 'Nouvelle adresse';
+
+  @override
+  String get emailChangeNewHint => 'toi@exemple.com';
+
+  @override
+  String get emailChangeConfirm => 'Confirme la nouvelle adresse';
+
+  @override
+  String get emailChangeConfirmHint => 'Retape-la';
+
+  @override
+  String get emailChangeSend => 'Envoyer les liens de confirmation';
+
+  @override
+  String get emailChangeHowItWorks =>
+      'Par sécurité, nous envoyons un lien à ton adresse actuelle et un à la nouvelle. Ton adresse ne change qu\'une fois les deux liens ouverts.';
+
+  @override
+  String get emailChangeOauthNotice =>
+      'Tu te connectes avec Google. Changer cette adresse change là où HAPPYN t\'écrit — tu continueras à te connecter avec Google.';
+
+  @override
+  String emailChangePendingNotice(String address) {
+    return 'En attente de confirmation de $address. Ton adresse n\'a pas encore changé.';
+  }
+
+  @override
+  String get emailChangeNeedAddress => 'Entre ta nouvelle adresse.';
+
+  @override
+  String get emailChangeMalformed =>
+      'Cela ne ressemble pas à une adresse e-mail.';
+
+  @override
+  String get emailChangeSameAddress => 'C\'est déjà ton adresse.';
+
+  @override
+  String get emailChangeMismatch => 'Les deux adresses ne correspondent pas.';
+
+  @override
+  String get emailChangeFailed =>
+      'Impossible de lancer le changement. Vérifie l\'adresse et réessaie.';
+
+  @override
+  String get emailChangeTooSoon =>
+      'Trop de tentatives. Attends une minute, puis réessaie.';
+
+  @override
+  String get emailChangeSentTitle => 'Vérifie les deux boîtes';
+
+  @override
+  String get emailChangeSentBody =>
+      'Deux liens sont en route. Ton adresse ne changera qu\'après l\'ouverture des deux — d\'ici là, rien n\'a changé.';
+
+  @override
+  String emailChangeStepOld(String address) {
+    return 'Ouvre le lien envoyé à $address — ton adresse actuelle.';
+  }
+
+  @override
+  String emailChangeStepNew(String address) {
+    return 'Ouvre le lien envoyé à $address — ta nouvelle adresse.';
+  }
+
+  @override
+  String get emailChangeUntilThen =>
+      'Tant que les deux liens ne sont pas ouverts, continue à te connecter avec ton adresse actuelle.';
+
+  @override
+  String get emailChangeDone => 'Compris';
 
   @override
   String get profileUpdated => 'Profil mis à jour ✓';

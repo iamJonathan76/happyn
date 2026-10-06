@@ -45,3 +45,12 @@ Future<bool> contactSupport({String? subject, String? body}) async {
 /// redirection : c'est ce qui empeche quelqu'un de faire pointer le lien vers
 /// son propre site pour recuperer la session de la personne qui clique.
 const String kPasswordResetUrl = 'https://happynevents.com/reset.html';
+
+/// Page web ou atterrit le lien de confirmation d'un changement d'adresse.
+///
+/// Meme exigence que ci-dessus : declaree a l'identique dans Supabase
+/// (Authentication > URL Configuration > Redirect URLs), sinon la redirection
+/// est refusee. Page distincte de `reset.html` parce que le message n'est pas
+/// le meme : ici il n'y a rien a saisir, seulement un second lien a cliquer
+/// depuis l'autre adresse.
+const String kEmailChangeUrl = 'https://happynevents.com/email-changed.html';

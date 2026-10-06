@@ -13,6 +13,7 @@ import 'package:happyn/core/providers/people_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/providers/user_profile_provider.dart';
 import 'package:happyn/core/widgets/username_field.dart';
+import 'package:happyn/features/settings/change_email_screen.dart';
 
 /// Édition du profil : nom + photo (avatar). Stockés dans les user metadata
 /// Supabase (`full_name`, `avatar_url`) et synchronisés dans la table profiles.
@@ -38,6 +39,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   XFile? _pickedAvatar;
   String? _currentAvatarUrl;
   bool _saving = false;
+
+  /// Adresse dont le changement attend encore ses confirmations, s'il y en a.
+  /// Supabase la garde separee de `email` jusqu'au bout : tant qu'elle est
+  /// la, l'adresse du compte n'a pas bouge.
+  String? get _pendingEmail {
+    final v = _supabase.auth.currentUser?.newEmail;
+    return (v == null || v.isEmpty) ? null : v;
+  }
 
   @override
   void initState() {
@@ -288,28 +297,59 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           ),
           const SizedBox(height: 16),
           AppLabel(l.emailLabel),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withOpacity(0.06)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.mail_outline,
-                    color: AppColors.textLow, size: 18),
-                const SizedBox(width: 12),
-                Text(
-                  email,
-                  style: AppText.body,
-                ),
-              ],
+          // L'adresse ne s'enregistre pas avec le reste : elle sert a se
+          // connecter et a recuperer le compte, donc elle passe par une
+          // confirmation par courriel. D'ou une ligne qui ouvre son propre
+          // ecran, au lieu d'un champ dans ce formulaire.
+          GestureDetector(
+            // `await` puis `setState` : au retour, `currentUser.newEmail` porte
+            // la demande en attente, mais rien ne reconstruit cet ecran tout
+            // seul — la pastille d'attente n'apparaitrait qu'a la prochaine
+            // ouverture.
+            onTap: () async {
+              await Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const ChangeEmailScreen()));
+              if (mounted) setState(() {});
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.03),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white.withOpacity(0.06)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.mail_outline,
+                      color: AppColors.textLow, size: 18),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      email,
+                      style: AppText.body,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  // Un changement deja demande mais pas encore confirme : le
+                  // signaler ici evite qu'on le redemande en croyant que la
+                  // premiere tentative n'est pas partie.
+                  if (_pendingEmail != null)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: Icon(Icons.schedule,
+                          color: AppColors.amber, size: 16),
+                    ),
+                  Icon(Icons.chevron_right,
+                      color: AppColors.textLow, size: 20),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            l.emailChangesSoon,
+            _pendingEmail != null
+                ? l.emailChangePendingNotice(_pendingEmail!)
+                : l.emailChangeTap,
             style: AppText.small,
           ),
           const SizedBox(height: 32),

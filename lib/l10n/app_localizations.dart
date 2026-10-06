@@ -2528,11 +2528,143 @@ abstract class AppLocalizations {
   /// **'Full Name'**
   String get fullNameLabel;
 
-  /// No description provided for @emailChangesSoon.
+  /// No description provided for @emailChangeTap.
   ///
   /// In en, this message translates to:
-  /// **'Email changes are coming soon.'**
-  String get emailChangesSoon;
+  /// **'Tap to change the address you sign in with.'**
+  String get emailChangeTap;
+
+  /// No description provided for @emailChangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get emailChangeTitle;
+
+  /// No description provided for @emailChangeCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current address'**
+  String get emailChangeCurrent;
+
+  /// No description provided for @emailChangeNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New address'**
+  String get emailChangeNew;
+
+  /// No description provided for @emailChangeNewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'you@example.com'**
+  String get emailChangeNewHint;
+
+  /// No description provided for @emailChangeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new address'**
+  String get emailChangeConfirm;
+
+  /// No description provided for @emailChangeConfirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type it again'**
+  String get emailChangeConfirmHint;
+
+  /// No description provided for @emailChangeSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send confirmation links'**
+  String get emailChangeSend;
+
+  /// No description provided for @emailChangeHowItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'For your security we send a link to your current address and one to the new address. Your address changes only once both links are opened.'**
+  String get emailChangeHowItWorks;
+
+  /// No description provided for @emailChangeOauthNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'You sign in with Google. Changing this address changes where HAPPYN writes to you — you\'ll still sign in with Google.'**
+  String get emailChangeOauthNotice;
+
+  /// No description provided for @emailChangePendingNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for confirmation of {address}. Your address hasn\'t changed yet.'**
+  String emailChangePendingNotice(String address);
+
+  /// No description provided for @emailChangeNeedAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new address.'**
+  String get emailChangeNeedAddress;
+
+  /// No description provided for @emailChangeMalformed.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an email address.'**
+  String get emailChangeMalformed;
+
+  /// No description provided for @emailChangeSameAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s already your address.'**
+  String get emailChangeSameAddress;
+
+  /// No description provided for @emailChangeMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two addresses don\'t match.'**
+  String get emailChangeMismatch;
+
+  /// No description provided for @emailChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start the change. Check the address and try again.'**
+  String get emailChangeFailed;
+
+  /// No description provided for @emailChangeTooSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Wait a minute, then try again.'**
+  String get emailChangeTooSoon;
+
+  /// No description provided for @emailChangeSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check both inboxes'**
+  String get emailChangeSentTitle;
+
+  /// No description provided for @emailChangeSentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Two links are on their way. Your address changes only after both have been opened — until then nothing has changed.'**
+  String get emailChangeSentBody;
+
+  /// No description provided for @emailChangeStepOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the link sent to {address} — your current address.'**
+  String emailChangeStepOld(String address);
+
+  /// No description provided for @emailChangeStepNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the link sent to {address} — your new address.'**
+  String emailChangeStepNew(String address);
+
+  /// No description provided for @emailChangeUntilThen.
+  ///
+  /// In en, this message translates to:
+  /// **'Until both links are opened, keep signing in with your current address.'**
+  String get emailChangeUntilThen;
+
+  /// No description provided for @emailChangeDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get emailChangeDone;
 
   /// No description provided for @profileUpdated.
   ///
