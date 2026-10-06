@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="del.metaTitle">Delete your account — HAPPYN</title>
+    <meta
+      name="description"
+      data-i18n-attr="content:del.metaDescription"
+      content="How to delete your HAPPYN account, what is deleted, what is kept and for how long."
+    />
+    <meta name="theme-color" content="#08080f" />
+    <link rel="icon" href="assets/img/happyn-mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/img/happyn.png" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="assets/js/i18n.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main" data-i18n="nav.skip">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="/" data-i18n-attr="aria-label:nav.home">
+          <img src="assets/img/happyn-mark.svg" alt="" width="30" height="30" />
+          <span>HAPPYN</span>
+        </a>
+        <div class="header-actions">
+          <div class="lang-switch" role="group" data-i18n-attr="aria-label:lang.label" aria-label="Language">
+            <button type="button" data-set-lang="fr" aria-pressed="false">FR</button>
+            <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page exigée par Google Play : une adresse publique où l'on peut
+         demander la suppression de son compte SANS avoir l'app installée, et
+         qui dit ce qui est effacé, ce qui est gardé et combien de temps.
+
+         Chaque phrase ici décrit ce que fait réellement le code — migration
+         20261006000000_account_deletion_v2.sql et fonction `delete-account`.
+         Changer l'un sans l'autre, c'est promettre publiquement quelque chose
+         de faux : relire cette page à chaque modification de la suppression. -->
+    <main id="main" class="container">
+      <article class="legal-content account-page">
+        <h1 data-i18n="del.title">Delete your HAPPYN account</h1>
+        <p class="legal-meta" data-i18n="del.meta">HAPPYN — event discovery and ticketing app</p>
+
+        <section class="legal-section">
+          <h2 data-i18n="del.inAppTitle">From the app — the fastest way</h2>
+          <ol>
+            <li data-i18n="del.step1">Open HAPPYN and go to your Profile.</li>
+            <li data-i18n="del.step2">Tap the settings icon, then scroll to “Account Actions”.</li>
+            <li data-i18n="del.step3">Tap “Delete Account”. The screen shows exactly what will happen to your tickets and events.</li>
+            <li data-i18n="del.step4">Type your email address to confirm. Deletion is immediate.</li>
+          </ol>
+        </section>
+
+        <section class="legal-section">
+          <h2 data-i18n="del.byEmailTitle">Without the app</h2>
+          <p>
+            <span data-i18n="del.byEmailBefore">Write to</span>
+            <a href="#" data-support-link data-support-subject="Delete my account / Supprimer mon compte"><span data-support-email>contact@happynevents.com</span></a>
+            <span data-i18n="del.byEmailAfter">from the email address linked to your account, with the subject “Delete my account”. We confirm it's really you, then delete the account within 30 days and tell you when it's done.</span>
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h2 data-i18n="del.blockedTitle">When deletion has to wait</h2>
+          <p data-i18n="del.blockedIntro">We won't let a deletion cost anyone money. It is paused while:</p>
+          <ul>
+            <li data-i18n="del.blocked1">you hold a paid ticket for an upcoming event — cancel it to be refunded, or transfer it. Past the cancellation deadline, you can delete your account once the event is over;</li>
+            <li data-i18n="del.blocked2">you've sold paid tickets for an upcoming event — cancel the event first, which refunds your buyers;</li>
+            <li data-i18n="del.blocked3">you have organizer earnings that haven't been paid out yet — deleting would cut the link to your payout account.</li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h2 data-i18n="del.deletedTitle">What is deleted</h2>
+          <ul>
+            <li data-i18n="del.deleted1">Your profile: name, username, photo, bio, city, interests and date of birth.</li>
+            <li data-i18n="del.deleted2">Your posts and their photos, your likes, who you follow and who follows you.</li>
+            <li data-i18n="del.deleted3">Your favourites, notifications, blocked list and push notification tokens.</li>
+            <li data-i18n="del.deleted4">Your free tickets for upcoming events — the spot goes back on sale.</li>
+            <li data-i18n="del.deleted5">Your upcoming events: deleted if nobody has a ticket, otherwise cancelled and every attendee notified.</li>
+            <li data-i18n="del.deleted6">The link to your payout account with our payment partner, Stripe.</li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h2 data-i18n="del.keptTitle">What is kept, and why</h2>
+          <ul>
+            <li data-i18n="del.kept1">Payment records, without your name, for as long as Canadian tax law requires — generally six years.</li>
+            <li data-i18n="del.kept2">Past tickets and past events, detached from your profile, so other attendees keep their history. Your past events show “Organizer deleted”.</li>
+            <li data-i18n="del.kept3">Private messages you sent stay with the person who received them, shown as from “Deleted account” — like a letter, a message also belongs to its recipient. Once both people in a conversation have left HAPPYN, it is erased for good.</li>
+            <li data-i18n="del.kept4">Reports you made to our moderation team, without your name.</li>
+          </ul>
+          <p data-i18n="del.stripe">Stripe keeps its own records of payments and payouts, under its own privacy policy.</p>
+        </section>
+
+        <p class="legal-notice">
+          <span data-i18n="del.moreBefore">Read more in our</span>
+          <a href="legal.html?doc=privacy" data-i18n="del.privacyLink">Privacy Policy</a>
+          <span data-i18n="del.moreMiddle">and</span>
+          <a href="legal.html?doc=data-retention" data-i18n="del.retentionLink">Data Retention Policy</a>.
+        </p>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-bottom">
+          <span>© <span data-current-year>2026</span> HAPPYN. <span data-i18n="footer.rights">All rights reserved.</span></span>
+          <span><a href="#" data-support-link data-i18n="footer.contactSupport">Contact support</a></span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/delete-account.js"></script>
+  </body>
+</html>

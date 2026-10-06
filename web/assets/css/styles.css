@@ -1576,7 +1576,8 @@ h4 {
   color: var(--text-2);
 }
 
-.legal-section ul {
+.legal-section ul,
+.legal-section ol {
   margin: 0;
   padding-left: 22px;
   color: var(--text-2);
@@ -1584,6 +1585,19 @@ h4 {
 
 .legal-section li {
   margin-bottom: 8px;
+}
+
+/* Page de suppression de compte : le contenu des pages légales, sans leur
+   barre latérale. Une colonne de lecture, pas plus large qu'un document. */
+.account-page {
+  max-width: 760px;
+  padding: 64px 0 96px;
+}
+
+.account-page a {
+  color: var(--lavender-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .legal-index {
