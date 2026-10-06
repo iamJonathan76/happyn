@@ -10,6 +10,14 @@
   publish = "web"
   command = ""
 
+  # Ne déployer que si le site a changé. Le dépôt contient surtout l'app : sans
+  # cette ligne, chaque push de Flutter ou de SQL redéployait un site identique,
+  # et ces déploiements inutiles ont épuisé les crédits du mois en octobre 2026
+  # — plus aucune publication possible, y compris d'une correction urgente.
+  # Netlify annule le build quand la commande sort en 0, c'est-à-dire quand
+  # `git diff --quiet` ne trouve aucune différence sous ces chemins.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- web/ netlify.toml"
+
 # Le site ne charge que ses propres ressources et n'appelle que Supabase.
 # Ces en-têtes le disent explicitement : utile pour les audits des stores.
 [[headers]]
