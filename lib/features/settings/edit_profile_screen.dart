@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
@@ -38,6 +39,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   XFile? _pickedAvatar;
   String? _currentAvatarUrl;
   bool _saving = false;
+  // Faux tant que ville et bio n'ont pas ete lues. Enregistrer sans les avoir
+  // lues ecraserait les vraies valeurs par les champs vides.
+  bool _extraLoaded = false;
 
   @override
   void initState() {
@@ -64,7 +68,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         _originalUsername = (row['username'] ?? '') as String;
         _usernameController.text = _originalUsername;
       }
-    } catch (_) {}
+      _extraLoaded = true;
+    } catch (e, st) {
+      reportCaught(e, st, where: 'editProfile.load');
+      if (mounted) {
+        showAppSnack(context, AppLocalizations.of(context).couldNotLoadProfile);
+      }
+    }
   }
 
   @override
@@ -130,6 +140,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       return;
     }
 
+    final city = _cityController.text.trim();
+    final bio = _bioController.text.trim();
+
     setState(() => _saving = true);
     try {
       final user = _supabase.auth.currentUser!;
@@ -145,8 +158,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'email': user.email,
         'full_name': name,
         'avatar_url': ?avatarUrl,
-        'city': _cityController.text.trim(),
-        'bio': _bioController.text.trim(),
+        // Non lues : on n'envoie que ce que la personne a tape elle-meme.
+        if (_extraLoaded || city.isNotEmpty) 'city': city,
+        if (_extraLoaded || bio.isNotEmpty) 'bio': bio,
         if (usernameChanged && username.isNotEmpty) 'username': username,
       });
 

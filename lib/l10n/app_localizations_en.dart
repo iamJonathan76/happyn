@@ -1914,4 +1914,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errSalesNotOpen =>
       'Sales aren\'t open for this event yet. Try again later.';
+
+  @override
+  String get couldNotLoadProfile =>
+      'Could not load your profile details. Pull back and try again.';
+
+  @override
+  String get couldNotOpenEvent => 'Could not open this event.';
 }

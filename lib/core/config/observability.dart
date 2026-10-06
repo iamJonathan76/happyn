@@ -55,3 +55,16 @@ Future<void> runWithObservability(Future<void> Function() start) async {
     appRunner: start,
   );
 }
+
+/// Signale une erreur rattrapée, que l'écran gère mais qu'on veut voir.
+///
+/// Un `catch (_) {}` fait passer une panne pour un état normal : ce projet en
+/// a payé le prix trois fois. Ici l'erreur part au moins dans la console, et
+/// vers Sentry quand il est actif — sans rien changer à ce que voit l'écran.
+void reportCaught(Object error, StackTrace stack, {required String where}) {
+  debugPrint('[$where] $error');
+  if (crashReportingEnabled) {
+    Sentry.captureException(error,
+        stackTrace: stack, withScope: (s) => s.setTag('where', where));
+  }
+}

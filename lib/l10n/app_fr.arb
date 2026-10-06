@@ -611,5 +611,7 @@
   "payoutScheduledFor": "Versement prévu vers le {date}",
   "@payoutScheduledFor": {"placeholders": {"date": {"type": "String"}}},
   "payoutUntitledEvent": "Événement sans titre",
-  "errSalesNotOpen": "Les ventes ne sont pas encore ouvertes pour cet événement. Réessaie plus tard."
+  "errSalesNotOpen": "Les ventes ne sont pas encore ouvertes pour cet événement. Réessaie plus tard.",
+  "couldNotLoadProfile": "Impossible de charger les détails de ton profil. Reviens en arrière et réessaie.",
+  "couldNotOpenEvent": "Impossible d'ouvrir cet événement."
 }

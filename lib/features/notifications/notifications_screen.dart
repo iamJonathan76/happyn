@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/config/observability.dart';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -21,7 +23,9 @@ class NotificationsScreen extends ConsumerWidget {
           .eq('user_id', user.id)
           .eq('read', false);
       ref.invalidate(notificationsProvider);
-    } catch (_) {}
+    } catch (e, st) {
+      reportCaught(e, st, where: 'notifications.markAllRead');
+    }
   }
 
   Future<void> _markRead(WidgetRef ref, String id) async {
@@ -30,7 +34,9 @@ class NotificationsScreen extends ConsumerWidget {
           .from('notifications')
           .update({'read': true}).eq('id', id);
       ref.invalidate(notificationsProvider);
-    } catch (_) {}
+    } catch (e, st) {
+      reportCaught(e, st, where: 'notifications.markRead');
+    }
   }
 
   Future<void> _openEvent(BuildContext context, String eventId) async {
@@ -45,7 +51,13 @@ class NotificationsScreen extends ConsumerWidget {
             builder: (_) =>
                 EventDetailScreen(event: Map<String, dynamic>.from(row))));
       }
-    } catch (_) {}
+    } catch (e, st) {
+      // Sans message, le tap semblait simplement ne rien faire.
+      reportCaught(e, st, where: 'notifications.openEvent');
+      if (context.mounted) {
+        showAppSnack(context, AppLocalizations.of(context).couldNotOpenEvent);
+      }
+    }
   }
 
   (IconData, Color) _visual(String type) {

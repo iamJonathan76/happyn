@@ -644,5 +644,7 @@
   "payoutScheduledFor": "Payout expected around {date}",
   "@payoutScheduledFor": {"placeholders": {"date": {"type": "String"}}},
   "payoutUntitledEvent": "Untitled event",
-  "errSalesNotOpen": "Sales aren't open for this event yet. Try again later."
+  "errSalesNotOpen": "Sales aren't open for this event yet. Try again later.",
+  "couldNotLoadProfile": "Could not load your profile details. Pull back and try again.",
+  "couldNotOpenEvent": "Could not open this event."
 }

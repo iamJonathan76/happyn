@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
@@ -97,7 +98,16 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
           'date_of_birth': user.userMetadata?['date_of_birth'],
           'onboarded': true,
         });
-      } catch (_) {}
+      } catch (e, st) {
+        // Sans cette ligne, la date de naissance n'est pas en base et
+        // l'onboarding reviendrait a chaque connexion : on reste ici.
+        reportCaught(e, st, where: 'completeProfile.skip');
+        if (mounted) {
+          showAppSnack(
+              context, AppLocalizations.of(context).couldNotSaveRetry);
+        }
+        return;
+      }
     }
     if (mounted) _goHome();
   }

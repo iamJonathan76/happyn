@@ -5,6 +5,7 @@ import 'package:happyn/core/theme/app_colors.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/config/auth_config.dart';
+import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/utils/age.dart';
 import 'dart:async';
 import 'package:happyn/core/push/push_service.dart';
@@ -50,7 +51,11 @@ class _LoginScreenState extends State<LoginScreen> {
             .eq('id', user.id)
             .maybeSingle();
         onboarded = (row?['onboarded'] ?? false) as bool;
-      } catch (_) {}
+      } catch (e, st) {
+        // Lecture impossible : on laisse entrer plutot que de bloquer la
+        // connexion. Au pire, l'onboarding est saute cette fois-ci.
+        reportCaught(e, st, where: 'login.routeAfterAuth');
+      }
     }
     if (!mounted) return;
     if (onboarded) {

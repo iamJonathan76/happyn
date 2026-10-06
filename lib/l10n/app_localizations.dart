@@ -3457,6 +3457,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sales aren\'t open for this event yet. Try again later.'**
   String get errSalesNotOpen;
+
+  /// No description provided for @couldNotLoadProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your profile details. Pull back and try again.'**
+  String get couldNotLoadProfile;
+
+  /// No description provided for @couldNotOpenEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this event.'**
+  String get couldNotOpenEvent;
 }
 
 class _AppLocalizationsDelegate
