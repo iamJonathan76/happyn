@@ -403,6 +403,13 @@ La date fait maintenant partie de la clé.
 - **Modération à l'échelle** — regroupement par cible, seuil de retrait
   automatique, attribution entre modérateurs.
 - **Journalisation comportementale** — après le texte légal, jamais avant.
+- **Notifications qui suivent la langue après coup** — aujourd'hui une
+  notification est écrite une fois, dans la langue du profil à l'envoi
+  (`translate_notification`, migration 20261006010000). Changer de langue ne
+  traduit pas les anciennes. Version complète : stocker le type et ses valeurs,
+  reconstruire la phrase dans l'app. La bulle push, elle, ne changera jamais.
+  Signal : une personne qui demande à relire une ancienne notification dans sa
+  langue.
 
 ---
 
@@ -439,7 +446,9 @@ referme. Depuis : Flutter 3.47.6 et CocoaPods 1.17.0, `flutter build ios
 **Swift Package Manager est interdit dans `pubspec.yaml`**, pas dans la config
 d'une machine : le premier build sur ce Mac l'avait réactivé, avec le retour
 assuré de `GoogleUtilities` en double (voir le commit `8b126f1`). CocoaPods
-1.17 plante sans `LANG=en_US.UTF-8` dans le terminal. Et Firebase cesse de
+1.17 plante sans `LANG=en_US.UTF-8` dans le terminal. Postgres 17 est installé
+(`brew install postgresql@17`) pour exécuter une migration sur une base
+jetable avant de l'appliquer ; Docker, lui, n'y est pas. Et Firebase cesse de
 publier sur CocoaPods après octobre 2026 : passer en SPM complet le jour où
 `flutter_secure_storage` le supportera. Les versions connues pour donner un build vert : macOS 26, Xcode 27,
 Flutter 3.44.1, Dart 3.12.1, CocoaPods 1.16.2, Firebase iOS 12.18.0, 41 pods.

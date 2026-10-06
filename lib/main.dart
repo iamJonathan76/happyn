@@ -101,6 +101,7 @@ class HappynApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
+    ref.watch(notificationLanguageSyncProvider);
     return MaterialApp(
       title: 'HAPPYN',
       debugShowCheckedModeBanner: false,
