@@ -16,10 +16,14 @@
 // pour qu'aucune cascade n'emporte les lignes qu'on veut conserver
 // (billets passés, événements passés).
 //
-// Réponses d'erreur métier :
-//   has_paid_sales -> l'organisateur a des ventes payantes en cours ; il doit
-//                     d'abord annuler/rembourser. (Inerte tant que Stripe est
-//                     en mode test — c'est le point d'accroche du futur flux.)
+// Réponses d'erreur métier (409) — la suppression est refusée tant que de
+// l'argent est en jeu, pour ne le faire perdre à personne :
+//   has_paid_sales       -> billets payants vendus sur un événement à venir ;
+//                           l'organisateur l'annule d'abord (ce qui rembourse).
+//   has_pending_earnings -> des gains pas encore versés ; supprimer couperait
+//                           le lien Stripe et le versement n'aurait jamais lieu.
+//   has_paid_tickets     -> la personne détient un billet payé à venir ; elle
+//                           l'annule (remboursé) ou le transfère d'abord.
 // =============================================================================
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -37,6 +41,12 @@ function jsonResponse(body: unknown, status = 200) {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
+
+const BLOCKING_CODES = [
+  "has_paid_sales",
+  "has_pending_earnings",
+  "has_paid_tickets",
+];
 
 /// Supprime tous les fichiers d'un dossier utilisateur dans un bucket.
 /// Best-effort : un échec de Storage ne doit pas empêcher la suppression du
@@ -84,24 +94,29 @@ Deno.serve(async (req) => {
   const { error: rpcErr } = await userClient.rpc("delete_my_account_data");
   if (rpcErr) {
     console.error("delete_my_account_data failed:", rpcErr);
-    const blocked = rpcErr.message?.includes("has_paid_sales");
+    const blocked = BLOCKING_CODES.find((c) => rpcErr.message?.includes(c));
     return jsonResponse(
       {
-        error: blocked ? "has_paid_sales" : "deletion_failed",
+        error: blocked ?? "deletion_failed",
         detail: rpcErr.message,
       },
       blocked ? 409 : 500,
     );
   }
 
-  // 2. Nettoyage du Storage (avatars + images d'événements)
+  // 2. Nettoyage du Storage. `posts` manquait jusqu'au 2026-10-06 : les
+  //    publications partaient en base, mais leurs photos restaient servies
+  //    par URL publique, indéfiniment.
   const admin = createClient(supabaseUrl, serviceKey);
   await purgeBucket(admin, "avatars", user.id);
   await purgeBucket(admin, "events", user.id);
+  await purgeBucket(admin, "posts", user.id);
 
-  // 3. Suppression du compte auth. Emporte en cascade favorites,
-  //    notifications et user_legal_acceptances — les données qu'on voulait
-  //    conserver ont déjà été détachées à l'étape 1.
+  // 3. Suppression du compte auth. Emporte en cascade favoris, notifications,
+  //    publications, abonnements et consentements — les données qu'on voulait
+  //    conserver ont déjà été détachées à l'étape 1. Les messages privés, eux,
+  //    restent chez l'autre membre, auteur effacé (SET NULL, voir la
+  //    migration 20261006000000).
   const { error: delErr } = await admin.auth.admin.deleteUser(user.id);
   if (delErr) {
     console.error("auth deleteUser failed:", delErr);

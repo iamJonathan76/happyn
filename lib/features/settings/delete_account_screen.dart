@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/core/utils/support.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
@@ -30,7 +31,27 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
 
   int _n(String key) => (_preview?[key] as num?)?.toInt() ?? 0;
 
-  bool get _blocked => _n('blocked_paid_sales') > 0;
+  /// Le premier refus qui s'applique, dans l'ordre du serveur — ou null.
+  ///
+  /// Les clés sont les mêmes que les codes d'erreur renvoyés par
+  /// `delete-account` : l'aperçu et la suppression appellent les mêmes gardes
+  /// en base, donc ce qu'annonce l'écran est ce que le serveur appliquera.
+  String? get _blockingCode {
+    if (_n('blocked_paid_sales') > 0) return 'has_paid_sales';
+    if (_n('blocked_pending_earnings') > 0) return 'has_pending_earnings';
+    if (_n('blocked_paid_tickets') > 0) return 'has_paid_tickets';
+    return null;
+  }
+
+  bool get _blocked => _blockingCode != null;
+
+  /// Le message d'un refus, ou null si le code n'en est pas un.
+  String? _blockedMessage(AppLocalizations l, String? code) => switch (code) {
+        'has_paid_sales' => l.deleteAccountBlocked(kSupportEmail),
+        'has_pending_earnings' => l.deleteAccountBlockedEarnings(kSupportEmail),
+        'has_paid_tickets' => l.deleteAccountBlockedTickets(kSupportEmail),
+        _ => null,
+      };
 
   @override
   void initState() {
@@ -59,7 +80,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = '${AppLocalizations.of(context).deletionFailed}\n$e';
+          _error =
+              '${AppLocalizations.of(context).deletionFailed(kSupportEmail)}\n$e';
         });
       }
     }
@@ -88,9 +110,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
         if (!mounted) return;
         setState(() {
           _deleting = false;
-          _error = code == 'has_paid_sales'
-              ? l.deleteAccountBlocked
-              : '${l.deletionFailed}\n[$code] ${detail ?? ''}';
+          _error = _blockedMessage(l, code) ??
+              '${l.deletionFailed(kSupportEmail)}\n[$code] ${detail ?? ''}';
         });
         return;
       }
@@ -99,12 +120,25 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       if (!mounted) return;
       showAppSnack(context, l.accountDeleted);
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+    } on FunctionException catch (e) {
+      // Un refus (409) n'arrive pas dans `res.data` : le client lève une
+      // exception pour tout statut d'erreur. Sans ce cas, l'écran n'affichait
+      // jamais le motif du refus, seulement « la suppression a échoué ».
+      final details = e.details;
+      final code = details is Map ? details['error'] as String? : null;
+      debugPrint('DELETE_ACCOUNT refused: ${e.status} $details');
+      if (!mounted) return;
+      setState(() {
+        _deleting = false;
+        _error = _blockedMessage(l, code) ??
+            '${l.deletionFailed(kSupportEmail)}\n[${code ?? e.status}]';
+      });
     } catch (e) {
       debugPrint('DELETE_ACCOUNT exception: $e');
       if (!mounted) return;
       setState(() {
         _deleting = false;
-        _error = '${l.deletionFailed}\n$e';
+        _error = '${l.deletionFailed(kSupportEmail)}\n$e';
       });
     }
   }
@@ -159,7 +193,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 const SizedBox(height: 10),
 
                 if (_blocked)
-                  _bullet(l.deleteAccountBlocked, color: AppColors.error)
+                  _bullet(_blockedMessage(l, _blockingCode)!,
+                      color: AppColors.error)
                 else ...[
                   if (_n('upcoming_tickets') > 0)
                     _bullet(l.deleteAccountTicketsCancelled(

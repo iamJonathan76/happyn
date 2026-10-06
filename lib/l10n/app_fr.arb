@@ -480,19 +480,19 @@
   "aboutHappynBody": "Trouve les bons. Vis l'instant.\n\nDécouvre, crée et participe à des événements. Version {version}.",
   "selectDateOfBirth": "Sélectionne ta date de naissance",
 
-  "deleteAccountWarning": "C'est définitif et irréversible. Ton profil, ta photo, tes favoris et tes notifications seront supprimés.",
-  "deleteAccountRetention": "Les billets et événements passés sont conservés pour des raisons légales et comptables, mais détachés de ton profil. Tes événements passés afficheront « Organisateur supprimé ».",
+  "deleteAccountWarning": "C'est définitif et irréversible. Ton profil, ta photo, tes publications, tes favoris et tes notifications seront supprimés.",
+  "deleteAccountRetention": "Les billets et événements passés sont conservés pour des raisons légales et comptables, mais détachés de ton profil. Tes événements passés afficheront « Organisateur supprimé ». Les messages que tu as envoyés restent chez les personnes qui les ont reçus, signés « Compte supprimé ».",
   "deleteAccountWhatHappens": "Ce qui va se passer",
   "deleteAccountTicketsCancelled": "{count, plural, =1{1 billet à venir sera annulé} other{{count} billets à venir seront annulés}}",
   "deleteAccountEventsCancelled": "{count, plural, =1{1 événement à venir sera annulé et ses participants notifiés} other{{count} événements à venir seront annulés et leurs participants notifiés}}",
   "deleteAccountEventsDeleted": "{count, plural, =1{1 événement à venir sans participant sera supprimé} other{{count} événements à venir sans participant seront supprimés}}",
   "deleteAccountNothingPending": "Tu n'as rien en cours — ton compte peut être supprimé immédiatement.",
-  "deleteAccountBlocked": "Tu as des ventes de billets payants sur un événement à venir. Annule-le ou rembourse d'abord, ou écris à support@happyn.com.",
+  "deleteAccountBlocked": "Tu as vendu des billets payants pour un événement à venir. Annule d'abord l'événement — tes acheteurs seront remboursés. Une question : {email}",
   "deleteAccountConfirmEmail": "Saisis ton adresse e-mail pour confirmer",
   "deleteAccountEmailMismatch": "Cela ne correspond pas à ton adresse e-mail.",
   "deleteMyAccount": "Supprimer mon compte",
   "accountDeleted": "Ton compte a été supprimé.",
-  "deletionFailed": "La suppression a échoué. Réessaie ou écris à support@happyn.com.",
+  "deletionFailed": "La suppression a échoué. Réessaie ou écris à {email}.",
 
   "moments": "Moments",
   "feedDiscover": "Découvrir",
@@ -613,5 +613,9 @@
   "payoutUntitledEvent": "Événement sans titre",
   "errSalesNotOpen": "Les ventes ne sont pas encore ouvertes pour cet événement. Réessaie plus tard.",
   "couldNotLoadProfile": "Impossible de charger les détails de ton profil. Reviens en arrière et réessaie.",
-  "couldNotOpenEvent": "Impossible d'ouvrir cet événement."
+  "couldNotOpenEvent": "Impossible d'ouvrir cet événement.",
+  "deleteAccountBlockedEarnings": "Tu as des gains qui ne t'ont pas encore été versés. Supprimer maintenant couperait le lien avec ton compte de versement et tu les perdrais. Attends le versement, ou écris à {email}.",
+  "deleteAccountBlockedTickets": "Tu as un billet payé pour un événement à venir. Annule-le pour être remboursé, ou transfère-le à quelqu'un — tu pourras ensuite supprimer ton compte. Passé le délai d'annulation, tu pourras le supprimer une fois l'événement terminé. Une question : {email}",
+  "deletedAccount": "Compte supprimé",
+  "conversationClosed": "Ce compte n'existe plus. Tu peux encore lire cette conversation, mais plus y répondre."
 }

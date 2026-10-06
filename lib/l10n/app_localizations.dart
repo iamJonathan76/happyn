@@ -2705,13 +2705,13 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountWarning.
   ///
   /// In en, this message translates to:
-  /// **'This is permanent and cannot be undone. Your profile, photo, favourites and notifications will be deleted.'**
+  /// **'This is permanent and cannot be undone. Your profile, photo, posts, favourites and notifications will be deleted.'**
   String get deleteAccountWarning;
 
   /// No description provided for @deleteAccountRetention.
   ///
   /// In en, this message translates to:
-  /// **'Past tickets and past events are kept for legal and accounting reasons, but are detached from your profile. Your past events will show “Organizer deleted”.'**
+  /// **'Past tickets and past events are kept for legal and accounting reasons, but are detached from your profile. Your past events will show “Organizer deleted”. Messages you sent stay with the people who received them, shown as from “Deleted account”.'**
   String get deleteAccountRetention;
 
   /// No description provided for @deleteAccountWhatHappens.
@@ -2747,8 +2747,8 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountBlocked.
   ///
   /// In en, this message translates to:
-  /// **'You have paid ticket sales on an upcoming event. Cancel or refund it first, or contact support@happyn.com.'**
-  String get deleteAccountBlocked;
+  /// **'You\'ve sold paid tickets for an upcoming event. Cancel the event first — your buyers will be refunded. Questions: {email}'**
+  String deleteAccountBlocked(String email);
 
   /// No description provided for @deleteAccountConfirmEmail.
   ///
@@ -2777,8 +2777,8 @@ abstract class AppLocalizations {
   /// No description provided for @deletionFailed.
   ///
   /// In en, this message translates to:
-  /// **'Deletion failed. Please try again or contact support@happyn.com.'**
-  String get deletionFailed;
+  /// **'Deletion failed. Please try again or write to {email}.'**
+  String deletionFailed(String email);
 
   /// No description provided for @moments.
   ///
@@ -3469,6 +3469,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open this event.'**
   String get couldNotOpenEvent;
+
+  /// No description provided for @deleteAccountBlockedEarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'You have earnings that haven\'t been paid out yet. Deleting now would cut the link to your payout account and you\'d lose them. Wait for the payout, or write to {email}.'**
+  String deleteAccountBlockedEarnings(String email);
+
+  /// No description provided for @deleteAccountBlockedTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'You hold a paid ticket for an upcoming event. Cancel it to get refunded, or transfer it to someone — then you can delete your account. Past the cancellation deadline, you can delete it once the event is over. Questions: {email}'**
+  String deleteAccountBlockedTickets(String email);
+
+  /// No description provided for @deletedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted account'**
+  String get deletedAccount;
+
+  /// No description provided for @conversationClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'This account no longer exists. You can still read this conversation, but not reply.'**
+  String get conversationClosed;
 }
 
 class _AppLocalizationsDelegate

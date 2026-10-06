@@ -1503,11 +1503,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deleteAccountWarning =>
-      'C\'est définitif et irréversible. Ton profil, ta photo, tes favoris et tes notifications seront supprimés.';
+      'C\'est définitif et irréversible. Ton profil, ta photo, tes publications, tes favoris et tes notifications seront supprimés.';
 
   @override
   String get deleteAccountRetention =>
-      'Les billets et événements passés sont conservés pour des raisons légales et comptables, mais détachés de ton profil. Tes événements passés afficheront « Organisateur supprimé ».';
+      'Les billets et événements passés sont conservés pour des raisons légales et comptables, mais détachés de ton profil. Tes événements passés afficheront « Organisateur supprimé ». Les messages que tu as envoyés restent chez les personnes qui les ont reçus, signés « Compte supprimé ».';
 
   @override
   String get deleteAccountWhatHappens => 'Ce qui va se passer';
@@ -1551,8 +1551,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Tu n\'as rien en cours — ton compte peut être supprimé immédiatement.';
 
   @override
-  String get deleteAccountBlocked =>
-      'Tu as des ventes de billets payants sur un événement à venir. Annule-le ou rembourse d\'abord, ou écris à support@happyn.com.';
+  String deleteAccountBlocked(String email) {
+    return 'Tu as vendu des billets payants pour un événement à venir. Annule d\'abord l\'événement — tes acheteurs seront remboursés. Une question : $email';
+  }
 
   @override
   String get deleteAccountConfirmEmail =>
@@ -1569,8 +1570,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accountDeleted => 'Ton compte a été supprimé.';
 
   @override
-  String get deletionFailed =>
-      'La suppression a échoué. Réessaie ou écris à support@happyn.com.';
+  String deletionFailed(String email) {
+    return 'La suppression a échoué. Réessaie ou écris à $email.';
+  }
 
   @override
   String get moments => 'Moments';
@@ -1943,4 +1945,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get couldNotOpenEvent => 'Impossible d\'ouvrir cet événement.';
+
+  @override
+  String deleteAccountBlockedEarnings(String email) {
+    return 'Tu as des gains qui ne t\'ont pas encore été versés. Supprimer maintenant couperait le lien avec ton compte de versement et tu les perdrais. Attends le versement, ou écris à $email.';
+  }
+
+  @override
+  String deleteAccountBlockedTickets(String email) {
+    return 'Tu as un billet payé pour un événement à venir. Annule-le pour être remboursé, ou transfère-le à quelqu\'un — tu pourras ensuite supprimer ton compte. Passé le délai d\'annulation, tu pourras le supprimer une fois l\'événement terminé. Une question : $email';
+  }
+
+  @override
+  String get deletedAccount => 'Compte supprimé';
+
+  @override
+  String get conversationClosed =>
+      'Ce compte n\'existe plus. Tu peux encore lire cette conversation, mais plus y répondre.';
 }

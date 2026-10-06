@@ -49,12 +49,18 @@ class DirectMessagesScreen extends ConsumerWidget {
                   ),
                   itemBuilder: (context, index) {
                     final item = items[index];
+                    // Pas d'autre membre : il a supprime son compte. La
+                    // conversation reste, son identite non.
+                    final deleted = item['other_user_id'] == null;
                     final name = (item['other_name'] as String?)?.trim() ?? '';
                     final username = item['other_username'] as String? ?? '';
-                    final title = name.isNotEmpty
-                        ? name
-                        : (username.isNotEmpty ? '@$username' : l.userLabel);
-                    final avatar = item['other_avatar'] as String? ?? '';
+                    final title = deleted
+                        ? l.deletedAccount
+                        : name.isNotEmpty
+                            ? name
+                            : (username.isNotEmpty ? '@$username' : l.userLabel);
+                    final avatar =
+                        deleted ? '' : item['other_avatar'] as String? ?? '';
                     return ListTile(
                       contentPadding: const EdgeInsets.symmetric(vertical: 6),
                       leading: _Avatar(url: avatar, name: title),
@@ -208,6 +214,12 @@ class _DirectMessageThreadScreenState
       });
     });
     final currentUserId = ref.watch(currentUserIdProvider) ?? '';
+    // En cas de doute (chargement, erreur reseau), on laisse ecrire : la base
+    // refusera de toute facon un envoi vers un compte supprime.
+    final open = ref
+            .watch(directConversationOpenProvider(widget.conversationId))
+            .value ??
+        true;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -360,6 +372,19 @@ class _DirectMessageThreadScreenState
               },
             ),
           ),
+          if (!open)
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+                child: Text(
+                  l.conversationClosed,
+                  textAlign: TextAlign.center,
+                  style: AppText.caption.copyWith(color: AppColors.textLow),
+                ),
+              ),
+            )
+          else
           SafeArea(
             top: false,
             child: Padding(

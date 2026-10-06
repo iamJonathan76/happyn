@@ -1486,11 +1486,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountWarning =>
-      'This is permanent and cannot be undone. Your profile, photo, favourites and notifications will be deleted.';
+      'This is permanent and cannot be undone. Your profile, photo, posts, favourites and notifications will be deleted.';
 
   @override
   String get deleteAccountRetention =>
-      'Past tickets and past events are kept for legal and accounting reasons, but are detached from your profile. Your past events will show “Organizer deleted”.';
+      'Past tickets and past events are kept for legal and accounting reasons, but are detached from your profile. Your past events will show “Organizer deleted”. Messages you sent stay with the people who received them, shown as from “Deleted account”.';
 
   @override
   String get deleteAccountWhatHappens => 'What will happen';
@@ -1534,8 +1534,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'You have nothing pending — your account can be deleted right away.';
 
   @override
-  String get deleteAccountBlocked =>
-      'You have paid ticket sales on an upcoming event. Cancel or refund it first, or contact support@happyn.com.';
+  String deleteAccountBlocked(String email) {
+    return 'You\'ve sold paid tickets for an upcoming event. Cancel the event first — your buyers will be refunded. Questions: $email';
+  }
 
   @override
   String get deleteAccountConfirmEmail => 'Type your email address to confirm';
@@ -1551,8 +1552,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountDeleted => 'Your account has been deleted.';
 
   @override
-  String get deletionFailed =>
-      'Deletion failed. Please try again or contact support@happyn.com.';
+  String deletionFailed(String email) {
+    return 'Deletion failed. Please try again or write to $email.';
+  }
 
   @override
   String get moments => 'Moments';
@@ -1921,4 +1923,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couldNotOpenEvent => 'Could not open this event.';
+
+  @override
+  String deleteAccountBlockedEarnings(String email) {
+    return 'You have earnings that haven\'t been paid out yet. Deleting now would cut the link to your payout account and you\'d lose them. Wait for the payout, or write to $email.';
+  }
+
+  @override
+  String deleteAccountBlockedTickets(String email) {
+    return 'You hold a paid ticket for an upcoming event. Cancel it to get refunded, or transfer it to someone — then you can delete your account. Past the cancellation deadline, you can delete it once the event is over. Questions: $email';
+  }
+
+  @override
+  String get deletedAccount => 'Deleted account';
+
+  @override
+  String get conversationClosed =>
+      'This account no longer exists. You can still read this conversation, but not reply.';
 }
