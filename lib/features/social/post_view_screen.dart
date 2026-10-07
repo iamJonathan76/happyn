@@ -23,7 +23,7 @@ class PostViewScreen extends StatelessWidget {
         title: Text(AppLocalizations.of(context).post, style: AppText.h3),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: const EdgeInsets.only(top: 4, bottom: 32),
         children: [PostCard(post: post)],
       ),
     );

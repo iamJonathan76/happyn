@@ -707,5 +707,8 @@
   "reportedComment": "Reported comment",
   "reportCommentOn": "Under the post",
   "@commentsCount": {"placeholders": {"count": {"type": "int"}}},
-  "couldNotOpenPost": "Couldn't open this post."
+  "couldNotOpenPost": "Couldn't open this post.",
+  "cropTitle": "Adjust photo",
+  "cropAction": "Crop",
+  "viewAction": "View"
 }

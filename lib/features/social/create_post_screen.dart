@@ -1,14 +1,37 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:happyn/core/config/observability.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/social_provider.dart';
+import 'package:happyn/core/utils/post_image.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+
+/// Les formats proposes au recadrage : l'original, et les trois qu'Instagram a
+/// rendus familiers. Le fil affiche ensuite chaque image dans sa forme.
+const List<CropAspectRatioPresetData> _kCropPresets = [
+  CropAspectRatioPreset.original,
+  CropAspectRatioPreset.square,
+  _CropRatio('4:5', 4, 5),
+  _CropRatio('1.91:1', 191, 100),
+];
+
+class _CropRatio implements CropAspectRatioPresetData {
+  @override
+  final String name;
+  final int x;
+  final int y;
+  const _CropRatio(this.name, this.x, this.y);
+
+  @override
+  (int, int) get data => (x, y);
+}
 
 /// Publier une photo / un message, éventuellement rattaché à un événement.
 ///
@@ -28,6 +51,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   XFile? _image;
   String? _eventId;
   bool _saving = false;
+  // La photo telle que choisie, pour pouvoir la recadrer a nouveau sans la
+  // rechoisir — et sans recadrer un recadrage.
+  XFile? _original;
+  // Largeur / hauteur de l'image recadree, enregistree avec la publication.
+  double? _aspect;
 
   @override
   void initState() {
@@ -42,12 +70,59 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1400,
-      imageQuality: 82,
-    );
-    if (picked != null) setState(() => _image = picked);
+    // Pleine qualite ici : c'est le recadrage qui reduit, une seule fois.
+    // Reduire avant puis recadrer degraderait deux fois la meme photo.
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+    _original = picked;
+    await _crop();
+  }
+
+  /// Placer la photo dans le cadre avant de publier : la deplacer, zoomer,
+  /// choisir sa forme. Ecrans natifs (uCrop sur Android, TOCropViewController
+  /// sur iOS). Annuler garde l'image precedente, s'il y en avait une.
+  Future<void> _crop() async {
+    final original = _original;
+    if (original == null) return;
+    final l = AppLocalizations.of(context);
+    try {
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: original.path,
+        maxWidth: 1400,
+        maxHeight: 1400,
+        compressQuality: 82,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: l.cropTitle,
+            toolbarColor: AppColors.background,
+            toolbarWidgetColor: Colors.white,
+            statusBarLight: false,
+            backgroundColor: Colors.black,
+            activeControlsWidgetColor: AppColors.primary,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+            aspectRatioPresets: _kCropPresets,
+          ),
+          IOSUiSettings(
+            title: l.cropTitle,
+            doneButtonTitle: l.done,
+            cancelButtonTitle: l.cancel,
+            aspectRatioPresets: _kCropPresets,
+          ),
+        ],
+      );
+      if (cropped == null) return;
+      final bytes = await cropped.readAsBytes();
+      final decoded = await decodeImageFromList(bytes);
+      if (!mounted) return;
+      setState(() {
+        _image = XFile(cropped.path, mimeType: 'image/jpeg', name: 'post.jpg');
+        _aspect = decoded.width / decoded.height;
+      });
+    } catch (e, st) {
+      reportCaught(e, st, where: 'createPost.crop');
+      if (mounted) showAppSnack(context, l.postFailed);
+    }
   }
 
   Future<String?> _uploadImage(String userId) async {
@@ -90,6 +165,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         eventId: eventId,
         caption: caption,
         imageUrl: imageUrl,
+        imageAspect: imageUrl == null ? null : _aspect,
       );
 
       ref.invalidate(discoverFeedProvider);
@@ -145,7 +221,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
           GestureDetector(
             onTap: _saving ? null : _pickImage,
             child: Container(
-              height: 210,
+              // L'apercu prend la forme que la publication aura dans le fil :
+              // ce qu'on voit ici est ce que les autres verront.
+              height: _image == null ? 210 : null,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(18),
@@ -161,7 +239,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                         Text(l.tapToChoosePhoto, style: AppText.small),
                       ],
                     )
-                  : Stack(
+                  : AspectRatio(
+                      aspectRatio: displayAspect(_aspect),
+                      child: Stack(
                       fit: StackFit.expand,
                       children: [
                         ClipRRect(
@@ -170,10 +250,40 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                               fit: BoxFit.cover),
                         ),
                         Positioned(
+                          left: 8,
+                          bottom: 8,
+                          child: GestureDetector(
+                            onTap: _saving ? null : _crop,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.55),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.crop,
+                                      color: Colors.white, size: 15),
+                                  const SizedBox(width: 6),
+                                  Text(l.cropAction,
+                                      style: AppText.smallBold
+                                          .copyWith(color: Colors.white)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
                           top: 8,
                           right: 8,
                           child: GestureDetector(
-                            onTap: () => setState(() => _image = null),
+                            onTap: () => setState(() {
+                              _image = null;
+                              _original = null;
+                              _aspect = null;
+                            }),
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
@@ -186,6 +296,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                           ),
                         ),
                       ],
+                    ),
                     ),
             ),
           ),

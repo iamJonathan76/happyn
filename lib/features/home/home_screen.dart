@@ -471,8 +471,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 l.feedEmpty, l.feedEmptyBody),
           );
         }
+        // Pas de marge laterale : les publications vont bord a bord.
         return SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.zero,
           sliver: SliverList.builder(
             itemCount: posts.length,
             itemBuilder: (context, i) => PostCard(

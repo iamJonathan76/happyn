@@ -2134,4 +2134,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get couldNotOpenPost => 'Impossible d\'ouvrir cette publication.';
+
+  @override
+  String get cropTitle => 'Ajuster la photo';
+
+  @override
+  String get cropAction => 'Recadrer';
+
+  @override
+  String get viewAction => 'Voir';
 }

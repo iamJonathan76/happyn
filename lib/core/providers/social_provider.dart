@@ -159,6 +159,7 @@ Future<void> createPost({
   required String eventId,
   String? caption,
   String? imageUrl,
+  double? imageAspect,
 }) async {
   final uid = Supabase.instance.client.auth.currentUser?.id;
   if (uid == null) return;
@@ -167,6 +168,7 @@ Future<void> createPost({
     'event_id': eventId,
     if (caption != null && caption.trim().isNotEmpty) 'caption': caption.trim(),
     'image_url': ?imageUrl,
+    'image_aspect': ?imageAspect,
   });
 }
 

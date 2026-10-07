@@ -9,6 +9,7 @@ import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/utils/dates.dart';
+import 'package:happyn/core/utils/post_image.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
@@ -89,15 +90,6 @@ class _PostCardState extends ConsumerState<PostCard> {
   /// être invité. La pastille doit le dire, sinon elle promet une billetterie
   /// qui n'existe pas et le toucher n'aboutit qu'à une demande de code.
   bool get _eventIsPrivate => _p['event_visibility'] == 'private';
-
-  /// L'événement n'a pas encore eu lieu — il reste donc quelque chose à
-  /// réserver. Proposer « Obtenir des billets » sous une photo d'un concert
-  /// d'il y a trois mois serait une promesse creuse.
-  bool get _eventUpcoming {
-    final raw = _p['event_start_date'] as String?;
-    final date = raw == null ? null : DateTime.tryParse(raw);
-    return date != null && date.isAfter(DateTime.now());
-  }
 
   Future<void> _toggleLike() async {
     final next = !_liked;
@@ -314,127 +306,134 @@ class _PostCardState extends ConsumerState<PostCard> {
     final caption = (_p['caption'] as String?)?.trim() ?? '';
     final imageUrl = (_p['image_url'] as String?) ?? '';
     final eventTitle = _p['event_title'] as String?;
+    final author = ((_p['author_name'] as String?) ?? '').trim();
 
+    // Bord a bord, sans cadre : une publication est une bande du fil, comme
+    // sur Instagram. Un trait fin la separe de la suivante.
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 18),
+      margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _header(l),
-          // Ratio contraint a 4:5. Sans cela une photo en portrait prenait
-          // toute la hauteur de l'ecran et poussait la legende hors du champ.
+          // L'image dans sa forme, bornee entre 4:5 et 1.91:1 : une affiche
+          // paysage n'est plus rognee. La forme est connue avant que l'image
+          // arrive (`image_aspect`), donc le fil ne saute pas au chargement.
           if (imageUrl.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: AspectRatio(
-                  aspectRatio: 4 / 5,
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (_, _) =>
-                        Container(color: AppColors.imagePlaceholder),
-                    errorWidget: (_, _, _) => Container(
-                      color: AppColors.imagePlaceholder,
-                      child: Icon(Icons.image_not_supported_outlined,
-                          color: AppColors.textLow),
-                    ),
-                  ),
+            AspectRatio(
+              aspectRatio:
+                  displayAspect((_p['image_aspect'] as num?)?.toDouble()),
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (_, _) =>
+                    Container(color: AppColors.imagePlaceholder),
+                errorWidget: (_, _, _) => Container(
+                  color: AppColors.imagePlaceholder,
+                  child: Icon(Icons.image_not_supported_outlined,
+                      color: AppColors.textLow),
                 ),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: Row(
               children: [
-                if (eventTitle != null) ...[
-                  _eventChip(eventTitle, l),
-                  const SizedBox(height: 10),
-                ],
-                if (caption.isNotEmpty) ...[
-                  Text(caption, style: AppText.bodySm.copyWith(height: 1.45)),
-                  const SizedBox(height: 10),
-                ],
-                Row(
-                  children: [
-                GestureDetector(
+                _action(
                   onTap: _toggleLike,
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      // `min` : cette Row est elle-meme dans une Row, qui
-                      // donne a ses enfants une largeur infinie.
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedScale(
-                          scale: _liked ? 1.12 : 1,
-                          duration: const Duration(milliseconds: 140),
-                          child: Icon(
-                            _liked ? Icons.favorite : Icons.favorite_border,
-                            size: 21,
-                            color: _liked ? AppColors.pink : AppColors.textLow,
-                          ),
-                        ),
-                        if (_likeCount > 0) ...[
-                          const SizedBox(width: 7),
-                          Text('$_likeCount',
-                              style: AppText.smallBold.copyWith(
-                                  color: _liked
-                                      ? AppColors.pink
-                                      : AppColors.textMed)),
-                        ],
-                      ],
+                  icon: AnimatedScale(
+                    scale: _liked ? 1.12 : 1,
+                    duration: const Duration(milliseconds: 140),
+                    child: Icon(
+                      _liked ? Icons.favorite : Icons.favorite_border,
+                      size: 25,
+                      color: _liked ? AppColors.pink : Colors.white,
                     ),
                   ),
+                  count: _likeCount,
+                  countColor: _liked ? AppColors.pink : Colors.white,
                 ),
-                const SizedBox(width: 18),
-                GestureDetector(
+                _action(
                   onTap: _openComments,
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.chat_bubble_outline,
-                            size: 20, color: AppColors.textLow),
-                        if (_commentCount > 0) ...[
-                          const SizedBox(width: 7),
-                          Text('$_commentCount',
-                              style: AppText.smallBold
-                                  .copyWith(color: AppColors.textMed)),
-                        ],
-                      ],
-                    ),
-                  ),
+                  icon: const Icon(Icons.chat_bubble_outline,
+                      size: 23, color: Colors.white),
+                  count: _commentCount,
                 ),
-                const SizedBox(width: 18),
-                GestureDetector(
+                _action(
                   onTap: () => showShareSheet(context, ShareTarget.post(_p)),
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Icon(Icons.send_outlined,
-                        size: 20, color: AppColors.textLow),
-                  ),
-                ),
-                  ],
+                  icon: const Icon(Icons.send_outlined,
+                      size: 23, color: Colors.white),
                 ),
               ],
             ),
           ),
+          if (caption.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              // Le nom en tete de la legende : on lit qui parle avant ce
+              // qu'il dit, sans remonter jusqu'a l'en-tete.
+              child: Text.rich(
+                TextSpan(children: [
+                  if (author.isNotEmpty)
+                    TextSpan(
+                      text: '$author  ',
+                      style: AppText.bodySm.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.w700),
+                    ),
+                  TextSpan(
+                    text: caption,
+                    style: AppText.bodySm
+                        .copyWith(color: Colors.white, height: 1.45),
+                  ),
+                ]),
+              ),
+            ),
+          if (eventTitle != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: _eventCard(eventTitle, l),
+            ),
         ],
       ),
     );
   }
+
+  /// Une icone d'action et son compteur, comme sur Instagram : le chiffre
+  /// colle a ce qu'il compte. Pas de « 0 » : une icone seule invite mieux.
+  Widget _action({
+    required VoidCallback onTap,
+    required Widget icon,
+    int count = 0,
+    Color countColor = Colors.white,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 6, 14, 6),
+        child: Row(
+          // `min` : cette Row est elle-meme dans une Row, qui donne a ses
+          // enfants une largeur infinie.
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            icon,
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Text('$count',
+                  style: AppText.smallBold.copyWith(color: countColor)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _header(AppLocalizations l) {
     final name = (_p['author_name'] as String?)?.trim();
@@ -442,7 +441,7 @@ class _PostCardState extends ConsumerState<PostCard> {
     final label = (name == null || name.isEmpty) ? 'HAPPYN' : name;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 6, 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 10),
       child: Row(
         children: [
           // L'auteur mene a son profil : c'est le point d'entree du graphe
@@ -633,34 +632,58 @@ class _PostCardState extends ConsumerState<PostCard> {
         ),
       );
 
-  /// Pastille « événement » : c'est elle qui transforme une publication en
-  /// point d'entrée vers la billetterie.
+  /// La mini-carte de l'evenement sous la publication : vignette, titre,
+  /// date et ville, et « Voir » qui ouvre la fiche.
   ///
-  /// Deux versions volontairement différentes. Événement à venir : l'action
-  /// est nommée (« Obtenir des billets ») et la date rappelée, parce qu'il
-  /// reste quelque chose à faire. Événement passé : la pastille redevient
-  /// discrète et dit seulement « Voir l'événement » — promettre des billets
-  /// pour une soirée déjà finie ne serait pas une incitation mais un mensonge.
-  Widget _eventChip(String title, AppLocalizations l) {
-    final upcoming = _eventUpcoming;
-    final date = AppDates.dayMonthYear(context, _p['event_start_date'] as String?);
+  /// La date et le lieu donnent envie d'ouvrir avant meme de toucher : c'est
+  /// le chemin vers les billets. Evenement prive : ni affiche ni lieu, seulement
+  /// « Sur invitation » — la publication peut etre visible de gens a qui
+  /// l'organisateur n'a pas ouvert l'evenement.
+  Widget _eventCard(String title, AppLocalizations l) {
+    final private = _eventIsPrivate;
+    final image = (_p['event_image'] as String?) ?? '';
+    final date =
+        AppDates.dowDayMonthYear(context, _p['event_start_date'] as String?);
+    final city = ((_p['event_city'] as String?) ?? '').trim();
+    final subtitle = private
+        ? l.onInvitationChip
+        : [date, city].where((v) => v.isNotEmpty).join(' · ');
+
+    final thumbFallback = Container(
+      color: AppColors.primary.withValues(alpha: 0.18),
+      alignment: Alignment.center,
+      child: Icon(private ? Icons.lock_outline : Icons.event_outlined,
+          size: 20, color: AppColors.lavenderLight),
+    );
 
     return GestureDetector(
       onTap: _openEvent,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: upcoming ? 0.18 : 0.10),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-              color: AppColors.primary.withValues(alpha: upcoming ? 0.45 : 0.25)),
+          color: AppColors.cardDark,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           children: [
-            const Icon(Icons.confirmation_number_outlined,
-                size: 14, color: AppColors.lavenderLight),
-            const SizedBox(width: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(9),
+              child: SizedBox(
+                width: 46,
+                height: 46,
+                child: private || image.isEmpty
+                    ? thumbFallback
+                    : CachedNetworkImage(
+                        imageUrl: image,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => thumbFallback,
+                        errorWidget: (_, _, _) => thumbFallback,
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -668,24 +691,28 @@ class _PostCardState extends ConsumerState<PostCard> {
                   Text(title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppText.smallBold
-                          .copyWith(color: AppColors.lavenderLight)),
-                  const SizedBox(height: 1),
-                  Text(
-                    _eventIsPrivate
-                        ? l.onInvitationChip
-                        : upcoming && date.isNotEmpty
-                            ? '${l.getTickets} · $date'
-                            : l.viewEvent,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.micro,
-                  ),
+                      style: AppText.smallBold.copyWith(color: Colors.white)),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            AppText.micro.copyWith(color: AppColors.textLow)),
+                  ],
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right,
-                size: 16, color: AppColors.lavenderLight),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.messageMine,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(l.viewAction,
+                  style: AppText.smallBold.copyWith(color: Colors.white)),
+            ),
           ],
         ),
       ),

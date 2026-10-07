@@ -3763,6 +3763,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t open this post.'**
   String get couldNotOpenPost;
+
+  /// No description provided for @cropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust photo'**
+  String get cropTitle;
+
+  /// No description provided for @cropAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop'**
+  String get cropAction;
+
+  /// No description provided for @viewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get viewAction;
 }
 
 class _AppLocalizationsDelegate

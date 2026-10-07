@@ -442,9 +442,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         l.feedEmptyBody,
       );
     }
+    // Pas de marge laterale : les publications vont bord a bord.
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
       children: posts
           .map(
             (p) => PostCard(

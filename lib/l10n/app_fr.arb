@@ -662,5 +662,8 @@
   "commentsTurnedOn": "Commentaires activés.",
   "reportedComment": "Commentaire signalé",
   "reportCommentOn": "Sous la publication",
-  "couldNotOpenPost": "Impossible d'ouvrir cette publication."
+  "couldNotOpenPost": "Impossible d'ouvrir cette publication.",
+  "cropTitle": "Ajuster la photo",
+  "cropAction": "Recadrer",
+  "viewAction": "Voir"
 }

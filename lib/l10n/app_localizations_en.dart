@@ -2109,4 +2109,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couldNotOpenPost => 'Couldn\'t open this post.';
+
+  @override
+  String get cropTitle => 'Adjust photo';
+
+  @override
+  String get cropAction => 'Crop';
+
+  @override
+  String get viewAction => 'View';
 }
