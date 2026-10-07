@@ -668,5 +668,8 @@
   "viewAction": "Voir",
   "directionsShort": "Itinéraire",
   "eventUntilTime": "jusqu'à {time}",
-  "eventUntilDate": "jusqu'au {date} · {time}"
+  "eventUntilDate": "jusqu'au {date} · {time}",
+  "payoutStatusCancelled": "Annulé",
+  "payoutCancelledRefunded": "Événement annulé — les acheteurs ont été remboursés. Rien ne sera versé.",
+  "payoutCancelledRefundsPending": "Événement annulé — des acheteurs n'ont pas encore été remboursés. Rien ne sera versé."
 }

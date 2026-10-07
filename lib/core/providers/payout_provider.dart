@@ -77,7 +77,7 @@ class PayoutLine {
   final int platformFeeCents;
   final int netCents;
 
-  /// `pending` | `paid` | `failed` | `skipped`
+  /// `pending` | `paid` | `failed` | `skipped` | `cancelled`
   final String status;
   final DateTime? paidAt;
 

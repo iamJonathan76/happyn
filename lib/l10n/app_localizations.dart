@@ -3799,6 +3799,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'until {date} · {time}'**
   String eventUntilDate(String date, String time);
+
+  /// No description provided for @payoutStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get payoutStatusCancelled;
+
+  /// No description provided for @payoutCancelledRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Event cancelled — buyers were refunded. Nothing will be paid out.'**
+  String get payoutCancelledRefunded;
+
+  /// No description provided for @payoutCancelledRefundsPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Event cancelled — some buyers haven\'t been refunded yet. Nothing will be paid out.'**
+  String get payoutCancelledRefundsPending;
 }
 
 class _AppLocalizationsDelegate

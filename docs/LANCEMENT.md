@@ -429,6 +429,14 @@ choses qu'un nouveau contexte ne peut pas deviner.
 - **Le taux de commission** — `platform_fee_bps()` est à 500 (5 %), un
   placeholder. Figé par événement à sa création, donc le changer ne corrige pas
   les événements déjà publiés. Voir § 2.1.
+- **Les versements ne partent jamais tout seuls.** Vérifié le 2026-10-07 :
+  l'extension `pg_cron` n'est pas installée, aucune tâche n'appelle
+  `run-payouts`. L'écran « Get paid » annonce une date de versement que rien
+  ne tiendra. À faire, dans cet ordre : un premier versement SURVEILLÉ (petit
+  événement payé de test, terminé depuis plus de 3 jours, appel manuel de
+  `run-payouts` en regardant Stripe) ; puis seulement, `pg_cron` et un appel
+  quotidien, le secret `PAYOUT_HOOK_SECRET` rangé dans `private.settings`
+  comme celui des notifications.
 - **L'historique des migrations côté Supabase est vide.** Les migrations ont
   toujours été appliquées à la main (éditeur SQL, `db query`), jamais par
   `db push` : la CLI croit donc qu'aucune n'est passée. **Ne jamais lancer

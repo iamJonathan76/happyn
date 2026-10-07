@@ -272,6 +272,9 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen>
       'paid' => (l.payoutStatusPaid, AppColors.green),
       'failed' => (l.payoutStatusFailed, AppColors.error),
       'skipped' => (l.payoutStatusNothing, AppColors.textLow),
+      // Annule : jamais verse. Ne pas dire « a venir » d'un argent qui ne
+      // viendra pas.
+      'cancelled' => (l.payoutStatusCancelled, AppColors.textLow),
       _ => (l.payoutStatusScheduled, AppColors.amber),
     };
 
@@ -359,6 +362,14 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen>
     }
     if (p.hasFailed) return l.payoutFailedBody;
     if (p.status == 'skipped') return l.payoutNothingBody;
+    // Rembourse en entier ou non : c'est ce qui dit s'il reste quelque chose
+    // a faire. Des remboursements en attente sur un evenement annule, c'est de
+    // l'argent d'acheteurs que personne n'a rendu.
+    if (p.status == 'cancelled') {
+      return p.withheldCents >= p.grossCents
+          ? l.payoutCancelledRefunded
+          : l.payoutCancelledRefundsPending;
+    }
     if (p.eligibleAt == null) return l.payoutAfterEvent;
     return l.payoutScheduledFor(_day(context, p.eligibleAt!));
   }

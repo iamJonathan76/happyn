@@ -2131,4 +2131,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String eventUntilDate(String date, String time) {
     return 'until $date · $time';
   }
+
+  @override
+  String get payoutStatusCancelled => 'Cancelled';
+
+  @override
+  String get payoutCancelledRefunded =>
+      'Event cancelled — buyers were refunded. Nothing will be paid out.';
+
+  @override
+  String get payoutCancelledRefundsPending =>
+      'Event cancelled — some buyers haven\'t been refunded yet. Nothing will be paid out.';
 }
