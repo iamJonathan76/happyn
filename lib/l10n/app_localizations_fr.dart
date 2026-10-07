@@ -1484,7 +1484,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deleteAccountWarning =>
-      'C\'est définitif et irréversible. Ton profil, ta photo, tes publications, tes favoris et tes notifications seront supprimés.';
+      'C\'est définitif et irréversible. Ton profil, ta photo, tes publications, tes commentaires, tes favoris et tes notifications seront supprimés.';
 
   @override
   String get deleteAccountRetention =>
@@ -2069,4 +2069,69 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get cancelErrTransferred =>
       'Un billet reçu par transfert n\'est pas remboursable.';
+
+  @override
+  String get comments => 'Commentaires';
+
+  @override
+  String commentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count commentaires',
+      one: '1 commentaire',
+      zero: 'Aucun commentaire',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get commentHint => 'Ajouter un commentaire…';
+
+  @override
+  String get commentsEmpty => 'Sois le premier à commenter.';
+
+  @override
+  String get commentsClosed =>
+      'Les commentaires sont désactivés pour cette publication.';
+
+  @override
+  String get commentsLoadFailed => 'Impossible de charger les commentaires.';
+
+  @override
+  String get commentSendFailed =>
+      'Impossible de publier ton commentaire. Réessaie.';
+
+  @override
+  String get commentDeleted => 'Commentaire supprimé.';
+
+  @override
+  String get commentDeleteFailed => 'Impossible de supprimer ce commentaire.';
+
+  @override
+  String get deleteComment => 'Supprimer le commentaire';
+
+  @override
+  String get reportComment => 'Signaler le commentaire';
+
+  @override
+  String get turnOffComments => 'Désactiver les commentaires';
+
+  @override
+  String get turnOnComments => 'Activer les commentaires';
+
+  @override
+  String get commentsTurnedOff => 'Commentaires désactivés.';
+
+  @override
+  String get commentsTurnedOn => 'Commentaires activés.';
+
+  @override
+  String get reportedComment => 'Commentaire signalé';
+
+  @override
+  String get reportCommentOn => 'Sous la publication';
+
+  @override
+  String get couldNotOpenPost => 'Impossible d\'ouvrir cette publication.';
 }

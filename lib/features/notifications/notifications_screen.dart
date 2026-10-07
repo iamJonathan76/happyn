@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/features/social/direct_messages_screen.dart';
+import 'package:happyn/features/social/post_view_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -60,6 +61,32 @@ class NotificationsScreen extends ConsumerWidget {
     }
   }
 
+  /// La publication commentée, lue avec les droits de la personne : si elle a
+  /// été retirée entre-temps, on le dit plutôt qu'un tap sans effet.
+  Future<void> _openPost(BuildContext context, String postId) async {
+    try {
+      final row = await Supabase.instance.client
+          .from('feed_posts')
+          .select()
+          .eq('id', postId)
+          .maybeSingle();
+      if (!context.mounted) return;
+      if (row == null) {
+        showAppSnack(
+            context, AppLocalizations.of(context).sharedContentUnavailable);
+        return;
+      }
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) =>
+              PostViewScreen(post: Map<String, dynamic>.from(row))));
+    } catch (e, st) {
+      reportCaught(e, st, where: 'notifications.openPost');
+      if (context.mounted) {
+        showAppSnack(context, AppLocalizations.of(context).couldNotOpenPost);
+      }
+    }
+  }
+
   (IconData, Color) _visual(String type) {
     switch (type) {
       case 'ticket_confirmed':
@@ -72,6 +99,8 @@ class NotificationsScreen extends ConsumerWidget {
         return (Icons.edit_calendar, AppColors.amber);
       case 'direct_message':
         return (Icons.chat_bubble, AppColors.lavender);
+      case 'post_comment':
+        return (Icons.mode_comment, AppColors.pink);
       default:
         return (Icons.notifications, AppColors.lavender);
     }
@@ -154,6 +183,7 @@ class NotificationsScreen extends ConsumerWidget {
     final unread = n['read'] == false;
     final eventId = n['event_id'] as String?;
     final conversationId = n['conversation_id'] as String?;
+    final postId = n['post_id'] as String?;
 
     return GestureDetector(
       onTap: () {
@@ -171,6 +201,8 @@ class NotificationsScreen extends ConsumerWidget {
               recipientAvatar: '',
             ),
           ));
+        } else if (postId != null) {
+          _openPost(context, postId);
         } else if (eventId != null) {
           _openEvent(context, eventId);
         }

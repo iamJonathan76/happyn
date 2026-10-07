@@ -1467,7 +1467,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountWarning =>
-      'This is permanent and cannot be undone. Your profile, photo, posts, favourites and notifications will be deleted.';
+      'This is permanent and cannot be undone. Your profile, photo, posts, comments, favourites and notifications will be deleted.';
 
   @override
   String get deleteAccountRetention =>
@@ -2045,4 +2045,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelErrTransferred => 'Transferred tickets can\'t be refunded.';
+
+  @override
+  String get comments => 'Comments';
+
+  @override
+  String commentsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count comments',
+      one: '1 comment',
+      zero: 'No comments yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get commentHint => 'Add a comment…';
+
+  @override
+  String get commentsEmpty => 'Be the first to comment.';
+
+  @override
+  String get commentsClosed => 'Comments are turned off for this post.';
+
+  @override
+  String get commentsLoadFailed => 'Couldn\'t load comments.';
+
+  @override
+  String get commentSendFailed =>
+      'Couldn\'t post your comment. Please try again.';
+
+  @override
+  String get commentDeleted => 'Comment deleted.';
+
+  @override
+  String get commentDeleteFailed => 'Couldn\'t delete this comment.';
+
+  @override
+  String get deleteComment => 'Delete comment';
+
+  @override
+  String get reportComment => 'Report comment';
+
+  @override
+  String get turnOffComments => 'Turn off comments';
+
+  @override
+  String get turnOnComments => 'Turn on comments';
+
+  @override
+  String get commentsTurnedOff => 'Comments turned off.';
+
+  @override
+  String get commentsTurnedOn => 'Comments turned on.';
+
+  @override
+  String get reportedComment => 'Reported comment';
+
+  @override
+  String get reportCommentOn => 'Under the post';
+
+  @override
+  String get couldNotOpenPost => 'Couldn\'t open this post.';
 }

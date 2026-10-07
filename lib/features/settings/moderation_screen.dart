@@ -109,6 +109,7 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
         'event' => l.reportedEvent,
         'post' => l.reportedPost,
         'message' => l.reportedMessage,
+        'comment' => l.reportedComment,
         _ => l.reportedUser,
       };
 
@@ -116,6 +117,7 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
         'event' => Icons.event_outlined,
         'post' => Icons.image_outlined,
         'message' => Icons.chat_bubble_outline,
+        'comment' => Icons.mode_comment_outlined,
         _ => Icons.person_outline,
       };
 
@@ -339,6 +341,32 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
                       style: AppText.small.copyWith(height: 1.35)),
                 ),
               ),
+            ));
+          }
+        }
+        break;
+
+      case 'comment':
+        title((t['body'] as String?)?.trim());
+        row(Icons.person_outline, t['author_name'] as String?);
+        row(Icons.schedule,
+            AppDates.dayMonthYear(context, t['created_at'] as String?));
+        // Ou il a ete ecrit : « bravo » sous une photo de soiree et sous la
+        // photo d'une personne ne se jugent pas pareil.
+        final caption = (t['post_caption'] as String?)?.trim();
+        final postAuthor = t['post_author'] as String?;
+        if ((caption != null && caption.isNotEmpty) || postAuthor != null) {
+          lines.add(const SizedBox(height: 12));
+          lines.add(Text(l.reportCommentOn,
+              style: AppText.micro.copyWith(
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted)));
+          row(Icons.person_outline, postAuthor);
+          if (caption != null && caption.isNotEmpty) {
+            lines.add(Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(caption, style: AppText.small.copyWith(height: 1.4)),
             ));
           }
         }

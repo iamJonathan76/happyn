@@ -22,6 +22,8 @@ que Google est proposé.
 | Transfert de billet — aux gens qu'on suit, âge et blocage vérifiés ; payé puis transféré = non remboursable | ✅ code (2026-10-07) |
 | Événements privés, code d'invitation, portée des photos | ✅ |
 | Partie sociale : publications, fil, profils, suivi, « Qui y va » | ✅ |
+| Commentaires — fermables par l'auteur, signalables, filtrés par les blocages en base | ✅ code (2026-10-07) |
+| Feuille d'envoi (dans HAPPYN et vers les autres apps) et transfert aux gens qu'on suit | ✅ en prod |
 | Âge (14 / 18), FR-EN dans l'app | ✅ |
 | Suppression de compte — v2 : ne fait perdre ni argent ni preuves | ✅ code, en prod (2026-10-06) |
 | Page publique de suppression, exigée par Google Play | ✅ code, `web/delete-account.html` |

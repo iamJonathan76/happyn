@@ -2675,7 +2675,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountWarning.
   ///
   /// In en, this message translates to:
-  /// **'This is permanent and cannot be undone. Your profile, photo, posts, favourites and notifications will be deleted.'**
+  /// **'This is permanent and cannot be undone. Your profile, photo, posts, comments, favourites and notifications will be deleted.'**
   String get deleteAccountWarning;
 
   /// No description provided for @deleteAccountRetention.
@@ -3655,6 +3655,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transferred tickets can\'t be refunded.'**
   String get cancelErrTransferred;
+
+  /// No description provided for @comments.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get comments;
+
+  /// No description provided for @commentsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No comments yet} =1{1 comment} other{{count} comments}}'**
+  String commentsCount(int count);
+
+  /// No description provided for @commentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment…'**
+  String get commentHint;
+
+  /// No description provided for @commentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the first to comment.'**
+  String get commentsEmpty;
+
+  /// No description provided for @commentsClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments are turned off for this post.'**
+  String get commentsClosed;
+
+  /// No description provided for @commentsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load comments.'**
+  String get commentsLoadFailed;
+
+  /// No description provided for @commentSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t post your comment. Please try again.'**
+  String get commentSendFailed;
+
+  /// No description provided for @commentDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment deleted.'**
+  String get commentDeleted;
+
+  /// No description provided for @commentDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete this comment.'**
+  String get commentDeleteFailed;
+
+  /// No description provided for @deleteComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete comment'**
+  String get deleteComment;
+
+  /// No description provided for @reportComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Report comment'**
+  String get reportComment;
+
+  /// No description provided for @turnOffComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off comments'**
+  String get turnOffComments;
+
+  /// No description provided for @turnOnComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on comments'**
+  String get turnOnComments;
+
+  /// No description provided for @commentsTurnedOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments turned off.'**
+  String get commentsTurnedOff;
+
+  /// No description provided for @commentsTurnedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments turned on.'**
+  String get commentsTurnedOn;
+
+  /// No description provided for @reportedComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported comment'**
+  String get reportedComment;
+
+  /// No description provided for @reportCommentOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Under the post'**
+  String get reportCommentOn;
+
+  /// No description provided for @couldNotOpenPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open this post.'**
+  String get couldNotOpenPost;
 }
 
 class _AppLocalizationsDelegate

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/providers/admin_provider.dart';
+import 'package:happyn/core/providers/comments_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
@@ -13,6 +14,7 @@ import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/features/events/join_private_event_screen.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
+import 'package:happyn/features/social/widgets/comments_sheet.dart';
 import 'package:happyn/features/social/widgets/share_sheet.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
@@ -37,6 +39,33 @@ class _PostCardState extends ConsumerState<PostCard> {
   // État optimiste : le like réagit tout de suite, sans attendre le serveur.
   bool? _likedOverride;
   int _likeDelta = 0;
+  // Fermeture des commentaires basculée ici, avant que le fil ne se recharge.
+  bool? _commentsDisabledOverride;
+
+  bool get _commentsDisabled =>
+      _commentsDisabledOverride ?? (_p['comments_disabled'] == true);
+  int get _commentCount => (_p['comment_count'] as num?)?.toInt() ?? 0;
+
+  Future<void> _openComments() async {
+    await showCommentsSheet(
+        context, {..._p, 'comments_disabled': _commentsDisabled});
+    // Le compteur vient du fil : on lui demande de se recharger.
+    widget.onChanged?.call();
+  }
+
+  Future<void> _toggleComments(AppLocalizations l) async {
+    final next = !_commentsDisabled;
+    try {
+      await setCommentsDisabled(_p['id'] as String, next);
+      if (!mounted) return;
+      setState(() => _commentsDisabledOverride = next);
+      showAppSnack(context, next ? l.commentsTurnedOff : l.commentsTurnedOn);
+      widget.onChanged?.call();
+    } catch (e) {
+      debugPrint('setCommentsDisabled failed: $e');
+      if (mounted) showAppSnack(context, l.moderationFailed);
+    }
+  }
 
   Map<String, dynamic> get _p => widget.post;
 
@@ -368,6 +397,27 @@ class _PostCardState extends ConsumerState<PostCard> {
                 ),
                 const SizedBox(width: 18),
                 GestureDetector(
+                  onTap: _openComments,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.chat_bubble_outline,
+                            size: 20, color: AppColors.textLow),
+                        if (_commentCount > 0) ...[
+                          const SizedBox(width: 7),
+                          Text('$_commentCount',
+                              style: AppText.smallBold
+                                  .copyWith(color: AppColors.textMed)),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 18),
+                GestureDetector(
                   onTap: () => showShareSheet(context, ShareTarget.post(_p)),
                   behavior: HitTestBehavior.opaque,
                   child: Padding(
@@ -469,6 +519,8 @@ class _PostCardState extends ConsumerState<PostCard> {
                     targetType: 'post', targetId: _p['id'] as String);
               } else if (v == 'edit') {
                 await _editCaption(l);
+              } else if (v == 'toggle_comments') {
+                await _toggleComments(l);
               } else if (v == 'delete') {
                 await _confirmDelete(l);
               }
@@ -498,6 +550,24 @@ class _PostCardState extends ConsumerState<PostCard> {
                         size: 18, color: Colors.white),
                     const SizedBox(width: 10),
                     Text(l.editPost, style: AppText.body),
+                  ]),
+                ),
+              if (_isMine)
+                PopupMenuItem(
+                  value: 'toggle_comments',
+                  child: Row(children: [
+                    Icon(
+                        _commentsDisabled
+                            ? Icons.chat_bubble_outline
+                            : Icons.comments_disabled_outlined,
+                        size: 18,
+                        color: Colors.white),
+                    const SizedBox(width: 10),
+                    Text(
+                        _commentsDisabled
+                            ? l.turnOnComments
+                            : l.turnOffComments,
+                        style: AppText.body),
                   ]),
                 ),
               if (_isMine)
