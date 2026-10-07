@@ -400,9 +400,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get eventEnded => 'Événement terminé';
 
   @override
-  String get sharingSoon => 'Partage — bientôt disponible';
-
-  @override
   String get aboutThisEvent => 'À propos de l\'événement';
 
   @override
@@ -1962,4 +1959,88 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get conversationClosed =>
       'Ce compte n\'existe plus. Tu peux encore lire cette conversation, mais plus y répondre.';
+
+  @override
+  String get shareSearch => 'Rechercher';
+
+  @override
+  String get shareNoFollowing =>
+      'Suis des gens pour leur envoyer des publications et des événements.';
+
+  @override
+  String get shareNoMatch => 'Personne parmi tes abonnements.';
+
+  @override
+  String get shareNoteHint => 'Ajouter un mot…';
+
+  @override
+  String shareSendCount(int count) {
+    return 'Envoyer ($count)';
+  }
+
+  @override
+  String shareMaxPeople(int count) {
+    return '$count personnes maximum à la fois.';
+  }
+
+  @override
+  String shareSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Envoyé à $count personnes',
+      one: 'Envoyé à 1 personne',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareSentPartly(int sent, int total) {
+    return 'Envoyé à $sent sur $total. Réessaie pour les autres.';
+  }
+
+  @override
+  String get shareFailed => 'Impossible d\'envoyer. Réessaie.';
+
+  @override
+  String get shareCopy => 'Copier';
+
+  @override
+  String get shareCopied => 'Copié';
+
+  @override
+  String get shareMore => 'Plus';
+
+  @override
+  String get shareInAppOnly =>
+      'Partageable seulement dans HAPPYN : c\'est privé ou réservé aux participants.';
+
+  @override
+  String shareEventText(String title, String date) {
+    return '$title — $date. À découvrir sur HAPPYN :';
+  }
+
+  @override
+  String sharePostText(String author, String event) {
+    return '$author a publié depuis $event sur HAPPYN :';
+  }
+
+  @override
+  String get sharedPost => 'A partagé une publication';
+
+  @override
+  String get sharedEvent => 'A partagé un événement';
+
+  @override
+  String get sharedContentUnavailable =>
+      'Ce contenu n\'est pas disponible pour toi.';
+
+  @override
+  String get sharedContentDeleted => 'Ce contenu a été supprimé.';
+
+  @override
+  String get post => 'Publication';
+
+  @override
+  String get sharedSomething => 'A partagé un contenu';
 }

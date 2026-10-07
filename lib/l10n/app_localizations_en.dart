@@ -397,9 +397,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventEnded => 'Event ended';
 
   @override
-  String get sharingSoon => 'Sharing — coming soon';
-
-  @override
   String get aboutThisEvent => 'About this event';
 
   @override
@@ -1940,4 +1937,86 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get conversationClosed =>
       'This account no longer exists. You can still read this conversation, but not reply.';
+
+  @override
+  String get shareSearch => 'Search';
+
+  @override
+  String get shareNoFollowing => 'Follow people to send them posts and events.';
+
+  @override
+  String get shareNoMatch => 'No one you follow matches.';
+
+  @override
+  String get shareNoteHint => 'Add a message…';
+
+  @override
+  String shareSendCount(int count) {
+    return 'Send ($count)';
+  }
+
+  @override
+  String shareMaxPeople(int count) {
+    return 'Up to $count people at a time.';
+  }
+
+  @override
+  String shareSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sent to $count people',
+      one: 'Sent to 1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareSentPartly(int sent, int total) {
+    return 'Sent to $sent of $total. Try again for the others.';
+  }
+
+  @override
+  String get shareFailed => 'Couldn\'t send. Please try again.';
+
+  @override
+  String get shareCopy => 'Copy';
+
+  @override
+  String get shareCopied => 'Copied';
+
+  @override
+  String get shareMore => 'More';
+
+  @override
+  String get shareInAppOnly =>
+      'Only shareable inside HAPPYN — this is private or limited to attendees.';
+
+  @override
+  String shareEventText(String title, String date) {
+    return '$title — $date. Find it on HAPPYN:';
+  }
+
+  @override
+  String sharePostText(String author, String event) {
+    return '$author posted from $event on HAPPYN:';
+  }
+
+  @override
+  String get sharedPost => 'Shared a post';
+
+  @override
+  String get sharedEvent => 'Shared an event';
+
+  @override
+  String get sharedContentUnavailable => 'This isn\'t available to you.';
+
+  @override
+  String get sharedContentDeleted => 'This was deleted.';
+
+  @override
+  String get post => 'Post';
+
+  @override
+  String get sharedSomething => 'Shared something';
 }

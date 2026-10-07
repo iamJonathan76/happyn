@@ -403,6 +403,12 @@ La date fait maintenant partie de la clé.
 - **Modération à l'échelle** — regroupement par cible, seuil de retrait
   automatique, attribution entre modérateurs.
 - **Journalisation comportementale** — après le texte légal, jamais avant.
+- **Demandes de message** — aujourd'hui, quiconque te suit peut t'écrire,
+  ce qui garde l'organisateur joignable par son public. Au-delà de quelques
+  centaines d'abonnés, sa messagerie devient ingérable et ouverte au
+  harcèlement : les messages de gens qu'il ne suit pas devront arriver dans un
+  dossier à part, sans notification. HAPPYN n'est pas une app de chat — ne pas
+  aller plus loin que ça. Signal : un organisateur qui s'en plaint.
 - **Notifications qui suivent la langue après coup** — aujourd'hui une
   notification est écrite une fois, dans la langue du profil à l'envoi
   (`translate_notification`, migration 20261006010000). Changer de langue ne

@@ -794,12 +794,6 @@ abstract class AppLocalizations {
   /// **'Event ended'**
   String get eventEnded;
 
-  /// No description provided for @sharingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Sharing — coming soon'**
-  String get sharingSoon;
-
   /// No description provided for @aboutThisEvent.
   ///
   /// In en, this message translates to:
@@ -3493,6 +3487,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This account no longer exists. You can still read this conversation, but not reply.'**
   String get conversationClosed;
+
+  /// No description provided for @shareSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get shareSearch;
+
+  /// No description provided for @shareNoFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow people to send them posts and events.'**
+  String get shareNoFollowing;
+
+  /// No description provided for @shareNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No one you follow matches.'**
+  String get shareNoMatch;
+
+  /// No description provided for @shareNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a message…'**
+  String get shareNoteHint;
+
+  /// No description provided for @shareSendCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Send ({count})'**
+  String shareSendCount(int count);
+
+  /// No description provided for @shareMaxPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {count} people at a time.'**
+  String shareMaxPeople(int count);
+
+  /// No description provided for @shareSent.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Sent to 1 person} other{Sent to {count} people}}'**
+  String shareSent(int count);
+
+  /// No description provided for @shareSentPartly.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {sent} of {total}. Try again for the others.'**
+  String shareSentPartly(int sent, int total);
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Please try again.'**
+  String get shareFailed;
+
+  /// No description provided for @shareCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get shareCopy;
+
+  /// No description provided for @shareCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get shareCopied;
+
+  /// No description provided for @shareMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get shareMore;
+
+  /// No description provided for @shareInAppOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only shareable inside HAPPYN — this is private or limited to attendees.'**
+  String get shareInAppOnly;
+
+  /// No description provided for @shareEventText.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} — {date}. Find it on HAPPYN:'**
+  String shareEventText(String title, String date);
+
+  /// No description provided for @sharePostText.
+  ///
+  /// In en, this message translates to:
+  /// **'{author} posted from {event} on HAPPYN:'**
+  String sharePostText(String author, String event);
+
+  /// No description provided for @sharedPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared a post'**
+  String get sharedPost;
+
+  /// No description provided for @sharedEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared an event'**
+  String get sharedEvent;
+
+  /// No description provided for @sharedContentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t available to you.'**
+  String get sharedContentUnavailable;
+
+  /// No description provided for @sharedContentDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'This was deleted.'**
+  String get sharedContentDeleted;
+
+  /// No description provided for @post.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get post;
+
+  /// No description provided for @sharedSomething.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared something'**
+  String get sharedSomething;
 }
 
 class _AppLocalizationsDelegate

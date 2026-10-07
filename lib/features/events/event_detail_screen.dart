@@ -23,6 +23,7 @@ import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
+import 'package:happyn/features/social/widgets/share_sheet.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
@@ -400,22 +401,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                     const SizedBox(width: 8),
                                   ],
                                   GestureDetector(
-                                    onTap: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(l.sharingSoon,
-                                              style: AppText.body.copyWith(color: Colors.white)),
-                                          backgroundColor:
-                                              AppColors.card,
-                                          behavior: SnackBarBehavior.floating,
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12)),
-                                          duration: const Duration(seconds: 1),
-                                        ),
-                                      );
-                                    },
+                                    onTap: () => showShareSheet(context,
+                                        ShareTarget.event(widget.event)),
                                     child: Container(
                                       width: 38,
                                       height: 38,

@@ -7,6 +7,7 @@ import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
+import 'package:happyn/features/social/widgets/shared_content_card.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 class DirectMessagesScreen extends ConsumerWidget {
@@ -74,7 +75,10 @@ class DirectMessagesScreen extends ConsumerWidget {
                         ),
                       ),
                       subtitle: Text(
-                        item['last_message'] as String? ?? '',
+                        // Un partage sans mot n'a pas de texte a montrer.
+                        (item['last_message'] as String? ?? '').trim().isEmpty
+                            ? l.sharedSomething
+                            : item['last_message'] as String,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppText.caption.copyWith(
@@ -305,6 +309,8 @@ class _DirectMessageThreadScreenState
                   itemBuilder: (context, index) {
                     final message = items[index];
                     final isMine = message['sender_id'] == currentUserId;
+                    final sharedKind = message['shared_kind'] as String?;
+                    final body = (message['body'] as String? ?? '').trim();
                     return Align(
                       alignment: isMine
                           ? Alignment.centerRight
@@ -346,12 +352,22 @@ class _DirectMessageThreadScreenState
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              message['body'] as String? ?? '',
-                              style: AppText.bodySm.copyWith(
-                                color: Colors.white,
+                            if (sharedKind != null) ...[
+                              SharedContentCard(
+                                kind: sharedKind,
+                                contentId: (sharedKind == 'post'
+                                    ? message['post_id']
+                                    : message['event_id']) as String?,
                               ),
-                            ),
+                              if (body.isNotEmpty) const SizedBox(height: 8),
+                            ],
+                            if (body.isNotEmpty)
+                              Text(
+                                body,
+                                style: AppText.bodySm.copyWith(
+                                  color: Colors.white,
+                                ),
+                              ),
                             const SizedBox(height: 4),
                             Text(
                               AppDates.messageDateTime(

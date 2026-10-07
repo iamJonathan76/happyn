@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happyn/core/config/observability.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final directConversationsProvider =
@@ -58,3 +59,47 @@ final directConversationOpenProvider = FutureProvider.family
           .maybeSingle();
       return row != null && row['member_a'] != null && row['member_b'] != null;
     });
+
+/// Au-delà, la feuille d'envoi refuse d'ajouter quelqu'un : partager à dix
+/// personnes est un partage, à cinquante c'est une diffusion — et chaque envoi
+/// est un aller-retour réseau.
+const int kMaxShareRecipients = 10;
+
+/// Envoie une publication ou un événement à plusieurs personnes, chacune dans
+/// sa conversation.
+///
+/// Passe par les mêmes portes qu'un message tapé à la main —
+/// `start_direct_conversation` (il faut suivre la personne, ne pas être
+/// bloqué) puis l'insertion soumise à la RLS — plutôt que par une fonction
+/// serveur de diffusion qui devrait refaire ces contrôles. Renvoie le nombre
+/// d'envois réussis : un échec chez l'un n'empêche pas les autres.
+Future<int> shareToPeople({
+  required List<String> recipientIds,
+  required String sharedKind,
+  required String contentId,
+  String note = '',
+}) async {
+  assert(sharedKind == 'post' || sharedKind == 'event');
+  final client = Supabase.instance.client;
+  final userId = client.auth.currentUser?.id;
+  if (userId == null) throw StateError('not_authenticated');
+
+  var sent = 0;
+  for (final recipient in recipientIds.take(kMaxShareRecipients)) {
+    try {
+      final conversationId = await startDirectConversation(recipient);
+      await client.from('direct_messages').insert({
+        'conversation_id': conversationId,
+        'sender_id': userId,
+        'body': note.trim(),
+        'shared_kind': sharedKind,
+        if (sharedKind == 'post') 'post_id': contentId,
+        if (sharedKind == 'event') 'event_id': contentId,
+      });
+      sent++;
+    } catch (e, st) {
+      reportCaught(e, st, where: 'share.toPerson');
+    }
+  }
+  return sent;
+}

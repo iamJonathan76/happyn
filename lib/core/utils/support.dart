@@ -45,3 +45,10 @@ Future<bool> contactSupport({String? subject, String? body}) async {
 /// redirection : c'est ce qui empeche quelqu'un de faire pointer le lien vers
 /// son propre site pour recuperer la session de la personne qui clique.
 const String kPasswordResetUrl = 'https://happynevents.com/reset.html';
+
+/// Adresse du site, jointe à tout ce qu'on partage hors de l'app.
+///
+/// La page d'accueil, et pas un lien vers la publication : tant que l'app
+/// n'est pas sur les stores, la personne qui reçoit le lien ne pourrait pas
+/// l'ouvrir. Les liens profonds viendront avec la publication.
+const String kSiteUrl = 'https://happynevents.com';

@@ -13,6 +13,7 @@ import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/features/events/join_private_event_screen.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
+import 'package:happyn/features/social/widgets/share_sheet.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 /// Carte d'une publication du fil.
@@ -332,12 +333,17 @@ class _PostCardState extends ConsumerState<PostCard> {
                   Text(caption, style: AppText.bodySm.copyWith(height: 1.45)),
                   const SizedBox(height: 10),
                 ],
+                Row(
+                  children: [
                 GestureDetector(
                   onTap: _toggleLike,
                   behavior: HitTestBehavior.opaque,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
+                      // `min` : cette Row est elle-meme dans une Row, qui
+                      // donne a ses enfants une largeur infinie.
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         AnimatedScale(
                           scale: _liked ? 1.12 : 1,
@@ -359,6 +365,18 @@ class _PostCardState extends ConsumerState<PostCard> {
                       ],
                     ),
                   ),
+                ),
+                const SizedBox(width: 18),
+                GestureDetector(
+                  onTap: () => showShareSheet(context, ShareTarget.post(_p)),
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Icon(Icons.send_outlined,
+                        size: 20, color: AppColors.textLow),
+                  ),
+                ),
+                  ],
                 ),
               ],
             ),
