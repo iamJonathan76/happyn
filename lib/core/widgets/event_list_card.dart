@@ -34,6 +34,10 @@ class EventListCard extends ConsumerWidget {
         : '\$${ev['price']}';
     final city = (ev['city'] ?? '') as String;
     final venue = (ev['location'] ?? '') as String;
+    // Sans nom de lieu, `location` vaut la ville : l'afficher deux fois
+    // (« Ottawa / Ottawa ») ne dit rien. On montre alors la categorie.
+    final hasVenue = venue.trim().isNotEmpty &&
+        venue.trim().toLowerCase() != city.trim().toLowerCase();
 
     final favIds = ref.watch(favoritesProvider).asData?.value ?? <String>{};
     final isFav = favIds.contains(eventId);
@@ -109,7 +113,7 @@ class EventListCard extends ConsumerWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          venue.isNotEmpty ? venue : cat,
+                          hasVenue ? venue : cat,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppText.small.copyWith(color: AppColors.textMed),

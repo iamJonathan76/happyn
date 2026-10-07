@@ -718,5 +718,7 @@
   "@eventUntilDate": {"placeholders": {"date": {"type": "String"}, "time": {"type": "String"}}},
   "payoutStatusCancelled": "Cancelled",
   "payoutCancelledRefunded": "Event cancelled — buyers were refunded. Nothing will be paid out.",
-  "payoutCancelledRefundsPending": "Event cancelled — some buyers haven't been refunded yet. Nothing will be paid out."
+  "payoutCancelledRefundsPending": "Event cancelled — some buyers haven't been refunded yet. Nothing will be paid out.",
+  "venueNameLabel": "Venue name (optional)",
+  "venueNameHint": "e.g. Le Petit Chicago"
 }

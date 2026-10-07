@@ -2142,4 +2142,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get payoutCancelledRefundsPending =>
       'Event cancelled — some buyers haven\'t been refunded yet. Nothing will be paid out.';
+
+  @override
+  String get venueNameLabel => 'Venue name (optional)';
+
+  @override
+  String get venueNameHint => 'e.g. Le Petit Chicago';
 }

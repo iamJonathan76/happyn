@@ -3817,6 +3817,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Event cancelled — some buyers haven\'t been refunded yet. Nothing will be paid out.'**
   String get payoutCancelledRefundsPending;
+
+  /// No description provided for @venueNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue name (optional)'**
+  String get venueNameLabel;
+
+  /// No description provided for @venueNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Le Petit Chicago'**
+  String get venueNameHint;
 }
 
 class _AppLocalizationsDelegate

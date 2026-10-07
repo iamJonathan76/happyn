@@ -671,5 +671,7 @@
   "eventUntilDate": "jusqu'au {date} · {time}",
   "payoutStatusCancelled": "Annulé",
   "payoutCancelledRefunded": "Événement annulé — les acheteurs ont été remboursés. Rien ne sera versé.",
-  "payoutCancelledRefundsPending": "Événement annulé — des acheteurs n'ont pas encore été remboursés. Rien ne sera versé."
+  "payoutCancelledRefundsPending": "Événement annulé — des acheteurs n'ont pas encore été remboursés. Rien ne sera versé.",
+  "venueNameLabel": "Nom du lieu (facultatif)",
+  "venueNameHint": "ex. Le Petit Chicago"
 }

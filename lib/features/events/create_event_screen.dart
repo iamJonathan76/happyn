@@ -37,6 +37,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _cityController = TextEditingController();
+  // Le nom de l'endroit (« Bar Le Petit Chicago »), facultatif et PUBLIC :
+  // il va dans `events.location`, visible de tous. D'ou son absence pour un
+  // evenement prive — le nom d'un bar revele l'adresse aussi surement que
+  // l'adresse elle-meme, et celle-ci est justement protegee.
+  final _venueController = TextEditingController();
 
   /// Adresse resolue par le service de geocodage. Tant qu'elle est nulle, on
   /// n'a que du texte libre — donc aucune coordonnee, donc l'evenement
@@ -96,6 +101,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       _loadExistingAddress(ev['id'] as String);
       _selectedCategory = (ev['category'] ?? 'Music') as String;
       _isPrivate = (ev['visibility'] ?? 'public') == 'private';
+      // `location` vaut la ville quand aucun nom de lieu n'a ete saisi.
+      final location = ((ev['location'] ?? '') as String).trim();
+      if (!_isPrivate &&
+          location.isNotEmpty &&
+          location.toLowerCase() != _cityController.text.trim().toLowerCase()) {
+        _venueController.text = location;
+      }
       _existingCode = ev['access_code'] as String?;
       _postsPublic = (ev['posts_visibility'] ?? 'public') == 'public';
       _cancellationHours = (ev['cancellation_hours'] ?? 24) as int;
@@ -146,6 +158,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     _cityController.dispose();
+    _venueController.dispose();
     _addressController.dispose();
     _addressDebounce?.cancel();
     for (final t in _tiers) {
@@ -656,6 +669,26 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       AppLabel(l.locationLabel),
                       _addressField(l),
 
+                      // Le nom de l'endroit, en plus de l'adresse : « 156
+                      // Cleopatra » ne se reconnait pas, « Bar Le Petit
+                      // Chicago » si. Public seulement (voir _venueController).
+                      if (!_isPrivate) ...[
+                        const SizedBox(height: 16),
+                        AppLabel(l.venueNameLabel),
+                        TextField(
+                          controller: _venueController,
+                          maxLength: 80,
+                          textCapitalization: TextCapitalization.words,
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          decoration: appInputDecoration(
+                            l.venueNameHint,
+                            icon: Icons.storefront_outlined,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 16),
+                          ).copyWith(counterText: ''),
+                        ),
+                      ],
+
                       const SizedBox(height: 16),
 
                       // Dates
@@ -1019,7 +1052,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   /// organisateur, detenteur d'un billet, ou sur un evenement public. La fiche
   /// affiche donc l'adresse exacte quand on y a droit, et retombe sur cette
   /// valeur sinon — sans qu'aucun ecran ait a connaitre la regle.
-  String get _publicLocation => _cityController.text.trim();
+  /// Ce qui s'affiche publiquement comme lieu : le nom de l'endroit s'il y en
+  /// a un, et toujours la ville pour un evenement prive — meme si un nom avait
+  /// ete saisi avant de passer l'evenement en prive.
+  String get _publicLocation {
+    final venue = _venueController.text.trim();
+    return (!_isPrivate && venue.isNotEmpty)
+        ? venue
+        : _cityController.text.trim();
+  }
 
   /// Recharge l'adresse deja enregistree, en mode edition.
   ///

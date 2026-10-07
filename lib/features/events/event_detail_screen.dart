@@ -257,6 +257,17 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         ref.watch(eventAddressProvider(ev['id'] as String)).asData?.value?.addressLine;
 
     final imageUrl = (ev['image_url'] ?? '') as String;
+    // Un nom de lieu distinct de la ville. Jamais pour un evenement prive :
+    // le formulaire ne le propose pas, et on ne l'afficherait pas s'il avait
+    // ete ecrit autrement.
+    final rawLocation = ((ev['location'] ?? '') as String).trim();
+    final venue = !isEventPrivate(ev) &&
+            rawLocation.isNotEmpty &&
+            rawLocation.toLowerCase() !=
+                ((ev['city'] ?? '') as String).trim().toLowerCase() &&
+            rawLocation != exactAddress
+        ? rawLocation
+        : null;
     final price = ev['price'];
     final priceText = (price == null || price == 0) ? l.free : '\$$price';
     final cat = (ev['category'] ?? '') as String;
@@ -564,10 +575,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             // qu'elle n'a pas le droit d'afficher.
                             _infoRow(
                               Icons.location_on_outlined,
-                              exactAddress ?? (ev['location'] ?? 'TBD') as String,
-                              exactAddress == null && isEventPrivate(ev)
-                                  ? l.addressRevealedWithTicket
-                                  : _capitalized((ev['city'] ?? '') as String),
+                              // Le nom du lieu en tete s'il y en a un (public
+                              // seulement), l'adresse dessous.
+                              venue ?? exactAddress ?? (ev['location'] ?? 'TBD') as String,
+                              venue != null
+                                  ? (exactAddress ?? _capitalized((ev['city'] ?? '') as String))
+                                  : exactAddress == null && isEventPrivate(ev)
+                                      ? l.addressRevealedWithTicket
+                                      : _capitalized((ev['city'] ?? '') as String),
                               onTap: () => _openDirections(ev, exactAddress),
                               trailing: Container(
                                 padding: const EdgeInsets.symmetric(
