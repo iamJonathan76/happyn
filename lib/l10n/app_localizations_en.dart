@@ -1125,33 +1125,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get venueLabel => 'Venue';
 
   @override
-  String get transferHint =>
-      'Send this ticket to another HAPPYN user by email.';
-
-  @override
-  String get errValidEmail => 'Enter a valid email address.';
-
-  @override
-  String ticketSentTo(String email) {
-    return 'Ticket sent to $email 🎟️';
-  }
+  String get transferHint => 'Give this ticket to someone you follow.';
 
   @override
   String get transferTicket => 'Transfer ticket';
 
   @override
   String get transferSheetBody =>
-      'The recipient must already have a HAPPYN account. Once sent, this ticket leaves your account.';
-
-  @override
-  String get emailHintFriend => 'friend@email.com';
+      'Choose someone you follow. The ticket leaves your account and gets a new QR code.';
 
   @override
   String get sendTicket => 'Send ticket';
-
-  @override
-  String get transferErrRecipientNotFound =>
-      'No HAPPYN account found with that email.';
 
   @override
   String get transferErrSelf => 'That ticket is already yours.';
@@ -2025,4 +2009,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get conversationOptions => 'Options';
+
+  @override
+  String transferConfirmTitle(String name) {
+    return 'Send your ticket to $name?';
+  }
+
+  @override
+  String get transferConfirmBody =>
+      'It moves to their account and its QR code changes. This can\'t be undone.';
+
+  @override
+  String get transferNotRefundable =>
+      'This ticket won\'t be refundable anymore.';
+
+  @override
+  String get transferConfirm => 'Transfer';
+
+  @override
+  String ticketSentToPerson(String name) {
+    return 'Ticket sent to $name 🎟️';
+  }
+
+  @override
+  String get transferErrNotFollowing =>
+      'You can only transfer to people you follow.';
+
+  @override
+  String get transferErrNotAllowed =>
+      'You can\'t transfer a ticket to this account.';
+
+  @override
+  String get transferErrAge =>
+      'This person doesn\'t meet the event\'s age requirement.';
+
+  @override
+  String get cancelErrTransferred => 'Transferred tickets can\'t be refunded.';
 }

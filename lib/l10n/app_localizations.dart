@@ -2039,20 +2039,8 @@ abstract class AppLocalizations {
   /// No description provided for @transferHint.
   ///
   /// In en, this message translates to:
-  /// **'Send this ticket to another HAPPYN user by email.'**
+  /// **'Give this ticket to someone you follow.'**
   String get transferHint;
-
-  /// No description provided for @errValidEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a valid email address.'**
-  String get errValidEmail;
-
-  /// No description provided for @ticketSentTo.
-  ///
-  /// In en, this message translates to:
-  /// **'Ticket sent to {email} 🎟️'**
-  String ticketSentTo(String email);
 
   /// No description provided for @transferTicket.
   ///
@@ -2063,26 +2051,14 @@ abstract class AppLocalizations {
   /// No description provided for @transferSheetBody.
   ///
   /// In en, this message translates to:
-  /// **'The recipient must already have a HAPPYN account. Once sent, this ticket leaves your account.'**
+  /// **'Choose someone you follow. The ticket leaves your account and gets a new QR code.'**
   String get transferSheetBody;
-
-  /// No description provided for @emailHintFriend.
-  ///
-  /// In en, this message translates to:
-  /// **'friend@email.com'**
-  String get emailHintFriend;
 
   /// No description provided for @sendTicket.
   ///
   /// In en, this message translates to:
   /// **'Send ticket'**
   String get sendTicket;
-
-  /// No description provided for @transferErrRecipientNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'No HAPPYN account found with that email.'**
-  String get transferErrRecipientNotFound;
 
   /// No description provided for @transferErrSelf.
   ///
@@ -3625,6 +3601,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Options'**
   String get conversationOptions;
+
+  /// No description provided for @transferConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your ticket to {name}?'**
+  String transferConfirmTitle(String name);
+
+  /// No description provided for @transferConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It moves to their account and its QR code changes. This can\'t be undone.'**
+  String get transferConfirmBody;
+
+  /// No description provided for @transferNotRefundable.
+  ///
+  /// In en, this message translates to:
+  /// **'This ticket won\'t be refundable anymore.'**
+  String get transferNotRefundable;
+
+  /// No description provided for @transferConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transferConfirm;
+
+  /// No description provided for @ticketSentToPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket sent to {name} 🎟️'**
+  String ticketSentToPerson(String name);
+
+  /// No description provided for @transferErrNotFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only transfer to people you follow.'**
+  String get transferErrNotFollowing;
+
+  /// No description provided for @transferErrNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t transfer a ticket to this account.'**
+  String get transferErrNotAllowed;
+
+  /// No description provided for @transferErrAge.
+  ///
+  /// In en, this message translates to:
+  /// **'This person doesn\'t meet the event\'s age requirement.'**
+  String get transferErrAge;
+
+  /// No description provided for @cancelErrTransferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred tickets can\'t be refunded.'**
+  String get cancelErrTransferred;
 }
 
 class _AppLocalizationsDelegate

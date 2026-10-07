@@ -19,7 +19,7 @@ que Google est proposé.
 | | |
 |---|---|
 | Découverte, billetterie, QR signé rotatif, scanner | ✅ |
-| Transfert de billet | ✅ |
+| Transfert de billet — aux gens qu'on suit, âge et blocage vérifiés ; payé puis transféré = non remboursable | ✅ code (2026-10-07) |
 | Événements privés, code d'invitation, portée des photos | ✅ |
 | Partie sociale : publications, fil, profils, suivi, « Qui y va » | ✅ |
 | Âge (14 / 18), FR-EN dans l'app | ✅ |

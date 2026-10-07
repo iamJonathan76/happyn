@@ -13,6 +13,7 @@ import 'package:happyn/core/providers/attendance_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/core/utils/secure_screen.dart';
 import 'package:happyn/core/widgets/app_form.dart';
+import 'package:happyn/features/ticketing/widgets/transfer_sheet.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/providers/cancellation_provider.dart';
 import 'package:happyn/core/utils/dates.dart';
@@ -494,163 +495,27 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
   }
 
   // ── Transfert de billet ────────────────────────────────────────────────────
-  void _openTransferSheet() {
+  Future<void> _openTransferSheet() async {
     final l = AppLocalizations.of(context);
-    final controller = TextEditingController();
-    bool sending = false;
-    String? errorText;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: _bg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetCtx) {
-        return StatefulBuilder(
-          builder: (sheetCtx, setSheet) {
-            Future<void> submit() async {
-              final email = controller.text.trim();
-              if (email.isEmpty || !email.contains('@')) {
-                setSheet(() => errorText = l.errValidEmail);
-                return;
-              }
-              setSheet(() {
-                sending = true;
-                errorText = null;
-              });
-              try {
-                await Supabase.instance.client.rpc('transfer_ticket', params: {
-                  'p_ticket_id': widget.ticket['id'],
-                  'p_recipient_email': email,
-                });
-                // Le billet a changé de propriétaire : rafraîchir "My Tickets".
-                ref.invalidate(myTicketsProvider);
-                if (!sheetCtx.mounted) return;
-                Navigator.of(sheetCtx).pop();
-                if (!mounted) return;
-                showAppSnack(context, l.ticketSentTo(email),
-                    background: AppColors.successDark);
-                // On quitte l'écran : ce billet ne nous appartient plus.
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              } catch (e) {
-                setSheet(() {
-                  sending = false;
-                  errorText = _transferError(e, l);
-                });
-              }
-            }
-
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 22,
-                right: 22,
-                top: 20,
-                bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.textFaint,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    l.transferTicket,
-                    style: AppText.h1.copyWith(fontSize: 19, color: Colors.white),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    l.transferSheetBody,
-                    style: AppText.bodySm.copyWith(fontSize: 12.5, height: 1.4),
-                  ),
-                  const SizedBox(height: 18),
-                  TextField(
-                    controller: controller,
-                    enabled: !sending,
-                    keyboardType: TextInputType.emailAddress,
-                    autocorrect: false,
-                    style: AppText.body.copyWith(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: l.emailHintFriend,
-                      hintStyle: AppText.body.copyWith(color: AppColors.textLow),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      prefixIcon: Icon(Icons.alternate_email,
-                          color: AppColors.textLow, size: 20),
-                      errorText: errorText,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide:
-                            BorderSide(color: Colors.white.withValues(alpha: 0.09)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: AppColors.primary),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide:
-                            BorderSide(color: Colors.white.withValues(alpha: 0.09)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: sending ? null : submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        disabledBackgroundColor:
-                            AppColors.primary.withValues(alpha: 0.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: sending
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2.4, color: Colors.white),
-                            )
-                          : Text(
-                              l.sendTicket,
-                              style: AppText.h3.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+    // Payé : l'acheteur a un paiement derrière ce billet. C'est ce qui le rend
+    // non remboursable une fois donné, et l'écran de confirmation doit le dire.
+    final paid = widget.ticket['payment_intent_id'] != null ||
+        ((widget.ticketType['price'] as num?) ?? 0) > 0;
+    final recipient = await showTransferSheet(
+      context,
+      ticketId: widget.ticket['id'] as String,
+      paid: paid,
     );
+    if (recipient == null || !mounted) return;
+    // Le billet a changé de propriétaire : rafraîchir « Mes billets ».
+    ref.invalidate(myTicketsProvider);
+    showAppSnack(context, l.ticketSentToPerson(recipient.displayName),
+        background: AppColors.successDark);
+    // On quitte l'écran : ce billet ne nous appartient plus.
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
-  String _transferError(Object e, AppLocalizations l) {
-    final msg = e.toString();
-    if (msg.contains('recipient_not_found')) return l.transferErrRecipientNotFound;
-    if (msg.contains('cannot_transfer_self')) return l.transferErrSelf;
-    if (msg.contains('ticket_not_transferable')) {
-      return l.transferErrNotTransferable;
-    }
-    if (msg.contains('event_cancelled')) return l.transferErrEventCancelled;
-    if (msg.contains('event_ended')) return l.transferErrEventEnded;
-    return l.transferFailed;
-  }
+
 
   // ── QR (loading / error / code) ────────────────────────────────────────────
   /// Bloc d'annulation : lien discret + date limite, ou rien du tout.
@@ -664,14 +529,18 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
     if (check == null) return const SizedBox.shrink();
 
     if (!check.allowed) {
-      if (check.reason == 'deadline_passed') {
-        return Padding(
-          padding: const EdgeInsets.only(top: 18),
-          child: Text(l.cancelErrDeadline,
-              textAlign: TextAlign.center, style: AppText.small),
-        );
-      }
-      return const SizedBox.shrink();
+      // Expliqué plutôt que masqué : la personne a pu voir l'option avant
+      // (la veille de l'échéance, ou chez celui qui lui a donné le billet).
+      final why = switch (check.reason) {
+        'deadline_passed' => l.cancelErrDeadline,
+        'transferred' => l.cancelErrTransferred,
+        _ => null,
+      };
+      if (why == null) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: 18),
+        child: Text(why, textAlign: TextAlign.center, style: AppText.small),
+      );
     }
 
     return Padding(
@@ -761,6 +630,7 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
     showAppSnack(context, switch (result.error) {
       'deadline_passed' => l.cancelErrDeadline,
       'not_allowed_by_organizer' => l.cancelErrNotAllowed,
+      'transferred' => l.cancelErrTransferred,
       // Message distinct : ici l'argent n'a PAS bouge et le billet est intact.
       // Dire « annulation impossible » laisserait croire a une perte.
       'refund_failed' => l.cancelErrRefund,
@@ -920,7 +790,7 @@ class _TransferButton extends StatelessWidget {
         onPressed: onTap,
         icon: const Icon(Icons.send_outlined, size: 18, color: Colors.white),
         label: Text(
-          'Transfer ticket',
+          AppLocalizations.of(context).transferTicket,
           style: AppText.h3.copyWith(fontSize: 14.5, fontWeight: FontWeight.w800, color: Colors.white),
         ),
         style: OutlinedButton.styleFrom(

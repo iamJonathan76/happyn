@@ -1135,33 +1135,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get venueLabel => 'Lieu';
 
   @override
-  String get transferHint =>
-      'Envoie ce billet à un autre utilisateur HAPPYN par e-mail.';
-
-  @override
-  String get errValidEmail => 'Entrez une adresse e-mail valide.';
-
-  @override
-  String ticketSentTo(String email) {
-    return 'Billet envoyé à $email 🎟️';
-  }
+  String get transferHint => 'Donne ce billet à quelqu\'un que tu suis.';
 
   @override
   String get transferTicket => 'Transférer le billet';
 
   @override
   String get transferSheetBody =>
-      'Le destinataire doit déjà avoir un compte HAPPYN. Une fois envoyé, ce billet quitte ton compte.';
-
-  @override
-  String get emailHintFriend => 'ami@email.com';
+      'Choisis quelqu\'un que tu suis. Le billet quitte ton compte et reçoit un nouveau code QR.';
 
   @override
   String get sendTicket => 'Envoyer le billet';
-
-  @override
-  String get transferErrRecipientNotFound =>
-      'Aucun compte HAPPYN trouvé avec cet e-mail.';
 
   @override
   String get transferErrSelf => 'Ce billet est déjà le tien.';
@@ -2049,4 +2033,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get conversationOptions => 'Options';
+
+  @override
+  String transferConfirmTitle(String name) {
+    return 'Envoyer ton billet à $name ?';
+  }
+
+  @override
+  String get transferConfirmBody =>
+      'Il passe sur son compte et son code QR change. C\'est définitif.';
+
+  @override
+  String get transferNotRefundable => 'Ce billet ne sera plus remboursable.';
+
+  @override
+  String get transferConfirm => 'Transférer';
+
+  @override
+  String ticketSentToPerson(String name) {
+    return 'Billet envoyé à $name 🎟️';
+  }
+
+  @override
+  String get transferErrNotFollowing =>
+      'Tu ne peux transférer qu\'aux gens que tu suis.';
+
+  @override
+  String get transferErrNotAllowed =>
+      'Tu ne peux pas transférer de billet à ce compte.';
+
+  @override
+  String get transferErrAge =>
+      'Cette personne ne remplit pas la condition d\'âge de l\'événement.';
+
+  @override
+  String get cancelErrTransferred =>
+      'Un billet reçu par transfert n\'est pas remboursable.';
 }
