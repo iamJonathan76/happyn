@@ -1788,10 +1788,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unblock => 'Débloquer';
 
   @override
-  String get userBlocked => 'Organisateur bloqué.';
+  String get userBlocked => 'Compte bloqué.';
 
   @override
-  String get userUnblocked => 'Organisateur débloqué.';
+  String get userUnblocked => 'Compte débloqué.';
 
   @override
   String get blockedAccount => 'Compte bloqué';
@@ -2043,4 +2043,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedSomething => 'A partagé un contenu';
+
+  @override
+  String get viewProfile => 'Voir le profil';
+
+  @override
+  String get conversationOptions => 'Options';
 }

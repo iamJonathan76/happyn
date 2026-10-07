@@ -3191,13 +3191,13 @@ abstract class AppLocalizations {
   /// No description provided for @userBlocked.
   ///
   /// In en, this message translates to:
-  /// **'Organizer blocked.'**
+  /// **'Account blocked.'**
   String get userBlocked;
 
   /// No description provided for @userUnblocked.
   ///
   /// In en, this message translates to:
-  /// **'Organizer unblocked.'**
+  /// **'Account unblocked.'**
   String get userUnblocked;
 
   /// No description provided for @blockedAccount.
@@ -3613,6 +3613,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared something'**
   String get sharedSomething;
+
+  /// No description provided for @viewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get viewProfile;
+
+  /// No description provided for @conversationOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get conversationOptions;
 }
 
 class _AppLocalizationsDelegate

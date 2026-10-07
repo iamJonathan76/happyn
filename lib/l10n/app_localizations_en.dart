@@ -1767,10 +1767,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unblock => 'Unblock';
 
   @override
-  String get userBlocked => 'Organizer blocked.';
+  String get userBlocked => 'Account blocked.';
 
   @override
-  String get userUnblocked => 'Organizer unblocked.';
+  String get userUnblocked => 'Account unblocked.';
 
   @override
   String get blockedAccount => 'Blocked account';
@@ -2019,4 +2019,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedSomething => 'Shared something';
+
+  @override
+  String get viewProfile => 'View profile';
+
+  @override
+  String get conversationOptions => 'Options';
 }

@@ -597,8 +597,8 @@
   "blockConfirmBody": "You will no longer see their events. You can unblock them at any time from Settings.",
   "block": "Block",
   "unblock": "Unblock",
-  "userBlocked": "Organizer blocked.",
-  "userUnblocked": "Organizer unblocked.",
+  "userBlocked": "Account blocked.",
+  "userUnblocked": "Account unblocked.",
   "blockedAccount": "Blocked account",
   "blockedUsersEmpty": "You haven't blocked anyone",
   "blockedUsersEmptyBody": "Blocked accounts and their events won't appear in your feeds.",
@@ -680,5 +680,7 @@
   "@shareSentPartly": {"placeholders": {"sent": {"type": "int"}, "total": {"type": "int"}}},
   "@shareEventText": {"placeholders": {"title": {"type": "String"}, "date": {"type": "String"}}},
   "@sharePostText": {"placeholders": {"author": {"type": "String"}, "event": {"type": "String"}}},
-  "sharedSomething": "Shared something"
+  "sharedSomething": "Shared something",
+  "viewProfile": "View profile",
+  "conversationOptions": "Options"
 }

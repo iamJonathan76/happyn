@@ -43,21 +43,28 @@ Future<void> sendDirectMessage(String conversationId, String body) async {
   });
 }
 
-/// Faux quand l'un des deux membres a supprimé son compte.
+/// Ce que le fil doit savoir de sa conversation : peut-on encore y écrire, et
+/// qui est l'autre membre (null s'il a supprimé son compte).
 ///
 /// La conversation reste lisible par celui qui reste — ce qu'on lui a écrit
 /// lui appartient aussi — mais on ne peut plus y répondre : la base refuse
 /// l'envoi (migration 20261006000000). Lu depuis la conversation elle-même
 /// plutôt que passé par l'écran appelant : le fil s'ouvre depuis la liste, un
 /// profil et une notification, et aucun des trois ne doit pouvoir l'oublier.
-final directConversationOpenProvider = FutureProvider.family
-    .autoDispose<bool, String>((ref, conversationId) async {
+typedef DirectConversationInfo = ({bool open, String? peerId});
+
+final directConversationProvider = FutureProvider.family
+    .autoDispose<DirectConversationInfo, String>((ref, conversationId) async {
+      final me = Supabase.instance.client.auth.currentUser?.id;
       final row = await Supabase.instance.client
           .from('direct_conversations')
           .select('member_a, member_b')
           .eq('id', conversationId)
           .maybeSingle();
-      return row != null && row['member_a'] != null && row['member_b'] != null;
+      if (row == null) return (open: false, peerId: null);
+      final a = row['member_a'] as String?;
+      final b = row['member_b'] as String?;
+      return (open: a != null && b != null, peerId: a == me ? b : a);
     });
 
 /// Au-delà, la feuille d'envoi refuse d'ajouter quelqu'un : partager à dix

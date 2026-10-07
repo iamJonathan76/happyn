@@ -6,7 +6,9 @@ import 'package:happyn/core/providers/direct_messages_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/utils/dates.dart';
+import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
+import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/features/social/widgets/shared_content_card.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
@@ -201,6 +203,55 @@ class _DirectMessageThreadScreenState
     }
   }
 
+  /// Voir le profil, signaler, bloquer. Le signalement d'un message précis
+  /// reste à l'appui long sur la bulle ; ici, c'est la personne.
+  Widget _peerMenu(AppLocalizations l, String peerId) {
+    PopupMenuItem<String> item(String v, IconData icon, String label,
+            {bool danger = false}) =>
+        PopupMenuItem(
+          value: v,
+          child: Row(
+            children: [
+              Icon(icon,
+                  size: 18,
+                  color: danger ? AppColors.error : AppColors.textMed),
+              const SizedBox(width: 12),
+              Text(label,
+                  style: AppText.bodySm.copyWith(
+                      color: danger ? AppColors.error : Colors.white)),
+            ],
+          ),
+        );
+    return PopupMenuButton<String>(
+      color: AppColors.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      position: PopupMenuPosition.under,
+      icon: Icon(Icons.more_horiz, color: AppColors.textMed),
+      tooltip: l.conversationOptions,
+      onSelected: (v) async {
+        if (v == 'profile') {
+          await Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => ProfileScreen(userId: peerId)));
+        } else if (v == 'report') {
+          await showReportSheet(context, targetType: 'user', targetId: peerId);
+        } else if (v == 'block') {
+          final blocked = await confirmBlockUser(context, ref, userId: peerId);
+          if (blocked && mounted) {
+            // Un blocage ferme la conversation des deux cotes : on la quitte.
+            ref.invalidate(directConversationsProvider);
+            showAppSnack(context, l.userBlocked);
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      itemBuilder: (_) => [
+        item('profile', Icons.person_outline, l.viewProfile),
+        item('report', Icons.flag_outlined, l.report),
+        item('block', Icons.block, l.block, danger: true),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -220,10 +271,10 @@ class _DirectMessageThreadScreenState
     final currentUserId = ref.watch(currentUserIdProvider) ?? '';
     // En cas de doute (chargement, erreur reseau), on laisse ecrire : la base
     // refusera de toute facon un envoi vers un compte supprime.
-    final open = ref
-            .watch(directConversationOpenProvider(widget.conversationId))
-            .value ??
-        true;
+    final info =
+        ref.watch(directConversationProvider(widget.conversationId)).value;
+    final open = info?.open ?? true;
+    final peerId = info?.peerId;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -232,6 +283,10 @@ class _DirectMessageThreadScreenState
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         titleSpacing: 0,
+        actions: [
+          // Rien a proposer quand l'autre a supprime son compte.
+          if (peerId != null) _peerMenu(l, peerId),
+        ],
         title: Row(
           children: [
             _Avatar(
@@ -339,8 +394,13 @@ class _DirectMessageThreadScreenState
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          gradient: isMine ? AppColors.primaryGradient : null,
-                          color: isMine ? null : AppColors.card,
+                          // Ses messages en violet, ceux de l'autre en sombre
+                          // borde : l'oeil cherche « ce que j'ai dit » a la
+                          // couleur, comme dans toutes les messageries.
+                          color: isMine ? AppColors.messageMine : AppColors.card,
+                          border: isMine
+                              ? null
+                              : Border.all(color: AppColors.border),
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(16),
                             topRight: const Radius.circular(16),
@@ -375,7 +435,9 @@ class _DirectMessageThreadScreenState
                                 message['created_at'] as String?,
                               ),
                               style: AppText.micro.copyWith(
-                                color: Colors.white.withValues(alpha: 0.72),
+                                color: isMine
+                                    ? AppColors.lavenderLight
+                                    : AppColors.textLow,
                               ),
                             ),
                           ],

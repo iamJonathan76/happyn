@@ -564,8 +564,8 @@
   "blockConfirmBody": "Tu ne verras plus ses événements. Tu peux le débloquer à tout moment depuis les Paramètres.",
   "block": "Bloquer",
   "unblock": "Débloquer",
-  "userBlocked": "Organisateur bloqué.",
-  "userUnblocked": "Organisateur débloqué.",
+  "userBlocked": "Compte bloqué.",
+  "userUnblocked": "Compte débloqué.",
   "blockedAccount": "Compte bloqué",
   "blockedUsersEmpty": "Tu n'as bloqué personne",
   "blockedUsersEmptyBody": "Les comptes bloqués et leurs événements n'apparaîtront pas dans tes fils.",
@@ -637,5 +637,7 @@
   "sharedContentUnavailable": "Ce contenu n'est pas disponible pour toi.",
   "sharedContentDeleted": "Ce contenu a été supprimé.",
   "post": "Publication",
-  "sharedSomething": "A partagé un contenu"
+  "sharedSomething": "A partagé un contenu",
+  "viewProfile": "Voir le profil",
+  "conversationOptions": "Options"
 }

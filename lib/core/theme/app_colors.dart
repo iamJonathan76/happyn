@@ -19,6 +19,10 @@ class AppColors {
   // ── Marque ───────────────────────────────────────────────────────────────
   /// Violet principal.
   static const Color primary = Color(0xFF7C3AED);
+  /// Bulle de ses propres messages. Le violet du bouton d'envoi, un cran plus
+  /// sombre : le texte blanc y garde un contraste confortable sur toute une
+  /// conversation.
+  static const Color messageMine = Color(0xFF5B2BC4);
   /// Rose / accent secondaire.
   static const Color pink = Color(0xFFEC4899);
   /// Rose clair.
