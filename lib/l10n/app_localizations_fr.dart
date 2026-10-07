@@ -2143,4 +2143,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get viewAction => 'Voir';
+
+  @override
+  String get directionsShort => 'Itinéraire';
+
+  @override
+  String eventUntilTime(String time) {
+    return 'jusqu\'à $time';
+  }
+
+  @override
+  String eventUntilDate(String date, String time) {
+    return 'jusqu\'au $date · $time';
+  }
 }

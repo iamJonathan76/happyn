@@ -325,11 +325,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Logo
                 ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [AppColors.primary, AppColors.pink],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ).createShader(bounds),
+                  shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
                   child: Text(
                     'HAPPYN',
                     style: AppText.display.copyWith(fontSize: 38, color: Colors.white, letterSpacing: -0.5),
@@ -364,14 +360,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
                               gradient: isActive
-                                  ? const LinearGradient(
-                                      colors: [
-                                        AppColors.primary,
-                                        AppColors.pink,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    )
+                                  ? AppColors.primaryGradient
                                   : null,
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: isActive
@@ -542,11 +531,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: double.infinity,
                     height: 56,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.primary, AppColors.pink],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      gradient: AppColors.primaryGradient,
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(

@@ -235,12 +235,7 @@ class TicketCard extends StatelessWidget {
                             horizontal: 14, vertical: 9),
                         decoration: BoxDecoration(
                           gradient: isValid
-                              ? const LinearGradient(
-                                  colors: [
-                                    AppColors.primary,
-                                    AppColors.pink
-                                  ],
-                                )
+                              ? AppColors.primaryGradient
                               : null,
                           color: isValid ? null : Colors.white.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(14),

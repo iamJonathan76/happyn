@@ -212,11 +212,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               padding: const EdgeInsets.all(3),
                               decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: [AppColors.primary, AppColors.pink],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
+                                gradient: AppColors.primaryGradient,
                               ),
                               child: ClipOval(
                                 child:
@@ -347,9 +343,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             width: double.infinity,
                             height: 46,
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [AppColors.primary, AppColors.pink],
-                              ),
+                              gradient: AppColors.primaryGradient,
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Center(
@@ -667,11 +661,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               padding: const EdgeInsets.symmetric(vertical: 9),
               decoration: BoxDecoration(
                 gradient: isActive
-                    ? const LinearGradient(
-                        colors: [AppColors.primary, AppColors.pink],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
+                    ? AppColors.primaryGradient
                     : null,
                 color: isActive ? null : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(14),

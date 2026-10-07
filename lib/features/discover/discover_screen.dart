@@ -273,11 +273,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
                     decoration: BoxDecoration(
                       gradient: isActive
-                          ? const LinearGradient(
-                              colors: [AppColors.primary, AppColors.pink],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
+                          ? AppColors.primaryGradient
                           : null,
                       color: isActive ? null : Colors.white.withValues(alpha: 0.055),
                       borderRadius: BorderRadius.circular(20),

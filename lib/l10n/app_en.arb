@@ -710,5 +710,10 @@
   "couldNotOpenPost": "Couldn't open this post.",
   "cropTitle": "Adjust photo",
   "cropAction": "Crop",
-  "viewAction": "View"
+  "viewAction": "View",
+  "directionsShort": "Directions",
+  "eventUntilTime": "until {time}",
+  "eventUntilDate": "until {date} · {time}",
+  "@eventUntilTime": {"placeholders": {"time": {"type": "String"}}},
+  "@eventUntilDate": {"placeholders": {"date": {"type": "String"}, "time": {"type": "String"}}}
 }

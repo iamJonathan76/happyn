@@ -665,5 +665,8 @@
   "couldNotOpenPost": "Impossible d'ouvrir cette publication.",
   "cropTitle": "Ajuster la photo",
   "cropAction": "Recadrer",
-  "viewAction": "Voir"
+  "viewAction": "Voir",
+  "directionsShort": "Itinéraire",
+  "eventUntilTime": "jusqu'à {time}",
+  "eventUntilDate": "jusqu'au {date} · {time}"
 }

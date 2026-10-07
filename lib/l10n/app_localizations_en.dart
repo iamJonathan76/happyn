@@ -2118,4 +2118,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewAction => 'View';
+
+  @override
+  String get directionsShort => 'Directions';
+
+  @override
+  String eventUntilTime(String time) {
+    return 'until $time';
+  }
+
+  @override
+  String eventUntilDate(String date, String time) {
+    return 'until $date · $time';
+  }
 }

@@ -3781,6 +3781,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View'**
   String get viewAction;
+
+  /// No description provided for @directionsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get directionsShort;
+
+  /// No description provided for @eventUntilTime.
+  ///
+  /// In en, this message translates to:
+  /// **'until {time}'**
+  String eventUntilTime(String time);
+
+  /// No description provided for @eventUntilDate.
+  ///
+  /// In en, this message translates to:
+  /// **'until {date} · {time}'**
+  String eventUntilDate(String date, String time);
 }
 
 class _AppLocalizationsDelegate

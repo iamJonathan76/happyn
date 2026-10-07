@@ -903,11 +903,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           width: double.infinity,
                           height: 56,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [AppColors.primary, AppColors.pink],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                            gradient: AppColors.primaryGradient,
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
@@ -967,8 +963,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           gradient: selected
-              ? const LinearGradient(
-                  colors: [AppColors.primary, AppColors.pink])
+              ? AppColors.primaryGradient
               : null,
           color: selected ? null : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),

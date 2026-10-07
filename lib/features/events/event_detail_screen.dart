@@ -248,16 +248,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     }
   }
 
-  String _formatDate(String? dateStr) {
-    if (dateStr == null) return AppLocalizations.of(context).tbd;
-    return AppDates.dowDayMonthYear(context, dateStr);
-  }
-
-  String _formatTime(String? dateStr) {
-    if (dateStr == null) return AppLocalizations.of(context).tbd;
-    return AppDates.time(context, dateStr);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -479,62 +469,54 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         ),
                       ),
 
-                      // Category badge
+                      // Le titre pose sur l'affiche : l'image et le nom de
+                      // l'evenement se lisent d'un seul bloc, comme une vraie
+                      // affiche. La categorie n'apparait qu'ici — elle etait
+                      // affichee deux fois.
                       Positioned(
-                        bottom: 20,
                         left: 20,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [AppColors.pink, AppColors.warning],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '🔥 ${(ev['category'] ?? 'Event') as String}',
-                            style: AppText.micro.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
-                          ),
-                        ),
-                      ),
-
-                      // Badge « Cancelled » / « Ended »
-                      if (cancelled || past)
-                        Positioned(
-                          bottom: 20,
-                          right: 20,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: cancelled
-                                  ? AppColors.error.withValues(alpha: 0.9)
-                                  : Colors.black.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                  color: AppColors.textFaint),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                        right: 20,
+                        bottom: 14,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
                               children: [
-                                Icon(
-                                    cancelled
+                                if (cat.isNotEmpty)
+                                  _heroBadge(
+                                    icon: categoryIcon(cat),
+                                    label: cat,
+                                    color: catColor,
+                                  ),
+                                // L'age minimum vivait dans les hashtags :
+                                // c'est une condition d'entree, pas un mot-cle.
+                                if (((ev['min_age'] ?? 0) as int) > 0)
+                                  _heroBadge(label: '${ev['min_age']}+'),
+                                if (cancelled || past)
+                                  _heroBadge(
+                                    icon: cancelled
                                         ? Icons.cancel
                                         : Icons.event_busy,
-                                    size: 12,
-                                    color: AppColors.textHigh),
-                                const SizedBox(width: 4),
-                                Text(
-                                  cancelled ? l.statusCancelled : l.statusEnded,
-                                  style: AppText.micro.copyWith(fontWeight: FontWeight.w700, color: AppColors.textHigh),
-                                ),
+                                    label: cancelled
+                                        ? l.statusCancelled
+                                        : l.statusEnded,
+                                    color: cancelled ? AppColors.error : null,
+                                  ),
                               ],
                             ),
-                          ),
+                            const SizedBox(height: 10),
+                            Text(
+                              (ev['title'] ?? '') as String,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppText.display
+                                  .copyWith(color: Colors.white, height: 1.1),
+                            ),
+                          ],
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -543,77 +525,71 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               // Content
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+                  // Assez de marge pour que la barre d'achat, opaque, ne
+                  // recouvre jamais le dernier element de la page.
+                  padding: EdgeInsets.fromLTRB(
+                      20, 16, 20, 130 + MediaQuery.of(context).padding.bottom),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title
-                      Text(
-                        (ev['title'] ?? '') as String,
-                        style: AppText.display.copyWith(color: Colors.white, height: 1.2),
-                      ),
-
-                      const SizedBox(height: 6),
-
-                      // Category subtitle
-                      Row(
-                        children: [
-                          Icon(categoryIcon(cat), size: 15, color: catColor),
-                          const SizedBox(width: 6),
-                          Text(
-                            cat,
-                            style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: catColor),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 22),
-
-                      // Date & time
-                      _infoRow(
-                        Icons.calendar_today_outlined,
-                        _formatDate(ev['start_date'] as String?),
-                        '${_formatTime(ev['start_date'] as String?)} - ${_formatTime(ev['end_date'] as String?)}',
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Location — cliquable : ouvre l'app Maps (itinéraire).
-                      //
-                      // `address` est null quand la base refuse de la donner :
-                      // evenement prive, et ni organisateur ni detenteur de
-                      // billet. Le filtrage est en base, pas ici — l'app ne
-                      // recoit tout simplement pas ce qu'elle n'a pas le droit
-                      // d'afficher.
-                      _infoRow(
-                        Icons.location_on_outlined,
-                        exactAddress ?? (ev['location'] ?? 'TBD') as String,
-                        exactAddress == null && isEventPrivate(ev)
-                            ? l.addressRevealedWithTicket
-                            : (ev['city'] ?? '') as String,
-                        onTap: () => _openDirections(ev, exactAddress),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 7),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.35)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.directions,
-                                  color: AppColors.lavenderLight, size: 15),
-                              const SizedBox(width: 5),
-                              Text(
-                                l.getDirections,
-                                style: AppText.smallBold.copyWith(color: AppColors.lavenderLight),
+                      // Date et lieu dans une seule carte. La date montre la
+                      // fin avec son jour quand il differe : « 18 h 30 -
+                      // 18 h 09 » faisait croire a un evenement fini avant
+                      // d'avoir commence.
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.cardDark,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          children: [
+                            _infoRow(
+                              Icons.calendar_today_outlined,
+                              _startLine(ev['start_date'] as String?),
+                              _endLine(ev['start_date'] as String?,
+                                  ev['end_date'] as String?, l),
+                            ),
+                            const Divider(
+                                height: 1,
+                                indent: 14,
+                                endIndent: 14,
+                                color: AppColors.border),
+                            // Cliquable : ouvre l'app Maps (itineraire).
+                            //
+                            // `address` est null quand la base refuse de la
+                            // donner : evenement prive, et ni organisateur ni
+                            // detenteur de billet. Le filtrage est en base, pas
+                            // ici — l'app ne recoit tout simplement pas ce
+                            // qu'elle n'a pas le droit d'afficher.
+                            _infoRow(
+                              Icons.location_on_outlined,
+                              exactAddress ?? (ev['location'] ?? 'TBD') as String,
+                              exactAddress == null && isEventPrivate(ev)
+                                  ? l.addressRevealedWithTicket
+                                  : _capitalized((ev['city'] ?? '') as String),
+                              onTap: () => _openDirections(ev, exactAddress),
+                              trailing: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 7),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(color: AppColors.action),
+                                ),
+                                child: Text(
+                                  l.directionsShort,
+                                  style: AppText.smallBold
+                                      .copyWith(color: AppColors.lavenderLight),
+                                ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
+
+                      // Preuve sociale, placee au moment de la decision :
+                      // juste sous la date, avant meme l'organisateur.
+                      WhosGoing(eventId: ev['id'] as String),
 
                       // Qui organise. Absent jusqu'ici : son identifiant ne
                       // servait qu'au bouton « bloquer ». Sur une app ou l'on
@@ -622,13 +598,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       // chemin pour lui ecrire.
                       _organizerRow(ev, l),
 
-                      // Preuve sociale, placee au moment de la decision.
-                      WhosGoing(eventId: ev['id'] as String),
-
-                      // Preuve visuelle : ce que l'evenement a donne.
-                      EventMoments(eventId: ev['id'] as String),
-
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 10),
 
                       // Description
                       if (ev['description'] != null &&
@@ -645,19 +615,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         const SizedBox(height: 20),
                       ],
 
-                      // Tags
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _tag(ev['category'] ?? 'Event'),
-                          if ((ev['city'] ?? '').toString().isNotEmpty)
-                            _tag(ev['city']),
-                          if ((ev['price'] ?? 0) == 0) _tag(l.freeEntry),
-                          if (((ev['min_age'] ?? 0) as int) > 0)
-                            _tag('${ev['min_age']}+'),
-                        ],
-                      ),
+                      // Preuve visuelle : ce que l'evenement a donne.
+                      EventMoments(eventId: ev['id'] as String),
+
+                      const SizedBox(height: 24),
+
                     ],
                   ),
                 ),
@@ -677,15 +639,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 20,
                 MediaQuery.of(context).padding.bottom + 16,
               ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.background.withValues(alpha: 0),
-                    AppColors.background,
-                  ],
-                ),
+              // Opaque : le degrade partait du transparent, et ce qui
+              // defilait dessous (les Moments) se lisait a travers.
+              decoration: const BoxDecoration(
+                color: AppColors.backgroundSecondary,
+                border: Border(top: BorderSide(color: AppColors.border)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -707,7 +665,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         ),
                         Text(
                           priceText,
-                          style: AppText.display.copyWith(fontSize: 26, color: Colors.white),
+                          style: AppText.h2.copyWith(color: Colors.white),
                         ),
                       ],
                     ),
@@ -733,26 +691,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         decoration: BoxDecoration(
                           gradient: blocked
                               ? null
-                              : const LinearGradient(
-                                  colors: [
-                                    AppColors.primary,
-                                    AppColors.pink
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
+                              : AppColors.primaryGradient,
                           color: blocked ? Colors.white.withValues(alpha: 0.08) : null,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: blocked
-                              ? null
-                              : [
-                                  BoxShadow(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.55),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -813,6 +754,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   /// un emplacement vide vaut mieux qu'un nom qui apparait en sautant.
   Widget _organizerRow(Map<String, dynamic> ev, AppLocalizations l) {
     final organizerId = ev['created_by'] as String?;
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     if (organizerId == null) return const SizedBox.shrink();
 
     final profile = ref.watch(publicProfileProvider(organizerId)).asData?.value;
@@ -884,10 +826,96 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: AppColors.textFaint, size: 18),
+              // Suivre depuis la fiche : c'est ici qu'on decouvre un
+              // organisateur. Pas de bouton sur soi-meme.
+              if (organizerId != currentUserId)
+                _followButton(organizerId, l),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _followButton(String userId, AppLocalizations l) {
+    final following =
+        ref.watch(followingProvider).asData?.value.contains(userId) ?? false;
+    return GestureDetector(
+      onTap: () async {
+        try {
+          if (following) {
+            await unfollowUser(userId);
+          } else {
+            await followUser(userId);
+          }
+          ref.invalidate(followingProvider);
+        } catch (e) {
+          debugPrint('follow toggle failed: $e');
+          if (mounted) showAppSnack(context, l.moderationFailed);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: following ? Colors.transparent : AppColors.action,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+              color: following ? AppColors.border : AppColors.action),
+        ),
+        child: Text(following ? l.unfollow : l.follow,
+            style: AppText.smallBold.copyWith(color: Colors.white)),
+      ),
+    );
+  }
+
+  /// « mer. 7 oct. 2026 · 18 h 30 ».
+  String _startLine(String? start) {
+    if (start == null) return AppLocalizations.of(context).tbd;
+    return '${AppDates.dowDayMonthYear(context, start)} · ${AppDates.time(context, start)}';
+  }
+
+  /// La fin : l'heure seule le meme jour, le jour ET l'heure sinon.
+  String _endLine(String? start, String? end, AppLocalizations l) {
+    if (end == null) return '';
+    final s = start == null ? null : DateTime.tryParse(start);
+    final e = DateTime.tryParse(end);
+    if (e == null) return '';
+    final sameDay =
+        s != null && s.year == e.year && s.month == e.month && s.day == e.day;
+    return sameDay
+        ? l.eventUntilTime(AppDates.time(context, end))
+        : l.eventUntilDate(
+            AppDates.dowDayMonthYear(context, end), AppDates.time(context, end));
+  }
+
+  /// « ottawa » → « Ottawa ». A l'affichage seulement : la donnee reste telle
+  /// que l'organisateur l'a saisie.
+  String _capitalized(String v) {
+    final t = v.trim();
+    return t.isEmpty ? t : t[0].toUpperCase() + t.substring(1);
+  }
+
+  /// Pastille posee sur l'affiche, lisible sur n'importe quelle image.
+  Widget _heroBadge({IconData? icon, required String label, Color? color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+            color: (color ?? Colors.white).withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 13, color: color ?? Colors.white),
+            const SizedBox(width: 5),
+          ],
+          Text(label,
+              style: AppText.micro.copyWith(
+                  fontWeight: FontWeight.w700, color: Colors.white)),
+        ],
       ),
     );
   }
@@ -896,13 +924,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       {VoidCallback? onTap, Widget? trailing}) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
-      ),
       child: Row(
         children: [
           Container(
@@ -943,21 +967,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           ],
         ],
       ),
-      ),
-    );
-  }
-
-  Widget _tag(dynamic label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.13),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.28)),
-      ),
-      child: Text(
-        '#$label',
-        style: AppText.small.copyWith(fontWeight: FontWeight.w600, color: AppColors.lavenderLight),
       ),
     );
   }

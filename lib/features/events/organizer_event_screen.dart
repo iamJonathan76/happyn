@@ -585,9 +585,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
             child: Container(
               height: 7,
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.pink],
-                ),
+                gradient: AppColors.primaryGradient,
               ),
             ),
           ),
@@ -607,11 +605,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
         child: Container(
           height: 54,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.pink],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: AppColors.primaryGradient,
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(

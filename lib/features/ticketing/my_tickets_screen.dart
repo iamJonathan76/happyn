@@ -71,11 +71,7 @@ class _MyTicketsScreenState extends ConsumerState<MyTicketsScreen> {
                         horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       gradient: isActive
-                          ? const LinearGradient(
-                              colors: [AppColors.primary, AppColors.pink],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
+                          ? AppColors.primaryGradient
                           : null,
                       color: isActive ? null : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(20),

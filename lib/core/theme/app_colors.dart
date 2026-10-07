@@ -19,10 +19,8 @@ class AppColors {
   // ── Marque ───────────────────────────────────────────────────────────────
   /// Violet principal.
   static const Color primary = Color(0xFF7C3AED);
-  /// Bulle de ses propres messages. Le violet du bouton d'envoi, un cran plus
-  /// sombre : le texte blanc y garde un contraste confortable sur toute une
-  /// conversation.
-  static const Color messageMine = Color(0xFF5B2BC4);
+  /// Bulle de ses propres messages : le violet des actions.
+  static const Color messageMine = action;
   /// Rose / accent secondaire.
   static const Color pink = Color(0xFFEC4899);
   /// Rose clair.
@@ -32,9 +30,19 @@ class AppColors {
   /// Lavande claire.
   static const Color lavenderLight = Color(0xFFC4B5FD);
 
-  /// Dégradé de marque (violet → rose).
+  /// Le violet des actions : boutons principaux, bulles de ses messages,
+  /// pastilles « Voir ». Un cran sous [primary] pour que le texte blanc y
+  /// reste lisible sur de grandes surfaces.
+  static const Color action = Color(0xFF5B2BC4);
+
+  /// Fond des boutons principaux et des éléments de marque.
+  ///
+  /// C'était un dégradé violet → rose. Essai du 2026-10-07 : violet plein,
+  /// partout à la fois. Les 30 endroits qui le dessinaient passent tous par
+  /// cette constante — pour revenir au dégradé, remettre ici
+  /// `colors: [primary, pink]`, rien d'autre.
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primary, pink],
+    colors: [action, action],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

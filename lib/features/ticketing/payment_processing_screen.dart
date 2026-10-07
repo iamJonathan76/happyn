@@ -152,9 +152,7 @@ class _PaymentProcessingScreenState
             padding:
                 const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.pink],
-              ),
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(

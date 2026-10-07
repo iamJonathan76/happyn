@@ -124,8 +124,7 @@ class _FollowChip extends StatelessWidget {
           // disponible attire l'oeil, l'etat acquis s'efface.
           gradient: following
               ? null
-              : const LinearGradient(
-                  colors: [AppColors.primary, AppColors.pink]),
+              : AppColors.primaryGradient,
           color: following ? Colors.white.withValues(alpha: 0.06) : null,
           borderRadius: BorderRadius.circular(10),
           border: following

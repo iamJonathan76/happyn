@@ -224,11 +224,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                             padding: const EdgeInsets.all(3),
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [AppColors.primary, AppColors.pink],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                              gradient: AppColors.primaryGradient,
                             ),
                             child: ClipOval(
                               child: _avatar != null
@@ -366,9 +362,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                 child: Container(
                   height: 54,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.primary, AppColors.pink],
-                    ),
+                    gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Center(

@@ -226,9 +226,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.primary, AppColors.pink],
-                    ),
+                    gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(

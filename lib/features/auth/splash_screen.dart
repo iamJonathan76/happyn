@@ -129,11 +129,7 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     // HAPPYN logo with gradient
                     ShaderMask(
-                      shaderCallback: (bounds) => const LinearGradient(
-                        colors: [AppColors.primary, AppColors.pink],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ).createShader(bounds),
+                      shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
                       child: Text(
                         'HAPPYN',
                         style: AppText.display.copyWith(fontSize: 72, color: Colors.white, height: 1, letterSpacing: -1),
@@ -171,12 +167,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   height: 6,
                                   decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        AppColors.primary,
-                                        AppColors.pink,
-                                      ],
-                                    ),
+                                    gradient: AppColors.primaryGradient,
                                   ),
                                 ),
                               );
