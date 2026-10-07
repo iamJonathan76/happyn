@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/direct_messages_provider.dart';
@@ -338,7 +339,10 @@ class _ShareSheetState extends ConsumerState<_ShareSheet> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _ExternalAction(
-                                icon: Icons.chat_rounded,
+                                // Le vrai logo : c'est lui que l'oeil cherche
+                                // dans une feuille de partage. Ni recolore ni
+                                // deforme, comme le demande WhatsApp.
+                                icon: FontAwesomeIcons.whatsapp.data,
                                 color: const Color(0xFF25D366),
                                 label: 'WhatsApp',
                                 onTap: () => _whatsApp(text),
