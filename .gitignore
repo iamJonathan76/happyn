@@ -55,3 +55,7 @@ GoogleService-Info.plist
 android/key.properties
 *.keystore
 *.jks
+
+# Reglages passes au build (cle Sentry...) : propres a chaque machine,
+# jamais dans le depot. Modele : dart_defines.example.json
+dart_defines.json

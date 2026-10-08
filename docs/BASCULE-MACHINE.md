@@ -61,9 +61,20 @@ avec `git check-ignore -v android/key.properties`.
 
 ### 3. `SENTRY_DSN` — remontée des erreurs
 
-Passé au build via `--dart-define=SENTRY_DSN=…`, lu dans
-`lib/core/config/observability.dart`. Il n'est écrit nulle part dans le projet.
-Sans lui l'app tourne normalement, on perd seulement la remontée d'erreurs.
+Lu dans `lib/core/config/observability.dart`, jamais écrit dans le dépôt. Il
+vit dans `dart_defines.json` à la racine, ignoré par Git — copier
+`dart_defines.example.json` et y mettre la vraie valeur. Les builds destinés
+à d'autres le passent ainsi :
+
+```bash
+flutter build appbundle --release --dart-define-from-file=dart_defines.json
+```
+
+Le développement de tous les jours s'en passe exprès : sans clé, l'app tourne
+normalement et n'envoie rien, ce qui évite de remplir Sentry de nos propres
+erreurs. Pour vérifier que les rapports arrivent : `flutter run
+--dart-define-from-file=dart_defines.json`, puis en mode debug, Paramètres →
+« Envoyer une erreur de test ».
 
 **Où le retrouver** : tableau de bord Sentry, paramètres du projet.
 
