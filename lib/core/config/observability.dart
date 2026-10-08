@@ -68,3 +68,17 @@ void reportCaught(Object error, StackTrace stack, {required String where}) {
         stackTrace: stack, withScope: (s) => s.setTag('where', where));
   }
 }
+
+/// Envoie une erreur de test, pour verifier que les rapports arrivent.
+///
+/// Renvoie faux si aucune cle n'est branchee : il n'y a alors rien a envoyer,
+/// et l'ecran doit le dire plutot que d'annoncer un envoi qui n'a pas eu lieu.
+Future<bool> sendTestError() async {
+  if (!crashReportingEnabled) return false;
+  await Sentry.captureException(
+    StateError('Erreur de test HAPPYN — envoyee volontairement'),
+    stackTrace: StackTrace.current,
+    withScope: (s) => s.setTag('where', 'settings.testError'),
+  );
+  return true;
+}

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:happyn/core/auth/google_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/config/auth_config.dart';
 import 'package:happyn/core/config/observability.dart';
@@ -71,8 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Connexion native Google : on récupère un idToken via `google_sign_in`,
-  /// puis on l'échange contre une vraie session Supabase (signInWithIdToken).
+  /// Connexion native Google : jeton Google avec nonce, echange contre une
+  /// session Supabase. Le detail vit dans `GoogleAuth`.
   Future<void> _signInWithGoogle() async {
     if (!AuthConfig.isGoogleConfigured) {
       showAppSnack(context, 'Google sign-in is not set up yet');
@@ -81,25 +81,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       setState(() => _isLoading = true);
 
-      final googleSignIn = GoogleSignIn(
-        serverClientId: AuthConfig.googleWebClientId,
-        scopes: const ['email', 'profile'],
-      );
-      // Vide le compte mis en cache pour TOUJOURS afficher le sélecteur de
-      // compte (sinon Google reconnecte silencieusement le même mail).
-      await googleSignIn.signOut();
-      final account = await googleSignIn.signIn();
-      if (account == null) return; // annulé par l'utilisateur
-
-      final googleAuth = await account.authentication;
-      final idToken = googleAuth.idToken;
-      if (idToken == null) throw Exception('Missing Google ID token');
-
-      await Supabase.instance.client.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: googleAuth.accessToken,
-      );
+      final signedIn = await GoogleAuth.signIn();
+      if (!signedIn) return; // annule par l'utilisateur
 
       if (mounted) await _routeAfterAuth();
     } on AuthException catch (e) {

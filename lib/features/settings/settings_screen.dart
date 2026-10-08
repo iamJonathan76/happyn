@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -143,6 +145,21 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => _signOut(context)),
           _danger(context, Icons.delete_outline, l.deleteAccount,
               onTap: () => _deleteAccount(context)),
+
+          // Verification de Sentry, en mode debug seulement : un testeur
+          // n'a rien a faire d'un bouton qui provoque une erreur.
+          if (kDebugMode)
+            _tile(context, Icons.bug_report_outlined, 'Envoyer une erreur de test (Sentry)',
+                onTap: () async {
+              final sent = await sendTestError();
+              if (!context.mounted) return;
+              showAppSnack(
+                context,
+                sent
+                    ? 'Erreur de test envoyee : verifie le tableau de bord Sentry.'
+                    : 'Aucune cle Sentry : lance avec --dart-define=SENTRY_DSN=...',
+              );
+            }),
         ],
       ),
     );

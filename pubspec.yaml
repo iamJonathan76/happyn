@@ -52,7 +52,7 @@ dependencies:
   # Image picking (event covers)
   image_picker: ^1.1.2
   # Google sign-in (OAuth)
-  google_sign_in: ^6.2.1
+  google_sign_in: ^7.2.0
   # Ouvrir l'app Maps (itinéraire vers un event)
   url_launcher: ^6.3.0
   # Navigation
@@ -87,6 +87,7 @@ dependencies:
   share_plus: ^12.0.2
   font_awesome_flutter: ^11.0.0
   image_cropper: ^12.2.1
+  crypto: ^3.0.7
 dev_dependencies:
   flutter_test:
     sdk: flutter
