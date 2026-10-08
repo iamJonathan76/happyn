@@ -3305,7 +3305,7 @@ create policy "organizer writes address" on public."event_addresses" as permissi
    FROM events e
   WHERE (e.id = event_addresses.event_id))));
 
-create policy "likes readable" on public."post_likes" as permissive for select to authenticated, anon using ((EXISTS ( SELECT 1
+create policy "likes readable" on public."post_likes" as permissive for select to authenticated using ((EXISTS ( SELECT 1
    FROM posts p
   WHERE ((p.id = post_likes.post_id) AND (event_posts_are_public(p.event_id) OR can_attach_event(p.event_id))))));
 
@@ -3319,7 +3319,7 @@ create policy "own posts insert" on public."posts" as permissive for insert to a
 
 create policy "own posts update" on public."posts" as permissive for update to authenticated using (((auth.uid() = author_id) AND (NOT is_suspended()))) with check (((auth.uid() = author_id) AND (NOT is_suspended())));
 
-create policy "posts readable" on public."posts" as permissive for select to authenticated, anon using ((event_posts_are_public(event_id) OR can_attach_event(event_id)));
+create policy "posts readable" on public."posts" as permissive for select to authenticated using ((event_posts_are_public(event_id) OR can_attach_event(event_id)));
 
 create policy "own favorites delete" on public."favorites" as permissive for delete to authenticated using ((auth.uid() = user_id));
 
