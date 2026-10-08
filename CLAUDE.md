@@ -68,6 +68,22 @@ Une migration poussée sans avoir été exécutée, ou une fonction Edge poussé
 avoir été typée, est une négligence dans les deux environnements : les outils
 sont là.
 
+### Les règles d'accès ont leurs tests : `tests/rls/run.sh`
+
+Toute migration qui touche à une politique, un droit, une fonction
+`SECURITY DEFINER` ou un déclencheur de garde passe par là AVANT d'être
+livrée :
+
+```bash
+tests/rls/run.sh supabase/migrations/<la_nouvelle>.sql
+```
+
+Le script monte un Postgres jetable, rejoue le schéma RÉEL de la production
+(`tests/rls/schema.sql`, régénéré par `--refresh`), applique la migration, et
+vérifie chaque règle de `tests/rls/access_rules.sql`. Il sort en erreur si une
+seule tombe. Une nouvelle règle de sécurité s'écrit d'abord comme un test ici.
+Les quatre vraies failles du projet venaient toutes de cette famille.
+
 ### La règle de Flutter qui a coûté ces deux régressions
 
 Un `Expanded` ou un `Flexible` n'est légal que si l'ancêtre `Row`/`Column`
