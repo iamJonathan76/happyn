@@ -1449,6 +1449,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get splashTagline => 'FIND THE ONES. BE THE MOMENT.';
 
   @override
+  String get welcomeLine1 => 'Find the ones.';
+
+  @override
+  String get welcomeLine2 => 'Be the moment.';
+
+  @override
+  String get welcomeHaveAccount => 'I already have an account';
+
+  @override
   String get getDirections => 'Get directions';
 
   @override

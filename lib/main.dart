@@ -10,6 +10,7 @@ import 'package:happyn/core/providers/locale_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/auth/onboarding_screen.dart';
+import 'features/auth/welcome_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -117,6 +118,7 @@ class HappynApp extends ConsumerWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
+        '/welcome': (context) => const WelcomeScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const MainShell(),

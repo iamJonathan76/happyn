@@ -707,7 +707,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: AppColors.messageMine,
+                gradient: AppColors.brandGradient,
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(l.viewAction,

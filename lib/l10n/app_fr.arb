@@ -467,6 +467,9 @@
   "onbContinue": "Continuer",
   "getStarted": "Commencer",
   "splashTagline": "TROUVE LES BONS. VIS L'INSTANT.",
+  "welcomeLine1": "Trouve les bons.",
+  "welcomeLine2": "Vis l'instant.",
+  "welcomeHaveAccount": "J'ai déjà un compte",
 
   "getDirections": "Itinéraire",
   "couldNotOpenMaps": "Impossible d'ouvrir une app de cartes.",

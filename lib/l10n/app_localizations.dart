@@ -2642,6 +2642,24 @@ abstract class AppLocalizations {
   /// **'FIND THE ONES. BE THE MOMENT.'**
   String get splashTagline;
 
+  /// No description provided for @welcomeLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the ones.'**
+  String get welcomeLine1;
+
+  /// No description provided for @welcomeLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the moment.'**
+  String get welcomeLine2;
+
+  /// No description provided for @welcomeHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account'**
+  String get welcomeHaveAccount;
+
   /// No description provided for @getDirections.
   ///
   /// In en, this message translates to:

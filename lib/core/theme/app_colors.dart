@@ -47,6 +47,18 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
+  /// Le dégradé de marque, violet → rose : réservé aux moments de marque —
+  /// accueil, lancement, onboarding, bouton « + » de création, pastille
+  /// « Voir » d'un événement partagé.
+  ///
+  /// Distinct de [primaryGradient], resté violet plein : partout à la fois, le
+  /// dégradé ne signalait plus rien. Rare, il marque les gestes qui comptent.
+  static const LinearGradient brandGradient = LinearGradient(
+    colors: [primary, pink],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+
   // ── Sémantique ───────────────────────────────────────────────────────────
   /// Rouge (danger / erreurs / annulation).
   static const Color error = Color(0xFFFF4B4B);

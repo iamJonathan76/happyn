@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/features/auth/welcome_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -50,9 +51,17 @@ class _SplashScreenState extends State<SplashScreen>
   if (session != null) {
     Navigator.of(context).pushReplacementNamed('/home');
   } else {
-    Navigator.of(context).pushReplacementNamed('/onboarding');
+    Navigator.of(context).pushReplacementNamed('/welcome');
   }
 });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Decoder le logo de l'accueil pendant le splash : sinon il apparait une
+    // fraction de seconde apres le reste de l'ecran.
+    precacheImage(WelcomeScreen.logoImage, context);
   }
 
   @override
@@ -129,7 +138,7 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     // HAPPYN logo with gradient
                     ShaderMask(
-                      shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
+                      shaderCallback: (bounds) => AppColors.brandGradient.createShader(bounds),
                       child: Text(
                         'HAPPYN',
                         style: AppText.display.copyWith(fontSize: 72, color: Colors.white, height: 1, letterSpacing: -1),
@@ -167,7 +176,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   height: 6,
                                   decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
-                                    gradient: AppColors.primaryGradient,
+                                    gradient: AppColors.brandGradient,
                                   ),
                                 ),
                               );

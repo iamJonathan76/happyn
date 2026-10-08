@@ -1466,6 +1466,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get splashTagline => 'TROUVE LES BONS. VIS L\'INSTANT.';
 
   @override
+  String get welcomeLine1 => 'Trouve les bons.';
+
+  @override
+  String get welcomeLine2 => 'Vis l\'instant.';
+
+  @override
+  String get welcomeHaveAccount => 'J\'ai déjà un compte';
+
+  @override
   String get getDirections => 'Itinéraire';
 
   @override

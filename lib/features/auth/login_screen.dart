@@ -63,7 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
       // avant que la personne sache ce qu'est l'app la fait refuser, et un
       // refus Android est definitif jusqu'aux reglages systeme.
       unawaited(PushService.registerForUser());
-      Navigator.of(context).pushReplacementNamed('/home');
+      // On vide toute la pile : l'accueil reste dessous quand on arrive par
+      // « J'ai déjà un compte », et le retour Android y ramènerait.
+      Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),

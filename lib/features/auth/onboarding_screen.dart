@@ -146,7 +146,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      gradient: AppColors.brandGradient,
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
@@ -193,7 +193,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(3),
                           gradient: isActive
-                              ? AppColors.primaryGradient
+                              ? AppColors.brandGradient
                               : null,
                           color: isActive
                               ? null
@@ -212,7 +212,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: double.infinity,
                       height: 56,
                       decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
+                        gradient: AppColors.brandGradient,
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(

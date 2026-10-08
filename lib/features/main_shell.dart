@@ -189,11 +189,11 @@ class _MainShellState extends State<MainShell> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      gradient: AppColors.brandGradient,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.55),
+                          color: AppColors.pink.withValues(alpha: 0.35),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
