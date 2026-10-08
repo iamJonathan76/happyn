@@ -2660,6 +2660,66 @@ abstract class AppLocalizations {
   /// **'I already have an account'**
   String get welcomeHaveAccount;
 
+  /// No description provided for @authSignUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your account'**
+  String get authSignUpTitle;
+
+  /// No description provided for @authLoginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get authLoginTitle;
+
+  /// No description provided for @authSignUpSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Every event in Ottawa–Gatineau, in one place.'**
+  String get authSignUpSub;
+
+  /// No description provided for @authLoginSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to get back to your events.'**
+  String get authLoginSub;
+
+  /// No description provided for @continueWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get continueWithApple;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @continueWithEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with email'**
+  String get continueWithEmail;
+
+  /// No description provided for @authHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get authHaveAccount;
+
+  /// No description provided for @authNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get authNoAccount;
+
+  /// No description provided for @authContinueAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you agree to our '**
+  String get authContinueAgree;
+
   /// No description provided for @getDirections.
   ///
   /// In en, this message translates to:

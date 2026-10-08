@@ -1,28 +1,28 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:happyn/features/settings/legal_page_screen.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
-import 'package:happyn/core/auth/google_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:happyn/core/config/auth_config.dart';
-import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/utils/age.dart';
-import 'dart:async';
-import 'package:happyn/core/push/push_service.dart';
 import 'package:happyn/core/utils/support.dart';
-import 'package:flutter/foundation.dart';
 import 'package:happyn/l10n/app_localizations.dart';
-import 'package:happyn/features/auth/complete_profile_screen.dart';
+import 'package:happyn/features/auth/auth_routing.dart';
 
+/// Le formulaire e-mail, connexion ou inscription. On y arrive depuis le
+/// choix de la porte d'entrée (`AuthChoiceScreen`), qui garde Apple et Google.
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.initialSignUp = false});
+
+  final bool initialSignUp;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isLogin = true;
+  late bool _isLogin = !widget.initialSignUp;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
@@ -36,93 +36,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     _nameController.dispose();
     super.dispose();
-  }
-
-      /// Après auth : si le profil n'est pas encore « onboardé », on propose
-  /// l'écran « Complete your profile » ; sinon on va direct au Home.
-  Future<void> _routeAfterAuth() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    bool onboarded = true;
-    if (user != null) {
-      try {
-        final row = await Supabase.instance.client
-            .from('profiles')
-            .select('onboarded')
-            .eq('id', user.id)
-            .maybeSingle();
-        onboarded = (row?['onboarded'] ?? false) as bool;
-      } catch (e, st) {
-        // Lecture impossible : on laisse entrer plutot que de bloquer la
-        // connexion. Au pire, l'onboarding est saute cette fois-ci.
-        reportCaught(e, st, where: 'login.routeAfterAuth');
-      }
-    }
-    if (!mounted) return;
-    if (onboarded) {
-      // Apres la connexion, pas au premier lancement : demander la permission
-      // avant que la personne sache ce qu'est l'app la fait refuser, et un
-      // refus Android est definitif jusqu'aux reglages systeme.
-      unawaited(PushService.registerForUser());
-      // On vide toute la pile : l'accueil reste dessous quand on arrive par
-      // « J'ai déjà un compte », et le retour Android y ramènerait.
-      Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
-      );
-    }
-  }
-
-  /// Connexion native Google : jeton Google avec nonce, echange contre une
-  /// session Supabase. Le detail vit dans `GoogleAuth`.
-  Future<void> _signInWithGoogle() async {
-    if (!AuthConfig.isGoogleConfigured) {
-      showAppSnack(context, 'Google sign-in is not set up yet');
-      return;
-    }
-    try {
-      setState(() => _isLoading = true);
-
-      final signedIn = await GoogleAuth.signIn();
-      if (!signedIn) return; // annule par l'utilisateur
-
-      if (mounted) await _routeAfterAuth();
-    } on AuthException catch (e) {
-      debugPrint('Google sign-in — Supabase a refuse le jeton : ${e.message}');
-      if (mounted) showAppSnack(context, e.message);
-    } catch (error, stackTrace) {
-      // Le message affiché reste volontairement générique — « DEVELOPER_ERROR »
-      // ne veut rien dire pour la personne qui essaie de se connecter. Mais
-      // l'avaler SANS TRACE rendait tout diagnostic impossible : un « ça marche
-      // pas » sur le téléphone de quelqu'un d'autre ne donnait aucune prise.
-      //
-      // Les deux causes à reconnaître ici :
-      //   * `status code: 10` (DEVELOPER_ERROR) → l'empreinte SHA-1 de l'APK
-      //     n'est pas déclarée pour ce client OAuth Android.
-      //   * `access_denied` / écran Google « n'a pas terminé la vérification »
-      //     → l'écran de consentement est en mode Test et ce compte n'est pas
-      //     dans la liste des testeurs.
-      debugPrint('Google sign-in echoue : $error');
-      // La pile d'appels en plus du message : « DEVELOPER_ERROR » seul ne dit
-      // pas d'ou vient l'echec, et c'est ce qui a coute le plus de temps a
-      // diagnostiquer.
-      debugPrintStack(
-        label: 'Google sign-in failure details',
-        stackTrace: stackTrace,
-      );
-      if (mounted) {
-        // L'erreur brute en debogage seulement : en production elle ne veut
-        // rien dire pour la personne qui essaie de se connecter.
-        showAppSnack(
-          context,
-          kDebugMode
-              ? 'Google sign-in failed: $error'
-              : 'Google sign-in failed. Please try again.',
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
   }
 
   String _formatDob(DateTime d) {
@@ -186,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
           password: password,
         );
 
-        if (mounted) await _routeAfterAuth();
+        if (mounted) await routeAfterAuth(context);
       } else {
         final res = await Supabase.instance.client.auth.signUp(
           email: email,
@@ -201,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Si une session est créée direct (confirmation email désactivée),
         // on enchaîne sur l'onboarding. Sinon, message « check email ».
         if (res.session != null) {
-          if (mounted) await _routeAfterAuth();
+          if (mounted) await routeAfterAuth(context);
           return;
         }
 
@@ -306,119 +219,60 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
-                const SizedBox(height: 32),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    alignment: Alignment.centerLeft,
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: const Icon(Icons.arrow_back_ios_new,
+                        color: Colors.white, size: 20),
+                  ),
+                ),
 
-                // Logo
-                ShaderMask(
-                  shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
+                const SizedBox(height: 24),
+
+                Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
-                    'HAPPYN',
-                    style: AppText.display.copyWith(fontSize: 38, color: Colors.white, letterSpacing: -0.5),
+                    _isLogin ? l.authLoginTitle : l.authSignUpTitle,
+                    style: AppText.display
+                        .copyWith(fontSize: 28, color: Colors.white),
                   ),
                 ),
 
-                const SizedBox(height: 6),
-
-                Text(
-                  _isLogin ? l.welcomeBack : l.joinExperience,
-                  style: AppText.body.copyWith(color: AppColors.textLight.withValues(alpha: 0.42)),
-                ),
-
-                const SizedBox(height: 28),
-
-                // Toggle Login / Sign Up
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                  ),
-                  child: Row(
-                    children: [l.logIn, l.signUp].asMap().entries.map((e) {
-                      final isActive = (e.key == 0) == _isLogin;
-                      return Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _isLogin = e.key == 0),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              gradient: isActive
-                                  ? AppColors.primaryGradient
-                                  : null,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: isActive
-                                  ? [
-                                      BoxShadow(
-                                        color: AppColors.primary.withValues(alpha: 0.55),
-                                        blurRadius: 16,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Text(
-                              e.value,
-                              textAlign: TextAlign.center,
-                              style: AppText.h5.copyWith(color: isActive
-                                    ? Colors.white
-                                    : AppColors.textLow),
-                            ),
+                // Bascule connexion / inscription : un lien sous le titre
+                // plutôt que des onglets, comme sur l'écran précédent.
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 40),
+                    ),
+                    onPressed: () => setState(() => _isLogin = !_isLogin),
+                    child: Text.rich(
+                      TextSpan(
+                        style: AppText.bodySm.copyWith(color: AppColors.textMed),
+                        children: [
+                          TextSpan(
+                              text: _isLogin
+                                  ? l.authNoAccount
+                                  : l.authHaveAccount),
+                          const TextSpan(text: ' '),
+                          TextSpan(
+                            text: _isLogin ? l.createAccount : l.logIn,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: 20),
-
-                // OAuth buttons
-                Row(
-                  children: [
-                    _oauthButton(
-                      Text('G',
-                          style: AppText.h2.copyWith(fontWeight: FontWeight.w900, color: Colors.white)),
-                      'Google',
-                      _signInWithGoogle,
-                    ),
-                    const SizedBox(width: 12),
-                    _oauthButton(
-                      const Icon(Icons.apple, color: Colors.white, size: 22),
-                      'Apple',
-                      () => showAppSnack(context, l.appleSignInSoon),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Divider
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color: Colors.white.withValues(alpha: 0.07),
-                        thickness: 1,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        l.orEmail,
-                        style: AppText.small.copyWith(color: AppColors.textFaint),
-                      ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color: Colors.white.withValues(alpha: 0.07),
-                        thickness: 1,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
 
                 // Name field (sign up only)
                 if (!_isLogin) ...[
@@ -516,11 +370,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: double.infinity,
                     height: 56,
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(18),
+                      gradient: AppColors.brandGradient,
+                      borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.55),
+                          color: AppColors.pink.withValues(alpha: 0.35),
                           blurRadius: 20,
                           offset: const Offset(0, 6),
                         ),
@@ -544,15 +398,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: AppText.small.copyWith(color: AppColors.textFaint),
                       children: [
                         TextSpan(text: l.bySigningUpAgree),
-                        TextSpan(
-                          text: l.termsWord,
-                          style: const TextStyle(color: AppColors.lavender),
-                        ),
+                        _legalLink(l.termsWord, 'terms'),
                         TextSpan(text: l.andConnector),
-                        TextSpan(
-                          text: l.privacyWord,
-                          style: const TextStyle(color: AppColors.lavender),
-                        ),
+                        _legalLink(l.privacyWord, 'privacy'),
                       ],
                     ),
                   ),
@@ -567,30 +415,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _oauthButton(Widget icon, String label, VoidCallback onTap) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: _isLoading ? null : onTap,
-        child: Container(
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              icon,
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: AppText.bodySm.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  /// On accepte ces documents en s'inscrivant : il faut pouvoir les lire.
+  TextSpan _legalLink(String text, String docId) => TextSpan(
+        text: text,
+        style: const TextStyle(color: AppColors.lavender),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => LegalPageScreen(docId: docId),
+              )),
+      );
 }

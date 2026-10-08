@@ -42,7 +42,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_currentSlide < 2) {
       setState(() => _currentSlide++);
     } else {
-      Navigator.of(context).pushReplacementNamed('/login');
+      Navigator.of(context).pushReplacementNamed('/signup');
     }
   }
 
@@ -95,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   right: 20,
                   child: GestureDetector(
                     onTap: () => Navigator.of(context)
-                        .pushReplacementNamed('/login'),
+                        .pushReplacementNamed('/signup'),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),

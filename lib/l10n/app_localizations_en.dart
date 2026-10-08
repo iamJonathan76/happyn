@@ -1458,6 +1458,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeHaveAccount => 'I already have an account';
 
   @override
+  String get authSignUpTitle => 'Create your account';
+
+  @override
+  String get authLoginTitle => 'Welcome back';
+
+  @override
+  String get authSignUpSub => 'Every event in Ottawa–Gatineau, in one place.';
+
+  @override
+  String get authLoginSub => 'Log in to get back to your events.';
+
+  @override
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get continueWithEmail => 'Continue with email';
+
+  @override
+  String get authHaveAccount => 'Already have an account?';
+
+  @override
+  String get authNoAccount => 'Don\'t have an account?';
+
+  @override
+  String get authContinueAgree => 'By continuing, you agree to our ';
+
+  @override
   String get getDirections => 'Get directions';
 
   @override

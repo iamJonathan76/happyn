@@ -1475,6 +1475,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get welcomeHaveAccount => 'J\'ai déjà un compte';
 
   @override
+  String get authSignUpTitle => 'Crée ton compte';
+
+  @override
+  String get authLoginTitle => 'Bon retour';
+
+  @override
+  String get authSignUpSub =>
+      'Toutes les sorties d\'Ottawa–Gatineau, au même endroit.';
+
+  @override
+  String get authLoginSub => 'Connecte-toi pour retrouver tes sorties.';
+
+  @override
+  String get continueWithApple => 'Continuer avec Apple';
+
+  @override
+  String get continueWithGoogle => 'Continuer avec Google';
+
+  @override
+  String get continueWithEmail => 'Continuer par e-mail';
+
+  @override
+  String get authHaveAccount => 'Déjà un compte ?';
+
+  @override
+  String get authNoAccount => 'Pas encore de compte ?';
+
+  @override
+  String get authContinueAgree => 'En continuant, tu acceptes nos ';
+
+  @override
   String get getDirections => 'Itinéraire';
 
   @override
