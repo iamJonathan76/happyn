@@ -3,6 +3,8 @@ import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/auth/welcome_screen.dart';
+import 'package:happyn/features/auth/auth_routing.dart';
+import 'package:happyn/features/auth/birth_date_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -48,7 +50,11 @@ class _SplashScreenState extends State<SplashScreen>
 
   if (!mounted) return;
 
-  if (session != null) {
+  if (session != null && BirthDateScreen.isMissing()) {
+    // Comptes Google créés avant que la date soit demandée.
+    Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (_) => const BirthDateScreen(onDone: routeAfterAuth)));
+  } else if (session != null) {
     Navigator.of(context).pushReplacementNamed('/home');
   } else {
     Navigator.of(context).pushReplacementNamed('/welcome');

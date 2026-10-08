@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/push/push_service.dart';
+import 'package:happyn/features/auth/birth_date_screen.dart';
 import 'package:happyn/features/auth/complete_profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -14,6 +15,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// le formulaire restaient dessous, et le retour Android y ramenait une
 /// personne déjà connectée.
 Future<void> routeAfterAuth(BuildContext context) async {
+  // Avant tout le reste : sans date de naissance, aucune règle d'âge ne
+  // s'applique. Cas de toute inscription par Google.
+  if (BirthDateScreen.isMissing()) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+          builder: (_) => const BirthDateScreen(onDone: routeAfterAuth)),
+      (_) => false,
+    );
+    return;
+  }
   final user = Supabase.instance.client.auth.currentUser;
   bool onboarded = true;
   if (user != null) {

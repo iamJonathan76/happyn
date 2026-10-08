@@ -480,6 +480,11 @@
   "authHaveAccount": "Déjà un compte ?",
   "authNoAccount": "Pas encore de compte ?",
   "authContinueAgree": "En continuant, tu acceptes nos ",
+  "dobTitle": "Ta date de naissance",
+  "dobWhy": "HAPPYN est réservé aux 14 ans et plus, et certains événements ont un âge minimum. Ta date de naissance n'est jamais visible des autres.",
+  "dobTooYoungTitle": "HAPPYN est réservé aux 14 ans et plus",
+  "dobTooYoungBody": "On ne peut pas ouvrir de compte avant 14 ans. Celui-ci va être supprimé, avec les informations reçues lors de l'inscription.",
+  "dobTooYoungOk": "Compris",
 
   "getDirections": "Itinéraire",
   "couldNotOpenMaps": "Impossible d'ouvrir une app de cartes.",

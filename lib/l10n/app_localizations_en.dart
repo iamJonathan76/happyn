@@ -1488,6 +1488,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authContinueAgree => 'By continuing, you agree to our ';
 
   @override
+  String get dobTitle => 'Your date of birth';
+
+  @override
+  String get dobWhy =>
+      'HAPPYN is for people 14 and older, and some events have a minimum age. Your date of birth is never shown to anyone.';
+
+  @override
+  String get dobTooYoungTitle => 'HAPPYN is for people 14 and older';
+
+  @override
+  String get dobTooYoungBody =>
+      'Accounts can\'t be opened before age 14. This one will be deleted, along with the information received at sign-up.';
+
+  @override
+  String get dobTooYoungOk => 'Got it';
+
+  @override
   String get getDirections => 'Get directions';
 
   @override

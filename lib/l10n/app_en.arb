@@ -508,6 +508,11 @@
   "authHaveAccount": "Already have an account?",
   "authNoAccount": "Don't have an account?",
   "authContinueAgree": "By continuing, you agree to our ",
+  "dobTitle": "Your date of birth",
+  "dobWhy": "HAPPYN is for people 14 and older, and some events have a minimum age. Your date of birth is never shown to anyone.",
+  "dobTooYoungTitle": "HAPPYN is for people 14 and older",
+  "dobTooYoungBody": "Accounts can't be opened before age 14. This one will be deleted, along with the information received at sign-up.",
+  "dobTooYoungOk": "Got it",
 
   "getDirections": "Get directions",
   "couldNotOpenMaps": "Could not open a maps app.",

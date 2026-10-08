@@ -2720,6 +2720,36 @@ abstract class AppLocalizations {
   /// **'By continuing, you agree to our '**
   String get authContinueAgree;
 
+  /// No description provided for @dobTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your date of birth'**
+  String get dobTitle;
+
+  /// No description provided for @dobWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'HAPPYN is for people 14 and older, and some events have a minimum age. Your date of birth is never shown to anyone.'**
+  String get dobWhy;
+
+  /// No description provided for @dobTooYoungTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HAPPYN is for people 14 and older'**
+  String get dobTooYoungTitle;
+
+  /// No description provided for @dobTooYoungBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts can\'t be opened before age 14. This one will be deleted, along with the information received at sign-up.'**
+  String get dobTooYoungBody;
+
+  /// No description provided for @dobTooYoungOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get dobTooYoungOk;
+
   /// No description provided for @getDirections.
   ///
   /// In en, this message translates to:
