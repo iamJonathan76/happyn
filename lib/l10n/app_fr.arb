@@ -673,5 +673,12 @@
   "payoutCancelledRefunded": "Événement annulé — les acheteurs ont été remboursés. Rien ne sera versé.",
   "payoutCancelledRefundsPending": "Événement annulé — des acheteurs n'ont pas encore été remboursés. Rien ne sera versé.",
   "venueNameLabel": "Nom du lieu (facultatif)",
-  "venueNameHint": "ex. Le Petit Chicago"
+  "venueNameHint": "ex. Le Petit Chicago",
+  "payoutsNeededTitle": "Configure tes versements pour vendre des billets payants",
+  "payoutsNeededCreateBody": "Les billets payants sont mis en vente dès que ton compte de versement est actif — environ 2 minutes avec Stripe. Ton événement sera enregistré en brouillon ; publie-le dès que c'est prêt.",
+  "payoutsNeededPublishBody": "Cet événement a des billets payants. Configure d'abord tes versements — environ 2 minutes avec Stripe.",
+  "payoutsSaveDraftAndSetUp": "Enregistrer en brouillon et configurer",
+  "payoutsSetUp": "Configurer mes versements",
+  "eventSavedAsDraft": "Enregistré en brouillon. Publie-le dès que tes versements sont actifs.",
+  "ticketsOnSaleSoon": "Billets bientôt en vente"
 }

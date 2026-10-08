@@ -12,6 +12,7 @@ import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/utils/age.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'qr_ticket_screen.dart';
+import 'package:happyn/core/providers/payout_provider.dart';
 import 'payment_processing_screen.dart';
 
 class TicketSelectionScreen extends ConsumerStatefulWidget {
@@ -227,6 +228,15 @@ class _TicketSelectionScreenState
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final ev = widget.event;
+    // Un palier payant ne se vend pas tant que l'organisateur ne peut pas
+    // encaisser (le serveur refuserait). Un palier gratuit, si.
+    final organizerId = ev['created_by'] as String?;
+    final payable = organizerId == null ||
+        ref.watch(organizerPayableProvider(organizerId)).value != false;
+    final selectedUnsellable = !payable &&
+        _selectedTypeIndex != null &&
+        _selectedTypeIndex! < _ticketTypes.length &&
+        (((_ticketTypes[_selectedTypeIndex!]['price'] as num?) ?? 0) > 0);
     final imageUrl = (ev['image_url'] ?? '') as String;
 
     return Scaffold(
@@ -330,9 +340,11 @@ class _TicketSelectionScreenState
                               final total = t['quantity_total'] ?? 100;
                               final remaining = total - sold;
                               final isSoldOut = remaining <= 0;
+                              final notOnSale = !payable && (price as num) > 0;
+                              final unavailable = isSoldOut || notOnSale;
 
                               return GestureDetector(
-                                onTap: isSoldOut
+                                onTap: unavailable
                                     ? null
                                     : () => setState(() {
                                           _selectedTypeIndex = i;
@@ -393,7 +405,7 @@ class _TicketSelectionScreenState
                                               children: [
                                                 Text(
                                                   (t['name'] ?? '') as String,
-                                                  style: AppText.h4.copyWith(color: isSoldOut
+                                                  style: AppText.h4.copyWith(color: unavailable
                                                         ? AppColors.textLow
                                                         : Colors.white),
                                                 ),
@@ -429,8 +441,12 @@ class _TicketSelectionScreenState
 
                                       // Price
                                       Text(
-                                        isSoldOut ? l.soldOut : priceText,
-                                        style: AppText.h3.copyWith(fontWeight: FontWeight.w900, color: isSoldOut
+                                        isSoldOut
+                                            ? l.soldOut
+                                            : notOnSale
+                                                ? l.ticketsOnSaleSoon
+                                                : priceText,
+                                        style: AppText.h3.copyWith(fontWeight: FontWeight.w900, color: unavailable
                                               ? AppColors.textLow
                                               : AppColors.lavenderLight),
                                       ),
@@ -510,8 +526,13 @@ class _TicketSelectionScreenState
                   const SizedBox(width: 16),
                   Expanded(
                     child: GestureDetector(
-                      onTap: _isPurchasing ? null : _purchaseTicket,
-                      child: Container(
+                      onTap: (_isPurchasing || selectedUnsellable)
+                          ? null
+                          : _purchaseTicket,
+                      child: AnimatedOpacity(
+                        opacity: selectedUnsellable ? 0.35 : 1,
+                        duration: const Duration(milliseconds: 150),
+                        child: Container(
                         height: 56,
                         decoration: BoxDecoration(
                           gradient: AppColors.primaryGradient,
@@ -546,6 +567,7 @@ class _TicketSelectionScreenState
                                 ),
                         ),
                       ),
+                      )
                     ),
                   ),
                 ],

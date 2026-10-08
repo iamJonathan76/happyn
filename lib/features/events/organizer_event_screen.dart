@@ -13,6 +13,9 @@ import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/providers/payout_provider.dart';
+import 'package:happyn/features/settings/payouts_screen.dart';
+import 'package:happyn/features/settings/widgets/payouts_needed_dialog.dart';
 
 /// Tableau de bord d'un événement, pour son organisateur.
 ///
@@ -60,6 +63,31 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
   // et on le supprimait depuis une liste qui ne montrait aucun chiffre. Or ce
   // sont precisement les decisions qu'on ne devrait prendre qu'en ayant les
   // ventes et les participants sous les yeux.
+
+  /// Publier un evenement payant exige un compte de versement actif : sinon il
+  /// s'afficherait en vente et le serveur refuserait chaque paiement. On le
+  /// dit ici, au moment ou l'organisateur decide, avec le chemin pour y
+  /// remedier.
+  Future<void> _publish(AppLocalizations l) async {
+    final hasPaidTier = await Supabase.instance.client
+        .from('ticket_types')
+        .select('id')
+        .eq('event_id', _eventId)
+        .gt('price', 0)
+        .limit(1)
+        .then((rows) => (rows as List).isNotEmpty, onError: (_) => false);
+    if (hasPaidTier && !await myPayoutsReady(ref)) {
+      if (!mounted) return;
+      final go = await showPayoutsNeededDialog(context,
+          body: l.payoutsNeededPublishBody, confirmLabel: l.payoutsSetUp);
+      if (go && mounted) {
+        await Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const PayoutsScreen()));
+      }
+      return;
+    }
+    await _setStatus('published', l.eventPublishedMsg);
+  }
 
   Future<void> _setStatus(String newStatus, String toast) async {
     try {
@@ -256,7 +284,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
         if (_busyLifecycle) return;
         if (v == 'edit') _edit();
         if (v == 'unpublish') _setStatus('draft', l.eventUnpublishedMsg);
-        if (v == 'publish') _setStatus('published', l.eventPublishedMsg);
+        if (v == 'publish') _publish(l);
         if (v == 'cancel') _confirmCancel();
         if (v == 'restore') _restore();
         if (v == 'delete') _confirmDelete();

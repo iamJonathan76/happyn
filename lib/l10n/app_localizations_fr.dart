@@ -2173,4 +2173,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get venueNameHint => 'ex. Le Petit Chicago';
+
+  @override
+  String get payoutsNeededTitle =>
+      'Configure tes versements pour vendre des billets payants';
+
+  @override
+  String get payoutsNeededCreateBody =>
+      'Les billets payants sont mis en vente dès que ton compte de versement est actif — environ 2 minutes avec Stripe. Ton événement sera enregistré en brouillon ; publie-le dès que c\'est prêt.';
+
+  @override
+  String get payoutsNeededPublishBody =>
+      'Cet événement a des billets payants. Configure d\'abord tes versements — environ 2 minutes avec Stripe.';
+
+  @override
+  String get payoutsSaveDraftAndSetUp =>
+      'Enregistrer en brouillon et configurer';
+
+  @override
+  String get payoutsSetUp => 'Configurer mes versements';
+
+  @override
+  String get eventSavedAsDraft =>
+      'Enregistré en brouillon. Publie-le dès que tes versements sont actifs.';
+
+  @override
+  String get ticketsOnSaleSoon => 'Billets bientôt en vente';
 }

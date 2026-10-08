@@ -3829,6 +3829,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. Le Petit Chicago'**
   String get venueNameHint;
+
+  /// No description provided for @payoutsNeededTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up payouts to sell paid tickets'**
+  String get payoutsNeededTitle;
+
+  /// No description provided for @payoutsNeededCreateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid tickets go on sale once your payout account is active — about 2 minutes with Stripe. Your event will be saved as a draft; publish it as soon as you\'re set up.'**
+  String get payoutsNeededCreateBody;
+
+  /// No description provided for @payoutsNeededPublishBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This event has paid tickets. Set up your payouts first — it takes about 2 minutes with Stripe.'**
+  String get payoutsNeededPublishBody;
+
+  /// No description provided for @payoutsSaveDraftAndSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as draft and set up'**
+  String get payoutsSaveDraftAndSetUp;
+
+  /// No description provided for @payoutsSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up payouts'**
+  String get payoutsSetUp;
+
+  /// No description provided for @eventSavedAsDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as a draft. Publish it once your payouts are active.'**
+  String get eventSavedAsDraft;
+
+  /// No description provided for @ticketsOnSaleSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets on sale soon'**
+  String get ticketsOnSaleSoon;
 }
 
 class _AppLocalizationsDelegate

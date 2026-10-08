@@ -24,6 +24,7 @@ import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/social/widgets/share_sheet.dart';
+import 'package:happyn/core/providers/payout_provider.dart';
 import 'package:happyn/features/ticketing/scanner_screen.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
@@ -277,13 +278,24 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final isOrganizer =
         currentUserId != null && ev['created_by'] == currentUserId;
     final cancelled = _status == 'cancelled';
+    // Tout payant, et l'organisateur ne peut pas encore encaisser : le
+    // serveur refuserait le paiement. On le dit sur le bouton plutot que de
+    // laisser l'acheteur le decouvrir apres avoir tout rempli.
+    final organizerId = ev['created_by'] as String?;
+    final notSellableYet = !isOrganizer &&
+        ((price as num?) ?? 0) > 0 &&
+        organizerId != null &&
+        ref.watch(organizerPayableProvider(organizerId)).value == false;
     // Un visiteur ne peut pas acheter un event terminé, annulé ou dépublié.
-    final blocked = !isOrganizer && (past || _status != 'published');
+    final blocked =
+        !isOrganizer && (past || _status != 'published' || notSellableYet);
     final ctaLabel = cancelled
         ? l.eventCancelledMsg
         : past
             ? l.eventEnded
-            : l.ctaUnavailable;
+            : notSellableYet
+                ? l.ticketsOnSaleSoon
+                : l.ctaUnavailable;
 
     return Scaffold(
       backgroundColor: AppColors.background,

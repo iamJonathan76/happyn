@@ -193,3 +193,34 @@ Future<ConnectLink> requestConnectLink({bool dashboard = false}) async {
     return const ConnectLink();
   }
 }
+
+/// L'organisateur peut-il encaisser ? (compte de versement actif)
+///
+/// Sert seulement a l'affichage : dire « Billets bientot en vente » au lieu de
+/// laisser l'acheteur buter sur une erreur au paiement. La vraie barriere est
+/// cote serveur — `create-payment-intent` refuse toute vente payante tant que
+/// le compte n'est pas actif. En cas de doute (reseau), on n'empeche donc
+/// rien ici : le serveur tranchera.
+final organizerPayableProvider =
+    FutureProvider.autoDispose.family<bool, String>((ref, organizerId) async {
+  try {
+    final res = await Supabase.instance.client
+        .rpc('organizer_is_payable', params: {'p_organizer': organizerId});
+    return res == true;
+  } catch (e) {
+    debugPrint('organizer_is_payable indisponible : $e');
+    return true;
+  }
+});
+
+/// Mes propres versements sont-ils prets ? Pour l'organisateur qui cree ou
+/// publie un evenement payant. En cas de doute, non : mieux vaut un brouillon
+/// de trop qu'un evenement publie qui ne peut rien vendre.
+Future<bool> myPayoutsReady(WidgetRef ref) async {
+  try {
+    return (await ref.read(payoutAccountProvider.future)).isReady;
+  } catch (e) {
+    debugPrint('etat des versements indisponible : $e');
+    return false;
+  }
+}

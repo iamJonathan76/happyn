@@ -720,5 +720,12 @@
   "payoutCancelledRefunded": "Event cancelled — buyers were refunded. Nothing will be paid out.",
   "payoutCancelledRefundsPending": "Event cancelled — some buyers haven't been refunded yet. Nothing will be paid out.",
   "venueNameLabel": "Venue name (optional)",
-  "venueNameHint": "e.g. Le Petit Chicago"
+  "venueNameHint": "e.g. Le Petit Chicago",
+  "payoutsNeededTitle": "Set up payouts to sell paid tickets",
+  "payoutsNeededCreateBody": "Paid tickets go on sale once your payout account is active — about 2 minutes with Stripe. Your event will be saved as a draft; publish it as soon as you're set up.",
+  "payoutsNeededPublishBody": "This event has paid tickets. Set up your payouts first — it takes about 2 minutes with Stripe.",
+  "payoutsSaveDraftAndSetUp": "Save as draft and set up",
+  "payoutsSetUp": "Set up payouts",
+  "eventSavedAsDraft": "Saved as a draft. Publish it once your payouts are active.",
+  "ticketsOnSaleSoon": "Tickets on sale soon"
 }

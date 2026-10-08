@@ -88,6 +88,9 @@ select t.as_anon();
 select t.sees_nothing('select email from profiles', 'Visiteur : ne lit aucun courriel de membre');
 select t.sees_nothing('select * from public_profiles', 'Visiteur : ne lit pas l''annuaire des membres');
 select t.sees_nothing('select * from feed_posts', 'Visiteur : ne lit pas le fil');
+select t.sees_nothing('select * from posts', 'Visiteur : ne lit aucune publication');
+select t.sees_nothing('select * from post_likes', 'Visiteur : ne lit aucun « j''aime »');
+select t.sees_nothing('select * from post_comments', 'Visiteur : ne lit aucun commentaire');
 select t.sees_nothing('select * from tickets', 'Visiteur : ne lit aucun billet');
 select t.sees_nothing('select * from payments', 'Visiteur : ne lit aucun paiement');
 select t.sees_nothing('select * from direct_messages', 'Visiteur : ne lit aucun message prive');
@@ -177,6 +180,7 @@ reset role;
 select t.as_user('00000000-0000-0000-0000-00000000000b');
 select t.cannot_write($$insert into direct_messages (conversation_id, sender_id, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'usurpe')$$, 'Messages : on n''ecrit pas au nom d''un autre');
 select t.sees('select * from direct_messages', 1, 'Messages : on lit sa propre conversation');
+select t.sees($$select * from posts where id = '00000000-0000-0000-0000-0000000000a1'$$, 1, 'Publications : un compte lit celles des evenements publics');
 
 -- Les commentaires et le blocage
 reset role;

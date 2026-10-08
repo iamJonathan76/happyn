@@ -2148,4 +2148,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get venueNameHint => 'e.g. Le Petit Chicago';
+
+  @override
+  String get payoutsNeededTitle => 'Set up payouts to sell paid tickets';
+
+  @override
+  String get payoutsNeededCreateBody =>
+      'Paid tickets go on sale once your payout account is active — about 2 minutes with Stripe. Your event will be saved as a draft; publish it as soon as you\'re set up.';
+
+  @override
+  String get payoutsNeededPublishBody =>
+      'This event has paid tickets. Set up your payouts first — it takes about 2 minutes with Stripe.';
+
+  @override
+  String get payoutsSaveDraftAndSetUp => 'Save as draft and set up';
+
+  @override
+  String get payoutsSetUp => 'Set up payouts';
+
+  @override
+  String get eventSavedAsDraft =>
+      'Saved as a draft. Publish it once your payouts are active.';
+
+  @override
+  String get ticketsOnSaleSoon => 'Tickets on sale soon';
 }

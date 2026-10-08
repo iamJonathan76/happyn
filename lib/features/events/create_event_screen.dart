@@ -22,6 +22,9 @@ import 'dart:async';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/payments/pricing.dart';
 import 'package:happyn/core/providers/pricing_provider.dart';
+import 'package:happyn/core/providers/payout_provider.dart';
+import 'package:happyn/features/settings/payouts_screen.dart';
+import 'package:happyn/features/settings/widgets/payouts_needed_dialog.dart';
 import 'package:happyn/core/providers/categories_provider.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
@@ -440,6 +443,20 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         .map((t) => t['price'] as double)
         .reduce((a, b) => a < b ? a : b);
 
+    // Un palier payant sans compte de versement actif ne pourra rien vendre :
+    // le serveur refuse le paiement. Plutot que de publier un evenement mort,
+    // on l'enregistre en brouillon et on envoie l'organisateur configurer ses
+    // versements ; il le publiera depuis son tableau de bord.
+    var asDraft = false;
+    if (tiers.any((t) => (t['price'] as double) > 0) && !await myPayoutsReady(ref)) {
+      if (!mounted) return;
+      final ok = await showPayoutsNeededDialog(context,
+          body: l.payoutsNeededCreateBody,
+          confirmLabel: l.payoutsSaveDraftAndSetUp);
+      if (!ok) return;
+      asDraft = true;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -474,6 +491,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             'cancellation_hours': _cancellationHours,
             'min_age': _minAge,
             'access_code': ?accessCode,
+            if (asDraft) 'status': 'draft',
           })
           .select()
           .single();
@@ -512,11 +530,18 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         if (accessCode != null) {
           await showInviteCodeDialog(context,
                 eventTitle: _titleController.text.trim(), code: accessCode);
-        } else {
+        } else if (!asDraft) {
           showAppSnack(context, l.eventCreated);
           await Future.delayed(const Duration(seconds: 1));
         }
-        if (mounted) {
+        if (!mounted) return;
+        if (asDraft) {
+          // Directement vers les versements : c'est la seule chose qui
+          // separe cet evenement de sa mise en vente.
+          showAppSnack(context, l.eventSavedAsDraft);
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (_) => const PayoutsScreen()));
+        } else {
           Navigator.of(context).pop(true); // signal optionnel pour l'appelant
         }
       }
