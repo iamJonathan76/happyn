@@ -126,6 +126,31 @@ Aujourd'hui le versement est borné à zéro (`greatest(..., 0)`) : le solde
 négatif est effacé, pas reporté. **C'est donc HAPPYN qui absorbe**, et qui ne
 récupère jamais.
 
+#### L'événement a-t-il eu lieu ? — décidé le 2026-10-08, à construire avant d'ouvrir à des tiers
+
+Aujourd'hui, un versement part parce que le temps a passé : rien ne vérifie
+que l'événement a eu lieu. C'est la fraude type des billetteries (faux
+événement, billets vendus, organisateur disparu) — et HAPPYN étant le
+marchand, ce sont ses fonds qui remboursent les contestations bancaires.
+
+Décisions :
+
+- **Retenue portée à 5 jours** après la fin (au lieu de 3) :
+  `payout_delay_days()`, plus les textes qui disent « 3 jours » (écran des
+  versements, politiques légales).
+- **Le scan comme preuve** : billets payants vendus et **0 % scannés** →
+  versement « en vérification », jamais automatique.
+- **La voix des acheteurs** : le lendemain de la fin, notification aux
+  détenteurs « Comment s'est passé … ? » → « C'était bien » / « L'événement
+  n'a pas eu lieu ». Un seul « n'a pas eu lieu » suspend le versement. Une
+  contestation bancaire aussi.
+- **Nouvel organisateur sous surveillance** : ses **2 premiers** événements
+  payants passent toujours par la file de modération (résumé : vendus,
+  scannés, retours, Moments, contestations ; actions « Verser » /
+  « Rembourser les acheteurs »). Automatique à partir du 3e, sauf signal.
+
+Pas bloquant pour le test interne (un seul organisateur : nous).
+
 #### La dette organisateur — à construire avant d'ouvrir à des tiers
 
 La réponse à ce cas est de reporter le solde négatif sur les **prochains**
