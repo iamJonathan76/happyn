@@ -2000,6 +2000,20 @@ AS $function$
   limit 500;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.profiles_guard_suspension()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  if new.suspended_at is distinct from old.suspended_at
+     and current_user in ('authenticated', 'anon') then
+    raise exception 'suspension_admin_only';
+  end if;
+  return new;
+end;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.profiles_username_guard()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -3177,6 +3191,8 @@ CREATE TRIGGER notify_on_post_comment AFTER INSERT ON public.post_comments FOR E
 
 CREATE TRIGGER events_guard_cancellation BEFORE UPDATE OF status ON public.events FOR EACH ROW EXECUTE FUNCTION events_guard_cancellation();
 
+CREATE TRIGGER profiles_guard_suspension BEFORE UPDATE OF suspended_at ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_guard_suspension();
+
 alter table public."profiles" enable row level security;
 
 alter table public."events" enable row level security;
@@ -3247,7 +3263,7 @@ create policy "Users can delete own events" on public."events" as permissive for
 
 create policy "Users can update own events" on public."events" as permissive for update to authenticated using ((auth.uid() = created_by));
 
-create policy "events readable" on public."events" as permissive for select to authenticated, anon using (((COALESCE(visibility, 'public'::text) = 'public'::text) OR (created_by = auth.uid()) OR user_holds_ticket_for(id)));
+create policy "events readable" on public."events" as permissive for select to authenticated, anon using ((((COALESCE(visibility, 'public'::text) = 'public'::text) AND (COALESCE(status, 'published'::text) <> 'draft'::text)) OR (created_by = auth.uid()) OR user_holds_ticket_for(id)));
 
 create policy "Anyone can view ticket types" on public."ticket_types" as permissive for select to authenticated, anon using (event_is_readable(event_id));
 
@@ -4024,5 +4040,9 @@ grant execute on function posts_mark_edited() to anon;
 grant execute on function posts_mark_edited() to authenticated;
 
 grant execute on function posts_mark_edited() to service_role;
+
+revoke all on function profiles_guard_suspension() from public, anon, authenticated, service_role;
+
+grant execute on function profiles_guard_suspension() to service_role;
 
 grant usage on schema public to anon, authenticated, service_role;
