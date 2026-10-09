@@ -431,8 +431,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (posts.isEmpty) {
       return _emptyScrollable(
         Icons.photo_camera_outlined,
-        l.feedEmpty,
-        l.feedEmptyBody,
+        _isMe ? l.profileNoMomentsMine : l.profileNoMomentsOther,
+        _isMe ? l.profileNoMomentsMineBody : l.profileNoMomentsOtherBody,
       );
     }
     // Une grille plutot que le fil : on voit d'un coup d'oeil tout ce que la
@@ -866,10 +866,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     if (myEvents.isEmpty) {
+      final l = AppLocalizations.of(context);
+      // Le « touche le + » ne s'adresse qu'a soi : sur le profil de quelqu'un
+      // d'autre, il lui reprocherait de ne pas avoir cree d'evenement.
       return _emptyScrollable(
         Icons.event_outlined,
-        AppLocalizations.of(context).noEventsCreated,
-        AppLocalizations.of(context).tapPlusToCreate,
+        _isMe ? l.noEventsCreated : l.profileNoEventsOther,
+        _isMe ? l.tapPlusToCreate : l.profileNoEventsOtherBody,
       );
     }
 

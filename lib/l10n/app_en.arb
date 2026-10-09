@@ -781,5 +781,11 @@
   "payoutsSaveDraftAndSetUp": "Save as draft and set up",
   "payoutsSetUp": "Set up payouts",
   "eventSavedAsDraft": "Saved as a draft. Publish it once your payouts are active.",
-  "ticketsOnSaleSoon": "Tickets on sale soon"
+  "ticketsOnSaleSoon": "Tickets on sale soon",
+  "profileNoEventsOther": "No events yet",
+  "profileNoEventsOtherBody": "Their events will show up here.",
+  "profileNoMomentsMine": "You haven't shared any moments yet.",
+  "profileNoMomentsMineBody": "Tap the + button to share your first moment.",
+  "profileNoMomentsOther": "No moments yet",
+  "profileNoMomentsOtherBody": "Their moments will show up here."
 }

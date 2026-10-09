@@ -4153,6 +4153,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tickets on sale soon'**
   String get ticketsOnSaleSoon;
+
+  /// No description provided for @profileNoEventsOther.
+  ///
+  /// In en, this message translates to:
+  /// **'No events yet'**
+  String get profileNoEventsOther;
+
+  /// No description provided for @profileNoEventsOtherBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Their events will show up here.'**
+  String get profileNoEventsOtherBody;
+
+  /// No description provided for @profileNoMomentsMine.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t shared any moments yet.'**
+  String get profileNoMomentsMine;
+
+  /// No description provided for @profileNoMomentsMineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button to share your first moment.'**
+  String get profileNoMomentsMineBody;
+
+  /// No description provided for @profileNoMomentsOther.
+  ///
+  /// In en, this message translates to:
+  /// **'No moments yet'**
+  String get profileNoMomentsOther;
+
+  /// No description provided for @profileNoMomentsOtherBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Their moments will show up here.'**
+  String get profileNoMomentsOtherBody;
 }
 
 class _AppLocalizationsDelegate

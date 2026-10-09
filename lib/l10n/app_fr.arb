@@ -734,5 +734,11 @@
   "payoutsSaveDraftAndSetUp": "Enregistrer en brouillon et configurer",
   "payoutsSetUp": "Configurer mes versements",
   "eventSavedAsDraft": "Enregistré en brouillon. Publie-le dès que tes versements sont actifs.",
-  "ticketsOnSaleSoon": "Billets bientôt en vente"
+  "ticketsOnSaleSoon": "Billets bientôt en vente",
+  "profileNoEventsOther": "Aucun événement pour l'instant",
+  "profileNoEventsOtherBody": "Ses événements apparaîtront ici.",
+  "profileNoMomentsMine": "Tu n'as pas encore partagé de moment.",
+  "profileNoMomentsMineBody": "Touche le bouton + pour partager ton premier moment.",
+  "profileNoMomentsOther": "Aucun moment pour l'instant",
+  "profileNoMomentsOtherBody": "Ses moments apparaîtront ici."
 }

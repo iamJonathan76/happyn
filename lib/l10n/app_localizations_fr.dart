@@ -2363,4 +2363,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get ticketsOnSaleSoon => 'Billets bientôt en vente';
+
+  @override
+  String get profileNoEventsOther => 'Aucun événement pour l\'instant';
+
+  @override
+  String get profileNoEventsOtherBody => 'Ses événements apparaîtront ici.';
+
+  @override
+  String get profileNoMomentsMine => 'Tu n\'as pas encore partagé de moment.';
+
+  @override
+  String get profileNoMomentsMineBody =>
+      'Touche le bouton + pour partager ton premier moment.';
+
+  @override
+  String get profileNoMomentsOther => 'Aucun moment pour l\'instant';
+
+  @override
+  String get profileNoMomentsOtherBody => 'Ses moments apparaîtront ici.';
 }

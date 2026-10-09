@@ -2335,4 +2335,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ticketsOnSaleSoon => 'Tickets on sale soon';
+
+  @override
+  String get profileNoEventsOther => 'No events yet';
+
+  @override
+  String get profileNoEventsOtherBody => 'Their events will show up here.';
+
+  @override
+  String get profileNoMomentsMine => 'You haven\'t shared any moments yet.';
+
+  @override
+  String get profileNoMomentsMineBody =>
+      'Tap the + button to share your first moment.';
+
+  @override
+  String get profileNoMomentsOther => 'No moments yet';
+
+  @override
+  String get profileNoMomentsOtherBody => 'Their moments will show up here.';
 }
