@@ -608,19 +608,62 @@ Drive) : c'est ce qui avait corrompu `.git` avec 332 doublons « 2 ».
 
 ## Le chemin le plus court vers de vrais utilisateurs
 
-Mis à jour le 2026-10-09. Fait depuis la version précédente de cette liste :
-Sentry, le nonce Google, les textes légaux publiés et acceptés explicitement,
-les règles d'âge tenues par la base.
+Mis à jour le 2026-10-09. **Changement d'ordre : iOS d'abord** — le compte
+Apple Developer est pris le 2026-10-10, Google Play passe après.
 
-1. **Google Play, test interne** — clé de signature et empreinte SHA-1 de
-   publication, écran de consentement Google en « Production » (§ 3.1 bis),
-   `google-services.json`, Play Console (25 $), bundle avec
-   `--dart-define-from-file`, symboles Sentry.
-2. **Les versements** — un premier versement surveillé, puis `pg_cron`, la
-   retenue de 5 jours (le code dit encore 3) et les vérifications du § 2.2.
-   Avant le premier événement payant d'un tiers. Décider aussi § 2.2 ter.
-3. **Relecture légale** des deux langues — § 3.4.
-4. **iOS** — compte Apple Developer, connexion Apple (sans elle, refus), APNs.
+### 1. TestFlight (iOS)
+
+Le compte (99 $ US/an) :
+
+- **Particulier** : ouvert en un ou deux jours, l'app est publiée sous TON
+  nom. **Organisation** : sous le nom de l'entreprise, mais exige une
+  entreprise enregistrée et un numéro D-U-N-S (gratuit, une à deux semaines).
+  Lié à la question de l'entité juridique (§ 2.4) : on peut commencer en
+  particulier et transférer l'app plus tard, mais le transfert a ses
+  contraintes — à trancher avant de payer.
+
+Une fois le compte actif, dans cet ordre :
+
+1. **Xcode → Signing** : choisir l'équipe payante (aujourd'hui
+   `X74NY7UZ5P`, signature automatique, `com.happyn.happyn`).
+2. **Capacités** dans Xcode : *Push Notifications* et *Sign in with Apple*.
+   Elles créent le fichier `Runner.entitlements`, qui n'existe pas encore.
+3. **Notifications iOS** : créer une clé APNs (.p8) dans le portail Apple,
+   l'ajouter au projet Firebase ; télécharger `GoogleService-Info.plist`
+   dans `ios/Runner/` (jamais créé — d'où l'absence de notifications sur
+   iPhone).
+4. **App Store Connect** : créer l'app (nom, `com.happyn.happyn`, langue
+   principale), remplir la fiche de confidentialité (« étiquettes
+   nutritionnelles ») d'après la politique de confidentialité publiée.
+5. **Archive** : `flutter build ipa --dart-define-from-file=dart_defines.json`,
+   puis envoi par Xcode ou Transporter. Symboles Sentry à téléverser.
+6. **TestFlight interne** (jusqu'à 100 membres de l'équipe) : pas de revue
+   Apple, disponible dès le traitement du build.
+
+**Avant TestFlight externe et l'App Store** (ceux-là passent la revue) :
+
+- **Connexion Apple** fonctionnelle — le bouton actuel affiche « bientôt ».
+  Règle 4.8 : une app qui propose Google doit proposer Apple. Paquet
+  `sign_in_with_apple`, fournisseur Apple dans Supabase (Service ID, clé).
+- **Écran de consentement Google en « Production »** (§ 3.1 bis), sinon
+  personne d'autre que les testeurs listés ne se connecte avec Google.
+- Phrases de permission (`Info.plist`) en anglais seulement : ajouter un
+  `fr.lproj/InfoPlist.strings`. Celle de la localisation a été corrigée le
+  2026-10-09 : elle disait la position jamais envoyée, alors qu'elle l'est à
+  chaque recherche « Autour de moi » (sans être enregistrée).
+
+### 2. Google Play, test interne
+
+Clé de signature et empreinte SHA-1 de publication, `google-services.json`,
+Play Console (25 $), bundle avec `--dart-define-from-file`, symboles Sentry.
+
+### 3. Les versements
+
+Un premier versement surveillé, puis `pg_cron`, la retenue de 5 jours (le
+code dit encore 3) et les vérifications du § 2.2. Avant le premier événement
+payant d'un tiers. Décider aussi § 2.2 ter.
+
+### 4. Relecture légale des deux langues — § 3.4.
 
 Ensuite : revenus et statistiques de l'organisateur, rappels avant
-événement.
+événement, suivi de lecture des messages.
