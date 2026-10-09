@@ -15,12 +15,15 @@
 // est publique, la clé anon suffit.
 // =============================================================================
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputPath = resolve(webRoot, 'assets/data/legal-fallback.json');
+// La même copie pour l'app : hors connexion, elle affichait un texte écrit à
+// la main, déjà différent de la base. Un seul instantané, deux destinations.
+const appOutputPath = resolve(webRoot, '../assets/legal/legal-fallback.json');
 
 // On relit les valeurs depuis config.js pour ne pas dupliquer l'URL et la clé.
 async function readConfig() {
@@ -60,9 +63,12 @@ async function main() {
     );
   }
 
-  await writeFile(outputPath, `${JSON.stringify(documents, null, 2)}\n`, 'utf8');
+  const json = `${JSON.stringify(documents, null, 2)}\n`;
+  await writeFile(outputPath, json, 'utf8');
+  await mkdir(dirname(appOutputPath), { recursive: true });
+  await writeFile(appOutputPath, json, 'utf8');
   console.log(
-    `✓ ${documents.length} documents écrits dans assets/data/legal-fallback.json`,
+    `✓ ${documents.length} documents écrits dans web/assets/data/ et assets/legal/`,
   );
 }
 

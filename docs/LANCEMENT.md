@@ -284,13 +284,29 @@ important, comme les conditions le promettent.
 
 Les comptes existants (testeurs) passent par l'écran au prochain lancement.
 
-### 3.3 Les textes légaux existent à trois endroits
+### 3.3 Les textes légaux — Version 1.0 publiée le 2026-10-09
 
-`legal_documents` en base, `web/assets/data/legal-fallback.json`, et **254
-lignes en dur dans `lib/core/legal/legal_content.dart`**. Quand les textes
-seront remplacés, l'app affichera encore ceux de juillet si on ne touche qu'à la
-base — une app qui affiche des conditions périmées est un problème juridique en
-soi.
+Les 13 documents du recueil v2 (`docs/legal/RECUEIL-v2.md`, vérifié contre le
+code) sont en production sous le numéro **« Version 1.0 »** : c'est la première
+version que verront de vrais utilisateurs. Source : la migration
+`20261009010000_legal_documents_v1.sql`. Deux nouveaux documents :
+`content-moderation` et `account-deletion`.
+
+Ce qui a été retiré du recueil pour publier : les notes de travail, et les
+promesses que l'app ne tient pas encore (connexion Apple, purges automatiques
+à durée fixe, préservation des contenus illégaux, date de versement précise).
+Les durées non automatisées sont écrites « aussi longtemps que nécessaire ».
+
+**Une seule source, deux copies générées.** La base fait foi ; la copie de
+secours du site ET celle de l'app (`assets/legal/legal-fallback.json`) sortent
+toutes deux de `node web/tools/sync-legal-fallback.mjs`. Les 254 lignes écrites
+à la main dans `legal_content.dart`, qui avaient divergé, sont supprimées.
+
+**Publier une nouvelle version** : modifier le texte et `version` en base,
+relancer le script, committer les deux JSON. Chaque compte ré-accepte au
+lancement suivant les documents marqués `requires_acceptance`.
+
+**Toujours pas relus par un avocat, et en anglais seulement** — voir 3.4.
 
 ### 3.4 La relecture légale
 

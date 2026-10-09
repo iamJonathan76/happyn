@@ -8,8 +8,8 @@ import 'package:happyn/l10n/app_localizations.dart';
 
 /// Affiche un document légal (Terms, Privacy, …) à partir de son `docId` (slug).
 /// Contenu lu depuis la table `legal_documents` (éditable sans update app).
-/// Si le réseau échoue, on retombe sur le contenu embarqué (kLegalDocs) pour
-/// que le légal reste toujours accessible.
+/// Si le réseau échoue, on retombe sur la copie embarquée, générée depuis la
+/// même table, pour que le légal reste toujours accessible.
 class LegalPageScreen extends ConsumerWidget {
   final String docId;
   const LegalPageScreen({super.key, required this.docId});
@@ -18,28 +18,26 @@ class LegalPageScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final docsAsync = ref.watch(legalDocsProvider);
 
-    String title = 'Legal';
-    String versionLabel = kLegalVersion;
-    List<LegalSection>? sections;
-
-    // 1) Depuis la DB si dispo
-    final dbDoc = docsAsync.asData?.value
-        .cast<Map<String, dynamic>?>()
+    Map<String, dynamic>? find(List<Map<String, dynamic>>? docs) => docs
+        ?.cast<Map<String, dynamic>?>()
         .firstWhere((d) => d?['slug'] == docId, orElse: () => null);
-    if (dbDoc != null) {
-      title = (dbDoc['title'] ?? 'Legal') as String;
-      versionLabel = (dbDoc['version'] ?? kLegalVersion) as String;
-      sections = parseLegalMarkdown((dbDoc['content'] ?? '') as String);
-    } else {
-      // 2) Fallback embarqué (hors-ligne / DB indisponible)
-      final fallback = kLegalDocs[docId];
-      if (fallback != null) {
-        title = fallback.title;
-        sections = fallback.sections;
-      }
-    }
 
-    final loading = docsAsync.isLoading && sections == null;
+    // 1) La base si elle répond ; 2) sinon la copie embarquée. On ne lit la
+    // copie que si la base a échoué : elle peut dater d'avant une mise à jour.
+    final dbDoc = find(docsAsync.asData?.value);
+    final doc = dbDoc ??
+        (docsAsync.hasError
+            ? find(ref.watch(legalFallbackProvider).asData?.value)
+            : null);
+
+    final title = (doc?['title'] ?? 'Legal') as String;
+    final versionLabel = (doc?['version'] ?? '') as String;
+    final List<LegalSection>? sections =
+        doc == null ? null : parseLegalMarkdown((doc['content'] ?? '') as String);
+
+    final loading = sections == null &&
+        (docsAsync.isLoading ||
+            (docsAsync.hasError && ref.watch(legalFallbackProvider).isLoading));
 
     return Scaffold(
       backgroundColor: AppColors.background,

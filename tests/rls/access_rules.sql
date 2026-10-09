@@ -246,7 +246,11 @@ insert into legal_documents (slug, title, content, version, effective_date, requ
   ('terms',     'Terms',     '...', 'Version 1.1', current_date, true,  1, now()),
   ('privacy',   'Privacy',   '...', 'Version 1.2', current_date, true,  2, now()),
   ('community', 'Community', '...', 'Version 1.1', current_date, true,  3, now()),
-  ('cookie',    'Cookies',   '...', 'Version 1.1', current_date, false, 4, now());
+  ('cookie',    'Cookies',   '...', 'Version 1.1', current_date, false, 4, now())
+-- Les vrais textes peuvent deja etre la (schema regenere depuis la production,
+-- ou migration en attente) : on impose les versions dont les tests dependent.
+on conflict (slug) do update set version = excluded.version,
+  requires_acceptance = excluded.requires_acceptance;
 select t.as_anon();
 select t.fails_with('select * from public.pending_legal_documents()', 'permission denied', 'Consentement : un visiteur n''a rien a accepter');
 reset role;

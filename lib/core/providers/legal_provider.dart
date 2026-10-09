@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,4 +14,15 @@ final legalDocsProvider =
       .select()
       .order('sort_order', ascending: true);
   return List<Map<String, dynamic>>.from(data);
+});
+
+/// La copie embarquée des mêmes documents, pour le hors-ligne.
+///
+/// Générée depuis la base (`web/tools/sync-legal-fallback.mjs`), jamais éditée
+/// à la main : hors connexion, on doit lire le texte que les gens ont accepté,
+/// pas une version qui a dérivé.
+final legalFallbackProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final raw = await rootBundle.loadString('assets/legal/legal-fallback.json');
+  return List<Map<String, dynamic>>.from(jsonDecode(raw) as List);
 });

@@ -1,8 +1,9 @@
 # HAPPYN — Recueil légal, version 2 · BROUILLON, non publié
 
-> **Statut :** brouillon de travail, à faire relire par un avocat avant toute
-> publication. Rien de ce fichier n'est en ligne : l'app et le site lisent la
-> table `legal_documents`, qui contient encore la version 1.1.
+> **Statut :** document de travail. Sa version publiable est **en ligne depuis
+> le 2026-10-09 sous le numéro « Version 1.0 »** (migration
+> `20261009010000_legal_documents_v1.sql`), sans les notes et sans les
+> promesses marquées [À CONSTRUIRE]. Pas encore relue par un avocat.
 >
 > **Dernière vérification contre le code :** 2026-10-08 (commit `03a5a85`).
 

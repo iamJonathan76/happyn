@@ -1,0 +1,604 @@
+-- Les textes légaux de lancement — « Version 1.0 », issus du recueil v2.
+--
+-- Le recueil `docs/legal/RECUEIL-v2.md` a été vérifié ligne à ligne contre le
+-- code (2026-10-08). Ces textes en sont la version publiable : sans les notes
+-- de travail, et sans les promesses que l'app ne tient pas encore (connexion
+-- Apple, durées de conservation automatisées, préservation des contenus
+-- illégaux, versements automatiques). Numérotés 1.0 : c'est la première
+-- version que verront de vrais utilisateurs.
+--
+-- Le format est celui que lisent l'app (`parseLegalMarkdown`) et le site
+-- (`legal.js`) : des titres « ## », des puces « - », des paragraphes. Rien
+-- d'autre — un tableau ou du gras s'afficheraient en symboles bruts. Dans une
+-- section, les paragraphes s'affichent avant les puces.
+--
+-- Changer la version re-présente les documents à accepter à chaque compte au
+-- lancement suivant (`pending_legal_documents`).
+--
+-- Après application : régénérer la copie de secours du site et de l'app
+--   node web/tools/sync-legal-fallback.mjs
+--   cp web/assets/data/legal-fallback.json assets/legal/legal-fallback.json
+
+insert into public.legal_documents
+  (slug, title, content, version, effective_date, requires_acceptance, sort_order, updated_at)
+values
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('terms', 'Terms of Service', $doc$
+## In short
+- HAPPYN is an app and website to discover events, buy tickets, and share what happened there.
+- You need an account, and you must be at least 14. Organizing events requires being 18 or older.
+- Organizers run their events, not HAPPYN. When you buy a ticket, your contract for the event is with the organizer; HAPPYN handles the payment and the ticket.
+- If an organizer cancels, you are refunded in full, automatically. You can also cancel a ticket yourself until the deadline the organizer set, minus a small non-refundable service fee.
+- Your ticket has a QR code that changes every few minutes and works once. Screenshots don't get anyone in.
+- You own what you post. You give us permission to show it inside HAPPYN, and that permission ends when you delete it.
+- Break the rules and we can remove content or suspend your account. You keep the tickets you paid for.
+
+## 1. Who we are
+HAPPYN ("HAPPYN", "we", "us") operates the HAPPYN mobile application and the website happynevents.com. These Terms are a binding agreement between you and HAPPYN.
+Before using HAPPYN, you are asked to read and explicitly accept these Terms, the Privacy Policy and the Community Guidelines, by ticking a box and confirming. We record which version of each document you accepted, and when.
+The other policies published with these Terms form part of them where they apply to what you do — for example, the Organizer Standards when you create an event.
+
+## 2. Minimum age
+You must be at least 14 years old to create an account. Quebec's Law 25 requires a parent's consent to collect personal information from a child under 14, and HAPPYN has no parental consent process; HAPPYN is based in Ontario, but much of our community lives in Quebec, so this rule applies to everyone.
+HAPPYN asks every new account for a date of birth, whatever the sign-in method. If the date shows you are under 14, the account is deleted immediately, along with the information received at sign-up.
+
+## 3. If you are 14 to 17
+- You can browse events, follow people, save events, post, comment, and send messages.
+- You can buy a ticket only where the event allows your age, and only with the permission of a parent or legal guardian, who is responsible for that purchase.
+- You cannot create events, sell tickets, or receive payouts.
+
+## 4. Event age limits
+Organizers can set a minimum age for their event: 14+, 16+, 18+ or 21+, or none. HAPPYN uses your date of birth to stop you from buying a ticket for an event you are too young for, and to stop a ticket being transferred to someone too young.
+HAPPYN does not verify identity or the date of birth you give. The organizer is responsible for checking age at the door.
+
+## 5. Your account
+You can create an account with an email address and a password, or with your Google account.
+- Keep your password to yourself. You are responsible for what is done through your account.
+- Tell us immediately at contact@happynevents.com if you think someone else has access to it.
+- One person, one account. Accounts may not be sold, rented, shared, or transferred.
+- The information you give must be accurate — in particular your date of birth.
+- Your username is public and unique. If you don't choose one, HAPPYN generates one from your name.
+
+## 6. What HAPPYN is — and what it is not
+HAPPYN is a platform. Events are created, described, priced, and run by their organizers — not by us. We do not host events, check that their descriptions are accurate, or guarantee they will take place as described.
+When you buy a ticket, you enter into a contract with the organizer for the event. HAPPYN collects the payment, issues the ticket, and passes the money on to the organizer, minus our fee (see the Payments Policy).
+
+## 7. Tickets
+Tickets are created by our servers, and only after payment is confirmed (or immediately, for free events). No app, and no person, can create a ticket any other way.
+Each ticket shows a cryptographically signed QR code that changes every five minutes. A screenshot shows a code that expires: it will not admit anyone. A ticket can be scanned once; a second scan is refused. Only the organizer of that event can scan its tickets.
+
+## 8. Transferring a ticket
+You can give a ticket to another HAPPYN user from the app, if all of these are true:
+- you follow the person you are giving it to;
+- the ticket has not been scanned or cancelled;
+- the event has not been cancelled and has not ended;
+- the recipient meets the event's minimum age.
+
+## 9. After a transfer
+The transfer issues a new QR code to the recipient; yours stops working immediately. The recipient is notified.
+A ticket received by transfer cannot be refunded by its new holder — a refund can only go back to the card that paid for it.
+HAPPYN does not support resale, takes no part in any money exchanged between individuals for a ticket, and cannot help if such an exchange goes wrong.
+
+## 10. Prohibited conduct
+The Community Guidelines describe these rules in more detail. You may not:
+- create fraudulent, misleading, or non-existent events, or sell tickets for an event you have no right to sell;
+- harass, threaten, defame, or impersonate anyone;
+- publish content you do not have the right to publish;
+- use HAPPYN for anything illegal, including selling regulated or prohibited goods;
+- try to forge, copy, or reuse tickets or QR codes;
+- scrape HAPPYN, probe it for weaknesses, or try to get around its access controls;
+- create accounts or interact automatically (bots, scripts);
+- use private messages to send spam or unwanted solicitations.
+
+## 11. Content you publish
+"Content" means anything you put on HAPPYN: posts and their photos, captions, comments, messages, event descriptions and images, and your profile.
+You keep ownership of your content. You grant HAPPYN a non-exclusive, worldwide, royalty-free licence to host, store, display, and distribute it within HAPPYN, only to operate the service, and only for as long as it stays published. The licence ends when you delete the content or your account, except where we must keep it (see the Data Retention Policy and the Content Moderation Policy).
+
+## 12. Who sees a post
+A post must be attached to an event that you organize or for which you hold a ticket. Our servers enforce this.
+Posts are visible only to people signed in to HAPPYN — never to visitors without an account.
+- Posts about a public event are visible to all members.
+- For a private event, the organizer chooses whether posts are visible to everyone or only to the organizer and ticket holders. If posts are public, the event's name and date become visible with them.
+- Members who can see a post can comment on it. The author of a post can turn comments off.
+
+## 13. Moderation and enforcement
+We may remove content and suspend accounts that break these Terms or the Community Guidelines. The Content Moderation Policy explains how reports are handled and how to contest a decision.
+A suspended account keeps the tickets it has paid for, but can no longer publish posts, comment, or create events.
+
+## 14. Payments, refunds and cancellations
+See the Payments Policy and the Refund and Cancellation Policy. In short: your card details go to Stripe and never reach us; a cancelled event is refunded in full, automatically; you can cancel a ticket yourself until the organizer's deadline, minus a small non-refundable service fee shown before you pay.
+
+## 15. Availability
+HAPPYN is provided "as is". We do not guarantee it will always be available or free of errors, and we may change or stop features. We will give reasonable notice before stopping anything you have paid for.
+
+## 16. Limitation of liability
+Nothing in these Terms limits liability that the law does not allow to be limited, including under Ontario's Consumer Protection Act, 2002 and, for consumers resident in Quebec, Quebec's Consumer Protection Act. To the extent the law allows, HAPPYN is not liable for:
+- what happens at an event, including injury, loss, or damage;
+- an organizer's failure to hold or run an event (refunds for cancelled events are handled as described in the Refund and Cancellation Policy);
+- content published by other users;
+- losses caused by your failure to keep your account secure.
+
+## 17. Governing law
+These Terms are governed by the laws of the Province of Ontario and the federal laws of Canada applicable there. This does not take away any right you have, as a consumer, under the law of the province where you live.
+
+## 18. Changes to these Terms
+We may update these Terms. For a material change, we will notify you in the app at least 30 days before it takes effect. When the new version takes effect, the app asks you to read and accept it before you continue. Small corrections that change nothing take effect when published, without a new acceptance.
+
+## 19. Contact
+contact@happynevents.com
+$doc$, 'Version 1.0', date '2026-10-09', true, 1, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('privacy', 'Privacy Policy', $doc$
+## In short
+- We collect what we need to run HAPPYN: your account details, what you publish, your tickets, and how you use the social features.
+- We don't sell your information, show ads, or track you across other apps or websites.
+- Your email and date of birth are never shown to anyone. Your name, username, photo, bio and city are visible to other members.
+- Your location is only used if you turn on "Near me", to find events close to you. It is never shown to anyone.
+- Nobody can see which events you go to unless you follow each other and you choose to show it.
+- Our database is in Montréal, Canada. Some of our providers (payments, email, crash reports, notifications) are in the United States.
+- You can see, correct, get a copy of, and delete your information. Deleting your account is in Settings.
+
+## 1. Who is responsible
+HAPPYN is responsible for the personal information described in this policy. Our Privacy Officer is accountable for how we handle it and answers your questions and requests at contact@happynevents.com.
+
+## 2. Which law applies
+HAPPYN is based in Ottawa, Ontario, so the federal Personal Information Protection and Electronic Documents Act (PIPEDA) governs how we handle personal information. Because many members live in Quebec, we also apply the standards of Quebec's Act respecting the protection of personal information in the private sector (Law 25) to everyone, rather than treating people differently depending on which side of the river they live on.
+
+## 3. What you give us when you create your account
+- Email address — required. Your identity, sign-in, and emails about your account (password reset, receipts). Seen only by you.
+- Password — required for email sign-up. Stored hashed by our authentication provider; nobody at HAPPYN can read it.
+- Full name — required. Shown on your profile, posts, comments and messages.
+- Date of birth — required. Used to apply the minimum age of 14, event age limits, and the 18+ rule for organizers. Seen only by you.
+- Username — required (generated if you don't choose one). How people find and mention you. Visible to members.
+- Profile photo, bio and city — optional. Shown on your profile. Your city is text you type, not a location.
+- Interests — optional. Stored on your profile; not shown to others.
+- App language — automatic. Used to show the app and send notifications in your language.
+
+## 4. If you sign in with Google
+Google sends us your email address, your name, and your profile picture. We receive nothing else from Google — not your contacts, not your Google activity — and we send Google nothing about what you do on HAPPYN. HAPPYN then asks for your date of birth, because Google does not provide it.
+
+## 5. What is created when you use HAPPYN
+- Tickets you hold and their status (valid, used, transferred, cancelled) — to admit you to events and handle refunds. Seen by you and the event's organizer.
+- Purchase records: amount, date, and Stripe's payment reference — for accounting, refunds and disputes.
+- Events you create, including their address — to publish them (see section 11 for private events).
+- Posts, photos, captions and comments — to publish them (see the Terms of Service).
+- Private messages, and events or posts you share in them — to deliver them (see section 6).
+- Follows, likes and saved events. Follows and likes are visible to members; saved events only to you.
+- Event attendance, created when you get a ticket — shown to friends only if you allow it (see section 10).
+- Blocks — only you see them.
+- Reports you submit, or that concern your content — handled by our moderators.
+- Notifications we send you, and your device's notification token — to deliver push notifications.
+
+## 6. Private messages
+You can send a private message to someone you follow, unless one of you has blocked the other. Messages can contain text and shared events or posts.
+- Messages are stored on our servers so they can be delivered and kept in your conversation history. They are not end-to-end encrypted.
+- HAPPYN staff do not read messages, except a message that has been reported to us, which a moderator reviews to handle the report.
+- You cannot delete a message once sent; it stays in the other person's history, like a letter. If you delete your account, your messages stay with their recipients, shown as coming from "Deleted account".
+- If one of you blocks the other, neither can message the other any more, and the conversation disappears for both while the block lasts.
+
+## 7. Your location — only if you turn on "Near me"
+"Near me" shows events within a distance you choose. You either pick a city from a list, or allow HAPPYN to use your phone's location. If you allow location:
+- HAPPYN asks for your approximate position, never a precise one, and only while the app is open — never in the background;
+- the position is sent to our server each time you search for nearby events, to calculate distances, and is not stored there;
+- the position is saved on your phone so the next search is quicker. You can switch back to a city, or turn location off in your phone's settings, at any time;
+- nobody else ever sees your location, and HAPPYN never uses it for anything but finding events near you.
+
+## 8. If you organize paid events
+To receive money from ticket sales, you open a payout account with Stripe, our payment provider. Stripe — not HAPPYN — collects your identity information and bank details, as financial regulations require. HAPPYN keeps only your Stripe account identifier and whether it can receive payouts.
+
+## 9. What we deliberately do not collect
+- No advertising or tracking. There is no advertising network in HAPPYN, we don't build an advertising profile of you, and we don't sell personal information — to anyone.
+- No tracking across other apps or websites.
+- No card details. Your card number goes directly to Stripe.
+- No contacts. HAPPYN never reads your phone's address book.
+- No background location.
+
+## 10. What other members see
+Visible to members: your name, username, profile photo, bio, city, your posts and comments, who you follow and who follows you.
+Never visible to other members: your email address, your date of birth, your interests, your saved events, your blocks, your location. This is enforced by our database, not only by the app's screens.
+Getting a ticket creates an attendance record that, by default, nobody can see. Someone can see that you're going to an event only if you follow each other and you have chosen to show that particular attendance. Blocked accounts never see it.
+
+## 11. What event organizers see
+When you have a ticket for an event, its organizer can see, in their list of attendees, your name, profile photo, ticket type, its status, and when you got it. Organizers never see your email address or date of birth.
+For a private event, the exact address is visible only to the organizer and to ticket holders; other members see only the city.
+
+## 12. Our service providers
+We use providers to run HAPPYN. Each receives only what it needs for its task.
+- Supabase — database, accounts, account emails, file storage and server functions. Holds the data described in this policy. Montréal, Canada.
+- Stripe — payments, refunds and payouts to organizers. Payment details; organizers' identity and bank details. Canada and United States.
+- Google Firebase Cloud Messaging — delivering push notifications. Your device's notification token and the notification's text. United States.
+- Google Sign-In — if you choose it (see section 4). United States.
+- Resend — sending some emails, such as report alerts to our moderators. The email's recipient and content. United States.
+- Netlify — hosting the website. Technical data from your visit (IP address, browser). Global network.
+- Sentry — crash and error reports, and app performance measurements. Technical details of an error or a slow screen; no name, email, IP address or screenshot. United States.
+
+## 13. Information processed outside Canada
+Some of these providers process information in the United States, where it may be accessible to authorities under the laws of that country. We protect it by contract with each provider, and we remain responsible for it.
+
+## 14. When the law requires it
+We may disclose information when the law requires it (for example, a court order), or when necessary to protect someone's life or safety. If HAPPYN were sold or merged, your information would pass to the new owner, who would remain bound by this policy; we would tell you beforehand.
+
+## 15. Automated decisions
+HAPPYN makes no automated decision that has legal or similarly significant effects on you. Content is removed and accounts are suspended by a person, and every such action is logged. Automatic rules that do exist — refusing a ticket transfer to someone too young, refusing a second scan of a ticket — apply the rules described in these policies; you can always write to us about them.
+
+## 16. Photos and files
+Photos (profile pictures, event images, post photos) are stored in cloud storage in Montréal. Anyone who obtains a photo's web address can view it without signing in, and those addresses are not designed to be secret. Treat a photo you publish as reachable by anyone who receives its link.
+
+## 17. How long we keep information
+See the Data Retention Policy.
+
+## 18. Your rights
+Under PIPEDA — and under Law 25 if you live in Quebec — you can exercise the rights below. Write to contact@happynevents.com. We respond within 30 days, and may first ask you to confirm your identity, so that we never send your information to someone else.
+- See the information we hold about you. Most of it is in the app; for a complete copy, write to us.
+- Correct it, by editing your profile or by writing to us.
+- Get a copy in a structured, commonly used format.
+- Withdraw consent and delete your account, in Settings (see the Account Deletion Policy), or delete individual posts and comments.
+- Stop location use, by switching "Near me" to a city or turning location off in your phone's settings.
+- Stop notifications, in your phone's settings.
+- Complain to the Office of the Privacy Commissioner of Canada, or, if you live in Quebec, to the Commission d'accès à l'information du Québec.
+
+## 19. Security
+No system is perfectly secure. If a breach creates a real risk of significant harm, we will notify you, the Office of the Privacy Commissioner of Canada and — where Quebec residents are affected — the Commission d'accès à l'information du Québec, as the law requires.
+- Access to every table is controlled by the database itself, not only by the app, and these rules are tested automatically.
+- Passwords are hashed; nobody at HAPPYN can read them.
+- QR codes are cryptographically signed and change every five minutes.
+- On Android, screenshots and screen recording are blocked on the ticket screen. iOS offers no equivalent, but the code in a screenshot expires.
+- Card details never reach our servers.
+
+## 20. Children
+HAPPYN is not for anyone under 14. If we learn that an account belongs to a child under 14, we delete it and the information attached to it.
+
+## 21. Changes
+We will notify you in the app at least 30 days before a material change to this policy takes effect, and ask you to accept the new version.
+$doc$, 'Version 1.0', date '2026-10-09', true, 2, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('community', 'Community Guidelines', $doc$
+## In short
+HAPPYN exists so people find things worth showing up for — and enjoy them safely. Be real, be respectful, post what you have the right to post, and respect people who don't want to be in your photos.
+
+## What is not allowed
+- Fake or misleading events: events that don't exist, that you have no right to sell tickets for, or whose description misrepresents what will happen.
+- Harassment and hate: insults, threats, or degrading content aimed at someone; content attacking people because of race, ethnicity, national origin, religion, disability, sex, gender identity, sexual orientation, or age. This applies everywhere — posts, comments, and private messages.
+- Sexual content: nudity and sexually explicit content. Any sexual content involving a minor is reported to the authorities.
+- Violence: threats, glorifying violence, or content meant to intimidate.
+- Impersonation: pretending to be another person, an organization, or an event you have nothing to do with.
+- Illegal activity: selling regulated or prohibited goods (drugs, weapons, alcohol to minors…), or organizing activities that are illegal where they take place.
+- Spam and manipulation: repeated unwanted content or messages, fake accounts, artificial likes or follows.
+- Other people's privacy: publishing someone's personal information (address, phone number…), or photos of identifiable people who have asked you not to.
+
+## Photos of other people
+Events are social, and photos usually include other people. If someone asks you to remove a photo of them, remove it. If they report it, we may remove it ourselves.
+
+## Private messages
+Messages are for people who know each other — you can only message people you follow. Don't use them to sell, promote, or contact people who haven't asked to hear from you. If someone sends you something abusive, report the message and block the account.
+
+## What happens if you break these rules
+Depending on how serious it is: the content is removed, your account is suspended, or — for illegal content — the matter is reported to the authorities. You keep the tickets you have already paid for.
+
+## Reporting and blocking
+Every event, post, comment, message and account can be reported. Reports are reviewed by a person. You can also block an account: its posts and events disappear for you, and neither of you can message the other any more.
+$doc$, 'Version 1.0', date '2026-10-09', true, 3, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('content-moderation', 'Content Moderation Policy', $doc$
+## In short
+- Anyone can report an event, a post, a comment, a message, or an account.
+- Every report alerts our moderators immediately, and a person reviews it within 24 hours.
+- We can dismiss a report, remove a post, unpublish an event, or suspend an account. Every decision is logged.
+- Illegal content — especially anything sexual involving a minor — is removed and reported to the authorities.
+- If you think we got it wrong, write to us: someone reviews it within 7 days.
+
+## 1. How reports reach us
+Any member can report an event, a post, a comment, a private message, or an account, choosing a reason and optionally adding details. The person you report is not told who reported them. Each report:
+- is recorded with who sent it, what it concerns, the reason, and when;
+- immediately sends an alert to our moderation team;
+- is reviewed by a person within 24 hours.
+
+## 2. What we can do
+Every action is recorded: who took it, what it concerned, the report it answers, and when — so that a decision can be explained afterwards.
+- Dismiss: the report was not founded, and nothing changes.
+- Remove a post: the post and its photo are deleted.
+- Unpublish an event: the event stops being visible. Tickets already sold are not destroyed; buyers keep the record of what they paid for.
+- Suspend an account: the account can no longer post, comment, or create events. It keeps the tickets it paid for.
+
+## 3. Illegal content
+Some content is not a matter of rules but of criminal law: sexual content involving a minor, a credible threat of violence against a person, content promoting terrorism. When we find it, or are credibly told about it, we:
+- remove it from view immediately;
+- report it to the competent authority — in Canada, child sexual abuse material is reported to Cybertip.ca, operated by the Canadian Centre for Child Protection, and to the police where required;
+- take the steps the law requires, including keeping the information the authorities need;
+- suspend the account.
+
+## 4. Contesting a decision
+If your content was removed or your account suspended and you think it was a mistake, write to contact@happynevents.com: say what was removed and why you think the decision was wrong. We answer within 7 days. Where possible, the review is done by someone who was not involved in the original decision.
+
+## 5. Blocking
+Blocking is a personal tool, separate from reporting. Blocking doesn't remove anything for other people, and you can unblock in Settings. When you block an account:
+- its posts and the events it organizes disappear for you;
+- neither of you can message the other any more, including in a conversation already open;
+- it never sees where you're going;
+- it is not told that you blocked it.
+$doc$, 'Version 1.0', date '2026-10-09', false, 4, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('account-deletion', 'Account Deletion Policy', $doc$
+## In short
+- Delete your account in Settings → Delete my account. No reason needed, no email to write.
+- Before anything happens, HAPPYN shows you exactly what will be affected.
+- If money is still involved, deletion waits — so that nobody loses money: not you, not the people who bought your tickets.
+- Your profile, posts, comments, likes and follows are deleted. Records others depend on (tickets, past events, messages you sent) are kept without your name.
+- Deletion is final: the account cannot be recovered.
+
+## 1. What you see first
+Before anything is deleted, HAPPYN shows you how many events you organize (and which will be cancelled), how many tickets you hold, and how many posts you have published. Nothing is deleted until you confirm.
+
+## 2. When deletion has to wait
+To make sure nobody loses money, deletion is refused while:
+- you hold a paid ticket for an event that hasn't happened yet — cancel it (refunded if the deadline allows) or transfer it first;
+- you have sold paid tickets for an event that hasn't happened yet — cancel the event first, and buyers are refunded automatically;
+- you have ticket sales not yet paid out to you — wait for the payout.
+
+## 3. What is deleted
+- Your profile: name, username, photo, bio, city, interests, date of birth, language.
+- Your posts and their photos, and your comments.
+- Your likes, follows (both ways), saved events and blocks.
+- Your attendance records and notification tokens.
+- Your sign-in credentials — the account cannot be recovered.
+- Free tickets for upcoming events; the place goes back on sale.
+- Upcoming events you organized that have no participants.
+
+## 4. What is cancelled
+Upcoming events you organized that have participants are cancelled. Every participant is notified, and refunded in full if they paid.
+
+## 5. What is kept, without your identity
+- Past, used or cancelled tickets — needed for accounting.
+- Past events you organized, shown as "Deleted organizer" — people who attended still see them in their history.
+- Private messages you sent, kept with their recipients and shown as "Deleted account" — a message belongs to its recipient too, and may be evidence in a report. A conversation is deleted for good once both people have deleted their accounts.
+- Reports you submitted.
+- Reports about your content, and moderation actions — an account cannot erase its record by leaving.
+- If you organized paid events, your Stripe payout account is disconnected from HAPPYN; Stripe keeps its own records under its own obligations.
+
+## 6. Deleting just one thing
+You don't need to delete your account to remove something:
+- you can delete a post or a comment at any time;
+- you can cancel a ticket until the organizer's deadline;
+- you can cancel an event you organize — buyers are refunded automatically;
+- you cannot delete a private message once sent (see the Privacy Policy).
+$doc$, 'Version 1.0', date '2026-10-09', false, 5, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('data-retention', 'Data Retention Policy', $doc$
+## In short
+We keep information only as long as it is needed for the reason we collected it, then delete it or remove your identity from it.
+
+## Retention
+PIPEDA requires keeping personal information only as long as needed for its purpose; Law 25 requires destroying or anonymizing it once that purpose is fulfilled.
+- Account and profile, including your date of birth: as long as the account exists.
+- Posts, photos and comments: until you delete them or your account.
+- Private messages: as long as at least one of the two people has an account.
+- Saved "Near me" location: on your phone only, until you change it.
+- Location sent for a search: not stored.
+- Tickets and payment records: as long as accounting and tax law require, without your identity if you deleted your account.
+- Attendance records: deleted with the ticket or the account.
+- Reports and moderation actions: as long as needed to explain and review decisions.
+- Information concerning illegal content: as long as the law requires.
+- Email delivery logs, crash reports and performance data: kept by our providers (Resend, Sentry) for a limited period set in their service, to deliver emails and fix defects.
+- Backups: kept for a limited period by our database provider, then overwritten.
+$doc$, 'Version 1.0', date '2026-10-09', false, 6, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('cookie', 'Cookie and Local Storage Policy', $doc$
+## In short
+HAPPYN uses no advertising cookies, no analytics cookies, and nothing that tracks you across other websites. That's why you're never asked to accept cookies.
+
+## In the app
+The app stores a few things on your phone:
+- your session, so you aren't signed out every time you close the app — until you sign out;
+- your language choice — until you change it;
+- your "Near me" setting (a city or an approximate position, and a distance) — until you change it.
+
+## Your saved events
+Your saved events are not stored on your phone: they are saved to your account, so they follow you from one phone to another.
+
+## On the website
+The website loads no third-party script and no external font. Its only outside connection is to our own database, to display these documents.
+- The password reset page temporarily keeps the reset code in your browser's session storage, so that reloading the page doesn't lose it. It is erased when you close the tab, and as soon as your password is changed.
+- Your language choice (FR/EN) is remembered in your browser.
+$doc$, 'Version 1.0', date '2026-10-09', false, 7, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('copyright', 'Copyright Policy', $doc$
+## In short
+Post only what you have the right to post. If someone uses your work on HAPPYN without permission, tell us and we'll deal with it.
+
+## Publishing content
+Publish only content you created or have permission to use. Uploading someone else's photo, poster, artwork, or music without permission may infringe their copyright.
+
+## Reporting an infringement
+Write to contact@happynevents.com. We acknowledge your notice within 3 business days and act within 10. Include:
+- a description of the work you own;
+- where the infringing content appears on HAPPYN;
+- your contact details;
+- a statement that you believe in good faith the use is not authorized;
+- a statement that the information is accurate and that you are the owner, or authorized to act for them.
+
+## Counter-notice
+If your content was removed and you believe it was wrongly removed, tell us and explain why you have the right to publish it. We'll review it and may restore it.
+
+## Repeat infringement
+Accounts that repeatedly infringe copyright are suspended.
+$doc$, 'Version 1.0', date '2026-10-09', false, 8, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('payments', 'Payments Policy', $doc$
+## In short
+- Payments are processed by Stripe. Your card details go straight to Stripe and never reach HAPPYN.
+- The price you see is the price you pay, in Canadian dollars. HAPPYN's fee is taken from the organizer's share, not added to your price.
+- Your ticket appears as soon as Stripe confirms the payment.
+- If you cancel a ticket yourself, a small service fee is not refunded. If the organizer cancels, you get everything back.
+- Organizers are paid after their event has taken place.
+
+## 1. How payment works
+Payments are processed by Stripe, a regulated payment provider. Your card number, expiry date and security code are entered in Stripe's payment form and go directly to Stripe: they never reach HAPPYN's servers. We keep only that a payment succeeded, its amount, its date, and Stripe's reference for it.
+
+## 2. The price
+- The price shown is the total you pay, in Canadian dollars.
+- There is no service fee added at checkout. HAPPYN's fee is deducted from the organizer's share.
+- You can buy several tickets of the same type in one payment.
+- Before you pay, the screen shows until when you can cancel, and the service fee that would not be refunded.
+
+## 3. When your ticket appears
+Our servers issue your ticket as soon as Stripe confirms the payment — usually immediately. If confirmation takes longer, the app tells you, and the ticket appears in My Tickets as soon as it arrives.
+A charge without a ticket is always corrected: write to contact@happynevents.com with the date and amount.
+
+## 4. Who you are paying
+You are paying for a ticket to an event run by its organizer. HAPPYN collects the payment on the organizer's behalf through Stripe, and passes it on minus our fee.
+
+## 5. How organizers are paid
+- To sell paid tickets, an organizer first opens a Stripe payout account from HAPPYN, where Stripe verifies their identity and bank details. A paid event cannot be published until that account can receive money.
+- HAPPYN's fee is 5% of the ticket price. The rate in force when the event is created applies to that event, even if the rate changes later.
+- The organizer's share is paid after the event has ended, once a short waiting period has passed. The waiting period allows refunds to be handled and checks that the event really took place.
+- HAPPYN may hold a payout while it checks an event — for example, when no ticket was scanned at the door, or for an organizer's first events.
+
+## 6. Failed payments and duplicates
+If your payment fails, you are not charged and no ticket is issued. If you are charged twice, or charged without receiving a ticket, write to us: we investigate, and always refund duplicates and charges without tickets in full.
+$doc$, 'Version 1.0', date '2026-10-09', false, 9, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('refund', 'Refund and Cancellation Policy', $doc$
+## In short
+- If the organizer cancels the event, you are refunded in full, automatically, to the card you paid with. You don't need to ask.
+- You can cancel your ticket yourself in the app until a deadline the organizer chose: 24 hours, 48 hours, or 7 days before the event — or not at all.
+- When you cancel yourself, you get the ticket price back minus a small non-refundable service fee: 2.9% + $0.30 ($0.88 on a $20 ticket).
+- The deadline and the fee are shown right above the payment button, before you pay, and again on your ticket.
+- Charged twice, or charged without a ticket? Always refunded in full.
+- A ticket you received by transfer can't be refunded by you.
+
+## 1. If the organizer cancels the event
+You don't need to request anything, and no service fee is kept. Refunds usually appear on your statement within 5 to 10 business days, depending on your bank. When an organizer cancels an event:
+- ticket sales stop immediately;
+- every valid paid ticket is refunded in full, automatically, to the card that paid for it;
+- every ticket holder is notified.
+
+## 2. Cancelling your own ticket
+Each organizer chooses, when creating the event, until when buyers can cancel: 24 hours, 48 hours or 7 days before the event starts — or no cancellation at all. The deadline is shown just above the payment button, before you pay, and again on your ticket.
+Before the deadline, cancel from your ticket in the app. You are refunded the price of that ticket minus a non-refundable service fee, and your place goes back on sale. You can't cancel a ticket that has already been scanned, or a ticket you received by transfer — the refund can only go to the card that paid.
+
+## 3. The service fee
+The fee is 2.9% of the ticket price + $0.30, never more than the ticket itself. It is exactly what our payment provider keeps on a refunded payment: neither HAPPYN nor the organizer earns anything from it. It is shown before you pay, on your ticket, and in the confirmation before you cancel. For example:
+- $10 ticket: $0.59 kept, $9.41 refunded;
+- $20 ticket: $0.88 kept, $19.12 refunded;
+- $50 ticket: $1.75 kept, $48.25 refunded.
+
+## 4. Always refunded in full
+Write to contact@happynevents.com with the date and amount if:
+- you were charged twice for the same ticket;
+- you were charged and no ticket was issued.
+
+## 5. Not refunded
+Unless the organizer's deadline still allows you to cancel:
+- you changed your mind after the deadline;
+- you didn't attend;
+- the event took place as described but wasn't what you hoped.
+
+## 6. If something goes wrong with an event that did take place
+If an event was seriously different from its description, contact the organizer first. If they don't reply within 7 days, write to contact@happynevents.com: we review the case, and may hold the organizer's payout while we do. Nothing in this policy takes away the rights consumer protection law gives you.
+$doc$, 'Version 1.0', date '2026-10-09', false, 10, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('fraud-prevention', 'Fraud Prevention Policy', $doc$
+## In short
+HAPPYN tickets are hard to fake: the server issues them, the QR code changes every five minutes, and each ticket gets in once. Buy only through HAPPYN — never from someone claiming to have a spare.
+
+## How tickets are protected
+- Only our servers create tickets, after payment is confirmed. No app can create or modify one.
+- Each ticket shows a cryptographically signed QR code that changes every five minutes. A screenshot shows an expired code: it won't admit anyone.
+- A ticket can be scanned once. A second scan is refused.
+- Only the event's organizer can scan its tickets — our servers refuse anyone else.
+- A transferred ticket gets a new code; the old one stops working.
+
+## Fraudulent events
+Creating an event you don't intend to hold, or selling tickets for an event you have no right to sell, is fraud. We remove such events, suspend the accounts, refund buyers where we can, and cooperate with the authorities.
+Paid events can only be created by organizers whose identity has been verified by Stripe, and their money is paid out only after the event — which limits what a fraudster could take.
+
+## What you should do
+- Buy tickets only through HAPPYN. Never pay someone who claims to have a spare ticket: ask them to transfer it to you in the app, which issues a genuine new ticket.
+- HAPPYN will never ask for your password, your full card number, or a payment outside the app — not by message, email, or phone.
+- Report suspicious events and accounts.
+$doc$, 'Version 1.0', date '2026-10-09', false, 11, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('safety', 'Safety Policy', $doc$
+## In short
+HAPPYN helps you find events, but doesn't run them or check who people are. Use the tools — reporting, blocking, private attendance — and trust your instincts. In an emergency, call 911 first.
+
+## What HAPPYN does
+- Reports are reviewed by a person within 24 hours.
+- Blocking hides an account's posts and events from you and stops all messages between you, including in a conversation already open.
+- Your attendance is private by default. Someone can see you're going to an event only if you follow each other and you chose to show it.
+- Messages are only possible with people you follow.
+- Private events keep their exact address for ticket holders.
+- Organizers can set a minimum age, and the app won't sell a ticket to someone below it.
+
+## What HAPPYN does not do
+- We don't verify identity. A name on a profile is not proof of who someone is.
+- We don't run background checks on organizers or inspect venues.
+- We are not present at events.
+
+## Meeting people
+Events mean meeting strangers. Meet in public places where you can, tell someone where you're going, keep your own way home, and leave if you feel unsafe.
+
+## If you are in danger
+Contact emergency services first — call 911. HAPPYN cannot intervene in a physical emergency. Report the account to us afterwards so we can act on it.
+$doc$, 'Version 1.0', date '2026-10-09', false, 12, now()),
+
+-- ─────────────────────────────────────────────────────────────────────────────
+('organizer', 'Organizer Standards', $doc$
+## In short
+- You must be 18 or older to create events.
+- Describe your event honestly, keep it up to date, and run it as described.
+- You are responsible for the event itself: legality, safety, permits, insurance.
+- To sell paid tickets, open a Stripe payout account. You're paid after the event, minus HAPPYN's 5% fee.
+- If you cancel, use the Cancel button: buyers are refunded automatically.
+
+## 1. Who can organize
+Creating events requires being 18 or older and accepting these standards. Selling paid tickets also requires a Stripe payout account in your name, where Stripe verifies your identity and bank details.
+
+## 2. Your responsibilities
+- Describe your event accurately: date, time, location, price, what's included, and any age limit. If something important changes, update the event — ticket holders are notified automatically when the date, time or place changes.
+- You are responsible for the event itself: its legality, safety, permits, insurance, and how it runs. HAPPYN provides ticketing and visibility; it does not co-organize.
+- Check age at the door if you set an age limit. HAPPYN stops people below it from buying, but doesn't verify identity.
+- Choose your cancellation deadline honestly (24 hours, 48 hours, 7 days, or none). Buyers see it before paying, and it applies automatically. When a buyer cancels, the payment provider's fee is paid by the buyer, not by you.
+- Answer buyers within 7 days.
+- Cancel properly. If the event won't happen, use the Cancel function: sales stop, every buyer is refunded in full automatically, and everyone is notified. Don't just stop responding.
+
+## 3. If you cancel an event
+Every buyer is refunded in full. The payment provider's fees on those tickets (2.9% + $0.30 each) are not returned by the provider, and may be deducted from your payouts.
+
+## 4. Private events
+A private event never appears in Discover or in "Near me". It can only be reached with the invitation code you share, and its exact address is visible only to you and to ticket holders.
+You also choose whether posts about it are visible to everyone or only to ticket holders. Choose deliberately: if posts are public, your event's name and date become public with them.
+
+## 5. Your attendees
+For each of your events, you can see the list of ticket holders: name, profile photo, ticket type, status, and purchase time. You never see their email address or date of birth. Use this list only to run your event — never to contact people for other purposes, or to share it.
+
+## 6. Payouts
+- HAPPYN's fee is 5% of each ticket's price. The rate when you create an event applies to that event.
+- Your share is paid to your Stripe account after the event has ended, once a short waiting period has passed.
+- If a ticket is refunded, its amount is not paid out.
+- HAPPYN may hold a payout while it checks that an event took place as described — for example when no ticket was scanned at the door, or for your first events.
+
+## 7. What we may do
+We may unpublish events that break these standards, hold payouts while we investigate, and suspend organizers who repeatedly break them or defraud buyers.
+$doc$, 'Version 1.0', date '2026-10-09', false, 13, now())
+
+on conflict (slug) do update set
+  title               = excluded.title,
+  content             = excluded.content,
+  version             = excluded.version,
+  effective_date      = excluded.effective_date,
+  requires_acceptance = excluded.requires_acceptance,
+  sort_order          = excluded.sort_order,
+  updated_at          = excluded.updated_at;
