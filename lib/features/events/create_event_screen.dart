@@ -270,6 +270,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Future<void> _createEvent() async {
+    // Le conteneur, pas `ref` : `ref` ne sert plus une fois l'ecran ferme, et
+    // l'ecran peut l'etre pendant l'envoi de l'image. L'evenement etait alors
+    // cree en base sans que l'accueil le sache — « parfois », selon le temps
+    // que prenait l'envoi. Pris avant toute attente, tant que le contexte vaut.
+    final container = ProviderScope.containerOf(context, listen: false);
     final l = AppLocalizations.of(context);
     // Gate 18+ : organiser un event requiert la majorité. Soft : si l'âge est
     // inconnu (ancien compte sans date de naissance), on laisse passer.
@@ -459,6 +464,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
     setState(() => _isLoading = true);
 
+    String? createdId;
+
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) throw Exception('Not authenticated');
@@ -495,6 +502,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           })
           .select()
           .single();
+      createdId = createdEvent['id'] as String;
 
       // L'adresse precise vit dans sa propre table, protegee par RLS : sur un
       // evenement prive, seuls l'organisateur et les detenteurs d'un billet la
@@ -523,9 +531,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       await Supabase.instance.client.from('ticket_types').insert(ticketRows);
 
       if (mounted) {
-        // Invalide le provider partagé : Home, Discover et Profile
-        // verront le nouvel event automatiquement, sans relancer l'app.
-        ref.invalidate(eventsProvider);
         // Event privé : on montre le code d'invitation à partager.
         if (accessCode != null) {
           await showInviteCodeDialog(context,
@@ -548,6 +553,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     } catch (e) {
       if (mounted) showAppSnack(context, l.errGeneric(e.toString()));
     } finally {
+      // Des que l'evenement existe en base, l'accueil, la decouverte et le
+      // profil doivent le savoir — meme si la suite a echoue (tarifs), et
+      // meme si l'ecran est deja ferme.
+      if (createdId != null) container.invalidate(eventsProvider);
       if (mounted) setState(() => _isLoading = false);
     }
   }

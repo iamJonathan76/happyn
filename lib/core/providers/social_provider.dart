@@ -143,8 +143,12 @@ Future<void> setPostLiked(String postId, bool liked) async {
 /// Le composeur s'en sert pour ne proposer QUE ces événements. La même règle
 /// est appliquée côté base (`can_attach_event`) : le filtrage ici est du
 /// confort, pas une sécurité.
+// `autoDispose` : la liste se recharge a chaque ouverture de l'ecran de
+// publication. Sans lui elle etait chargee une fois par session : un evenement
+// tout juste cree, ou un billet tout juste obtenu, n'y apparaissait qu'apres
+// avoir tue l'app.
 final attachableEventsProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
   final uid = ref.watch(currentUserIdProvider);
   if (uid == null) return [];
   final data =
