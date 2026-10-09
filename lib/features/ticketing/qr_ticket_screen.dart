@@ -3,6 +3,7 @@ import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -799,7 +800,7 @@ class _TransferButton extends StatelessWidget {
       height: 52,
       child: OutlinedButton.icon(
         onPressed: onTap,
-        icon: const Icon(Icons.send_outlined, size: 18, color: Colors.white),
+        icon: Icon(FontAwesomeIcons.gift.data, size: 16, color: Colors.white),
         label: Text(
           AppLocalizations.of(context).transferTicket,
           style: AppText.h3.copyWith(fontSize: 14.5, fontWeight: FontWeight.w800, color: Colors.white),

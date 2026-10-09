@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'widgets/hero_event_card.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
@@ -12,6 +12,7 @@ import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/notifications/notifications_screen.dart';
+import 'package:happyn/features/social/direct_messages_screen.dart';
 import 'package:happyn/features/social/people_search_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/social/widgets/post_card.dart';
@@ -45,14 +46,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   String get userName => user?.userMetadata?['full_name'] ?? 'User';
 
-  String get userInitials {
-    final parts = userName.trim().split(' ');
-    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    return userName.substring(0, 1).toUpperCase();
-  }
-
-  String? get avatarUrl => user?.userMetadata?['avatar_url'] as String?;
-
   String get _greeting {
     final l = AppLocalizations.of(context);
     final h = DateTime.now().hour;
@@ -74,6 +67,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _refresh() async {
     ref.invalidate(eventsProvider);
     ref.invalidate(notificationsProvider); // maj du badge cloche
+    ref.invalidate(unreadMessagesProvider); // et de celui des messages
     ref.invalidate(discoverFeedProvider);
     // on attend que le nouveau fetch soit terminé pour que le
     // RefreshIndicator se ferme au bon moment
@@ -220,40 +214,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.55),
-                      blurRadius: 12,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: (avatarUrl != null && avatarUrl!.isNotEmpty)
-                      ? CachedNetworkImage(
-                          imageUrl: avatarUrl!,
-                          width: 36,
-                          height: 36,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, _, _) => Center(
+              // Les messages, à la place de l'avatar : le profil a déjà son
+              // onglet (avec la photo), alors que la messagerie n'avait
+              // qu'une icône perdue en haut de la page profil. Sa pastille
+              // compte les conversations non lues — elles ne sont plus dans
+              // la cloche.
+              Semantics(
+                button: true,
+                label: AppLocalizations.of(context).messages,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (_) => const DirectMessagesScreen()))
+                      .then((_) => ref.invalidate(unreadMessagesProvider)),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.09)),
+                        ),
+                        child: Center(
+                          child: Icon(FontAwesomeIcons.comments.data,
+                              color: Colors.white, size: 16),
+                        ),
+                      ),
+                      if ((ref.watch(unreadMessagesProvider).asData?.value ??
+                              0) >
+                          0)
+                        Positioned(
+                          top: -3,
+                          right: -3,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            constraints: const BoxConstraints(minWidth: 16),
+                            decoration: BoxDecoration(
+                              color: AppColors.pink,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: AppColors.background, width: 1.5),
+                            ),
                             child: Text(
-                              userInitials,
-                              style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
+                              '${ref.watch(unreadMessagesProvider).asData?.value ?? 0}',
+                              textAlign: TextAlign.center,
+                              style: AppText.microBold.copyWith(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  height: 1),
                             ),
                           ),
-                        )
-                      : Center(
-                          child: Text(
-                            userInitials,
-                            style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
-                          ),
                         ),
+                    ],
+                  ),
                 ),
               ),
             ],

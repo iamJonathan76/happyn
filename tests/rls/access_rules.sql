@@ -327,3 +327,13 @@ reset role;
 select t.as_anon();
 select t.sees('select * from legal_document_translations', 2, 'Traduction : lisible sans compte, comme les originaux (site Web)');
 reset role;
+
+-- Supprimer ses notifications, et seulement les siennes
+reset role;
+insert into notifications (id, user_id, type, title) values
+  ('00000000-0000-0000-0000-00000000aa01', '00000000-0000-0000-0000-00000000000a', 'test', 'pour Alice'),
+  ('00000000-0000-0000-0000-00000000aa02', '00000000-0000-0000-0000-00000000000b', 'test', 'pour Bruno');
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.can_write($$delete from notifications where id = '00000000-0000-0000-0000-00000000aa01'$$, 'Notifications : on supprime les siennes');
+select t.cannot_write($$delete from notifications where id = '00000000-0000-0000-0000-00000000aa02'$$, 'Notifications : on ne supprime pas celles des autres');
+reset role;

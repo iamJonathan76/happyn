@@ -1560,6 +1560,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get consentNeedCheck => 'Tick the box to accept.';
 
   @override
+  String messageFollowTitle(String name) {
+    return 'Message $name';
+  }
+
+  @override
+  String messageFollowBody(String name) {
+    return 'On HAPPYN, you message people you follow. Follow $name to send them a message.';
+  }
+
+  @override
+  String get messageFollowAndWrite => 'Follow and message';
+
+  @override
+  String get clearAllNotifications => 'Clear all';
+
+  @override
+  String get clearAllNotificationsTitle => 'Clear all notifications?';
+
+  @override
+  String get clearAllNotificationsBody =>
+      'They will be removed from the list for good. Your messages aren\'t affected.';
+
+  @override
   String get legalTerms => 'Terms of Service';
 
   @override

@@ -2840,6 +2840,42 @@ abstract class AppLocalizations {
   /// **'Tick the box to accept.'**
   String get consentNeedCheck;
 
+  /// No description provided for @messageFollowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Message {name}'**
+  String messageFollowTitle(String name);
+
+  /// No description provided for @messageFollowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On HAPPYN, you message people you follow. Follow {name} to send them a message.'**
+  String messageFollowBody(String name);
+
+  /// No description provided for @messageFollowAndWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow and message'**
+  String get messageFollowAndWrite;
+
+  /// No description provided for @clearAllNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAllNotifications;
+
+  /// No description provided for @clearAllNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all notifications?'**
+  String get clearAllNotificationsTitle;
+
+  /// No description provided for @clearAllNotificationsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They will be removed from the list for good. Your messages aren\'t affected.'**
+  String get clearAllNotificationsBody;
+
   /// No description provided for @legalTerms.
   ///
   /// In en, this message translates to:

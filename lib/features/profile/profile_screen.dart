@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'widgets/sliver_tab_bar.dart';
 import 'widgets/event_tile.dart';
 import 'package:happyn/core/widgets/app_form.dart';
@@ -196,8 +197,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       if (!_isMe)
                         Positioned(top: 8, right: 12, child: _moreMenu()),
-                      if (_isMe)
-                        Positioned(top: 8, left: 16, child: _inboxButton()),
                       // Avatar (anneau dégradé) + nom + @handle
                       Positioned(
                         left: 20,
@@ -343,7 +342,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             width: double.infinity,
                             height: 46,
                             decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
+                              gradient: AppColors.brandGradient,
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Center(
@@ -484,7 +483,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             )
           : DecoratedBox(
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: AppColors.brandGradient,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: TextButton(
@@ -510,7 +509,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final blocked =
         ref.watch(blockedUsersProvider).asData?.value ?? const <String>{};
 
-    if (!isFollowing || blocked.contains(_uid)) return _followButton();
+    // Bloqué dans un sens ou dans l'autre : pas de message possible, on ne
+    // propose pas un bouton qui échouera.
+    if (blocked.contains(_uid)) return _followButton();
 
     return Row(
       children: [
@@ -518,7 +519,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: _openingConversation ? null : _openConversation,
+            // Toujours visible : sans lui, rien ne disait qu'on pouvait
+            // écrire à quelqu'un, ni qu'il fallait d'abord le suivre.
+            onPressed: _openingConversation
+                ? null
+                : isFollowing
+                    ? _openConversation
+                    : _askFollowToWrite,
             icon: _openingConversation
                 ? const SizedBox(
                     width: 16,
@@ -528,7 +535,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Icon(Icons.chat_bubble_outline, size: 17),
+                : Icon(FontAwesomeIcons.comments.data,
+                    size: 15, color: Colors.white),
             label: Text(
               AppLocalizations.of(context).messageAction,
               style: AppText.h4.copyWith(color: Colors.white),
@@ -544,6 +552,66 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ],
     );
+  }
+
+  /// On ne peut écrire qu'aux personnes qu'on suit (`start_direct_conversation`
+  /// l'impose). Plutôt que de cacher le bouton, on l'explique au moment où on
+  /// en a besoin, et on propose de faire les deux d'un geste.
+  Future<void> _askFollowToWrite() async {
+    final l = AppLocalizations.of(context);
+    final go = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.sheet,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.messageFollowTitle(_userName),
+                  style: AppText.h2.copyWith(color: Colors.white)),
+              const SizedBox(height: 8),
+              Text(l.messageFollowBody(_userName),
+                  style: AppText.body
+                      .copyWith(color: AppColors.textMed, height: 1.5)),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => Navigator.of(sheetCtx).pop(true),
+                child: Container(
+                  height: 50,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.brandGradient,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Text(l.messageFollowAndWrite,
+                      style: AppText.h4.copyWith(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (go != true || !mounted) return;
+    setState(() => _openingConversation = true);
+    try {
+      await followUser(_uid);
+      ref.invalidate(followingProvider);
+      ref.invalidate(publicProfileProvider(_uid));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _openingConversation = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l.messageStartFailed)),
+        );
+      }
+      return;
+    }
+    if (mounted) await _openConversation();
   }
 
   Future<void> _openConversation() async {
@@ -572,21 +640,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } finally {
       if (mounted) setState(() => _openingConversation = false);
     }
-  }
-
-  Widget _inboxButton() {
-    final l = AppLocalizations.of(context);
-    return IconButton(
-      tooltip: l.messages,
-      onPressed: () => Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const DirectMessagesScreen())),
-      icon: const Icon(Icons.forum_outlined, color: Colors.white),
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.black.withValues(alpha: 0.35),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
   }
 
   Widget _moreMenu() {

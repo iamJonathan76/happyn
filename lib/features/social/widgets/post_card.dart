@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
@@ -361,8 +362,8 @@ class _PostCardState extends ConsumerState<PostCard> {
                 ),
                 _action(
                   onTap: _openComments,
-                  icon: const Icon(Icons.chat_bubble_outline,
-                      size: 23, color: Colors.white),
+                  icon: Icon(FontAwesomeIcons.comment.data,
+                      size: 21, color: Colors.white),
                   count: _commentCount,
                 ),
                 _action(
@@ -557,7 +558,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                   child: Row(children: [
                     Icon(
                         _commentsDisabled
-                            ? Icons.chat_bubble_outline
+                            ? FontAwesomeIcons.comment.data
                             : Icons.comments_disabled_outlined,
                         size: 18,
                         color: Colors.white),

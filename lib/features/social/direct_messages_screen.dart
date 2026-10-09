@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/direct_messages_provider.dart';
+import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/utils/dates.dart';
@@ -127,7 +129,7 @@ class DirectMessagesScreen extends ConsumerWidget {
     physics: const AlwaysScrollableScrollPhysics(),
     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 140),
     children: [
-      Icon(Icons.forum_outlined, size: 44, color: AppColors.textFaint),
+      Icon(FontAwesomeIcons.comments.data, size: 40, color: AppColors.textFaint),
       const SizedBox(height: 12),
       Text(
         text,
@@ -165,6 +167,14 @@ class _DirectMessageThreadScreenState
   /// Nombre de messages au dernier rendu, pour reperer l'arrivee d'un message
   /// de l'autre personne. L'envoi, lui, descend deja de son cote.
   int _lastCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ouvrir la conversation, c'est la lire : sa pastille disparaît.
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => markConversationRead(ref, widget.conversationId));
+  }
 
   @override
   void dispose() {
@@ -340,6 +350,10 @@ class _DirectMessageThreadScreenState
                   });
                 } else if (items.length > _lastCount) {
                   _lastCount = items.length;
+                  // Un message arrivé pendant qu'on lit est déjà lu : sans
+                  // ça, la pastille reviendrait sur une conversation ouverte.
+                  WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => markConversationRead(ref, widget.conversationId));
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!_scrollController.hasClients) return;
                     final pos = _scrollController.position;

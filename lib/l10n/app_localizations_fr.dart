@@ -1578,6 +1578,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get consentNeedCheck => 'Coche la case pour accepter.';
 
   @override
+  String messageFollowTitle(String name) {
+    return 'Écrire à $name';
+  }
+
+  @override
+  String messageFollowBody(String name) {
+    return 'Sur HAPPYN, on écrit aux personnes qu\'on suit. Suis $name pour lui envoyer un message.';
+  }
+
+  @override
+  String get messageFollowAndWrite => 'Suivre et écrire';
+
+  @override
+  String get clearAllNotifications => 'Tout effacer';
+
+  @override
+  String get clearAllNotificationsTitle => 'Effacer toutes les notifications ?';
+
+  @override
+  String get clearAllNotificationsBody =>
+      'Elles disparaîtront de la liste, définitivement. Tes messages ne sont pas touchés.';
+
+  @override
   String get legalTerms => 'Conditions d\'utilisation';
 
   @override

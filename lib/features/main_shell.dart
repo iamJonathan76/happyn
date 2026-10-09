@@ -1,4 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happyn/core/providers/user_profile_provider.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'dart:async';
@@ -230,11 +233,14 @@ class _MainShellState extends State<MainShell> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    item['icon'] as IconData,
-                    size: 22,
-                    color: isActive ? AppColors.lavender : AppColors.textLow,
-                  ),
+                  if (i == 4)
+                    _ProfileTabIcon(active: isActive)
+                  else
+                    Icon(
+                      item['icon'] as IconData,
+                      size: 22,
+                      color: isActive ? AppColors.lavender : AppColors.textLow,
+                    ),
                   const SizedBox(height: 2),
                   Padding(
                     // Deux libellés voisins ne doivent jamais se toucher :
@@ -258,6 +264,68 @@ class _MainShellState extends State<MainShell> {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+/// L'onglet Profil montre la personne elle-même : sa photo, ou ses initiales.
+///
+/// Comme sur Instagram. Avant, sa photo était en haut de l'accueil, à une
+/// place qui revient désormais aux messages ; ici, elle dit sans libellé à
+/// quoi mène l'onglet. Entourée de lavande quand l'onglet est actif, à la
+/// place du changement de couleur d'une icône.
+class _ProfileTabIcon extends ConsumerWidget {
+  const _ProfileTabIcon({required this.active});
+
+  final bool active;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(userProfileProvider).asData?.value;
+    final avatar = (profile?['avatar_url'] as String?) ?? '';
+    final name = ((profile?['full_name'] as String?) ?? '').trim();
+    final parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final initials = parts.isEmpty
+        ? ''
+        : parts.length == 1
+            ? parts.first[0].toUpperCase()
+            : '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+
+    final fallback = initials.isEmpty
+        ? Icon(Icons.person_outline,
+            size: 15, color: active ? Colors.white : AppColors.textLow)
+        : Text(initials,
+            style: AppText.microBold.copyWith(
+                fontSize: 8, color: Colors.white, height: 1));
+
+    // 22 points, comme les icônes voisines : à 24, le libellé « Profil »
+    // descendait sous la ligne des autres.
+    return Container(
+      width: 22,
+      height: 22,
+      padding: const EdgeInsets.all(1.5),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: active ? AppColors.lavender : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
+      child: ClipOval(
+        child: Container(
+          color: AppColors.action,
+          alignment: Alignment.center,
+          child: avatar.isEmpty
+              ? fallback
+              : CachedNetworkImage(
+                  imageUrl: avatar,
+                  width: 19,
+                  height: 19,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, _, _) => fallback,
+                ),
+        ),
       ),
     );
   }

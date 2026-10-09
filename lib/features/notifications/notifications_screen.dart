@@ -11,6 +11,12 @@ import 'package:happyn/features/social/direct_messages_screen.dart';
 import 'package:happyn/features/social/post_view_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
+/// Notifications effacées d'un glissement, retirées de la liste AVANT la
+/// réponse du serveur : un `Dismissible` exige que l'élément disparaisse tout
+/// de suite, sinon Flutter s'arrête sur une erreur.
+final _dismissedNotificationsProvider =
+    StateProvider.autoDispose<Set<String>>((ref) => <String>{});
+
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
@@ -139,6 +145,14 @@ class NotificationsScreen extends ConsumerWidget {
           style: AppText.h2.copyWith(color: Colors.white),
         ),
         actions: [
+          // Une liste qu'on ne peut que voir grossir finit ignorée en entier.
+          if ((async.asData?.value ?? const []).isNotEmpty)
+            IconButton(
+              tooltip: l.clearAllNotifications,
+              onPressed: () => _confirmClearAll(context, ref),
+              icon: const Icon(Icons.delete_sweep_outlined,
+                  color: AppColors.lavender, size: 22),
+            ),
           if (unread > 0)
             TextButton(
               onPressed: () => _markAllRead(ref),
@@ -153,7 +167,10 @@ class NotificationsScreen extends ConsumerWidget {
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
         error: (_, _) => _empty(l),
-        data: (list) {
+        data: (all) {
+          final dismissed = ref.watch(_dismissedNotificationsProvider);
+          final list =
+              all.where((n) => !dismissed.contains(n['id'])).toList();
           if (list.isEmpty) return _empty(l);
           return RefreshIndicator(
             color: AppColors.primary,
@@ -166,13 +183,72 @@ class NotificationsScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
               itemCount: list.length,
-              itemBuilder: (context, i) =>
-                  _tile(context, ref, list[i]),
+              itemBuilder: (context, i) {
+                final n = list[i];
+                final id = n['id'] as String;
+                return Dismissible(
+                  key: ValueKey(id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.delete_outline,
+                        color: Colors.white),
+                  ),
+                  onDismissed: (_) {
+                    ref.read(_dismissedNotificationsProvider.notifier).state =
+                        {...dismissed, id};
+                    deleteNotifications(ref, id: id).catchError((e, st) {
+                      reportCaught(e, st, where: 'notifications.delete');
+                    });
+                  },
+                  child: _tile(context, ref, n),
+                );
+              },
             ),
           );
         },
       ),
     );
+  }
+
+  Future<void> _confirmClearAll(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.clearAllNotificationsTitle,
+            style: AppText.h4.copyWith(color: Colors.white)),
+        content: Text(l.clearAllNotificationsBody, style: AppText.body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l.cancel, style: AppText.body),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l.clearAllNotifications,
+                style: AppText.smallBold.copyWith(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await deleteNotifications(ref);
+    } catch (e, st) {
+      reportCaught(e, st, where: 'notifications.clearAll');
+      if (context.mounted) {
+        showAppSnack(context, l.couldNotSaveRetry);
+      }
+    }
   }
 
   Widget _tile(

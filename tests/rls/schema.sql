@@ -396,9 +396,13 @@ begin
     raise exception 'not_authenticated';
   end if;
 
+  -- Les documents en attente pour CE compte : exigés, à la bonne version.
   for d in
     select l.slug, l.version from public.legal_documents l
     where l.requires_acceptance
+      and not exists (
+        select 1 from public.user_legal_acceptances a
+        where a.user_id = v_user and a.slug = l.slug and a.version = l.version)
   loop
     if not (p_versions ? d.slug) then
       raise exception 'version_changed';
@@ -416,6 +420,7 @@ begin
               then p_locale else 'en' end
   from public.legal_documents l
   where l.requires_acceptance
+    and p_versions ->> l.slug = l.version
   on conflict (user_id, slug, version) do nothing;
 end;
 $function$;
@@ -4218,12 +4223,6 @@ grant execute on function pending_legal_documents(text) to authenticated;
 
 grant execute on function pending_legal_documents(text) to service_role;
 
-revoke all on function accept_legal_documents(jsonb,text) from public, anon, authenticated, service_role;
-
-grant execute on function accept_legal_documents(jsonb,text) to authenticated;
-
-grant execute on function accept_legal_documents(jsonb,text) to service_role;
-
 revoke all on function admin_report_target(uuid) from public, anon, authenticated, service_role;
 
 grant execute on function admin_report_target(uuid) to authenticated;
@@ -4285,5 +4284,11 @@ revoke all on function issue_tickets(uuid,integer) from public, anon, authentica
 grant execute on function issue_tickets(uuid,integer) to authenticated;
 
 grant execute on function issue_tickets(uuid,integer) to service_role;
+
+revoke all on function accept_legal_documents(jsonb,text) from public, anon, authenticated, service_role;
+
+grant execute on function accept_legal_documents(jsonb,text) to authenticated;
+
+grant execute on function accept_legal_documents(jsonb,text) to service_role;
 
 grant usage on schema public to anon, authenticated, service_role;

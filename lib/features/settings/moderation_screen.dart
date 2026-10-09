@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
@@ -116,8 +117,8 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
   IconData get _fallbackIcon => switch (_type) {
         'event' => Icons.event_outlined,
         'post' => Icons.image_outlined,
-        'message' => Icons.chat_bubble_outline,
-        'comment' => Icons.mode_comment_outlined,
+        'message' => FontAwesomeIcons.comments.data,
+        'comment' => FontAwesomeIcons.comment.data,
         _ => Icons.person_outline,
       };
 
