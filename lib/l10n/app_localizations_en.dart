@@ -1519,30 +1519,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dobTooYoungOk => 'Got it';
 
   @override
-  String get consentTitle => 'Before you start';
+  String get consentTitle => 'Terms and privacy';
 
   @override
   String get consentTitleUpdate => 'Our terms have changed';
 
   @override
   String get consentIntro =>
-      'These documents are the agreement between you and HAPPYN: what you can do on the app, what we do with your information, and the community rules. Take the time to read them.';
+      'To use HAPPYN, you need to accept the documents below. Here are their key points; the full text of each is one tap away.';
 
   @override
   String get consentIntroUpdate =>
-      'A new version is in effect. Read what changed, then accept it to keep using HAPPYN.';
+      'A new version is in effect. Here are the key points of the updated documents; accept them to keep using HAPPYN.';
 
   @override
-  String get consentCheckbox => 'I have read and accept these documents.';
-
-  @override
-  String get consentAccept => 'Accept and continue';
-
-  @override
-  String get consentRead => 'Read';
-
-  @override
-  String get consentNeedCheck => 'Tick the box to accept.';
+  String get consentAccept => 'I agree';
 
   @override
   String get consentVersionChanged =>
@@ -1550,6 +1541,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get consentUpdated => 'Updated';
+
+  @override
+  String consentStatement(String documents) {
+    return 'By tapping “I agree”, you accept: $documents.';
+  }
+
+  @override
+  String get consentReadFull => 'Read the full document';
+
+  @override
+  String get consentMore => 'Keep reading';
 
   @override
   String get legalTerms => 'Terms of Service';

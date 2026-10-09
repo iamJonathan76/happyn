@@ -294,8 +294,13 @@ Google qui fuirait ne peut plus être rejoué pour ouvrir une session.
 Avant toute autre étape (date de naissance comprise), un compte qui n'a pas
 accepté la version en vigueur des **conditions d'utilisation**, de la
 **politique de confidentialité** et des **règles de la communauté** voit un
-écran dédié : les trois documents à lire, une case à cocher, puis « Accepter et
-continuer ». Refuser = se déconnecter.
+écran dédié, sur le modèle de Google (depuis le 2026-10-09) : le résumé « En
+bref » de chaque document, tiré du document lui-même et dans la langue de
+l'app, avec un lien vers le texte complet ; puis, tout en bas et atteignable
+seulement en faisant défiler, une phrase qui nomme ce qu'on accepte (versions
+comprises) et le bouton « J'accepte ». Plus de case à cocher : le geste
+volontaire après une présentation claire suffit, et la doublait. Refuser = se
+déconnecter.
 
 L'acceptation est écrite **par le serveur** (`accept_legal_documents`), avec
 son heure, et seulement pour les versions que l'écran a affichées — l'app ne

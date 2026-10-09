@@ -2771,7 +2771,7 @@ abstract class AppLocalizations {
   /// No description provided for @consentTitle.
   ///
   /// In en, this message translates to:
-  /// **'Before you start'**
+  /// **'Terms and privacy'**
   String get consentTitle;
 
   /// No description provided for @consentTitleUpdate.
@@ -2783,38 +2783,20 @@ abstract class AppLocalizations {
   /// No description provided for @consentIntro.
   ///
   /// In en, this message translates to:
-  /// **'These documents are the agreement between you and HAPPYN: what you can do on the app, what we do with your information, and the community rules. Take the time to read them.'**
+  /// **'To use HAPPYN, you need to accept the documents below. Here are their key points; the full text of each is one tap away.'**
   String get consentIntro;
 
   /// No description provided for @consentIntroUpdate.
   ///
   /// In en, this message translates to:
-  /// **'A new version is in effect. Read what changed, then accept it to keep using HAPPYN.'**
+  /// **'A new version is in effect. Here are the key points of the updated documents; accept them to keep using HAPPYN.'**
   String get consentIntroUpdate;
-
-  /// No description provided for @consentCheckbox.
-  ///
-  /// In en, this message translates to:
-  /// **'I have read and accept these documents.'**
-  String get consentCheckbox;
 
   /// No description provided for @consentAccept.
   ///
   /// In en, this message translates to:
-  /// **'Accept and continue'**
+  /// **'I agree'**
   String get consentAccept;
-
-  /// No description provided for @consentRead.
-  ///
-  /// In en, this message translates to:
-  /// **'Read'**
-  String get consentRead;
-
-  /// No description provided for @consentNeedCheck.
-  ///
-  /// In en, this message translates to:
-  /// **'Tick the box to accept.'**
-  String get consentNeedCheck;
 
   /// No description provided for @consentVersionChanged.
   ///
@@ -2827,6 +2809,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Updated'**
   String get consentUpdated;
+
+  /// No description provided for @consentStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'By tapping “I agree”, you accept: {documents}.'**
+  String consentStatement(String documents);
+
+  /// No description provided for @consentReadFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the full document'**
+  String get consentReadFull;
+
+  /// No description provided for @consentMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep reading'**
+  String get consentMore;
 
   /// No description provided for @legalTerms.
   ///

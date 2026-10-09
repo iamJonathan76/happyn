@@ -1537,30 +1537,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dobTooYoungOk => 'Compris';
 
   @override
-  String get consentTitle => 'Avant de commencer';
+  String get consentTitle => 'Conditions et confidentialité';
 
   @override
   String get consentTitleUpdate => 'Nos conditions ont changé';
 
   @override
   String get consentIntro =>
-      'Ces documents forment l\'accord entre toi et HAPPYN : ce que tu peux faire sur l\'app, ce que nous faisons de tes informations, et les règles de la communauté. Prends le temps de les lire.';
+      'Pour utiliser HAPPYN, tu dois accepter les documents ci-dessous. Voici leurs points clés ; le texte complet de chacun est à un clic.';
 
   @override
   String get consentIntroUpdate =>
-      'Une nouvelle version est en vigueur. Lis ce qui a changé, puis accepte-la pour continuer à utiliser HAPPYN.';
+      'Une nouvelle version est en vigueur. Voici les points clés des documents mis à jour ; accepte-les pour continuer à utiliser HAPPYN.';
 
   @override
-  String get consentCheckbox => 'J\'ai lu et j\'accepte ces documents.';
-
-  @override
-  String get consentAccept => 'Accepter et continuer';
-
-  @override
-  String get consentRead => 'Lire';
-
-  @override
-  String get consentNeedCheck => 'Coche la case pour accepter.';
+  String get consentAccept => 'J\'accepte';
 
   @override
   String get consentVersionChanged =>
@@ -1568,6 +1559,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get consentUpdated => 'Mis à jour';
+
+  @override
+  String consentStatement(String documents) {
+    return 'En appuyant sur « J\'accepte », tu acceptes : $documents.';
+  }
+
+  @override
+  String get consentReadFull => 'Lire le document complet';
+
+  @override
+  String get consentMore => 'Lire la suite';
 
   @override
   String get legalTerms => 'Conditions d\'utilisation';
