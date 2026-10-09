@@ -128,7 +128,9 @@ class SettingsScreen extends ConsumerWidget {
                   ? legalDocs.map((d) => _legal(
                       context,
                       _legalIcon(d['slug'] as String),
-                      (d['title'] ?? 'Document') as String,
+                      (localizedLegalDoc(d, Localizations.localeOf(context)
+                                  .languageCode)['title'] ??
+                              'Document') as String,
                       d['slug'] as String))
                   : _fallbackLegalTiles(context))
               ,

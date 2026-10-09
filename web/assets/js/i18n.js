@@ -434,7 +434,7 @@
       // anglais sans explication. À retirer quand les versions françaises
       // seront en base.
       'legal.englishOnly':
-        'Nos politiques sont pour le moment disponibles en anglais seulement. La version française est en préparation.',
+        "Certains documents ne sont pas encore à jour en français : c'est alors la version anglaise en vigueur qui s'affiche.",
 
       'reset.metaTitle': 'Réinitialiser ton mot de passe — HAPPYN',
       'reset.metaDescription': 'Choisis un nouveau mot de passe pour ton compte HAPPYN.',

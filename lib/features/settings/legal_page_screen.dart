@@ -30,10 +30,14 @@ class LegalPageScreen extends ConsumerWidget {
             ? find(ref.watch(legalFallbackProvider).asData?.value)
             : null);
 
-    final title = (doc?['title'] ?? 'Legal') as String;
-    final versionLabel = (doc?['version'] ?? '') as String;
-    final List<LegalSection>? sections =
-        doc == null ? null : parseLegalMarkdown((doc['content'] ?? '') as String);
+    final lang = Localizations.localeOf(context).languageCode;
+    final shown = doc == null ? null : localizedLegalDoc(doc, lang);
+
+    final title = (shown?['title'] ?? 'Legal') as String;
+    final versionLabel = (shown?['version'] ?? '') as String;
+    final List<LegalSection>? sections = shown == null
+        ? null
+        : parseLegalMarkdown((shown['content'] ?? '') as String);
 
     final loading = sections == null &&
         (docsAsync.isLoading ||

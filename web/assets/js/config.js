@@ -29,6 +29,28 @@ const HAPPYN = {
 // Colonnes de la table telle qu'elle existe réellement en base : `content` est
 // du markdown simplifié (## titres, - puces, paragraphes), pas du JSON.
 
+// Les traductions des mêmes documents (`legal_document_translations`). Une
+// traduction ne s'affiche que si elle porte la version de l'original : voir
+// localizeLegal() dans legal.js.
+async function fetchLegalTranslations() {
+  const params = new URLSearchParams({
+    select: 'slug,locale,title,content,version',
+  });
+  const response = await fetch(
+    `${HAPPYN.supabaseUrl}/rest/v1/legal_document_translations?${params}`,
+    {
+      headers: {
+        apikey: HAPPYN.supabaseAnonKey,
+        Authorization: `Bearer ${HAPPYN.supabaseAnonKey}`,
+      },
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`legal_document_translations: HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
 async function fetchLegalDocuments(slug = null) {
   const params = new URLSearchParams({
     select: 'slug,title,content,version,effective_date,sort_order,updated_at',

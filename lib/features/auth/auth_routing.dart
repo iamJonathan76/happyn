@@ -19,7 +19,8 @@ Future<void> routeAfterAuth(BuildContext context) async {
   // D'abord l'accord : la politique de confidentialité s'accepte avant qu'on
   // demande quoi que ce soit d'autre — la date de naissance en tête. Couvre
   // aussi une nouvelle version des documents pour un compte existant.
-  final pending = await PendingLegalDoc.fetch();
+  final pending =
+      await PendingLegalDoc.fetch(Localizations.localeOf(context).languageCode);
   if (!context.mounted) return;
   if (pending != null && pending.isNotEmpty) {
     Navigator.of(context).pushAndRemoveUntil(

@@ -229,6 +229,15 @@ create table public."follows" (
   "created_at" timestamp with time zone not null
 );
 
+create table public."legal_document_translations" (
+  "slug" text not null,
+  "locale" text not null,
+  "title" text not null,
+  "content" text not null,
+  "version" text not null,
+  "updated_at" timestamp with time zone not null
+);
+
 create table public."legal_documents" (
   "slug" text not null,
   "title" text not null,
@@ -369,10 +378,11 @@ create table public."user_legal_acceptances" (
   "user_id" uuid not null,
   "slug" text not null,
   "version" text not null,
-  "accepted_at" timestamp with time zone not null
+  "accepted_at" timestamp with time zone not null,
+  "locale" text
 );
 
-CREATE OR REPLACE FUNCTION public.accept_legal_documents(p_versions jsonb)
+CREATE OR REPLACE FUNCTION public.accept_legal_documents(p_versions jsonb, p_locale text DEFAULT NULL::text)
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -390,7 +400,6 @@ begin
     select l.slug, l.version from public.legal_documents l
     where l.requires_acceptance
   loop
-    -- Un document exigé mais absent de la demande : l'écran ne l'a pas montré.
     if not (p_versions ? d.slug) then
       raise exception 'version_changed';
     end if;
@@ -399,8 +408,12 @@ begin
     end if;
   end loop;
 
-  insert into public.user_legal_acceptances (user_id, slug, version, accepted_at)
-  select v_user, l.slug, l.version, now()
+  insert into public.user_legal_acceptances (user_id, slug, version, accepted_at, locale)
+  select v_user, l.slug, l.version, now(),
+         case when exists (
+                select 1 from public.legal_document_translations t
+                where t.slug = l.slug and t.locale = p_locale and t.version = l.version)
+              then p_locale else 'en' end
   from public.legal_documents l
   where l.requires_acceptance
   on conflict (user_id, slug, version) do nothing;
@@ -2015,16 +2028,20 @@ CREATE OR REPLACE FUNCTION public.payout_delay_days()
  SET search_path TO 'public'
 AS $function$ select 3 $function$;
 
-CREATE OR REPLACE FUNCTION public.pending_legal_documents()
+CREATE OR REPLACE FUNCTION public.pending_legal_documents(p_locale text DEFAULT NULL::text)
  RETURNS TABLE(slug text, title text, version text, previously_accepted boolean)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
-  select d.slug, d.title, d.version,
+  select d.slug,
+         coalesce(t.title, d.title),
+         d.version,
          exists (select 1 from public.user_legal_acceptances a
                  where a.user_id = auth.uid() and a.slug = d.slug)
   from public.legal_documents d
+  left join public.legal_document_translations t
+         on t.slug = d.slug and t.locale = p_locale and t.version = d.version
   where d.requires_acceptance
     and auth.uid() is not null
     and not exists (
@@ -2957,6 +2974,8 @@ alter table public."favorites" alter column "created_at" set default now();
 
 alter table public."follows" alter column "created_at" set default now();
 
+alter table public."legal_document_translations" alter column "updated_at" set default now();
+
 alter table public."legal_documents" alter column "effective_date" set default CURRENT_DATE;
 
 alter table public."legal_documents" alter column "requires_acceptance" set default false;
@@ -3035,29 +3054,9 @@ alter table public."user_legal_acceptances" alter column "id" set default gen_ra
 
 alter table public."user_legal_acceptances" alter column "accepted_at" set default now();
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_pkey" PRIMARY KEY (id);
-
 alter table public."event_attendance" add constraint "event_attendance_pkey" PRIMARY KEY (user_id, event_id);
 
-alter table public."reports" add constraint "reports_pkey" PRIMARY KEY (id);
-
-alter table public."post_comments" add constraint "post_comments_pkey" PRIMARY KEY (id);
-
-alter table public."events" add constraint "events_pkey" PRIMARY KEY (id);
-
-alter table public."event_payouts" add constraint "event_payouts_pkey" PRIMARY KEY (id);
-
-alter table public."blocked_users" add constraint "blocked_users_pkey" PRIMARY KEY (blocker_id, blocked_id);
-
 alter table public."profiles" add constraint "profiles_pkey" PRIMARY KEY (id);
-
-alter table public."legal_documents" add constraint "legal_documents_pkey" PRIMARY KEY (slug);
-
-alter table public."admin_actions" add constraint "admin_actions_pkey" PRIMARY KEY (id);
-
-alter table public."device_tokens" add constraint "device_tokens_pkey" PRIMARY KEY (token);
-
-alter table public."follows" add constraint "follows_pkey" PRIMARY KEY (follower_id, following_id);
 
 alter table public."notifications" add constraint "notifications_pkey" PRIMARY KEY (id);
 
@@ -3067,49 +3066,71 @@ alter table public."post_likes" add constraint "post_likes_pkey" PRIMARY KEY (po
 
 alter table public."stripe_accounts" add constraint "stripe_accounts_pkey" PRIMARY KEY (user_id);
 
-alter table public."payments" add constraint "payments_pkey" PRIMARY KEY (payment_intent_id);
+alter table public."reports" add constraint "reports_pkey" PRIMARY KEY (id);
+
+alter table public."legal_document_translations" add constraint "legal_document_translations_pkey" PRIMARY KEY (slug, locale);
+
+alter table public."event_payouts" add constraint "event_payouts_pkey" PRIMARY KEY (id);
+
+alter table public."blocked_users" add constraint "blocked_users_pkey" PRIMARY KEY (blocker_id, blocked_id);
+
+alter table public."events" add constraint "events_pkey" PRIMARY KEY (id);
+
+alter table public."legal_documents" add constraint "legal_documents_pkey" PRIMARY KEY (slug);
+
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_pkey" PRIMARY KEY (id);
+
+alter table public."admin_actions" add constraint "admin_actions_pkey" PRIMARY KEY (id);
+
+alter table public."device_tokens" add constraint "device_tokens_pkey" PRIMARY KEY (token);
+
+alter table public."follows" add constraint "follows_pkey" PRIMARY KEY (follower_id, following_id);
 
 alter table public."event_unlocks" add constraint "event_unlocks_pkey" PRIMARY KEY (user_id, event_id);
 
 alter table public."cities" add constraint "cities_pkey" PRIMARY KEY (slug);
 
-alter table public."ticket_types" add constraint "ticket_types_pkey" PRIMARY KEY (id);
+alter table private."settings" add constraint "settings_pkey" PRIMARY KEY (key);
 
 alter table public."posts" add constraint "posts_pkey" PRIMARY KEY (id);
 
 alter table public."favorites" add constraint "favorites_pkey" PRIMARY KEY (id);
 
-alter table public."direct_conversations" add constraint "direct_conversations_pkey" PRIMARY KEY (id);
+alter table public."ticket_types" add constraint "ticket_types_pkey" PRIMARY KEY (id);
+
+alter table public."payments" add constraint "payments_pkey" PRIMARY KEY (payment_intent_id);
 
 alter table public."tickets" add constraint "tickets_pkey" PRIMARY KEY (id);
 
-alter table private."settings" add constraint "settings_pkey" PRIMARY KEY (key);
+alter table public."post_comments" add constraint "post_comments_pkey" PRIMARY KEY (id);
+
+alter table public."direct_conversations" add constraint "direct_conversations_pkey" PRIMARY KEY (id);
 
 alter table public."direct_messages" add constraint "direct_messages_pkey" PRIMARY KEY (id);
 
 alter table public."categories" add constraint "categories_pkey" PRIMARY KEY (id);
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_slug_version_key" UNIQUE (user_id, slug, version);
-
-alter table public."profiles" add constraint "profiles_email_key" UNIQUE (email);
-
-alter table public."favorites" add constraint "favorites_user_id_event_id_key" UNIQUE (user_id, event_id);
-
-alter table public."event_payouts" add constraint "event_payouts_transfer_id_key" UNIQUE (transfer_id);
-
-alter table public."categories" add constraint "categories_name_key" UNIQUE (name);
-
 alter table public."stripe_accounts" add constraint "stripe_accounts_account_id_key" UNIQUE (account_id);
 
 alter table public."profiles" add constraint "profiles_username_key" UNIQUE (username);
 
+alter table public."event_payouts" add constraint "event_payouts_event_id_key" UNIQUE (event_id);
+
 alter table public."tickets" add constraint "tickets_qr_token_key" UNIQUE (qr_token);
 
-alter table public."event_payouts" add constraint "event_payouts_event_id_key" UNIQUE (event_id);
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_slug_version_key" UNIQUE (user_id, slug, version);
+
+alter table public."event_payouts" add constraint "event_payouts_transfer_id_key" UNIQUE (transfer_id);
+
+alter table public."favorites" add constraint "favorites_user_id_event_id_key" UNIQUE (user_id, event_id);
 
 alter table public."direct_conversations" add constraint "direct_conversations_member_a_member_b_key" UNIQUE (member_a, member_b);
 
-alter table public."direct_conversations" add constraint "direct_conversation_members_ordered" CHECK ((member_a < member_b));
+alter table public."profiles" add constraint "profiles_email_key" UNIQUE (email);
+
+alter table public."categories" add constraint "categories_name_key" UNIQUE (name);
+
+alter table public."reports" add constraint "reports_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'reviewed'::text, 'actioned'::text, 'dismissed'::text])));
 
 alter table public."profiles" add constraint "profiles_language_check" CHECK ((language = ANY (ARRAY['en'::text, 'fr'::text])));
 
@@ -3126,8 +3147,6 @@ alter table public."events" add constraint "events_posts_visibility_check" CHECK
 alter table public."events" add constraint "events_status_check" CHECK ((status = ANY (ARRAY['published'::text, 'draft'::text, 'cancelled'::text])));
 
 alter table public."tickets" add constraint "tickets_status_check" CHECK ((status = ANY (ARRAY['valid'::text, 'used'::text, 'expired'::text, 'refunded'::text])));
-
-alter table public."reports" add constraint "reports_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'reviewed'::text, 'actioned'::text, 'dismissed'::text])));
 
 alter table public."reports" add constraint "reports_target_type_check" CHECK ((target_type = ANY (ARRAY['event'::text, 'user'::text, 'post'::text, 'message'::text, 'comment'::text])));
 
@@ -3154,11 +3173,11 @@ CASE shared_kind
     ELSE ((shared_kind IS NULL) AND (post_id IS NULL) AND (event_id IS NULL))
 END);
 
+alter table public."direct_conversations" add constraint "direct_conversation_members_ordered" CHECK ((member_a < member_b));
+
 alter table public."post_comments" add constraint "post_comment_body_length" CHECK (((char_length(TRIM(BOTH FROM body)) >= 1) AND (char_length(TRIM(BOTH FROM body)) <= 500)));
 
-alter table public."post_likes" add constraint "post_likes_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public."post_likes" add constraint "post_likes_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
+alter table public."legal_document_translations" add constraint "legal_document_translations_locale_check" CHECK ((locale = 'fr'::text));
 
 alter table public."stripe_accounts" add constraint "stripe_accounts_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -3174,21 +3193,21 @@ alter table public."notifications" add constraint "notifications_user_id_fkey" F
 
 alter table public."event_attendance" add constraint "event_attendance_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."follows" add constraint "follows_following_id_fkey" FOREIGN KEY (following_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."ticket_types" add constraint "ticket_types_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
 alter table public."event_attendance" add constraint "event_attendance_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public."follows" add constraint "follows_following_id_fkey" FOREIGN KEY (following_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."follows" add constraint "follows_follower_id_fkey" FOREIGN KEY (follower_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public."events" add constraint "events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."profiles" add constraint "profiles_id_fkey" FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."device_tokens" add constraint "device_tokens_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."admin_actions" add constraint "admin_actions_admin_id_fkey" FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."follows" add constraint "follows_follower_id_fkey" FOREIGN KEY (follower_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."admin_actions" add constraint "admin_actions_report_id_fkey" FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE SET NULL;
 
@@ -3198,13 +3217,13 @@ alter table public."event_payouts" add constraint "event_payouts_organizer_id_fk
 
 alter table public."blocked_users" add constraint "blocked_users_blocked_id_fkey" FOREIGN KEY (blocked_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public."post_comments" add constraint "post_comments_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
+alter table public."post_comments" add constraint "post_comments_author_id_fkey" FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."reports" add constraint "reports_reporter_id_fkey" FOREIGN KEY (reporter_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."post_comments" add constraint "post_comments_author_id_fkey" FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."events" add constraint "events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."profiles" add constraint "profiles_id_fkey" FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."post_comments" add constraint "post_comments_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
 
 alter table public."direct_messages" add constraint "direct_messages_conversation_id_fkey" FOREIGN KEY (conversation_id) REFERENCES direct_conversations(id) ON DELETE CASCADE;
 
@@ -3216,19 +3235,21 @@ alter table public."direct_messages" add constraint "direct_messages_post_id_fke
 
 alter table public."direct_messages" add constraint "direct_messages_sender_id_fkey" FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."tickets" add constraint "tickets_transferred_from_fkey" FOREIGN KEY (transferred_from) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."legal_document_translations" add constraint "legal_document_translations_slug_fkey" FOREIGN KEY (slug) REFERENCES legal_documents(slug) ON DELETE CASCADE;
 
 alter table public."direct_conversations" add constraint "direct_conversations_member_a_fkey" FOREIGN KEY (member_a) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."tickets" add constraint "tickets_ticket_type_id_fkey" FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(id);
+alter table public."tickets" add constraint "tickets_transferred_from_fkey" FOREIGN KEY (transferred_from) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."direct_conversations" add constraint "direct_conversations_member_b_fkey" FOREIGN KEY (member_b) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."tickets" add constraint "tickets_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id);
+alter table public."tickets" add constraint "tickets_ticket_type_id_fkey" FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(id);
 
 alter table public."payments" add constraint "payments_buyer_id_fkey" FOREIGN KEY (buyer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."payments" add constraint "payments_organizer_id_fkey" FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."tickets" add constraint "tickets_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id);
 
 alter table public."favorites" add constraint "favorites_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
@@ -3241,6 +3262,10 @@ alter table public."event_unlocks" add constraint "event_unlocks_event_id_fkey" 
 alter table public."posts" add constraint "posts_author_id_fkey" FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."event_unlocks" add constraint "event_unlocks_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."post_likes" add constraint "post_likes_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."post_likes" add constraint "post_likes_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
 
 create or replace view public."public_profiles" as  SELECT id,
     full_name,
@@ -3369,9 +3394,9 @@ alter table public."blocked_users" enable row level security;
 
 alter table public."legal_documents" enable row level security;
 
-alter table public."follows" enable row level security;
-
 alter table public."user_legal_acceptances" enable row level security;
+
+alter table public."follows" enable row level security;
 
 alter table public."event_addresses" enable row level security;
 
@@ -3404,6 +3429,8 @@ alter table public."direct_conversations" enable row level security;
 alter table public."payments" enable row level security;
 
 alter table public."post_comments" enable row level security;
+
+alter table public."legal_document_translations" enable row level security;
 
 create policy "Users can view own profile" on public."profiles" as permissive for select to public using ((auth.uid() = id));
 
@@ -3525,6 +3552,8 @@ create policy "likes readable" on public."post_likes" as permissive for select t
 
 create policy "Authenticated users can create events" on public."events" as permissive for insert to authenticated with check (((auth.uid() = created_by) AND (NOT is_suspended()) AND i_meet_age(18)));
 
+create policy "legal translations readable by all" on public."legal_document_translations" as permissive for select to authenticated, anon using (true);
+
 -- Droits : on part de zero, puis on rejoue exactement ceux de la production.
 
 revoke all on private."settings" from public, anon, authenticated, service_role;
@@ -3557,6 +3586,8 @@ revoke all on public."favorites" from public, anon, authenticated, service_role;
 
 revoke all on public."follows" from public, anon, authenticated, service_role;
 
+revoke all on public."legal_document_translations" from public, anon, authenticated, service_role;
+
 revoke all on public."legal_documents" from public, anon, authenticated, service_role;
 
 revoke all on public."notifications" from public, anon, authenticated, service_role;
@@ -3585,161 +3616,167 @@ revoke all on public."public_profiles" from public, anon, authenticated, service
 
 revoke all on public."feed_posts" from public, anon, authenticated, service_role;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."admin_actions" to anon;
+grant REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER on public."admin_actions" to anon;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."admin_actions" to authenticated;
+grant UPDATE, INSERT, DELETE, TRUNCATE, REFERENCES, TRIGGER, SELECT on public."admin_actions" to authenticated;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."admin_actions" to service_role;
+grant TRUNCATE, DELETE, REFERENCES, TRIGGER, UPDATE, SELECT, INSERT on public."admin_actions" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."blocked_users" to anon;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."blocked_users" to anon;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."blocked_users" to authenticated;
+grant TRUNCATE, TRIGGER, REFERENCES, DELETE, UPDATE, SELECT, INSERT on public."blocked_users" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."blocked_users" to service_role;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."blocked_users" to service_role;
 
-grant SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."categories" to anon;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."categories" to anon;
 
-grant INSERT, SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."categories" to authenticated;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."categories" to authenticated;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."categories" to service_role;
+grant UPDATE, SELECT, INSERT, REFERENCES, TRUNCATE, TRIGGER, DELETE on public."categories" to service_role;
 
-grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."cities" to anon;
+grant SELECT, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT, TRIGGER on public."cities" to anon;
 
-grant TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, REFERENCES on public."cities" to authenticated;
+grant REFERENCES, DELETE, UPDATE, SELECT, INSERT, TRUNCATE, TRIGGER on public."cities" to authenticated;
 
-grant TRUNCATE, REFERENCES, TRIGGER, DELETE, INSERT, UPDATE, SELECT on public."cities" to service_role;
+grant REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT, SELECT, TRIGGER on public."cities" to service_role;
 
-grant UPDATE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, DELETE on public."device_tokens" to anon;
+grant REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER on public."device_tokens" to anon;
 
-grant SELECT, TRUNCATE, REFERENCES, TRIGGER, INSERT, DELETE, UPDATE on public."device_tokens" to authenticated;
+grant SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."device_tokens" to authenticated;
 
-grant REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."device_tokens" to service_role;
+grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT, SELECT on public."device_tokens" to service_role;
 
 grant SELECT on public."direct_conversations" to authenticated;
 
-grant INSERT, TRUNCATE, REFERENCES, TRIGGER, UPDATE, SELECT, DELETE on public."direct_conversations" to service_role;
+grant UPDATE, INSERT, SELECT, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."direct_conversations" to service_role;
 
-grant INSERT, SELECT on public."direct_messages" to authenticated;
+grant SELECT, INSERT on public."direct_messages" to authenticated;
 
-grant TRUNCATE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, DELETE on public."direct_messages" to service_role;
+grant TRIGGER, INSERT, SELECT, UPDATE, TRUNCATE, DELETE, REFERENCES on public."direct_messages" to service_role;
 
-grant INSERT, DELETE, UPDATE, SELECT, REFERENCES, TRUNCATE, TRIGGER on public."event_addresses" to anon;
+grant DELETE, SELECT, UPDATE, INSERT, TRUNCATE, REFERENCES, TRIGGER on public."event_addresses" to anon;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."event_addresses" to authenticated;
+grant DELETE, TRUNCATE, REFERENCES, TRIGGER, UPDATE, SELECT, INSERT on public."event_addresses" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."event_addresses" to service_role;
+grant DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, UPDATE on public."event_addresses" to service_role;
 
-grant INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, SELECT on public."event_attendance" to anon;
+grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE on public."event_attendance" to anon;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."event_attendance" to authenticated;
+grant DELETE, TRIGGER, REFERENCES, TRUNCATE, UPDATE, SELECT, INSERT on public."event_attendance" to authenticated;
 
-grant INSERT, SELECT, REFERENCES, TRUNCATE, DELETE, UPDATE, TRIGGER on public."event_attendance" to service_role;
+grant REFERENCES, UPDATE, DELETE, TRUNCATE, INSERT, SELECT, TRIGGER on public."event_attendance" to service_role;
 
 grant TRIGGER, REFERENCES, TRUNCATE, SELECT on public."event_payouts" to anon;
 
-grant REFERENCES, TRUNCATE, TRIGGER, SELECT on public."event_payouts" to authenticated;
+grant TRIGGER, SELECT, TRUNCATE, REFERENCES on public."event_payouts" to authenticated;
 
-grant TRIGGER, TRUNCATE, UPDATE, DELETE, SELECT, INSERT, REFERENCES on public."event_payouts" to service_role;
+grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE on public."event_payouts" to service_role;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."event_unlocks" to anon;
+grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."event_unlocks" to anon;
 
-grant SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."event_unlocks" to authenticated;
+grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."event_unlocks" to authenticated;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."event_unlocks" to service_role;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."event_unlocks" to service_role;
 
-grant DELETE, TRUNCATE, TRIGGER, REFERENCES, INSERT, SELECT, UPDATE on public."events" to anon;
+grant TRIGGER, SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."events" to anon;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."events" to authenticated;
+grant TRUNCATE, TRIGGER, REFERENCES, DELETE, UPDATE, SELECT, INSERT on public."events" to authenticated;
 
-grant DELETE, TRIGGER, REFERENCES, TRUNCATE, UPDATE, SELECT, INSERT on public."events" to service_role;
+grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, TRIGGER, REFERENCES on public."events" to service_role;
 
-grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, TRUNCATE, REFERENCES on public."favorites" to anon;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."favorites" to anon;
 
-grant TRUNCATE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, DELETE on public."favorites" to authenticated;
+grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."favorites" to authenticated;
 
-grant REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER on public."favorites" to service_role;
+grant REFERENCES, INSERT, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT on public."favorites" to service_role;
 
-grant DELETE, TRUNCATE, REFERENCES, TRIGGER, UPDATE, INSERT on public."feed_posts" to anon;
+grant DELETE, UPDATE, INSERT, REFERENCES, TRUNCATE, TRIGGER on public."feed_posts" to anon;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."feed_posts" to authenticated;
+grant DELETE, TRUNCATE, REFERENCES, SELECT, UPDATE, TRIGGER, INSERT on public."feed_posts" to authenticated;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."feed_posts" to service_role;
+grant REFERENCES, DELETE, UPDATE, SELECT, INSERT, TRIGGER, TRUNCATE on public."feed_posts" to service_role;
 
-grant TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, REFERENCES on public."follows" to anon;
+grant REFERENCES, TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE on public."follows" to anon;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."follows" to authenticated;
+grant REFERENCES, UPDATE, INSERT, SELECT, DELETE, TRIGGER, TRUNCATE on public."follows" to authenticated;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."follows" to service_role;
+grant UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT on public."follows" to service_role;
 
-grant TRIGGER, SELECT, UPDATE, DELETE, TRUNCATE, INSERT, REFERENCES on public."legal_documents" to anon;
+grant SELECT on public."legal_document_translations" to anon;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."legal_documents" to authenticated;
+grant SELECT on public."legal_document_translations" to authenticated;
 
-grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."legal_documents" to service_role;
+grant TRIGGER, UPDATE, SELECT, INSERT, TRUNCATE, DELETE, REFERENCES on public."legal_document_translations" to service_role;
 
-grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."notifications" to anon;
+grant DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, UPDATE on public."legal_documents" to anon;
 
-grant UPDATE, SELECT, INSERT, REFERENCES, TRIGGER, DELETE, TRUNCATE on public."notifications" to authenticated;
+grant REFERENCES, UPDATE, SELECT, INSERT, DELETE, TRUNCATE, TRIGGER on public."legal_documents" to authenticated;
 
-grant SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT on public."notifications" to service_role;
+grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."legal_documents" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."payments" to service_role;
+grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."notifications" to anon;
 
-grant INSERT, DELETE, SELECT on public."post_comments" to authenticated;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."notifications" to authenticated;
 
-grant TRUNCATE, REFERENCES, TRIGGER, UPDATE, DELETE, SELECT, INSERT on public."post_comments" to service_role;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."notifications" to service_role;
 
-grant REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."post_likes" to anon;
+grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE on public."payments" to service_role;
 
-grant SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT on public."post_likes" to authenticated;
+grant INSERT, SELECT, DELETE on public."post_comments" to authenticated;
 
-grant INSERT, REFERENCES, TRUNCATE, DELETE, UPDATE, TRIGGER, SELECT on public."post_likes" to service_role;
+grant DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, UPDATE on public."post_comments" to service_role;
 
-grant INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, SELECT on public."posts" to anon;
+grant DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, UPDATE on public."post_likes" to anon;
 
-grant UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT on public."posts" to authenticated;
+grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."post_likes" to authenticated;
 
-grant INSERT, TRUNCATE, REFERENCES, TRIGGER, UPDATE, SELECT, DELETE on public."posts" to service_role;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."post_likes" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."profiles" to anon;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."posts" to anon;
 
-grant UPDATE, TRIGGER, REFERENCES, TRUNCATE, DELETE, SELECT, INSERT on public."profiles" to authenticated;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."posts" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT, UPDATE, DELETE on public."profiles" to service_role;
+grant INSERT, TRIGGER, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."posts" to service_role;
 
-grant REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, INSERT on public."public_profiles" to anon;
+grant REFERENCES, TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE on public."profiles" to anon;
 
-grant REFERENCES, TRIGGER, INSERT, UPDATE, SELECT, DELETE, TRUNCATE on public."public_profiles" to authenticated;
+grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."profiles" to authenticated;
 
-grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."public_profiles" to service_role;
+grant TRIGGER, UPDATE, DELETE, TRUNCATE, REFERENCES, INSERT, SELECT on public."profiles" to service_role;
 
-grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."reports" to anon;
+grant UPDATE, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."public_profiles" to anon;
 
-grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."reports" to authenticated;
+grant UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."public_profiles" to authenticated;
 
-grant TRUNCATE, REFERENCES, TRIGGER, SELECT, UPDATE, INSERT, DELETE on public."reports" to service_role;
+grant UPDATE, TRIGGER, REFERENCES, TRUNCATE, DELETE, SELECT, INSERT on public."public_profiles" to service_role;
 
-grant SELECT, TRUNCATE, REFERENCES, TRIGGER on public."stripe_accounts" to anon;
+grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, TRIGGER, REFERENCES on public."reports" to anon;
 
-grant REFERENCES, TRIGGER, SELECT, TRUNCATE on public."stripe_accounts" to authenticated;
+grant TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES on public."reports" to authenticated;
 
-grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."stripe_accounts" to service_role;
+grant REFERENCES, DELETE, UPDATE, SELECT, INSERT, TRIGGER, TRUNCATE on public."reports" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."ticket_types" to anon;
+grant TRUNCATE, TRIGGER, REFERENCES, SELECT on public."stripe_accounts" to anon;
 
-grant INSERT, TRIGGER, TRUNCATE, DELETE, REFERENCES, UPDATE, SELECT on public."ticket_types" to authenticated;
+grant TRIGGER, SELECT, TRUNCATE, REFERENCES on public."stripe_accounts" to authenticated;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."ticket_types" to service_role;
+grant REFERENCES, TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE on public."stripe_accounts" to service_role;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."tickets" to anon;
+grant UPDATE, INSERT, SELECT, DELETE, TRIGGER, REFERENCES, TRUNCATE on public."ticket_types" to anon;
 
-grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."tickets" to authenticated;
+grant TRUNCATE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, DELETE on public."ticket_types" to authenticated;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."tickets" to service_role;
+grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE on public."ticket_types" to service_role;
+
+grant TRUNCATE, TRIGGER, REFERENCES, DELETE, UPDATE, SELECT, INSERT on public."tickets" to anon;
+
+grant DELETE, INSERT, SELECT, UPDATE, TRIGGER, REFERENCES, TRUNCATE on public."tickets" to authenticated;
+
+grant DELETE, UPDATE, SELECT, INSERT, TRUNCATE, REFERENCES, TRIGGER on public."tickets" to service_role;
 
 grant SELECT, REFERENCES, TRIGGER on public."user_legal_acceptances" to authenticated;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."user_legal_acceptances" to service_role;
+grant TRUNCATE, TRIGGER, SELECT, INSERT, UPDATE, DELETE, REFERENCES on public."user_legal_acceptances" to service_role;
 
 revoke all on function events_lock_fee() from public, anon, authenticated, service_role;
 
@@ -4175,6 +4212,18 @@ revoke all on function notify_post_comment() from public, anon, authenticated, s
 
 grant execute on function notify_post_comment() to service_role;
 
+revoke all on function pending_legal_documents(text) from public, anon, authenticated, service_role;
+
+grant execute on function pending_legal_documents(text) to authenticated;
+
+grant execute on function pending_legal_documents(text) to service_role;
+
+revoke all on function accept_legal_documents(jsonb,text) from public, anon, authenticated, service_role;
+
+grant execute on function accept_legal_documents(jsonb,text) to authenticated;
+
+grant execute on function accept_legal_documents(jsonb,text) to service_role;
+
 revoke all on function admin_report_target(uuid) from public, anon, authenticated, service_role;
 
 grant execute on function admin_report_target(uuid) to authenticated;
@@ -4218,18 +4267,6 @@ grant execute on function can_cancel_ticket(uuid) to service_role;
 revoke all on function cancel_ticket(uuid,uuid,text,bigint) from public, anon, authenticated, service_role;
 
 grant execute on function cancel_ticket(uuid,uuid,text,bigint) to service_role;
-
-revoke all on function pending_legal_documents() from public, anon, authenticated, service_role;
-
-grant execute on function pending_legal_documents() to authenticated;
-
-grant execute on function pending_legal_documents() to service_role;
-
-revoke all on function accept_legal_documents(jsonb) from public, anon, authenticated, service_role;
-
-grant execute on function accept_legal_documents(jsonb) to authenticated;
-
-grant execute on function accept_legal_documents(jsonb) to service_role;
 
 revoke all on function min_account_age() from public, anon, authenticated, service_role;
 

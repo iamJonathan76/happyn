@@ -22,9 +22,12 @@ class PendingLegalDoc {
   /// `null` si la base n'a pas pu répondre : l'appelant laisse alors entrer,
   /// et la question sera reposée au prochain lancement. Bloquer l'app sur une
   /// panne réseau punirait la personne pour un problème qui n'est pas le sien.
-  static Future<List<PendingLegalDoc>?> fetch() async {
+  /// [lang] : la langue de l'écran. La base renvoie le titre traduit quand la
+  /// traduction porte la bonne version, l'anglais sinon.
+  static Future<List<PendingLegalDoc>?> fetch(String lang) async {
     try {
-      final data = await Supabase.instance.client.rpc('pending_legal_documents');
+      final data = await Supabase.instance.client
+          .rpc('pending_legal_documents', params: {'p_locale': lang});
       return List<Map<String, dynamic>>.from(data as List)
           .map((r) => PendingLegalDoc(
                 r['slug'] as String,
@@ -82,8 +85,11 @@ class _ConsentScreenState extends State<ConsentScreen> {
     }
     setState(() => _saving = true);
     try {
+      // La langue part avec l'accord : la base la note si une traduction de
+      // cette version existe — c'est le texte que la personne a lu.
       await Supabase.instance.client.rpc('accept_legal_documents', params: {
         'p_versions': {for (final d in _docs) d.slug: d.version},
+        'p_locale': Localizations.localeOf(context).languageCode,
       });
     } on PostgrestException catch (e) {
       if (!mounted) return;
@@ -91,7 +97,8 @@ class _ConsentScreenState extends State<ConsentScreen> {
         // Un document a changé pendant que l'écran était ouvert : on montre la
         // nouvelle liste, et la case se décoche — l'accord donné portait sur
         // un autre texte.
-        final fresh = await PendingLegalDoc.fetch();
+        final fresh = await PendingLegalDoc.fetch(
+            Localizations.localeOf(context).languageCode);
         if (!mounted) return;
         setState(() {
           if (fresh != null && fresh.isNotEmpty) _docs = fresh;

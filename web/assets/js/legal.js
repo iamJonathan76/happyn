@@ -55,6 +55,34 @@
     }
   }
 
+  // Les traductions : une requête à part, et un échec n'empêche rien — on
+  // affiche alors l'anglais, jamais une page vide.
+  async function loadTranslations() {
+    try {
+      return await fetchLegalTranslations();
+    } catch (error) {
+      try {
+        const response = await fetch('assets/data/legal-translations.json');
+        if (response.ok) return response.json();
+      } catch (_) {}
+      return [];
+    }
+  }
+
+  // Le document dans la langue affichée, si sa traduction porte LA MÊME
+  // version que l'original ; l'original anglais sinon. Une traduction en
+  // retard sur l'anglais n'est pas une traduction : c'est un autre texte.
+  function localizeLegal(documents, translations) {
+    const lang = window.HappynI18n ? window.HappynI18n.lang : 'en';
+    return documents.map((doc) => {
+      const t = translations.find(
+        (entry) => entry.slug === doc.slug && entry.locale === lang,
+      );
+      if (!t || t.version !== doc.version) return doc;
+      return { ...doc, title: t.title, content: t.content, translated: true };
+    });
+  }
+
   // ── Rendu ──────────────────────────────────────────────────────────────────
 
   function renderSidebar(documents, activeSlug) {
@@ -128,7 +156,10 @@
     });
   }
 
-  function renderNotice(container) {
+  // Seulement quand ce qu'on affiche est en anglais faute de traduction à
+  // jour. La phrase est vide en anglais : rien à signaler à qui lit l'anglais.
+  function renderNotice(container, allTranslated) {
+    if (allTranslated) return;
     const text = t('legal.englishOnly');
     if (!text) return;
     const notice = document.createElement('p');
@@ -157,7 +188,7 @@
     meta.textContent = [doc.version, stamp].filter(Boolean).join(' · ');
     container.appendChild(meta);
 
-    renderNotice(container);
+    renderNotice(container, doc.translated === true);
     renderContent(container, doc.content);
   }
 
@@ -176,7 +207,7 @@
     meta.textContent = t('legal.indexLead');
     container.appendChild(meta);
 
-    renderNotice(container);
+    renderNotice(container, documents.every((doc) => doc.translated === true));
 
     const grid = document.createElement('div');
     grid.className = 'legal-index';
@@ -310,15 +341,18 @@
       return;
     }
 
-    renderFooterLinks(documents);
-    if (!container) return;
-
+    const translations = await loadTranslations();
     const requestedSlug = new URLSearchParams(location.search).get('doc');
-    renderSidebar(documents, requestedSlug);
 
+    // Tout ce qui affiche un titre ou un texte se refait au changement de
+    // langue : pied de page, menu, document.
     const render = (firstTime) => {
+      const shown = localizeLegal(documents, translations);
+      renderFooterLinks(shown);
+      if (!container) return;
+      renderSidebar(shown, requestedSlug);
       const doc = requestedSlug
-        ? documents.find((entry) => entry.slug === requestedSlug)
+        ? shown.find((entry) => entry.slug === requestedSlug)
         : null;
       if (doc) {
         renderDocument(container, doc);
@@ -326,7 +360,7 @@
       } else {
         // Pas de ?doc=, ou slug inconnu (lien obsolète) : l'index plutôt
         // qu'une page vide.
-        renderIndex(container, documents);
+        renderIndex(container, shown);
       }
     };
 

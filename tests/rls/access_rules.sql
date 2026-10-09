@@ -303,3 +303,23 @@ reset role;
 select t.as_server();
 select t.can_write($$update profiles set date_of_birth = date '1991-01-01' where id = '00000000-0000-0000-0000-00000000000e'$$, 'Age : le serveur peut corriger une date (demande au support)');
 reset role;
+
+-- Les textes en francais : une traduction ne compte que si elle porte la
+-- version de l'original, et l'acceptation enregistre la langue lue
+reset role;
+update legal_documents set version = 'Version 2.0' where slug = 'terms';
+insert into legal_document_translations (slug, locale, title, content, version) values
+  ('terms',   'fr', 'Conditions d''utilisation',   '...', 'Version 2.0'),
+  ('privacy', 'fr', 'Politique de confidentialite', '...', 'Version 0.9')
+on conflict (slug, locale) do update set version = excluded.version, title = excluded.title;
+select t.as_user('00000000-0000-0000-0000-0000000000f9');
+select t.sees($$select * from public.pending_legal_documents('fr') where slug = 'terms' and title = 'Conditions d''utilisation'$$, 1, 'Traduction : affichee quand elle porte la version de l''original');
+select t.sees($$select * from public.pending_legal_documents('fr') where slug = 'privacy' and title = 'Privacy'$$, 1, 'Traduction : perimee, on retombe sur l''anglais');
+select public.accept_legal_documents('{"terms":"Version 2.0","privacy":"Version 1.2","community":"Version 1.1"}', 'fr');
+select t.sees($$select * from user_legal_acceptances where slug = 'terms' and locale = 'fr'$$, 1, 'Traduction : l''acceptation note la langue lue');
+select t.sees($$select * from user_legal_acceptances where slug = 'privacy' and locale = 'en'$$, 1, 'Traduction : une traduction perimee n''a pas ete lue, c''est l''anglais qui est note');
+select t.cannot_write($$update legal_document_translations set content = 'pirate' where slug = 'terms'$$, 'Traduction : personne ne la modifie depuis l''app');
+reset role;
+select t.as_anon();
+select t.sees('select * from legal_document_translations', 2, 'Traduction : lisible sans compte, comme les originaux (site Web)');
+reset role;

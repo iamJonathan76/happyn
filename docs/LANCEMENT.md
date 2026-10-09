@@ -331,15 +331,28 @@ toutes deux de `node web/tools/sync-legal-fallback.mjs`. Les 254 lignes écrites
 relancer le script, committer les deux JSON. Chaque compte ré-accepte au
 lancement suivant les documents marqués `requires_acceptance`.
 
-**Toujours pas relus par un avocat, et en anglais seulement** — voir 3.4.
+**En français depuis le 2026-10-09** (`20261009040000_legal_translations`,
+`20261009050000_legal_documents_fr`). Les traductions vivent dans
+`legal_document_translations`, pas dans `legal_documents` : le site en ligne
+lit toutes les lignes de cette table sans regarder la langue et ne peut pas
+être redéployé avant le 20 octobre — deux lignes par document l'auraient fait
+tout afficher en double. **Règle : une traduction ne s'affiche que si elle
+porte la version de l'original** ; sinon l'anglais. Publier une nouvelle
+version anglaise sans sa traduction ne montre donc jamais un français
+périmé. L'acceptation note la langue lue. Le site affiche le français dès son
+redéploiement (code prêt, testé en local).
+
+Le script de synchronisation écrit désormais aussi `legal-translations.json`
+(site et app).
+
+**Toujours pas relus par un avocat, ni en anglais ni en français** — voir 3.4.
 
 ### 3.4 La relecture légale et la version française
 
-Les textes en ligne (§ 3.3) n'ont pas été relus par un avocat, et n'existent
-qu'en anglais. Il reste à **faire relire** par un avocat admis en Ontario et à
-l'aise avec le droit québécois — les `[AVOCAT]` du recueil v2 disent par où
-commencer — puis à **traduire** : la version française est requise pour les
-consommateurs québécois. `legal_documents` n'a pas encore de colonne de langue.
+Les textes en ligne (§ 3.3), en anglais et en français, n'ont pas été relus
+par un avocat. Il reste à les **faire relire** — les deux langues — par un
+avocat admis en Ontario et à l'aise avec le droit québécois ; les `[AVOCAT]`
+du recueil v2 disent par où commencer.
 
 Les magasins d'applications exigent une politique de confidentialité
 accessible : c'est aussi un prérequis de publication, pas seulement une
@@ -597,7 +610,7 @@ les règles d'âge tenues par la base.
 2. **Les versements** — un premier versement surveillé, puis `pg_cron`, la
    retenue de 5 jours (le code dit encore 3) et les vérifications du § 2.2.
    Avant le premier événement payant d'un tiers. Décider aussi § 2.2 ter.
-3. **Relecture légale et version française** — § 3.4.
+3. **Relecture légale** des deux langues — § 3.4.
 4. **iOS** — compte Apple Developer, connexion Apple (sans elle, refus), APNs.
 
 Ensuite : revenus et statistiques de l'organisateur, rappels avant

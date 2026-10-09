@@ -24,6 +24,10 @@ const outputPath = resolve(webRoot, 'assets/data/legal-fallback.json');
 // La même copie pour l'app : hors connexion, elle affichait un texte écrit à
 // la main, déjà différent de la base. Un seul instantané, deux destinations.
 const appOutputPath = resolve(webRoot, '../assets/legal/legal-fallback.json');
+// Les traductions, à part : le site en ligne (avant redéploiement) lit
+// legal-fallback.json comme une liste de documents, une par slug.
+const translationsPath = resolve(webRoot, 'assets/data/legal-translations.json');
+const appTranslationsPath = resolve(webRoot, '../assets/legal/legal-translations.json');
 
 // On relit les valeurs depuis config.js pour ne pas dupliquer l'URL et la clé.
 async function readConfig() {
@@ -63,12 +67,28 @@ async function main() {
     );
   }
 
+  const translationsResponse = await fetch(
+    `${url}/rest/v1/legal_document_translations` +
+      `?select=slug,locale,title,content,version&order=slug.asc,locale.asc`,
+    { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } },
+  );
+  if (!translationsResponse.ok) {
+    throw new Error(
+      `Traductions : Supabase a répondu ${translationsResponse.status}.`,
+    );
+  }
+  const translations = await translationsResponse.json();
+
   const json = `${JSON.stringify(documents, null, 2)}\n`;
-  await writeFile(outputPath, json, 'utf8');
+  const translationsJson = `${JSON.stringify(translations, null, 2)}\n`;
   await mkdir(dirname(appOutputPath), { recursive: true });
+  await writeFile(outputPath, json, 'utf8');
   await writeFile(appOutputPath, json, 'utf8');
+  await writeFile(translationsPath, translationsJson, 'utf8');
+  await writeFile(appTranslationsPath, translationsJson, 'utf8');
   console.log(
-    `✓ ${documents.length} documents écrits dans web/assets/data/ et assets/legal/`,
+    `✓ ${documents.length} documents et ${translations.length} traductions ` +
+      `écrits dans web/assets/data/ et assets/legal/`,
   );
 }
 
