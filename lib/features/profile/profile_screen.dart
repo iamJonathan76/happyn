@@ -342,7 +342,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             width: double.infinity,
                             height: 46,
                             decoration: BoxDecoration(
-                              gradient: AppColors.brandGradient,
+                              gradient: AppColors.primaryGradient,
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Center(
@@ -481,9 +481,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
             )
+          // Violet plein, pas le dégradé : essayé le 2026-10-09, il était trop
+          // lumineux sur un bouton aussi large. Même choix pour « Modifier le
+          // profil ».
           : DecoratedBox(
               decoration: BoxDecoration(
-                gradient: AppColors.brandGradient,
+                gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: TextButton(
@@ -584,7 +587,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   height: 50,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    gradient: AppColors.brandGradient,
+                    gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Text(l.messageFollowAndWrite,

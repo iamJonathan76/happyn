@@ -269,12 +269,11 @@ class _MainShellState extends State<MainShell> {
   }
 }
 
-/// L'onglet Profil montre la personne elle-même : sa photo, ou ses initiales.
+/// L'onglet Profil : la photo de la personne si elle en a une, sinon l'icône
+/// habituelle — pas d'initiales, qui chargeaient la barre pour rien.
 ///
-/// Comme sur Instagram. Avant, sa photo était en haut de l'accueil, à une
-/// place qui revient désormais aux messages ; ici, elle dit sans libellé à
-/// quoi mène l'onglet. Entourée de lavande quand l'onglet est actif, à la
-/// place du changement de couleur d'une icône.
+/// Entourée de lavande quand l'onglet est actif, comme l'icône change de
+/// couleur à côté.
 class _ProfileTabIcon extends ConsumerWidget {
   const _ProfileTabIcon({required this.active});
 
@@ -284,23 +283,15 @@ class _ProfileTabIcon extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(userProfileProvider).asData?.value;
     final avatar = (profile?['avatar_url'] as String?) ?? '';
-    final name = ((profile?['full_name'] as String?) ?? '').trim();
-    final parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
-    final initials = parts.isEmpty
-        ? ''
-        : parts.length == 1
-            ? parts.first[0].toUpperCase()
-            : '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    final icon = Icon(
+      Icons.person_outline,
+      size: 22,
+      color: active ? AppColors.lavender : AppColors.textLow,
+    );
+    if (avatar.isEmpty) return icon;
 
-    final fallback = initials.isEmpty
-        ? Icon(Icons.person_outline,
-            size: 15, color: active ? Colors.white : AppColors.textLow)
-        : Text(initials,
-            style: AppText.microBold.copyWith(
-                fontSize: 8, color: Colors.white, height: 1));
-
-    // 22 points, comme les icônes voisines : à 24, le libellé « Profil »
-    // descendait sous la ligne des autres.
+    // 22 points, comme les icônes voisines : plus grand, le libellé
+    // « Profil » descendait sous la ligne des autres.
     return Container(
       width: 22,
       height: 22,
@@ -313,18 +304,12 @@ class _ProfileTabIcon extends ConsumerWidget {
         ),
       ),
       child: ClipOval(
-        child: Container(
-          color: AppColors.action,
-          alignment: Alignment.center,
-          child: avatar.isEmpty
-              ? fallback
-              : CachedNetworkImage(
-                  imageUrl: avatar,
-                  width: 19,
-                  height: 19,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, _, _) => fallback,
-                ),
+        child: CachedNetworkImage(
+          imageUrl: avatar,
+          width: 19,
+          height: 19,
+          fit: BoxFit.cover,
+          errorWidget: (_, _, _) => icon,
         ),
       ),
     );
