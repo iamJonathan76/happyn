@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:happyn/core/providers/locale_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/l10n/app_localizations.dart';
@@ -15,16 +17,16 @@ import 'package:happyn/l10n/app_localizations.dart';
 /// Pas de photo : un fond sombre, un halo aux couleurs de la marque et des
 /// ondes qui partent du H. Une photo de foule, essayée d'abord, noyait le
 /// slogan dans sa brume et pesait 350 Ko ; ici tout est dessiné.
-class WelcomeScreen extends StatefulWidget {
+class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
 
   static const logoImage = AssetImage('assets/images/logo_h.png');
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
+  ConsumerState<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen>
+class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _waves = AnimationController(
     vsync: this,
@@ -60,6 +62,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
+              const Align(
+                alignment: Alignment.centerRight,
+                child: _LanguageSwitch(),
+              ),
               const Spacer(flex: 3),
               // Le halo et les ondes débordent largement du logo : CustomPaint
               // ne découpe pas, et le texte qui suit se dessine par-dessus.
@@ -189,4 +195,66 @@ class _HaloPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_HaloPainter old) => old.progress != progress;
+}
+
+/// FR · EN, avant même d'avoir un compte.
+///
+/// L'app suit la langue du téléphone ; mais à Ottawa–Gatineau, un téléphone
+/// réglé en anglais n'en dit rien sur la langue préférée de la personne. Le
+/// choix fait ici est retenu et vaut pour toute l'app — les Réglages
+/// proposent le même.
+class _LanguageSwitch extends ConsumerWidget {
+  const _LanguageSwitch();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final current = Localizations.localeOf(context).languageCode;
+
+    Widget option(String code) {
+      final selected = current == code;
+      return GestureDetector(
+        onTap: selected
+            ? null
+            : () => ref.read(localeProvider.notifier).setLocale(Locale(code)),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          // Une cible d'à peine 28 points ratait un toucher sur deux, vérifié
+          // au simulateur : on vise les 44 points recommandés.
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white.withValues(alpha: 0.14) : null,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            code.toUpperCase(),
+            style: AppText.smallBold.copyWith(
+                color: selected ? Colors.white : AppColors.textLow),
+          ),
+        ),
+      );
+    }
+
+    return Semantics(
+      label: l.language,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.fromLTRB(10, 3, 3, 3),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.language, size: 16, color: AppColors.textMed),
+            const SizedBox(width: 6),
+            option('fr'),
+            option('en'),
+          ],
+        ),
+      ),
+    );
+  }
 }

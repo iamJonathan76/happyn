@@ -12,6 +12,11 @@
 	<string>HAPPYN needs access to your photos so you can choose a profile picture, a poster for an event, or a photo to publish. Only the photo you pick is uploaded.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>fr</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Happyn</string>
 	<key>CFBundleExecutable</key>

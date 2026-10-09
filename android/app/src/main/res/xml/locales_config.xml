@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Les langues que l'app sait afficher. Sans cette liste, Android 13+ ne
+     propose pas de choisir la langue de HAPPYN dans les réglages du telephone
+     (Parametres > Applis > HAPPYN > Langue). A tenir alignee sur les .arb. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="fr" />
+</locale-config>
