@@ -337,3 +337,18 @@ select t.as_user('00000000-0000-0000-0000-00000000000a');
 select t.can_write($$delete from notifications where id = '00000000-0000-0000-0000-00000000aa01'$$, 'Notifications : on supprime les siennes');
 select t.cannot_write($$delete from notifications where id = '00000000-0000-0000-0000-00000000aa02'$$, 'Notifications : on ne supprime pas celles des autres');
 reset role;
+
+-- Le billet transfere arrive dans la conversation, avec un mot ; seul le
+-- serveur cree ces messages
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.cannot_write($$insert into direct_messages (conversation_id, sender_id, body, shared_kind, event_id, ticket_id) values ('00000000-0000-0000-0000-0000000000c1', auth.uid(), '', 'ticket', '00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000b1')$$, 'Transfert : l''app ne fabrique pas un faux message de billet');
+select t.fails_with($$select public.transfer_ticket_to_user('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-00000000000a', repeat('x', 501))$$, 'note_too_long', 'Transfert : un mot, pas une lettre (500 caracteres)');
+select public.transfer_ticket_to_user('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-00000000000a', '  Bonne soiree !  ');
+select t.sees($$select * from direct_messages where shared_kind = 'ticket' and body = 'Bonne soiree !'$$, 1, 'Transfert : l''expediteur voit le message, avec son mot');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.sees($$select * from direct_messages where shared_kind = 'ticket' and ticket_id = '00000000-0000-0000-0000-0000000000b1'$$, 1, 'Transfert : le destinataire le recoit dans la conversation');
+select t.sees($$select * from notifications where type = 'direct_message'$$, 0, 'Transfert : pas de deuxieme notification pour le message du billet');
+select t.sees($$select * from notifications where type = 'ticket_received'$$, 1, 'Transfert : la notification du billet, elle, part');
+reset role;

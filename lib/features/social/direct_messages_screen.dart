@@ -12,6 +12,7 @@ import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/features/social/widgets/shared_content_card.dart';
+import 'package:happyn/features/social/widgets/ticket_message_card.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 class DirectMessagesScreen extends ConsumerWidget {
@@ -181,6 +182,75 @@ class _DirectMessageThreadScreenState
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Une publication, un événement ou un billet transféré : la carte seule,
+  /// alignée du côté de qui l'a envoyée, puis le commentaire éventuel dans
+  /// une bulle ordinaire (pour un billet, le mot est dans la carte), puis
+  /// l'heure.
+  Widget _sharedMessage(Map<String, dynamic> message, bool isMine,
+      String sharedKind, String body) {
+    final card = sharedKind == 'ticket'
+        ? TicketMessageCard(
+            isMine: isMine,
+            otherName: widget.recipientName,
+            eventId: message['event_id'] as String?,
+            ticketId: message['ticket_id'] as String?,
+            note: body,
+          )
+        : SharedContentCard(
+            kind: sharedKind,
+            contentId: (sharedKind == 'post'
+                ? message['post_id']
+                : message['event_id']) as String?,
+          );
+    final showBody = body.isNotEmpty && sharedKind != 'ticket';
+    return Align(
+      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+      child: GestureDetector(
+        onLongPress: isMine
+            ? null
+            : () => showReportSheet(
+                  context,
+                  targetType: 'message',
+                  targetId: message['id'] as String,
+                ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            crossAxisAlignment:
+                isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              card,
+              if (showBody) ...[
+                const SizedBox(height: 6),
+                Container(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isMine ? AppColors.messageMine : AppColors.card,
+                    border: isMine ? null : Border.all(color: AppColors.border),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(body,
+                      style: AppText.bodySm.copyWith(color: Colors.white)),
+                ),
+              ],
+              const SizedBox(height: 4),
+              Text(
+                AppDates.messageDateTime(
+                    context, message['created_at'] as String?),
+                style: AppText.micro.copyWith(color: AppColors.textLow),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _send() async {
@@ -380,6 +450,12 @@ class _DirectMessageThreadScreenState
                     final isMine = message['sender_id'] == currentUserId;
                     final sharedKind = message['shared_kind'] as String?;
                     final body = (message['body'] as String? ?? '').trim();
+                    // Un contenu partagé (publication, événement, billet)
+                    // s'affiche seul, hors de la bulle, comme sur Instagram :
+                    // dans une bulle, la photo était réduite à une vignette.
+                    if (sharedKind != null) {
+                      return _sharedMessage(message, isMine, sharedKind, body);
+                    }
                     return Align(
                       alignment: isMine
                           ? Alignment.centerRight
@@ -426,15 +502,6 @@ class _DirectMessageThreadScreenState
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (sharedKind != null) ...[
-                              SharedContentCard(
-                                kind: sharedKind,
-                                contentId: (sharedKind == 'post'
-                                    ? message['post_id']
-                                    : message['event_id']) as String?,
-                              ),
-                              if (body.isNotEmpty) const SizedBox(height: 8),
-                            ],
                             if (body.isNotEmpty)
                               Text(
                                 body,

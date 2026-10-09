@@ -2876,6 +2876,36 @@ abstract class AppLocalizations {
   /// **'They will be removed from the list for good. Your messages aren\'t affected.'**
   String get clearAllNotificationsBody;
 
+  /// No description provided for @ticketMsgReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent you a ticket'**
+  String ticketMsgReceived(String name);
+
+  /// No description provided for @ticketMsgSent.
+  ///
+  /// In en, this message translates to:
+  /// **'You sent a ticket to {name}'**
+  String ticketMsgSent(String name);
+
+  /// No description provided for @ticketMsgOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'View my ticket'**
+  String get ticketMsgOpen;
+
+  /// No description provided for @transferNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note (optional)'**
+  String get transferNoteHint;
+
+  /// No description provided for @transferErrNoteTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Your note is too long (500 characters max).'**
+  String get transferErrNoteTooLong;
+
   /// No description provided for @legalTerms.
   ///
   /// In en, this message translates to:

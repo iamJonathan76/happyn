@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:happyn/core/utils/post_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/theme/app_colors.dart';
@@ -65,20 +66,6 @@ class SharedContentCard extends ConsumerWidget {
       data: (data) {
         if (data == null) return _notice(l.sharedContentUnavailable);
         final isPost = kind == 'post';
-        // Une publication sans photo prend l'affiche de son événement.
-        final own = (data['image_url'] as String?) ?? '';
-        final image = own.isNotEmpty
-            ? own
-            : (data['event_image'] as String? ?? '');
-        final title = isPost
-            ? (((data['caption'] as String?) ?? '').trim().isNotEmpty
-                  ? (data['caption'] as String).trim()
-                  : (data['event_title'] as String? ?? ''))
-            : (data['title'] as String? ?? '');
-        final subtitle = isPost
-            ? (data['author_name'] as String? ?? '')
-            : AppDates.dowDayMonthYear(context, data['start_date'] as String?);
-
         return GestureDetector(
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
@@ -88,62 +75,188 @@ class SharedContentCard extends ConsumerWidget {
             ),
           ),
           child: Container(
-            width: 230,
+            width: _width,
             decoration: BoxDecoration(
-              color: AppColors.cardDark,
-              borderRadius: BorderRadius.circular(14),
+              color: AppColors.sheet,
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppColors.border),
             ),
             clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (image.isNotEmpty)
-                  AspectRatio(
-                    aspectRatio: 16 / 10,
-                    child: CachedNetworkImage(
-                      imageUrl: image,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, _, _) =>
-                          Container(color: AppColors.imagePlaceholder),
-                    ),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppText.smallBold.copyWith(color: Colors.white),
-                      ),
-                      if (subtitle.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppText.micro.copyWith(
-                            color: AppColors.textLow,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            child: isPost ? _post(context, data) : _event(context, data),
           ),
         );
       },
     );
   }
 
+  /// Largeur fixe : une carte qui suivrait la largeur de sa photo ferait une
+  /// conversation en dents de scie.
+  static const double _width = 240;
+
+  /// Comme sur Instagram : l'auteur, la photo dans sa forme, puis l'auteur et
+  /// la légende — et, propre à HAPPYN, l'événement auquel le moment
+  /// appartient.
+  Widget _post(BuildContext context, Map<String, dynamic> data) {
+    final author = (data['author_name'] as String?)?.trim() ?? '';
+    final avatar = (data['author_avatar'] as String?) ?? '';
+    final caption = ((data['caption'] as String?) ?? '').trim();
+    final own = (data['image_url'] as String?) ?? '';
+    // Une publication sans photo prend l'affiche de son événement.
+    final image = own.isNotEmpty ? own : (data['event_image'] as String? ?? '');
+    final aspect = own.isNotEmpty
+        ? displayAspect((data['image_aspect'] as num?)?.toDouble())
+        : 16 / 10;
+    final eventTitle = (data['event_title'] as String?) ?? '';
+    final eventDate =
+        AppDates.dayMonthYear(context, data['event_start_date'] as String?);
+
+    final initial = author.isEmpty ? '?' : author[0].toUpperCase();
+    final fallback = Container(
+      color: AppColors.primary.withValues(alpha: 0.25),
+      alignment: Alignment.center,
+      child: Text(initial,
+          style: AppText.microBold.copyWith(color: Colors.white)),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+          child: Row(
+            children: [
+              ClipOval(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: avatar.isEmpty
+                      ? fallback
+                      : CachedNetworkImage(
+                          imageUrl: avatar,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, _, _) => fallback,
+                        ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(author,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.smallBold.copyWith(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+        if (image.isNotEmpty)
+          AspectRatio(
+            aspectRatio: aspect,
+            child: CachedNetworkImage(
+              imageUrl: image,
+              fit: BoxFit.cover,
+              errorWidget: (_, _, _) =>
+                  Container(color: AppColors.imagePlaceholder),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (caption.isNotEmpty)
+                Text.rich(
+                  TextSpan(children: [
+                    TextSpan(
+                        text: '$author ',
+                        style: AppText.smallBold.copyWith(color: Colors.white)),
+                    TextSpan(
+                        text: caption,
+                        style: AppText.small.copyWith(color: AppColors.textMed)),
+                  ]),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              if (eventTitle.isNotEmpty) ...[
+                if (caption.isNotEmpty) const SizedBox(height: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.event_outlined,
+                          size: 14, color: AppColors.textMed),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          [eventTitle, eventDate]
+                              .where((v) => v.isNotEmpty)
+                              .join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              AppText.micro.copyWith(color: AppColors.textMed),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _event(BuildContext context, Map<String, dynamic> data) {
+    final image = (data['image_url'] as String?) ?? '';
+    final date =
+        AppDates.dowDayMonthYear(context, data['start_date'] as String?);
+    final city = ((data['city'] as String?) ?? '').trim();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (image.isNotEmpty)
+          AspectRatio(
+            aspectRatio: 16 / 10,
+            child: CachedNetworkImage(
+              imageUrl: image,
+              fit: BoxFit.cover,
+              errorWidget: (_, _, _) =>
+                  Container(color: AppColors.imagePlaceholder),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text((data['title'] ?? '') as String,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.smallBold.copyWith(color: Colors.white)),
+              const SizedBox(height: 4),
+              Text(
+                [date, city].where((v) => v.isNotEmpty).join(' · '),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.micro.copyWith(color: AppColors.textLow),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _notice(String text) => Container(
-    width: 230,
+    width: _width,
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: AppColors.cardDark,

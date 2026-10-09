@@ -3559,6 +3559,8 @@ create policy "Authenticated users can create events" on public."events" as perm
 
 create policy "legal translations readable by all" on public."legal_document_translations" as permissive for select to authenticated, anon using (true);
 
+create policy "own notifs delete" on public."notifications" as permissive for delete to authenticated using ((auth.uid() = user_id));
+
 -- Droits : on part de zero, puis on rejoue exactement ceux de la production.
 
 revoke all on private."settings" from public, anon, authenticated, service_role;

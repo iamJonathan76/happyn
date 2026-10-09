@@ -1601,6 +1601,26 @@ class AppLocalizationsFr extends AppLocalizations {
       'Elles disparaîtront de la liste, définitivement. Tes messages ne sont pas touchés.';
 
   @override
+  String ticketMsgReceived(String name) {
+    return '$name t\'a transféré un billet';
+  }
+
+  @override
+  String ticketMsgSent(String name) {
+    return 'Tu as transféré un billet à $name';
+  }
+
+  @override
+  String get ticketMsgOpen => 'Voir mon billet';
+
+  @override
+  String get transferNoteHint => 'Ajouter un mot (facultatif)';
+
+  @override
+  String get transferErrNoteTooLong =>
+      'Ton mot est trop long (500 caractères au plus).';
+
+  @override
   String get legalTerms => 'Conditions d\'utilisation';
 
   @override

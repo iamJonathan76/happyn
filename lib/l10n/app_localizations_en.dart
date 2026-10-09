@@ -1583,6 +1583,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'They will be removed from the list for good. Your messages aren\'t affected.';
 
   @override
+  String ticketMsgReceived(String name) {
+    return '$name sent you a ticket';
+  }
+
+  @override
+  String ticketMsgSent(String name) {
+    return 'You sent a ticket to $name';
+  }
+
+  @override
+  String get ticketMsgOpen => 'View my ticket';
+
+  @override
+  String get transferNoteHint => 'Add a note (optional)';
+
+  @override
+  String get transferErrNoteTooLong =>
+      'Your note is too long (500 characters max).';
+
+  @override
   String get legalTerms => 'Terms of Service';
 
   @override

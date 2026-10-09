@@ -46,6 +46,7 @@ class _TransferSheet extends ConsumerStatefulWidget {
 
 class _TransferSheetState extends ConsumerState<_TransferSheet> {
   final _search = TextEditingController();
+  final _note = TextEditingController();
   PersonSummary? _chosen;
   bool _sending = false;
   String? _error;
@@ -53,6 +54,7 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
   @override
   void dispose() {
     _search.dispose();
+    _note.dispose();
     super.dispose();
   }
 
@@ -65,7 +67,12 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
     try {
       await Supabase.instance.client.rpc(
         'transfer_ticket_to_user',
-        params: {'p_ticket_id': widget.ticketId, 'p_recipient': person.id},
+        params: {
+          'p_ticket_id': widget.ticketId,
+          'p_recipient': person.id,
+          // Le mot part avec le billet, dans la conversation. Vide : rien.
+          'p_note': _note.text.trim(),
+        },
       );
       if (mounted) Navigator.of(context).pop(person);
     } catch (e) {
@@ -93,6 +100,7 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
     }
     if (msg.contains('event_cancelled')) return l.transferErrEventCancelled;
     if (msg.contains('event_ended')) return l.transferErrEventEnded;
+    if (msg.contains('note_too_long')) return l.transferErrNoteTooLong;
     return l.transferFailed;
   }
 
@@ -235,7 +243,9 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
 
     return SafeArea(
       top: false,
-      child: Padding(
+      // Défilable : le champ du mot ouvre le clavier, qui prend la moitié de
+      // la hauteur de la fenêtre.
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
         child: Column(
           children: [
@@ -295,6 +305,26 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
                 ),
               ),
             ],
+            const SizedBox(height: 16),
+            TextField(
+              controller: _note,
+              maxLength: 500,
+              minLines: 1,
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+              style: AppText.bodySm.copyWith(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: l.transferNoteHint,
+                prefixIcon: Icon(Icons.edit_note, color: AppColors.textLow),
+                filled: true,
+                fillColor: AppColors.card,
+                counterStyle: AppText.micro,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
             if (_error != null) ...[
               const SizedBox(height: 14),
               Text(
@@ -303,7 +333,7 @@ class _TransferSheetState extends ConsumerState<_TransferSheet> {
                 style: AppText.small.copyWith(color: AppColors.error),
               ),
             ],
-            const Spacer(),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               height: 52,
