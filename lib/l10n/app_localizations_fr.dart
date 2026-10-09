@@ -572,8 +572,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cancelTicketTitle => 'Annuler ce billet ?';
 
   @override
-  String cancelTicketBodyPaid(String amount) {
-    return 'Ta place est rendue et $amount est remboursé sur la carte utilisée. Un remboursement met généralement 5 à 10 jours ouvrables à apparaître.';
+  String cancelTicketBodyPaid(String amount, String fee) {
+    return 'Ta place est rendue et $amount est remboursé sur la carte utilisée ($fee de frais de service ne sont pas remboursables). Un remboursement met généralement 5 à 10 jours ouvrables à apparaître.';
   }
 
   @override
@@ -596,6 +596,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String cancelUntil(String date) {
     return 'Annulation possible jusqu\'au $date';
+  }
+
+  @override
+  String buyRefundTerms(String date, String fee) {
+    return 'Remboursable jusqu\'au $date, moins $fee de frais de service par billet. Remboursement intégral si l\'organisateur annule.';
+  }
+
+  @override
+  String get buyNoRefund =>
+      'Billets non remboursables, sauf si l\'organisateur annule l\'événement : remboursement intégral.';
+
+  @override
+  String ticketServiceFee(String fee) {
+    return 'Frais de service non remboursables : $fee';
   }
 
   @override

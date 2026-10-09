@@ -15,6 +15,12 @@
 // Remboursement PARTIEL : un `payment_intent_id` couvre souvent plusieurs
 // billets (achat groupé). Rembourser l'intention entière rendrait l'argent des
 // billets qu'on garde. On rembourse le montant du seul billet annulé.
+//
+// MOINS les frais de service (décidé le 2026-10-08) : Stripe garde ses frais
+// sur un paiement remboursé, et c'est l'acheteur qui annule. Le montant vient
+// de `can_cancel_ticket` (colonne `fee`), seule source de la formule — l'app
+// l'a annoncé avant l'achat avec les mêmes chiffres. Un événement annulé par
+// l'organisateur ne passe pas ici : `cancel-event` rembourse tout.
 // =============================================================================
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -83,11 +89,16 @@ Deno.serve(async (req: Request) => {
   if (ticket.user_id !== caller.id) return json({ error: "not_owner" }, 403);
   if (ticket.status !== "valid") return json({ error: "ticket_not_valid" }, 409);
 
-  const amount = Number(check.amount ?? 0);
+  // En cents dès la lecture : Stripe compte en cents, et soustraire des
+  // dollars en flottants donnerait 19,119999 au lieu de 19,12. Math.round
+  // évite qu'un prix à 19,99 devienne 1998 par imprécision.
+  const paidCents = Math.round(Number(check.amount ?? 0) * 100);
+  const feeCents = Math.min(paidCents, Math.round(Number(check.fee ?? 0) * 100));
+  const refundCents = paidCents - feeCents;
   let refundId: string | null = null;
 
   // 4. Rembourser AVANT d'annuler.
-  if (ticket.payment_intent_id && amount > 0) {
+  if (ticket.payment_intent_id && refundCents > 0) {
     if (!stripeKey) {
       console.error("cancel-ticket: STRIPE_SECRET_KEY absente");
       return json({ error: "not_configured" }, 500);
@@ -95,9 +106,7 @@ Deno.serve(async (req: Request) => {
 
     const form = new URLSearchParams({
       payment_intent: ticket.payment_intent_id,
-      // Stripe compte en cents. Math.round évite qu'un prix à 19,99 devienne
-      // 1998 par imprécision des flottants.
-      amount: String(Math.round(amount * 100)),
+      amount: String(refundCents),
       reason: "requested_by_customer",
     });
 
@@ -127,6 +136,9 @@ Deno.serve(async (req: Request) => {
     p_ticket: ticketId,
     p_actor: caller.id,
     p_refund_id: refundId,
+    // Seulement si de l'argent est réellement reparti : sans remboursement,
+    // rien n'a été retenu.
+    p_retained_fee_cents: refundId ? feeCents : 0,
   });
   if (cancelErr) {
     // Cas le plus délicat du flux : l'argent est rendu mais le billet reste
@@ -139,5 +151,10 @@ Deno.serve(async (req: Request) => {
     return json({ error: "cancel_failed", refunded: refundId !== null }, 500);
   }
 
-  return json({ ok: true, refunded: refundId !== null, amount });
+  return json({
+    ok: true,
+    refunded: refundId !== null,
+    amount: refundCents / 100,
+    fee: refundId ? feeCents / 100 : 0,
+  });
 });

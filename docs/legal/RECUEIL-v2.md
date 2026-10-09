@@ -1004,6 +1004,9 @@ reviewed specifically.
 - **The price you see is the price you pay**, in Canadian dollars. HAPPYN's fee
   is taken from the organizer's share, not added to your price.
 - Your ticket appears as soon as Stripe confirms the payment.
+- If **you** cancel a ticket, a small service fee is not refunded — see the
+  Refund and Cancellation Policy. If the **organizer** cancels, you get
+  everything back.
 - Organizers are paid by Stripe after their event has taken place.
 
 ## 1. How payment works
@@ -1078,10 +1081,12 @@ investigate and **always** refund duplicates and charges without tickets.
 
 - **If the organizer cancels the event, you are refunded automatically**, in
   full, to the card you paid with. You don't need to ask.
-- **You can cancel your ticket yourself** in the app, and be refunded, until a
-  deadline the organizer chose: 24 hours, 48 hours, or 7 days before the event
-  — or not at all. The event page shows it **before you buy**
-  **[À CONSTRUIRE — voir l'annexe A]**.
+- **You can cancel your ticket yourself** in the app until a deadline the
+  organizer chose: 24 hours, 48 hours, or 7 days before the event — or not at
+  all. You get the ticket price back **minus a small non-refundable service
+  fee** (2.9% + $0.30 — $0.88 on a $20 ticket).
+- The deadline and the fee are shown **right above the payment button**, before
+  you pay, and again on your ticket.
 - Charged twice, or charged without a ticket? Always refunded.
 - A ticket you received as a gift (transfer) can't be refunded by you.
 
@@ -1108,10 +1113,28 @@ Each organizer chooses, when creating the event, until when buyers can cancel:
 | 7 days | 7 days before the event starts |
 | No cancellation | You cannot cancel — the event page says so before you buy |
 
-The deadline is shown on the event page before purchase **[À CONSTRUIRE]**,
-and on your ticket.
-Before the deadline, cancel from your ticket in the app: you are refunded the
-**full price of that ticket**, and your place goes back on sale.
+The deadline is shown **just above the payment button, before you pay**, and
+again on your ticket.
+
+Before the deadline, cancel from your ticket in the app. You are refunded the
+**price of that ticket, minus a non-refundable service fee**, and your place goes
+back on sale.
+
+### The service fee
+
+| Ticket price | Service fee kept | You get back |
+|---|---|---|
+| $10 | $0.59 | $9.41 |
+| $20 | $0.88 | $19.12 |
+| $50 | $1.75 | $48.25 |
+
+The fee is **2.9% of the ticket price + $0.30**, never more than the ticket
+itself. It is exactly what our payment provider keeps on a refunded payment:
+**neither HAPPYN nor the organizer earns anything from it**. It is shown before
+you pay, on your ticket, and in the confirmation before you cancel.
+
+**There is no service fee when the organizer cancels the event** (section 1),
+or when you were charged by mistake (section 3).
 
 You can't cancel a ticket that has already been scanned, or a ticket you
 received by transfer — the refund can only go to the card that paid.
@@ -1143,9 +1166,8 @@ Act applies to buyers in Gatineau and is stricter in places. **Have this
 document reviewed first**: it is the one most likely to be tested, and where the
 two provinces differ most.
 
-**[À CONSTRUIRE]** — Today the deadline appears **only on the ticket, after
-purchase**. Consumer law requires it to be disclosed **before** payment: this
-must be built before the first paid sale.
+**[AVOCAT]** — Confirm that a non-refundable fee equal to the payment
+processor's cost, disclosed before purchase, is acceptable for Quebec buyers.
 
 ---
 
@@ -1269,8 +1291,13 @@ not co-organize.
 from buying, but doesn't verify identity.
 
 **Choose your cancellation deadline honestly** (24 hours, 48 hours, 7 days, or
-none). Buyers see it before paying **[À CONSTRUIRE]**, and it applies
-automatically.
+none). Buyers see it before paying, and it applies automatically. When a buyer
+cancels, the payment provider's fee is paid by the buyer, not by you: a
+cancelled ticket costs you nothing.
+
+**If you cancel the event**, every buyer is refunded in full — and the payment
+provider's fees on those tickets (2.9% + $0.30 each) are **yours to bear**:
+they are deducted from your payouts. **[À CONSTRUIRE]** — see Annex A.
 
 **Answer buyers within 7 days.**
 
@@ -1333,7 +1360,8 @@ Le texte ci-dessus promet ces comportements. L'app ne les tient pas encore.
 | 8 | La date de naissance n'est pas modifiable à volonté | Elle l'est : métadonnées et profil acceptent une mise à jour par la personne elle-même | Moyenne — contourne toutes les règles d'âge |
 | 9 | Connexion Apple | Bouton factice | Bloquant pour l'iPhone |
 | 10 | ~~Bloquer coupe la messagerie~~ | **Vérifié tenu le 2026-10-08** : la règle d'envoi et de lecture exclut les paires bloquées, conversations déjà ouvertes comprises. L'audit du même jour s'était trompé ; quatre tests le gardent désormais (`tests/rls/access_rules.sql`) | — |
-| 11 | Le délai d'annulation est annoncé **avant** l'achat (Refund §2) | Affiché seulement sur le billet, **après** l'achat | **Haute** — obligation d'information préalable (LPC Ontario et Québec) |
+| 11 | ~~Le délai d'annulation est annoncé avant l'achat~~ | **Fait le 2026-10-08** : délai et frais de service affichés au-dessus du bouton de paiement, rappelés sur le billet et dans la confirmation d'annulation | — |
+| 13 | L'organisateur qui annule paie les frais Stripe des billets remboursés (Organizer §2) | Le calcul du versement plafonne le net à zéro : pour un événement **entièrement annulé**, rien n'est prélevé, et c'est **HAPPYN** qui absorbe les frais. Il faudrait reporter un solde négatif sur les versements suivants | Basse tant que les annulations sont rares — mais le texte promet autre chose |
 | 12 | Les centres d'intérêt servent à quelque chose (Privacy §3.1) | Collectés et stockés, **utilisés nulle part** | Basse — mais la LPRPDE et la Loi 25 demandent de ne collecter que ce qui sert : les utiliser ou cesser de les demander |
 
 **Corrigé le 2026-10-08 :** la date de naissance des comptes Google (commit

@@ -10,6 +10,9 @@ import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/core/providers/tickets_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/utils/age.dart';
+import 'package:happyn/core/utils/dates.dart';
+import 'package:happyn/core/payments/pricing.dart';
+import 'package:happyn/core/providers/pricing_provider.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'qr_ticket_screen.dart';
 import 'package:happyn/core/providers/payout_provider.dart';
@@ -67,6 +70,34 @@ class _TicketSelectionScreenState
     if (_selectedTypeIndex == null) return 10;
     final m = _ticketTypes[_selectedTypeIndex!]['max_per_order'];
     return (m is int && m > 0) ? m : 10;
+  }
+
+  /// Les conditions de remboursement du palier choisi, à lire AVANT de payer.
+  ///
+  /// La loi l'exige — l'information doit précéder le paiement, pas le suivre —
+  /// et c'est ce qui rend les frais retenus défendables : la personne les a
+  /// vus. Rien pour un billet gratuit, il n'y a rien à rembourser.
+  String? _refundTerms(AppLocalizations l) {
+    final i = _selectedTypeIndex;
+    if (i == null || i >= _ticketTypes.length) return null;
+    final price = (_ticketTypes[i]['price'] as num?) ?? 0;
+    if (price <= 0) return null;
+
+    final hours = (widget.event['cancellation_hours'] as num?)?.toInt() ?? 24;
+    if (hours == 0) return l.buyNoRefund;
+
+    final start =
+        DateTime.tryParse((widget.event['start_date'] as String?) ?? '');
+    if (start == null) return null;
+    final deadline = start.subtract(Duration(hours: hours)).toIso8601String();
+    final terms = ref.watch(cancellationFeeTermsProvider).asData?.value ??
+        CancellationFeeTerms.fallback;
+    final fee = Pricing.cancellationFeeCents((price * 100).round(), terms);
+    return l.buyRefundTerms(
+      '${AppDates.dayMonthYear(context, deadline)}, '
+          '${AppDates.time(context, deadline)}',
+      '\$${(fee / 100).toStringAsFixed(2)}',
+    );
   }
 
   String get _priceText {
@@ -507,68 +538,94 @@ class _TicketSelectionScreenState
                 border: Border(
                     top: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
               ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  // Dans la barre du bas plutôt que dans la liste : c'est la
+                  // seule zone toujours visible au moment d'appuyer sur payer,
+                  // quelle que soit la taille de l'écran.
+                  if (_refundTerms(l) case final terms?) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 1),
+                          child: Icon(Icons.info_outline,
+                              size: 14, color: AppColors.textLow),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(terms,
+                              style: AppText.micro.copyWith(height: 1.4)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  Row(
                     children: [
-                      Text(
-                        l.total,
-                        style: AppText.small,
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.total,
+                            style: AppText.small,
+                          ),
+                          Text(
+                            _priceText,
+                            style: AppText.display.copyWith(color: Colors.white),
+                          ),
+                        ],
                       ),
-                      Text(
-                        _priceText,
-                        style: AppText.display.copyWith(color: Colors.white),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: (_isPurchasing || selectedUnsellable)
+                              ? null
+                              : _purchaseTicket,
+                          child: AnimatedOpacity(
+                            opacity: selectedUnsellable ? 0.35 : 1,
+                            duration: const Duration(milliseconds: 150),
+                            child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              gradient: AppColors.primaryGradient,
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.55),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: _isPurchasing
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white, strokeWidth: 2),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.lock_outline,
+                                            color: Colors.white, size: 16),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          l.checkout,
+                                          style: AppText.h3.copyWith(color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                          )
+                        ),
                       ),
                     ],
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: (_isPurchasing || selectedUnsellable)
-                          ? null
-                          : _purchaseTicket,
-                      child: AnimatedOpacity(
-                        opacity: selectedUnsellable ? 0.35 : 1,
-                        duration: const Duration(milliseconds: 150),
-                        child: Container(
-                        height: 56,
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.55),
-                              blurRadius: 20,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: _isPurchasing
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                      color: Colors.white, strokeWidth: 2),
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.lock_outline,
-                                        color: Colors.white, size: 16),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      l.checkout,
-                                      style: AppText.h3.copyWith(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ),
-                      )
-                    ),
                   ),
                 ],
               ),

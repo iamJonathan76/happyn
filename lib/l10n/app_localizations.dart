@@ -1073,8 +1073,8 @@ abstract class AppLocalizations {
   /// No description provided for @cancelTicketBodyPaid.
   ///
   /// In en, this message translates to:
-  /// **'Your place is released and {amount} is refunded to the card you paid with. Refunds usually take 5 to 10 business days to appear.'**
-  String cancelTicketBodyPaid(String amount);
+  /// **'Your place is released and {amount} is refunded to the card you paid with ({fee} service fee is non-refundable). Refunds usually take 5 to 10 business days to appear.'**
+  String cancelTicketBodyPaid(String amount, String fee);
 
   /// No description provided for @cancelTicketBodyFree.
   ///
@@ -1111,6 +1111,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can cancel until {date}'**
   String cancelUntil(String date);
+
+  /// No description provided for @buyRefundTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Refundable until {date}, minus a {fee} service fee per ticket. Full refund if the organizer cancels.'**
+  String buyRefundTerms(String date, String fee);
+
+  /// No description provided for @buyNoRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets are non-refundable, unless the organizer cancels the event: full refund.'**
+  String get buyNoRefund;
+
+  /// No description provided for @ticketServiceFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-refundable service fee: {fee}'**
+  String ticketServiceFee(String fee);
 
   /// No description provided for @cancelErrDeadline.
   ///

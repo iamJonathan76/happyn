@@ -208,3 +208,33 @@ reset role;
 select t.as_user('00000000-0000-0000-0000-00000000000b');
 select t.fails_with($$select public.transfer_ticket_to_user('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-00000000000c')$$, 'not_following', 'Transfert : seulement a quelqu''un qu''on suit');
 reset role;
+
+-- Les frais d'annulation (acheteur qui annule : remboursé moins les frais de
+-- Stripe, annoncés avant l'achat)
+reset role;
+select t.record(
+  public.cancellation_fee_cents(2000) = 88
+  and public.cancellation_fee_cents(1000) = 59
+  and public.cancellation_fee_cents(0) = 0
+  and public.cancellation_fee_cents(20) = 20,
+  'Frais d''annulation : 2,9 % + 0,30 $, plafonnes au prix du billet');
+select t.as_anon();
+select t.fails_with('select public.cancellation_fee_cents(2000)', 'permission denied', 'Frais d''annulation : un visiteur ne les calcule pas');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.record(
+  (select fee from public.can_cancel_ticket('00000000-0000-0000-0000-0000000000b1')) = 1.03,
+  'Frais d''annulation : annonces a l''acheteur sur son billet (25 $ -> 1,03 $)');
+select t.fails_with($$select public.cancel_ticket('00000000-0000-0000-0000-0000000000b1', auth.uid(), null, 0)$$, 'permission denied', 'Annulation : seul le serveur annule, apres avoir rembourse');
+reset role;
+-- Un billet de 20 $ annule par l'acheteur : 19,12 $ rendus, 0,88 $ retenus,
+-- autant que les frais de Stripe. L'organisateur n'y perd rien et ne paie pas
+-- de commission sur une vente qui n'a pas eu lieu.
+insert into payments (payment_intent_id, event_id, ticket_type_id, organizer_id, buyer_id, quantity,
+                      gross_cents, stripe_fee_cents, platform_fee_bps, refunded_cents, retained_fee_cents) values
+  ('pi_annule', '00000000-0000-0000-0000-0000000000e4', '00000000-0000-0000-0000-0000000000f5',
+   '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000c', 1, 2000, 88, 500, 1912, 88);
+select t.record(
+  (select platform_fee = 0 and gross - withheld - stripe_fee - platform_fee = 0
+     from public.event_ledger() where event_id = '00000000-0000-0000-0000-0000000000e4'),
+  'Versement : un billet annule par l''acheteur ne coute rien a l''organisateur');

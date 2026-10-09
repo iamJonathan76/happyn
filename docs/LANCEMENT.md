@@ -94,21 +94,50 @@ remboursement ne peut être demandé depuis l'app. Les contestations bancaires
 restent possibles 120 jours : elles sont traitées à part (§ 4), en neutralisant
 le paiement contesté au lieu d'attendre.
 
-### 2.2 bis Remboursements — décidé : intégral des deux côtés
+### 2.2 bis Remboursements — décidé le 2026-10-08 : frais de service à la charge de l'acheteur qui annule
 
-**2026-10-02.** Qu'il s'agisse d'une annulation par l'organisateur ou par
-l'acheteur, le remboursement est **intégral**. HAPPYN ne retient aucun frais.
+*Remplace la décision du 2026-10-02 (remboursement intégral des deux côtés,
+HAPPYN absorbant les frais Stripe).*
 
-Ce que ça coûte : Stripe ne rend pas sa commission sur un remboursement, donc
-chaque billet remboursé coûte ~0,88 $ (sur 20 $) à la plateforme.
+| Qui annule | L'acheteur récupère | Les frais Stripe (2,9 % + 0,30 $) |
+|---|---|---|
+| **L'acheteur**, avant le délai de l'organisateur | Le prix **moins les frais de service** (0,88 $ sur 20 $) | Payés par l'acheteur — retenus sur son remboursement |
+| **L'organisateur** (événement annulé) | **100 %** | À la charge de l'organisateur (voir « l'asymétrie », plus bas) |
+| Erreur de paiement (double, sans billet) | **100 %** | HAPPYN |
 
-Pourquoi ne pas retenir ce dollar : une retenue d'un dollar déclenche des
-contestations bancaires à **15 $**. Et au stade d'un lancement, un acheteur
-mécontent coûte plus cher qu'un dollar. Le levier existe déjà ailleurs —
-`cancellation_hours` à 0 interdit purement l'annulation par l'acheteur.
+Les frais retenus valent **exactement** ce que Stripe garde : ni HAPPYN ni
+l'organisateur n'y gagnent. Les organisateurs sont les partenaires qui font
+vivre la plateforme ; une annulation d'acheteur ne doit rien leur coûter.
 
-Révisable plus tard : une condition peut se durcir pour les achats à venir,
-jamais rétroactivement.
+L'objection du 2026-10-02 — une retenue déclencherait des contestations à
+15 $ — est traitée par l'affichage : les frais sont annoncés **au-dessus du
+bouton de paiement**, rappelés sur le billet et dans la confirmation
+d'annulation. Une retenue annoncée se défend devant une banque ; une retenue
+surprise, non.
+
+**Implémenté le 2026-10-08** : formule unique en base
+(`cancellation_fee_terms()` / `cancellation_fee_cents()`), lue par l'app pour
+l'affichage ; `cancel-ticket` rembourse le prix moins les frais et les note sur
+le paiement (`payments.retained_fee_cents`) ; `event_ledger` n'applique pas la
+commission sur ces frais. Migration `20261008030000_cancellation_fee`, appliquée
+et vérifiée en production, 5 tests dans `tests/rls/`. Fonction Edge déployée.
+**Reste à confirmer sur téléphone** (affichage avant achat, montant dans la
+confirmation d'annulation).
+
+**[AVOCAT]** : une retenue égale au coût du prestataire de paiement, annoncée
+avant l'achat, est-elle acceptable pour un acheteur québécois ?
+
+### 2.2 ter Contestations bancaires — en attente de décision
+
+Une contestation coûte ~15 $ de frais Stripe, et le prix du billet est repris
+par la banque. Aujourd'hui, le prix est retiré du versement de l'organisateur
+et les 15 $ sont prélevés sur le solde de HAPPYN, sans que ce soit écrit nulle
+part.
+
+Recommandation (2026-10-08) : HAPPYN paie les 15 $ ; le prix du billet est perdu
+par l'organisateur seulement si l'événement n'a pas eu lieu ; un billet scanné
+est défendu avec la preuve du scan. Reste à trancher : la carte volée (le voleur
+a eu sa place).
 
 #### L'asymétrie qui compte
 
@@ -196,13 +225,14 @@ remet), et le remboursement automatique ou non d'un événement annulé.
 
 ## 3. Avant de donner l'app à qui que ce soit
 
-### 3.1 Le DSN Sentry — 30 minutes
+### 3.1 Le DSN Sentry — fait le 2026-10-08
 
-Le code est branché, il ne manque que `--dart-define=SENTRY_DSN=…`.
-
-**Déclencheur atteint** : dès que l'app quitte tes mains, tu deviens aveugle aux
-plantages — les gens ne les signalent pas, ils désinstallent. Et les plantages
-survenus avant l'installation de l'outil sont perdus définitivement.
+Branché et vérifié : une erreur de test envoyée depuis l'app (bouton réservé au
+mode débogage, dans les réglages) est arrivée dans Sentry. Le DSN vit dans
+`dart_defines.json`, ignoré par git, et passe par
+`--dart-define-from-file=dart_defines.json` — voir `docs/BASCULE-MACHINE.md`.
+Aucune donnée personnelle, aucune capture d'écran ; 20 % des sessions mesurées
+pour les performances.
 
 ### 3.1 bis L'écran de consentement Google bloque tout le monde sauf toi
 
@@ -226,35 +256,13 @@ de Google, qui prend des semaines.
 Dans l'intervalle, ajouter un compte à la liste des testeurs prend trente
 secondes et prend effet immédiatement.
 
-### 3.2 Le contrôle du nonce est désactivé sur la connexion Google
+### 3.2 Le contrôle du nonce sur la connexion Google — rétabli le 2026-10-08
 
-Le fournisseur Google de Supabase tourne avec **« Skip Nonce Check » activé**.
-Il a fallu le désactiver pour que la connexion Google fonctionne sur iPhone : le
-SDK iOS de Google renvoie un nonce haché dont la valeur d'origine est
-irrécupérable, et `google_sign_in` 6.x n'expose aucun paramètre pour en fournir
-un. Supabase attendait donc un nonce que personne ne pouvait lui donner.
-
-Ce que ça coûte : Supabase accepte désormais **n'importe quel** jeton Google
-valide et non expiré dont l'audience est un de nos client IDs, sans vérifier
-qu'il a été émis pour cette tentative de connexion précise. Un jeton qui fuit
-— journal de plantage, log serveur, appareil compromis — peut être rejoué pour
-ouvrir une session au nom de son propriétaire, dans l'heure qui suit son
-émission.
-
-Ce qui limite la portée : le jeton est signé par Google, son audience doit être
-un de nos client IDs, Google lie l'émission d'un client iOS au bundle
-`com.happyn.happyn`, et le jeton expire en une heure.
-
-**Déclencheur atteint** : avant d'ouvrir les inscriptions à des gens qu'on ne
-connaît pas. Tant que l'app est entre nos mains, la fenêtre est étroite ; elle
-s'élargit avec chaque compte réel.
-
-**Le correctif** : migrer vers `google_sign_in` 7.x, adossé au SDK
-GoogleSignIn-iOS 9.0, qui permet enfin de passer un nonce. On le génère, on le
-donne à Google *et* à `signInWithIdToken`, et on redécoche la case. La 7.x casse
-l'API (`signIn()` devient `authenticate()`), il faut donc réécrire
-`_signInWithGoogle` dans `login_screen.dart` — compter un cycle de compilation
-et de test sur appareil.
+`google_sign_in` 7.2 permet enfin de passer un nonce : l'app en génère un,
+donne son empreinte SHA-256 à Google et la valeur brute à Supabase
+(`lib/core/auth/google_auth.dart`). « Skip Nonce Check » est **décoché** dans
+Supabase, et la connexion Google a été vérifiée sur appareil ensuite. Un jeton
+Google qui fuirait ne peut plus être rejoué pour ouvrir une session.
 
 ### 3.3 Les textes légaux existent à trois endroits
 

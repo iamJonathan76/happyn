@@ -121,4 +121,28 @@ class Pricing {
       from <= 0 ? 0 : (to - from) / from * 100;
 
   static double clampPositive(double v) => math.max(0, v);
+
+  /// Frais de service non remboursables quand l'acheteur annule, en cents.
+  ///
+  /// Reproduit `public.cancellation_fee_cents()` avec les chiffres qu'elle
+  /// expose (`cancellation_fee_terms()`), pour annoncer le montant AVANT
+  /// l'achat. Le remboursement, lui, est calculé par la base : si les deux
+  /// divergeaient, l'app promettrait un montant que Stripe ne rendrait pas.
+  /// Même arrondi qu'en SQL (au plus proche, la moitié vers le haut), plafonné
+  /// au prix.
+  static int cancellationFeeCents(int priceCents, CancellationFeeTerms t) {
+    if (priceCents <= 0) return 0;
+    final fee = (priceCents * t.bps / 10000).round() + t.fixedCents;
+    return math.min(priceCents, fee);
+  }
+}
+
+/// Les deux chiffres des frais d'annulation, lus en base.
+class CancellationFeeTerms {
+  final int bps;
+  final int fixedCents;
+  const CancellationFeeTerms(this.bps, this.fixedCents);
+
+  /// Repli hors ligne. La source de vérité reste la base.
+  static const fallback = CancellationFeeTerms(290, 30);
 }

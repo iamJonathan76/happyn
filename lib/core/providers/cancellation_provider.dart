@@ -6,16 +6,25 @@ class CancelCheck {
   final bool allowed;
   final String reason;
   final DateTime? deadline;
+  /// Ce que le billet a coûté.
   final double amount;
+
+  /// Frais de service non remboursables, calculés par la base.
+  final double fee;
 
   const CancelCheck({
     required this.allowed,
     required this.reason,
     this.deadline,
     this.amount = 0,
+    this.fee = 0,
   });
 
   bool get isPaid => amount > 0;
+
+  /// Ce qui revient réellement sur la carte. En cents pour la soustraction :
+  /// en flottants, 20,00 − 0,88 donnerait 19,119999.
+  double get refund => ((amount * 100).round() - (fee * 100).round()) / 100;
 
   static const CancelCheck none =
       CancelCheck(allowed: false, reason: 'unknown');
@@ -44,6 +53,7 @@ final cancelCheckProvider =
         ? null
         : DateTime.tryParse(row['deadline'] as String),
     amount: (row['amount'] as num?)?.toDouble() ?? 0,
+    fee: (row['fee'] as num?)?.toDouble() ?? 0,
   );
 });
 

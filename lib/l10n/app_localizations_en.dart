@@ -569,8 +569,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelTicketTitle => 'Cancel this ticket?';
 
   @override
-  String cancelTicketBodyPaid(String amount) {
-    return 'Your place is released and $amount is refunded to the card you paid with. Refunds usually take 5 to 10 business days to appear.';
+  String cancelTicketBodyPaid(String amount, String fee) {
+    return 'Your place is released and $amount is refunded to the card you paid with ($fee service fee is non-refundable). Refunds usually take 5 to 10 business days to appear.';
   }
 
   @override
@@ -593,6 +593,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String cancelUntil(String date) {
     return 'You can cancel until $date';
+  }
+
+  @override
+  String buyRefundTerms(String date, String fee) {
+    return 'Refundable until $date, minus a $fee service fee per ticket. Full refund if the organizer cancels.';
+  }
+
+  @override
+  String get buyNoRefund =>
+      'Tickets are non-refundable, unless the organizer cancels the event: full refund.';
+
+  @override
+  String ticketServiceFee(String fee) {
+    return 'Non-refundable service fee: $fee';
   }
 
   @override

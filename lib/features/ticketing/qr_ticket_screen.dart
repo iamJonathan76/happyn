@@ -574,6 +574,16 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
               style: AppText.micro,
             ),
           ],
+          // Rappelé ici, pas seulement à l'achat : c'est au moment d'annuler
+          // que la personne se demande combien elle récupérera.
+          if (check.isPaid && check.fee > 0) ...[
+            const SizedBox(height: 2),
+            Text(
+              l.ticketServiceFee('\$${check.fee.toStringAsFixed(2)}'),
+              textAlign: TextAlign.center,
+              style: AppText.micro,
+            ),
+          ],
         ],
       ),
     );
@@ -594,7 +604,8 @@ class _QrTicketScreenState extends ConsumerState<QrTicketScreen> {
         content: Text(
           check.isPaid
               ? l.cancelTicketBodyPaid(
-                  '\$${check.amount.toStringAsFixed(2)}')
+                  '\$${check.refund.toStringAsFixed(2)}',
+                  '\$${check.fee.toStringAsFixed(2)}')
               : l.cancelTicketBodyFree,
           style: AppText.body,
         ),

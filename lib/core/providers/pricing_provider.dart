@@ -22,3 +22,25 @@ final platformFeeBpsProvider = FutureProvider<int>((ref) async {
   }
   return Pricing.defaultPlatformFeeBps;
 });
+
+/// Les frais d'annulation, lus EN BASE comme la commission, pour les mêmes
+/// raisons : `cancellation_fee_terms()` est la seule définition, celle que le
+/// remboursement appliquera.
+final cancellationFeeTermsProvider =
+    FutureProvider<CancellationFeeTerms>((ref) async {
+  try {
+    final data =
+        await Supabase.instance.client.rpc('cancellation_fee_terms');
+    final row = data is List ? (data.isEmpty ? null : data.first) : data;
+    if (row is Map) {
+      final bps = row['bps'];
+      final fixed = row['fixed_cents'];
+      if (bps is num && fixed is num) {
+        return CancellationFeeTerms(bps.toInt(), fixed.toInt());
+      }
+    }
+  } catch (_) {
+    // Hors ligne, ou migration pas encore appliquée.
+  }
+  return CancellationFeeTerms.fallback;
+});
