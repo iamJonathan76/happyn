@@ -21,7 +21,7 @@ import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/providers/direct_messages_provider.dart';
 import 'package:happyn/core/providers/moderation_provider.dart';
 import 'package:happyn/features/social/direct_messages_screen.dart';
-import 'package:happyn/features/social/widgets/post_card.dart';
+import 'package:happyn/features/social/user_moments_screen.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
@@ -435,17 +435,58 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         l.feedEmptyBody,
       );
     }
-    // Pas de marge laterale : les publications vont bord a bord.
-    return ListView(
+    // Une grille plutot que le fil : on voit d'un coup d'oeil tout ce que la
+    // personne a vecu. Le fil complet s'ouvre sur la publication touchee.
+    return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      children: posts
-          .map(
-            (p) => PostCard(
-              post: p,
-              onChanged: () => ref.invalidate(userPostsProvider(_uid)),
+      padding: const EdgeInsets.only(top: 2, bottom: 32),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 2,
+        crossAxisSpacing: 2,
+        childAspectRatio: 4 / 5,
+      ),
+      itemCount: posts.length,
+      itemBuilder: (context, i) {
+        final p = posts[i];
+        return GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => UserMomentsScreen(
+                userId: _uid,
+                initialPostId: p['id'] as String,
+              ),
             ),
-          )
-          .toList(),
+          ),
+          child: _momentTile(p),
+        );
+      },
+    );
+  }
+
+  /// Une case de la grille. Une publication peut n'etre que du texte : sans
+  /// photo, la case montre le debut de la legende plutot qu'un trou.
+  Widget _momentTile(Map<String, dynamic> p) {
+    final image = (p['image_url'] as String?) ?? '';
+    if (image.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: image,
+        fit: BoxFit.cover,
+        placeholder: (_, _) => Container(color: AppColors.imagePlaceholder),
+        errorWidget: (_, _, _) => Container(color: AppColors.imagePlaceholder),
+      );
+    }
+    return Container(
+      color: AppColors.card,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(10),
+      child: Text(
+        ((p['caption'] as String?) ?? '').trim(),
+        maxLines: 5,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        style: AppText.micro.copyWith(color: Colors.white, height: 1.35),
+      ),
     );
   }
 
