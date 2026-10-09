@@ -75,9 +75,13 @@ insert into post_comments (post_id, author_id, body) values
   ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000e', 'commentaire d''Eve');
 
 insert into direct_conversations (id, member_a, member_b) values
-  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b');
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b'),
+  -- Ouverte entre Alice et Eve AVANT qu'Alice ne bloque Eve : le cas d'une
+  -- personne harcelee, qui bloque au milieu d'un echange deja commence.
+  ('00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000e');
 insert into direct_messages (conversation_id, sender_id, body) values
-  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'message prive');
+  ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'message prive'),
+  ('00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-00000000000e', 'message d''avant le blocage');
 
 insert into reports (reporter_id, target_type, target_id, reason) values
   ('00000000-0000-0000-0000-00000000000b', 'user', '00000000-0000-0000-0000-00000000000e', 'harassment');
@@ -176,6 +180,14 @@ select t.as_user('00000000-0000-0000-0000-00000000000e');
 select t.sees_nothing('select * from direct_messages', 'Messages : on ne lit pas les conversations des autres');
 select t.cannot_write($$insert into direct_messages (conversation_id, sender_id, body) values ('00000000-0000-0000-0000-0000000000c1', auth.uid(), 'intrusion')$$, 'Messages : on n''ecrit pas dans la conversation des autres');
 select t.fails_with($$select public.start_direct_conversation('00000000-0000-0000-0000-00000000000a')$$, 'must_follow', 'Messages : on n''ecrit qu''a quelqu''un qu''on suit');
+select t.cannot_write($$insert into direct_messages (conversation_id, sender_id, body) values ('00000000-0000-0000-0000-0000000000c2', auth.uid(), 'encore moi')$$, 'Blocage : la personne bloquee n''ecrit plus dans une conversation deja ouverte');
+select t.sees_nothing($$select * from direct_messages where conversation_id = '00000000-0000-0000-0000-0000000000c2'$$, 'Blocage : la personne bloquee ne relit plus la conversation');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.cannot_write($$insert into direct_messages (conversation_id, sender_id, body) values ('00000000-0000-0000-0000-0000000000c2', auth.uid(), 'reponse')$$, 'Blocage : celle qui bloque n''ecrit plus non plus dans la conversation');
+select t.sees_nothing($$select * from direct_messages where conversation_id = '00000000-0000-0000-0000-0000000000c2'$$, 'Blocage : les messages de la personne bloquee disparaissent pour celle qui bloque');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000e');
 reset role;
 select t.as_user('00000000-0000-0000-0000-00000000000b');
 select t.cannot_write($$insert into direct_messages (conversation_id, sender_id, body) values ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', 'usurpe')$$, 'Messages : on n''ecrit pas au nom d''un autre');

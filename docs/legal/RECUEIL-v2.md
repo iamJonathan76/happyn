@@ -692,8 +692,8 @@ authorities. **You keep the tickets you have already paid for.**
 
 Every event, post, comment, message and account has a **Report** option.
 Reports are reviewed by a person. You can also **block** an account: its posts
-and events disappear for you, and it can no longer start a conversation with
-you **[À CONSTRUIRE — ni continuer une conversation existante]**.
+and events disappear for you, and neither of you can message the other any
+more — including in a conversation that was already open.
 
 ---
 
@@ -781,8 +781,9 @@ Blocking is a personal tool, separate from reporting. When you block an
 account:
 
 - its posts and the events it organizes disappear for you;
-- neither of you can start a new private conversation with the other
-  **[À CONSTRUIRE — une conversation déjà ouverte reste active, voir l'annexe A]**;
+- neither of you can message the other any more, **including in a
+  conversation already open** — and that conversation disappears for both of
+  you while the block lasts;
 - it never sees where you're going;
 - **it is not told** that you blocked it.
 
@@ -1203,8 +1204,8 @@ instincts. **In an emergency, call 911 first.**
 ## What HAPPYN does
 
 - **Reports** are reviewed by a person within 24 hours.
-- **Blocking** hides an account's posts and events from you and stops it from
-  messaging you **[À CONSTRUIRE — voir l'annexe A]**.
+- **Blocking** hides an account's posts and events from you and stops all
+  messages between you, including in a conversation already open.
 - **Your attendance is private by default.** Someone can see you're going to an
   event only if you follow each other *and* you chose to show it.
 - **Messages** are only possible with people you follow.
@@ -1331,7 +1332,7 @@ Le texte ci-dessus promet ces comportements. L'app ne les tient pas encore.
 | 7 | Photos privées non accessibles sans connexion (Privacy §6) | Adresses publiques et devinables | Moyenne — le texte le dit honnêtement en attendant |
 | 8 | La date de naissance n'est pas modifiable à volonté | Elle l'est : métadonnées et profil acceptent une mise à jour par la personne elle-même | Moyenne — contourne toutes les règles d'âge |
 | 9 | Connexion Apple | Bouton factice | Bloquant pour l'iPhone |
-| 10 | Bloquer coupe la messagerie (Community, Moderation §5, Safety) | Le blocage empêche de **démarrer** une conversation, mais **pas d'écrire dans une conversation déjà ouverte** : la règle d'envoi ne regarde que si les deux comptes existent | **Haute — sécurité** : c'est l'outil qu'utilise une personne harcelée |
+| 10 | ~~Bloquer coupe la messagerie~~ | **Vérifié tenu le 2026-10-08** : la règle d'envoi et de lecture exclut les paires bloquées, conversations déjà ouvertes comprises. L'audit du même jour s'était trompé ; quatre tests le gardent désormais (`tests/rls/access_rules.sql`) | — |
 | 11 | Le délai d'annulation est annoncé **avant** l'achat (Refund §2) | Affiché seulement sur le billet, **après** l'achat | **Haute** — obligation d'information préalable (LPC Ontario et Québec) |
 | 12 | Les centres d'intérêt servent à quelque chose (Privacy §3.1) | Collectés et stockés, **utilisés nulle part** | Basse — mais la LPRPDE et la Loi 25 demandent de ne collecter que ce qui sert : les utiliser ou cesser de les demander |
 
