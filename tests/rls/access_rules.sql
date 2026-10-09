@@ -266,6 +266,10 @@ reset role;
 update legal_documents set version = 'Version 2.0' where slug = 'terms';
 select t.as_user('00000000-0000-0000-0000-00000000000c');
 select t.sees('select * from public.pending_legal_documents() where previously_accepted', 1, 'Consentement : une nouvelle version est re-presentee, comme une mise a jour');
+-- Le bug du 2026-10-09 : l'ecran de mise a jour n'envoie que le document qui
+-- a change ; l'exiger avec les autres bloquait « J'accepte » en boucle.
+select t.can_write($$select public.accept_legal_documents('{"terms":"Version 2.0"}')$$, 'Consentement : une mise a jour s''accepte sans renvoyer les documents inchanges');
+select t.fails_with($$select public.accept_legal_documents('{"privacy":"Version 1.2"}')$$, 'version_changed', 'Consentement : mais un document en attente ne peut pas manquer');
 reset role;
 select t.as_user('00000000-0000-0000-0000-00000000000b');
 select t.sees_nothing($$select * from user_legal_acceptances where user_id = '00000000-0000-0000-0000-00000000000c'$$, 'Consentement : on ne lit pas les acceptations des autres');

@@ -529,6 +529,8 @@
   "@consentStatement": {"placeholders": {"documents": {"type": "String"}}},
   "consentReadFull": "Read the full document",
   "consentMore": "Keep reading",
+  "consentCheckbox": "I have read and accept these documents.",
+  "consentNeedCheck": "Tick the box to accept.",
   "legalTerms": "Terms of Service",
   "legalPrivacy": "Privacy Policy",
   "legalCommunity": "Community Guidelines",

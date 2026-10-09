@@ -1572,6 +1572,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get consentMore => 'Lire la suite';
 
   @override
+  String get consentCheckbox => 'J\'ai lu et j\'accepte ces documents.';
+
+  @override
+  String get consentNeedCheck => 'Coche la case pour accepter.';
+
+  @override
   String get legalTerms => 'Conditions d\'utilisation';
 
   @override

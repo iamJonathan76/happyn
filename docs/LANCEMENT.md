@@ -298,9 +298,13 @@ accepté la version en vigueur des **conditions d'utilisation**, de la
 bref » de chaque document, tiré du document lui-même et dans la langue de
 l'app, avec un lien vers le texte complet ; puis, tout en bas et atteignable
 seulement en faisant défiler, une phrase qui nomme ce qu'on accepte (versions
-comprises) et le bouton « J'accepte ». Plus de case à cocher : le geste
-volontaire après une présentation claire suffit, et la doublait. Refuser = se
-déconnecter.
+comprises), une case à cocher, et le bouton « J'accepte », grisé tant que la
+case ne l'est pas. Refuser = se déconnecter.
+
+Corrigé le 2026-10-09 (`20261009060000`) : accepter une MISE À JOUR échouait
+en boucle — le serveur exigeait aussi les documents déjà acceptés et
+inchangés, que l'écran n'envoie pas. Seuls les documents en attente sont
+désormais exigés ; un test reproduit le cas.
 
 L'acceptation est écrite **par le serveur** (`accept_legal_documents`), avec
 son heure, et seulement pour les versions que l'écran a affichées — l'app ne

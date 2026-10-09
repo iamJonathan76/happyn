@@ -1554,6 +1554,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get consentMore => 'Keep reading';
 
   @override
+  String get consentCheckbox => 'I have read and accept these documents.';
+
+  @override
+  String get consentNeedCheck => 'Tick the box to accept.';
+
+  @override
   String get legalTerms => 'Terms of Service';
 
   @override

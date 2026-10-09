@@ -2828,6 +2828,18 @@ abstract class AppLocalizations {
   /// **'Keep reading'**
   String get consentMore;
 
+  /// No description provided for @consentCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read and accept these documents.'**
+  String get consentCheckbox;
+
+  /// No description provided for @consentNeedCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the box to accept.'**
+  String get consentNeedCheck;
+
   /// No description provided for @legalTerms.
   ///
   /// In en, this message translates to:

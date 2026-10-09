@@ -53,9 +53,9 @@ class PendingLegalDoc {
 /// du document lui-même, avec un lien vers le texte complet. Le bouton
 /// « J'accepte » est à la FIN du texte, pas flottant : on ne l'atteint qu'en
 /// l'ayant fait défiler, et juste au-dessus une phrase dit exactement ce qu'on
-/// accepte, versions comprises. Ce geste volontaire, après une présentation
-/// claire, est ce qui rend l'accord opposable — la case à cocher qui
-/// l'accompagnait faisait doublon.
+/// accepte, versions comprises, et une case à cocher qui active le bouton :
+/// deux gestes volontaires, après une présentation claire, plutôt qu'un
+/// simple « continuer ».
 ///
 /// Forcer à dérouler les documents COMPLETS (20 000 caractères) aurait été
 /// pire : on défile sans lire, et un défilement ne prouve pas une lecture.
@@ -77,6 +77,7 @@ class ConsentScreen extends ConsumerStatefulWidget {
 class _ConsentScreenState extends ConsumerState<ConsentScreen> {
   late List<PendingLegalDoc> _docs = widget.docs;
   final _scroll = ScrollController();
+  bool _checked = false;
   bool _saving = false;
 
   /// Arrivé en bas : la pastille « Lire la suite » disparaît. Vrai aussi
@@ -147,6 +148,10 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
 
   Future<void> _accept() async {
     final l = AppLocalizations.of(context);
+    if (!_checked) {
+      showAppSnack(context, l.consentNeedCheck);
+      return;
+    }
     setState(() => _saving = true);
     try {
       // La langue part avec l'accord : la base la note si une traduction de
@@ -167,6 +172,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
         if (!mounted) return;
         setState(() {
           if (fresh != null && fresh.isNotEmpty) _docs = fresh;
+          _checked = false; // l'accord portait sur un autre texte
           _saving = false;
         });
         if (_scroll.hasClients) _scroll.jumpTo(0);
@@ -234,7 +240,38 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                     style: AppText.bodySm
                         .copyWith(color: AppColors.textLow, height: 1.5),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  // Toute la ligne est cliquable : une case de 18 points
+                  // seule se rate au pouce.
+                  InkWell(
+                    onTap: _saving
+                        ? null
+                        : () => setState(() => _checked = !_checked),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: _checked,
+                            onChanged: _saving
+                                ? null
+                                : (v) => setState(() => _checked = v ?? false),
+                            activeColor: AppColors.primary,
+                            side: BorderSide(
+                                color: AppColors.textLow, width: 1.5),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(l.consentCheckbox,
+                                style: AppText.body
+                                    .copyWith(color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       // Refuser reste possible : on se déconnecte. Sans cette
@@ -248,7 +285,10 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                       const Spacer(),
                       GestureDetector(
                         onTap: _saving ? null : _accept,
-                        child: Container(
+                        child: AnimatedOpacity(
+                          opacity: _checked ? 1 : 0.4,
+                          duration: const Duration(milliseconds: 150),
+                          child: Container(
                           height: 52,
                           padding: const EdgeInsets.symmetric(horizontal: 28),
                           alignment: Alignment.center,
@@ -266,6 +306,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                               : Text(l.consentAccept,
                                   style:
                                       AppText.h4.copyWith(color: Colors.white)),
+                          ),
                         ),
                       ),
                     ],

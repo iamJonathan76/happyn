@@ -501,6 +501,8 @@
   "@consentStatement": {"placeholders": {"documents": {"type": "String"}}},
   "consentReadFull": "Lire le document complet",
   "consentMore": "Lire la suite",
+  "consentCheckbox": "J'ai lu et j'accepte ces documents.",
+  "consentNeedCheck": "Coche la case pour accepter.",
   "legalTerms": "Conditions d'utilisation",
   "legalPrivacy": "Politique de confidentialité",
   "legalCommunity": "Règles de la communauté",
