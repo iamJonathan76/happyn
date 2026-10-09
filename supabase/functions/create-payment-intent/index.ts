@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
   // Ventes fermées si l'event n'est pas publié ou est terminé
   const { data: evRow } = await admin
     .from("events")
-    .select("end_date, status, created_by, platform_fee_bps")
+    .select("end_date, status, created_by, platform_fee_bps, min_age")
     .eq("id", tt.event_id)
     .maybeSingle();
   if (evRow?.status && evRow.status !== "published") {
@@ -95,6 +95,24 @@ Deno.serve(async (req) => {
   }
   if (evRow?.end_date && new Date(evRow.end_date as string) < new Date()) {
     return jsonResponse({ error: "event_ended" }, 409);
+  }
+
+  // ── L'âge ──────────────────────────────────────────────────────────────────
+  //
+  // 18 ans pour tout achat, plus l'âge de l'événement s'il est plus élevé.
+  // L'app le vérifiait seule : un appel direct à cette fonction le
+  // contournait. Avant le paiement, pas après — rembourser un billet vendu à
+  // tort coûte des frais que personne ne récupère.
+  const { data: oldEnough, error: ageErr } = await admin.rpc("user_meets_age", {
+    p_user: user.id,
+    p_min: Number(evRow?.min_age ?? 0),
+  });
+  if (ageErr) {
+    console.error("user_meets_age:", ageErr.message);
+    return jsonResponse({ error: "check_failed" }, 500);
+  }
+  if (oldEnough !== true) {
+    return jsonResponse({ error: "age_restricted" }, 403);
   }
 
   // ── L'organisateur peut-il être payé ? ─────────────────────────────────────

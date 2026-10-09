@@ -12,8 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// L'inscription par e-mail la demande dans son formulaire ; celle par Google
 /// ne la demandait nulle part — Google ne la fournit pas. Ces comptes n'avaient
 /// donc pas d'âge, et toutes les règles qui en dépendent les laissaient
-/// passer : le minimum de 14 ans pour avoir un compte, l'âge minimum d'un
-/// événement, les 18 ans pour organiser. Cet écran passe avant tout le reste
+/// passer : les 18 ans pour avoir un compte, l'âge minimum d'un événement. Cet écran passe avant tout le reste
 /// tant que la date manque, y compris pour les comptes déjà créés.
 class BirthDateScreen extends StatefulWidget {
   const BirthDateScreen({super.key, required this.onDone});
@@ -76,6 +75,26 @@ class _BirthDateScreenState extends State<BirthDateScreen> {
       await client
           .from('profiles')
           .update({'date_of_birth': iso}).eq('id', client.auth.currentUser!.id);
+    } on PostgrestException catch (e, st) {
+      // Le profil avait déjà une date, figée par la base : c'est elle qui fait
+      // foi pour toutes les règles d'âge. Les métadonnées viennent d'être
+      // complétées ; on peut continuer.
+      if (e.message.contains('birth_date_locked')) {
+        if (mounted) widget.onDone(context);
+        return;
+      }
+      // La base refuse une date de moins de 18 ans, même si l'app l'a laissée
+      // passer (horloge du téléphone fausse, par exemple).
+      if (e.message.contains('under_minimum_age')) {
+        if (mounted) await _refuseTooYoung();
+        return;
+      }
+      reportCaught(e, st, where: 'birthDate.save');
+      if (mounted) {
+        setState(() => _saving = false);
+        showAppSnack(context, l.couldNotSaveRetry);
+      }
+      return;
     } catch (e, st) {
       reportCaught(e, st, where: 'birthDate.save');
       if (mounted) {
@@ -87,9 +106,9 @@ class _BirthDateScreenState extends State<BirthDateScreen> {
     if (mounted) widget.onDone(context);
   }
 
-  /// Moins de 14 ans : le compte est supprimé, pas seulement fermé. La
-  /// politique de confidentialité promet d'effacer ce qu'on détient sur un
-  /// enfant de moins de 14 ans — le nom et l'adresse reçus de Google compris.
+  /// Moins de 18 ans : le compte est supprimé, pas seulement fermé. HAPPYN ne
+  /// garde rien d'une personne qui n'a pas l'âge d'en avoir un — le nom et
+  /// l'adresse reçus de Google compris.
   Future<void> _refuseTooYoung() async {
     final l = AppLocalizations.of(context);
     await showDialog<void>(

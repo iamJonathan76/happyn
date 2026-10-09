@@ -2747,19 +2747,19 @@ abstract class AppLocalizations {
   /// No description provided for @dobWhy.
   ///
   /// In en, this message translates to:
-  /// **'HAPPYN is for people 14 and older, and some events have a minimum age. Your date of birth is never shown to anyone.'**
+  /// **'HAPPYN is for people 18 and older, and some events have a minimum age. Your date of birth is never shown to anyone, and can\'t be changed afterwards.'**
   String get dobWhy;
 
   /// No description provided for @dobTooYoungTitle.
   ///
   /// In en, this message translates to:
-  /// **'HAPPYN is for people 14 and older'**
+  /// **'HAPPYN is for people 18 and older'**
   String get dobTooYoungTitle;
 
   /// No description provided for @dobTooYoungBody.
   ///
   /// In en, this message translates to:
-  /// **'Accounts can\'t be opened before age 14. This one will be deleted, along with the information received at sign-up.'**
+  /// **'Accounts can\'t be opened before age 18. This one will be deleted, along with the information received at sign-up.'**
   String get dobTooYoungBody;
 
   /// No description provided for @dobTooYoungOk.

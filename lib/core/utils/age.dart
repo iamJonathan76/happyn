@@ -27,6 +27,8 @@ int? currentUserAge() => ageFromDob(currentUserDob());
 /// Âge minimum requis pour organiser / vendre des billets / recevoir des payouts.
 const int kMinOrganizerAge = 18;
 
-/// Âge minimum pour créer un compte HAPPYN (Loi 25 : dodge le consentement
-/// parental requis pour les moins de 14 ans au Québec).
-const int kMinAccountAge = 14;
+/// Âge minimum pour avoir un compte HAPPYN : la majorité, depuis le
+/// 2026-10-09 (14 ans avant). La règle qui compte est en base
+/// (`min_account_age()`, imposée par un déclencheur sur le profil) ; celle-ci
+/// sert à refuser plus tôt, avec un message, plutôt qu'à l'erreur du serveur.
+const int kMinAccountAge = 18;

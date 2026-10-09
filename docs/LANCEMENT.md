@@ -223,6 +223,31 @@ remet), et le remboursement automatique ou non d'un événement annulé.
 
 ---
 
+### 2.6 HAPPYN réservé aux 18 ans et plus — décidé le 2026-10-09
+
+Avant : un compte dès 14 ans, 18 ans pour organiser. Désormais **18 ans pour
+tout compte**, l'âge de la majorité en Ontario et au Québec — comme Eventbrite
+au Canada. Raisons : la messagerie privée entre mineurs et adultes inconnus,
+les soirées et l'alcool parmi « tous les événements », un achat de mineur
+annulable après coup, et une clause « le parent autorise » que rien ne
+vérifiait. Aucun compte de moins de 18 ans n'existait : le changement ne
+coûtait rien. Pour un événement familial, un parent achète le billet.
+
+Ce qui est imposé **par la base**, et plus seulement par l'app
+(`20261009020000_adults_only`, 13 tests) :
+
+- `min_account_age()` = 18 ; un profil avec une date plus récente est refusé,
+  y compris à l'inscription par l'API (la date saisie arrive maintenant dans
+  le profil dès la création) ;
+- la date de naissance est **figée** une fois donnée (correction possible
+  seulement par le serveur, sur demande au support) ;
+- créer un événement exige 18 ans ; l'âge minimum d'un événement (18+, 21+ ;
+  14+ et 16+ supprimés) est revérifié à l'émission d'un billet gratuit et
+  avant le paiement d'un billet payant ; sans date connue, pas de billet.
+
+Textes : conditions et confidentialité en **Version 1.1**
+(`20261009030000_legal_documents_adults`), ré-acceptées par chacun.
+
 ## 3. Avant de donner l'app à qui que ce soit
 
 ### 3.1 Le DSN Sentry — fait le 2026-10-08
@@ -308,12 +333,13 @@ lancement suivant les documents marqués `requires_acceptance`.
 
 **Toujours pas relus par un avocat, et en anglais seulement** — voir 3.4.
 
-### 3.4 La relecture légale
+### 3.4 La relecture légale et la version française
 
-Le brouillon complet est écrit (`docs/LEGAL-DRAFT.md`, 31 000 caractères contre
-7 300 pour les textes en ligne). Il reste à trancher les `[À DÉCIDER]` et à
-**faire relire par un avocat** admis en Ontario et à l'aise avec le droit
-québécois.
+Les textes en ligne (§ 3.3) n'ont pas été relus par un avocat, et n'existent
+qu'en anglais. Il reste à **faire relire** par un avocat admis en Ontario et à
+l'aise avec le droit québécois — les `[AVOCAT]` du recueil v2 disent par où
+commencer — puis à **traduire** : la version française est requise pour les
+consommateurs québécois. `legal_documents` n'a pas encore de colonne de langue.
 
 Les magasins d'applications exigent une politique de confidentialité
 accessible : c'est aussi un prérequis de publication, pas seulement une
@@ -560,15 +586,19 @@ Drive) : c'est ce qui avait corrompu `.git` avec 332 doublons « 2 ».
 
 ## Le chemin le plus court vers de vrais utilisateurs
 
-1. **Brancher Sentry** — avant que l'app quitte tes mains
-2. **Google Play, test interne** — 25 $, une soirée
-3. **Trancher 2.1 (le taux) et 2.3** — une soirée de réflexion
-4. **Activer Stripe Connect** — les 7 étapes du § 4, dont une seule dépend d'une
-   décision (le taux) ; le reste est de la configuration
-5. **Relecture légale** + les trois copies de textes à réconcilier
+Mis à jour le 2026-10-09. Fait depuis la version précédente de cette liste :
+Sentry, le nonce Google, les textes légaux publiés et acceptés explicitement,
+les règles d'âge tenues par la base.
 
-Les étapes 1, 2 et 4 peuvent se faire **cette semaine**. Le reste attend soit une
-décision, soit un avocat.
+1. **Google Play, test interne** — clé de signature et empreinte SHA-1 de
+   publication, écran de consentement Google en « Production » (§ 3.1 bis),
+   `google-services.json`, Play Console (25 $), bundle avec
+   `--dart-define-from-file`, symboles Sentry.
+2. **Les versements** — un premier versement surveillé, puis `pg_cron`, la
+   retenue de 5 jours (le code dit encore 3) et les vérifications du § 2.2.
+   Avant le premier événement payant d'un tiers. Décider aussi § 2.2 ter.
+3. **Relecture légale et version française** — § 3.4.
+4. **iOS** — compte Apple Developer, connexion Apple (sans elle, refus), APNs.
 
-Ensuite, et seulement ensuite : revenus/statistiques de l'organisateur, rappels
-avant événement, Sign in with Apple. Aucun des trois n'est cosmétique.
+Ensuite : revenus et statistiques de l'organisateur, rappels avant
+événement.

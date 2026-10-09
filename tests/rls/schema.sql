@@ -1446,17 +1446,17 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
  SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
+declare
+  v_dob date;
 begin
-  insert into public.profiles (
-    id,
-    email,
-    full_name
-  )
-  values (
-    new.id,
-    new.email,
-    new.raw_user_meta_data->>'full_name'
-  );
+  begin
+    v_dob := nullif(new.raw_user_meta_data->>'date_of_birth', '')::date;
+  exception when others then
+    v_dob := null;
+  end;
+
+  insert into public.profiles (id, email, full_name, date_of_birth)
+  values (new.id, new.email, new.raw_user_meta_data->>'full_name', v_dob);
 
   return new;
 end;
@@ -1473,6 +1473,13 @@ AS $function$
     false
   );
 $function$;
+
+CREATE OR REPLACE FUNCTION public.i_meet_age(p_min integer DEFAULT 0)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$ select public.user_meets_age(auth.uid(), p_min) $function$;
 
 CREATE OR REPLACE FUNCTION public.is_reserved_username(p text)
  RETURNS boolean
@@ -1517,6 +1524,7 @@ declare
   v_i         int;
   v_token     text;
   v_price     numeric;
+  v_min_age   integer;
 begin
   if v_user is null then raise exception 'not_authenticated'; end if;
   if p_quantity is null or p_quantity < 1 then
@@ -1543,10 +1551,17 @@ begin
     raise exception 'event_not_available';
   end if;
 
-  select end_date, status, title into v_end, v_status, v_title
+  select end_date, status, title, coalesce(min_age, 0)
+    into v_end, v_status, v_title, v_min_age
   from public.events where id = v_event;
 
   if v_status <> 'published' then raise exception 'event_not_available'; end if;
+  -- Depuis le 2026-10-09, aussi verifie ici et plus seulement dans l'app :
+  -- un appel direct a cette fonction contournait l'age minimum d'un
+  -- evenement. Sans date de naissance connue, pas de billet non plus.
+  if not public.user_meets_age(v_user, v_min_age) then
+    raise exception 'age_restricted';
+  end if;
   if v_end is not null and v_end < now() then raise exception 'event_ended'; end if;
   if p_quantity > v_max then raise exception 'exceeds_max_per_order'; end if;
   if v_remaining < p_quantity then raise exception 'insufficient_stock'; end if;
@@ -1636,6 +1651,13 @@ begin
   );
 end;
 $function$;
+
+CREATE OR REPLACE FUNCTION public.min_account_age()
+ RETURNS integer
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public'
+AS $function$ select 18 $function$;
 
 CREATE OR REPLACE FUNCTION public.my_attachable_events()
  RETURNS SETOF events
@@ -2094,6 +2116,30 @@ AS $function$
     )
   order by f.created_at desc
   limit 500;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.profiles_guard_birth_date()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public'
+AS $function$
+begin
+  -- Figée une fois connue, sauf pour le serveur (correction d'une erreur
+  -- signalée au support). `current_user` et non `auth.role()` : c'est le rôle
+  -- réellement en cours, celui qu'on ne peut pas prétendre.
+  if tg_op = 'UPDATE'
+     and old.date_of_birth is not null
+     and new.date_of_birth is distinct from old.date_of_birth
+     and current_user in ('authenticated', 'anon') then
+    raise exception 'birth_date_locked';
+  end if;
+
+  if new.date_of_birth is not null
+     and new.date_of_birth > (current_date - make_interval(years => public.min_account_age()))::date then
+    raise exception 'under_minimum_age';
+  end if;
+  return new;
+end;
 $function$;
 
 CREATE OR REPLACE FUNCTION public.profiles_guard_suspension()
@@ -2762,6 +2808,20 @@ AS $function$
   );
 $function$;
 
+CREATE OR REPLACE FUNCTION public.user_meets_age(p_user uuid, p_min integer DEFAULT 0)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select coalesce((
+    select p.date_of_birth
+             <= (current_date - make_interval(
+                   years => greatest(coalesce(p_min, 0), public.min_account_age())))::date
+    from public.profiles p where p.id = p_user
+  ), false)
+$function$;
+
 CREATE OR REPLACE FUNCTION public.username_status(p text)
  RETURNS text
  LANGUAGE plpgsql
@@ -3059,7 +3119,7 @@ alter table public."events" add constraint "event_ends_after_start" CHECK (((end
 
 alter table public."events" add constraint "events_cancellation_hours_check" CHECK (((cancellation_hours >= 0) AND (cancellation_hours <= 720)));
 
-alter table public."events" add constraint "events_min_age_check" CHECK ((min_age = ANY (ARRAY[0, 14, 16, 18, 21])));
+alter table public."events" add constraint "events_min_age_check" CHECK ((min_age = ANY (ARRAY[0, 18, 21])));
 
 alter table public."events" add constraint "events_posts_visibility_check" CHECK ((posts_visibility = ANY (ARRAY['invitees'::text, 'public'::text])));
 
@@ -3291,6 +3351,8 @@ CREATE TRIGGER events_guard_cancellation BEFORE UPDATE OF status ON public.event
 
 CREATE TRIGGER profiles_guard_suspension BEFORE UPDATE OF suspended_at ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_guard_suspension();
 
+CREATE TRIGGER profiles_guard_birth_date BEFORE INSERT OR UPDATE OF date_of_birth ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_guard_birth_date();
+
 alter table public."profiles" enable row level security;
 
 alter table public."events" enable row level security;
@@ -3343,113 +3405,103 @@ alter table public."payments" enable row level security;
 
 alter table public."post_comments" enable row level security;
 
+create policy "Users can view own profile" on public."profiles" as permissive for select to public using ((auth.uid() = id));
+
 create policy "Users can insert own profile" on public."profiles" as permissive for insert to public with check ((auth.uid() = id));
 
 create policy "Users can update own profile" on public."profiles" as permissive for update to public using ((auth.uid() = id));
 
-create policy "Users can view own profile" on public."profiles" as permissive for select to public using ((auth.uid() = id));
-
-create policy "own profile insert" on public."profiles" as permissive for insert to authenticated with check ((auth.uid() = id));
-
-create policy "own profile select" on public."profiles" as permissive for select to authenticated using ((auth.uid() = id));
-
-create policy "own profile update" on public."profiles" as permissive for update to authenticated using ((auth.uid() = id));
-
-create policy "Authenticated users can create events" on public."events" as permissive for insert to authenticated with check (((auth.uid() = created_by) AND (NOT is_suspended())));
-
-create policy "Users can delete own events" on public."events" as permissive for delete to authenticated using ((auth.uid() = created_by));
-
-create policy "Users can update own events" on public."events" as permissive for update to authenticated using ((auth.uid() = created_by));
-
-create policy "events readable" on public."events" as permissive for select to authenticated, anon using ((((COALESCE(visibility, 'public'::text) = 'public'::text) AND (COALESCE(status, 'published'::text) <> 'draft'::text)) OR (created_by = auth.uid()) OR user_holds_ticket_for(id)));
-
-create policy "Anyone can view ticket types" on public."ticket_types" as permissive for select to authenticated, anon using (event_is_readable(event_id));
-
-create policy "Organizers can manage ticket types" on public."ticket_types" as permissive for all to authenticated using ((auth.uid() = ( SELECT e.created_by
-   FROM events e
-  WHERE (e.id = ticket_types.event_id))));
-
-create policy "Users see their own tickets" on public."tickets" as permissive for select to authenticated using ((auth.uid() = user_id));
-
 create policy "Public can read categories" on public."categories" as permissive for select to public using (true);
-
-create policy "categories are public" on public."categories" as permissive for select to public using (true);
-
-create policy "own reports insert" on public."reports" as permissive for insert to authenticated with check ((auth.uid() = reporter_id));
-
-create policy "own reports select" on public."reports" as permissive for select to authenticated using ((auth.uid() = reporter_id));
-
-create policy "own blocks delete" on public."blocked_users" as permissive for delete to authenticated using ((auth.uid() = blocker_id));
-
-create policy "own blocks insert" on public."blocked_users" as permissive for insert to authenticated with check ((auth.uid() = blocker_id));
-
-create policy "own blocks select" on public."blocked_users" as permissive for select to authenticated using ((auth.uid() = blocker_id));
-
-create policy "legal readable by all" on public."legal_documents" as permissive for select to authenticated, anon using (true);
-
-create policy "follows readable" on public."follows" as permissive for select to authenticated, anon using (true);
-
-create policy "own follows delete" on public."follows" as permissive for delete to authenticated using ((auth.uid() = follower_id));
-
-create policy "own follows insert" on public."follows" as permissive for insert to authenticated with check ((auth.uid() = follower_id));
 
 create policy "own acceptances select" on public."user_legal_acceptances" as permissive for select to authenticated using ((auth.uid() = user_id));
 
-create policy "addresses readable when allowed" on public."event_addresses" as permissive for select to authenticated, anon using (can_see_exact_address(event_id));
-
-create policy "organizer writes address" on public."event_addresses" as permissive for all to authenticated using ((auth.uid() = ( SELECT e.created_by
-   FROM events e
-  WHERE (e.id = event_addresses.event_id))));
-
-create policy "likes readable" on public."post_likes" as permissive for select to authenticated using ((EXISTS ( SELECT 1
-   FROM posts p
-  WHERE ((p.id = post_likes.post_id) AND (event_posts_are_public(p.event_id) OR can_attach_event(p.event_id))))));
-
-create policy "own likes delete" on public."post_likes" as permissive for delete to authenticated using ((auth.uid() = user_id));
-
 create policy "own likes insert" on public."post_likes" as permissive for insert to authenticated with check ((auth.uid() = user_id));
 
-create policy "own posts delete" on public."posts" as permissive for delete to authenticated using ((auth.uid() = author_id));
-
-create policy "own posts insert" on public."posts" as permissive for insert to authenticated with check (((auth.uid() = author_id) AND can_attach_event(event_id) AND (NOT is_suspended())));
-
-create policy "own posts update" on public."posts" as permissive for update to authenticated using (((auth.uid() = author_id) AND (NOT is_suspended()))) with check (((auth.uid() = author_id) AND (NOT is_suspended())));
-
-create policy "posts readable" on public."posts" as permissive for select to authenticated using ((event_posts_are_public(event_id) OR can_attach_event(event_id)));
-
-create policy "own favorites delete" on public."favorites" as permissive for delete to authenticated using ((auth.uid() = user_id));
-
-create policy "own favorites insert" on public."favorites" as permissive for insert to authenticated with check ((auth.uid() = user_id));
+create policy "categories are public" on public."categories" as permissive for select to public using (true);
 
 create policy "own favorites select" on public."favorites" as permissive for select to authenticated using ((auth.uid() = user_id));
 
-create policy "cities readable" on public."cities" as permissive for select to authenticated, anon using (true);
+create policy "own favorites insert" on public."favorites" as permissive for insert to authenticated with check ((auth.uid() = user_id));
 
-create policy "own unlocks readable" on public."event_unlocks" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "own stripe account read" on public."stripe_accounts" as permissive for select to authenticated using ((auth.uid() = user_id));
+create policy "own favorites delete" on public."favorites" as permissive for delete to authenticated using ((auth.uid() = user_id));
 
 create policy "own notifs select" on public."notifications" as permissive for select to authenticated using ((auth.uid() = user_id));
 
 create policy "own notifs update" on public."notifications" as permissive for update to authenticated using ((auth.uid() = user_id));
 
+create policy "own profile select" on public."profiles" as permissive for select to authenticated using ((auth.uid() = id));
+
+create policy "own profile insert" on public."profiles" as permissive for insert to authenticated with check ((auth.uid() = id));
+
+create policy "own profile update" on public."profiles" as permissive for update to authenticated using ((auth.uid() = id));
+
+create policy "legal readable by all" on public."legal_documents" as permissive for select to authenticated, anon using (true);
+
+create policy "addresses readable when allowed" on public."event_addresses" as permissive for select to authenticated, anon using (can_see_exact_address(event_id));
+
+create policy "own reports insert" on public."reports" as permissive for insert to authenticated with check ((auth.uid() = reporter_id));
+
+create policy "own reports select" on public."reports" as permissive for select to authenticated using ((auth.uid() = reporter_id));
+
+create policy "own blocks select" on public."blocked_users" as permissive for select to authenticated using ((auth.uid() = blocker_id));
+
+create policy "own blocks insert" on public."blocked_users" as permissive for insert to authenticated with check ((auth.uid() = blocker_id));
+
+create policy "own blocks delete" on public."blocked_users" as permissive for delete to authenticated using ((auth.uid() = blocker_id));
+
+create policy "follows readable" on public."follows" as permissive for select to authenticated, anon using (true);
+
+create policy "own follows insert" on public."follows" as permissive for insert to authenticated with check ((auth.uid() = follower_id));
+
+create policy "own follows delete" on public."follows" as permissive for delete to authenticated using ((auth.uid() = follower_id));
+
+create policy "own posts delete" on public."posts" as permissive for delete to authenticated using ((auth.uid() = author_id));
+
+create policy "own likes delete" on public."post_likes" as permissive for delete to authenticated using ((auth.uid() = user_id));
+
 create policy "own attendance select" on public."event_attendance" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "delete by exact token" on public."device_tokens" as permissive for delete to authenticated using (true);
-
-create policy "own tokens select" on public."device_tokens" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "own tokens update" on public."device_tokens" as permissive for update to authenticated using ((auth.uid() = user_id));
 
 create policy "own tokens upsert" on public."device_tokens" as permissive for insert to authenticated with check ((auth.uid() = user_id));
 
+create policy "own tokens update" on public."device_tokens" as permissive for update to authenticated using ((auth.uid() = user_id));
+
+create policy "delete by exact token" on public."device_tokens" as permissive for delete to authenticated using (true);
+
+create policy "Users can update own events" on public."events" as permissive for update to authenticated using ((auth.uid() = created_by));
+
+create policy "Users can delete own events" on public."events" as permissive for delete to authenticated using ((auth.uid() = created_by));
+
+create policy "Users see their own tickets" on public."tickets" as permissive for select to authenticated using ((auth.uid() = user_id));
+
+create policy "Organizers can manage ticket types" on public."ticket_types" as permissive for all to authenticated using ((auth.uid() = ( SELECT e.created_by
+   FROM events e
+  WHERE (e.id = ticket_types.event_id))));
+
+create policy "own unlocks readable" on public."event_unlocks" as permissive for select to authenticated using ((auth.uid() = user_id));
+
+create policy "Anyone can view ticket types" on public."ticket_types" as permissive for select to authenticated, anon using (event_is_readable(event_id));
+
+create policy "own posts insert" on public."posts" as permissive for insert to authenticated with check (((auth.uid() = author_id) AND can_attach_event(event_id) AND (NOT is_suspended())));
+
+create policy "own tokens select" on public."device_tokens" as permissive for select to authenticated using ((auth.uid() = user_id));
+
+create policy "organizer writes address" on public."event_addresses" as permissive for all to authenticated using ((auth.uid() = ( SELECT e.created_by
+   FROM events e
+  WHERE (e.id = event_addresses.event_id))));
+
+create policy "cities readable" on public."cities" as permissive for select to authenticated, anon using (true);
+
+create policy "own posts update" on public."posts" as permissive for update to authenticated using (((auth.uid() = author_id) AND (NOT is_suspended()))) with check (((auth.uid() = author_id) AND (NOT is_suspended())));
+
+create policy "own stripe account read" on public."stripe_accounts" as permissive for select to authenticated using ((auth.uid() = user_id));
+
 create policy "own payouts read" on public."event_payouts" as permissive for select to authenticated using ((auth.uid() = organizer_id));
+
+create policy "conversation participants can read" on public."direct_conversations" as permissive for select to authenticated using (can_access_direct_conversation(id));
 
 create policy "conversation participants can read messages" on public."direct_messages" as permissive for select to authenticated using (can_access_direct_conversation(conversation_id));
 
 create policy "conversation participants can send messages" on public."direct_messages" as permissive for insert to authenticated with check (((sender_id = auth.uid()) AND can_access_direct_conversation(conversation_id) AND direct_conversation_is_open(conversation_id)));
-
-create policy "conversation participants can read" on public."direct_conversations" as permissive for select to authenticated using (can_access_direct_conversation(id));
 
 create policy "comments readable" on public."post_comments" as permissive for select to authenticated using (((EXISTS ( SELECT 1
    FROM posts p
@@ -3462,6 +3514,16 @@ create policy "own comments insert" on public."post_comments" as permissive for 
 create policy "own or post author comments delete" on public."post_comments" as permissive for delete to authenticated using (((author_id = auth.uid()) OR (EXISTS ( SELECT 1
    FROM posts p
   WHERE ((p.id = post_comments.post_id) AND (p.author_id = auth.uid()))))));
+
+create policy "events readable" on public."events" as permissive for select to authenticated, anon using ((((COALESCE(visibility, 'public'::text) = 'public'::text) AND (COALESCE(status, 'published'::text) <> 'draft'::text)) OR (created_by = auth.uid()) OR user_holds_ticket_for(id)));
+
+create policy "posts readable" on public."posts" as permissive for select to authenticated using ((event_posts_are_public(event_id) OR can_attach_event(event_id)));
+
+create policy "likes readable" on public."post_likes" as permissive for select to authenticated using ((EXISTS ( SELECT 1
+   FROM posts p
+  WHERE ((p.id = post_likes.post_id) AND (event_posts_are_public(p.event_id) OR can_attach_event(p.event_id))))));
+
+create policy "Authenticated users can create events" on public."events" as permissive for insert to authenticated with check (((auth.uid() = created_by) AND (NOT is_suspended()) AND i_meet_age(18)));
 
 -- Droits : on part de zero, puis on rejoue exactement ceux de la production.
 
@@ -3937,6 +3999,10 @@ grant execute on function cancellation_fee_cents(bigint) to authenticated;
 
 grant execute on function cancellation_fee_cents(bigint) to service_role;
 
+revoke all on function user_meets_age(uuid,integer) from public, anon, authenticated, service_role;
+
+grant execute on function user_meets_age(uuid,integer) to service_role;
+
 revoke all on function can_see_exact_address(uuid) from public, anon, authenticated, service_role;
 
 grant execute on function can_see_exact_address(uuid) to anon;
@@ -4071,6 +4137,14 @@ revoke all on function private.setting(text) from public, anon, authenticated, s
 
 revoke all on function private.push_notification() from public, anon, authenticated, service_role;
 
+revoke all on function profiles_guard_birth_date() from public, anon, authenticated, service_role;
+
+grant execute on function profiles_guard_birth_date() to anon;
+
+grant execute on function profiles_guard_birth_date() to authenticated;
+
+grant execute on function profiles_guard_birth_date() to service_role;
+
 revoke all on function delete_my_account_data() from public, anon, authenticated, service_role;
 
 grant execute on function delete_my_account_data() to authenticated;
@@ -4123,12 +4197,6 @@ grant execute on function my_payouts() to authenticated;
 
 grant execute on function my_payouts() to service_role;
 
-revoke all on function issue_tickets(uuid,integer) from public, anon, authenticated, service_role;
-
-grant execute on function issue_tickets(uuid,integer) to authenticated;
-
-grant execute on function issue_tickets(uuid,integer) to service_role;
-
 revoke all on function posts_mark_edited() from public, anon, authenticated, service_role;
 
 grant execute on function posts_mark_edited() to anon;
@@ -4162,5 +4230,23 @@ revoke all on function accept_legal_documents(jsonb) from public, anon, authenti
 grant execute on function accept_legal_documents(jsonb) to authenticated;
 
 grant execute on function accept_legal_documents(jsonb) to service_role;
+
+revoke all on function min_account_age() from public, anon, authenticated, service_role;
+
+grant execute on function min_account_age() to authenticated;
+
+grant execute on function min_account_age() to service_role;
+
+revoke all on function i_meet_age(integer) from public, anon, authenticated, service_role;
+
+grant execute on function i_meet_age(integer) to authenticated;
+
+grant execute on function i_meet_age(integer) to service_role;
+
+revoke all on function issue_tickets(uuid,integer) from public, anon, authenticated, service_role;
+
+grant execute on function issue_tickets(uuid,integer) to authenticated;
+
+grant execute on function issue_tickets(uuid,integer) to service_role;
 
 grant usage on schema public to anon, authenticated, service_role;

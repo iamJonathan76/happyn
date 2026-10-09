@@ -850,8 +850,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         runSpacing: 8,
                         children: [
                           _ageChip(0, l.allAges),
-                          _ageChip(14, '14+'),
-                          _ageChip(16, '16+'),
                           _ageChip(18, '18+'),
                           _ageChip(21, '21+'),
                         ],

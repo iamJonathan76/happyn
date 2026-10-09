@@ -7,7 +7,7 @@
 -- Personnages :
 --   Alice  (…0a) organisatrice, adulte
 --   Bruno  (…0b) participant, adulte, suit Alice ; Alice le suit aussi
---   Chloe  (…0c) 16 ans
+--   Chloe  (…0c) 19 ans : majeure, mais sous les 21 ans d'une soiree 21+
 --   Eve    (…0e) bloquee par Alice
 --   Sam    (…05) compte suspendu
 --   Modo   (…ad) moderateur
@@ -25,7 +25,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000ad', 'modo@test.local',  '{"full_name":"Modo"}');
 
 update profiles set date_of_birth = date '1990-01-01';
-update profiles set date_of_birth = (current_date - interval '16 years')::date
+update profiles set date_of_birth = (current_date - interval '19 years')::date
  where id = '00000000-0000-0000-0000-00000000000c';
 update profiles set suspended_at = now()
  where id = '00000000-0000-0000-0000-000000000005';
@@ -42,7 +42,7 @@ insert into events (id, title, created_by, status, visibility, start_date, end_d
   ('00000000-0000-0000-0000-0000000000e1', 'Public',    '00000000-0000-0000-0000-00000000000a', 'published', 'public',  now() + interval '10 days', now() + interval '11 days', 'public',   null, 0),
   ('00000000-0000-0000-0000-0000000000e2', 'Prive',     '00000000-0000-0000-0000-00000000000a', 'published', 'private', now() + interval '10 days', now() + interval '11 days', 'invitees', 'CODE-SECRET-42', 0),
   ('00000000-0000-0000-0000-0000000000e3', 'Brouillon', '00000000-0000-0000-0000-00000000000a', 'draft',     'public',  now() + interval '10 days', now() + interval '11 days', 'public',   null, 0),
-  ('00000000-0000-0000-0000-0000000000e4', 'Soiree 18+','00000000-0000-0000-0000-00000000000a', 'published', 'public',  now() + interval '10 days', now() + interval '11 days', 'public',   null, 18);
+  ('00000000-0000-0000-0000-0000000000e4', 'Soiree 21+','00000000-0000-0000-0000-00000000000a', 'published', 'public',  now() + interval '10 days', now() + interval '11 days', 'public',   null, 21);
 
 insert into event_addresses (event_id, address_line) values
   ('00000000-0000-0000-0000-0000000000e2', '12 rue Secrete');
@@ -269,4 +269,37 @@ select t.sees('select * from public.pending_legal_documents() where previously_a
 reset role;
 select t.as_user('00000000-0000-0000-0000-00000000000b');
 select t.sees_nothing($$select * from user_legal_acceptances where user_id = '00000000-0000-0000-0000-00000000000c'$$, 'Consentement : on ne lit pas les acceptations des autres');
+reset role;
+
+-- HAPPYN reserve aux 18 ans et plus, et les regles d'age tenues par la base
+reset role;
+-- Zoe : compte cree sans date de naissance (inscription Google, avant l'ecran
+-- qui la demande). Yann : inscription par e-mail, date dans les metadonnees.
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000000f0', 'zoe@test.local',  '{"full_name":"Zoe"}'),
+  ('00000000-0000-0000-0000-0000000000f9', 'yann@test.local', '{"full_name":"Yann","date_of_birth":"1995-05-05"}');
+select t.record(
+  (select date_of_birth = date '1995-05-05' from profiles where id = '00000000-0000-0000-0000-0000000000f9'),
+  'Age : la date saisie a l''inscription arrive dans le profil des la creation');
+select t.fails_with($$insert into auth.users (id, email, raw_user_meta_data) values (gen_random_uuid(), 'ado@test.local', jsonb_build_object('full_name','Ado','date_of_birth', (current_date - interval '16 years')::date::text))$$,
+  'under_minimum_age', 'Age : un compte de moins de 18 ans ne peut pas etre cree, meme par l''API');
+
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.fails_with($$update profiles set date_of_birth = date '1980-01-01' where id = auth.uid()$$, 'birth_date_locked', 'Age : la date de naissance est figee une fois donnee');
+select t.cannot_write($$insert into events (title, created_by, status, start_date, end_date, min_age) values ('Ados', auth.uid(), 'draft', now() + interval '5 days', now() + interval '6 days', 16)$$, 'Age : plus d''evenement 14+ ou 16+');
+select t.can_write($$select public.issue_tickets('00000000-0000-0000-0000-0000000000f5', 1)$$, 'Age : un compte de 36 ans entre a une soiree 21+');
+reset role;
+select t.as_user('00000000-0000-0000-0000-0000000000f0');
+select t.can_write($$update profiles set date_of_birth = date '2000-02-02' where id = auth.uid()$$, 'Age : une date manquante peut etre donnee une premiere fois');
+select t.fails_with($$update profiles set date_of_birth = (current_date - interval '15 years')::date where id = auth.uid()$$, 'under_minimum_age', 'Age : une date de moins de 18 ans est refusee par la base');
+select t.fails_with($$select public.issue_tickets('00000000-0000-0000-0000-0000000000f1', 1)$$, 'age_restricted', 'Age : sans date de naissance connue, pas de billet');
+select t.cannot_write($$insert into events (title, created_by, status, start_date, end_date) values ('Sans age', auth.uid(), 'draft', now() + interval '5 days', now() + interval '6 days')$$, 'Age : sans date de naissance connue, pas d''evenement');
+select t.fails_with('select public.user_meets_age(''00000000-0000-0000-0000-00000000000a'', 21)', 'permission denied', 'Age : on ne sonde pas l''age des autres');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000c');
+select t.fails_with($$select public.issue_tickets('00000000-0000-0000-0000-0000000000f5', 1)$$, 'age_restricted', 'Age : a 19 ans, pas de billet pour une soiree 21+, meme par l''API');
+select t.can_write($$insert into events (title, created_by, status, start_date, end_date) values ('Majeure', auth.uid(), 'draft', now() + interval '5 days', now() + interval '6 days')$$, 'Age : a 19 ans, on peut organiser');
+reset role;
+select t.as_server();
+select t.can_write($$update profiles set date_of_birth = date '1991-01-01' where id = '00000000-0000-0000-0000-00000000000e'$$, 'Age : le serveur peut corriger une date (demande au support)');
 reset role;

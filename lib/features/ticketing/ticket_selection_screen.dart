@@ -229,6 +229,13 @@ class _TicketSelectionScreenState
     } catch (e) {
       if (mounted) {
         final msg = e.toString();
+        // Refusé par le serveur, qui revérifie l'âge : même explication que
+        // le contrôle de l'app, plutôt qu'un « quelque chose s'est mal passé ».
+        if (msg.contains('age_restricted')) {
+          final eventMin = (widget.event['min_age'] as num?)?.toInt() ?? 0;
+          _showAgeBlocked(eventMin > kMinAccountAge ? eventMin : kMinAccountAge);
+          return;
+        }
         // `organizer_not_payable` : l'organisateur n'a pas terminé son
         // inscription Stripe, donc HAPPYN encaisserait un argent qu'il ne
         // pourrait pas lui reverser. L'acheteur n'a rien fait de mal et n'a rien

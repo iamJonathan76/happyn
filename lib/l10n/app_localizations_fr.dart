@@ -1524,14 +1524,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dobWhy =>
-      'HAPPYN est réservé aux 14 ans et plus, et certains événements ont un âge minimum. Ta date de naissance n\'est jamais visible des autres.';
+      'HAPPYN est réservé aux 18 ans et plus, et certains événements ont un âge minimum. Ta date de naissance n\'est jamais visible des autres, et elle ne peut plus être modifiée ensuite.';
 
   @override
-  String get dobTooYoungTitle => 'HAPPYN est réservé aux 14 ans et plus';
+  String get dobTooYoungTitle => 'HAPPYN est réservé aux 18 ans et plus';
 
   @override
   String get dobTooYoungBody =>
-      'On ne peut pas ouvrir de compte avant 14 ans. Celui-ci va être supprimé, avec les informations reçues lors de l\'inscription.';
+      'On ne peut pas ouvrir de compte avant 18 ans. Celui-ci va être supprimé, avec les informations reçues lors de l\'inscription.';
 
   @override
   String get dobTooYoungOk => 'Compris';

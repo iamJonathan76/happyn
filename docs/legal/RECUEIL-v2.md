@@ -1,5 +1,9 @@
 # HAPPYN — Recueil légal, version 2 · BROUILLON, non publié
 
+> **2026-10-09 — HAPPYN passe à 18 ans et plus.** Tout ce qui suit sur les
+> comptes de 14 à 17 ans est caduc ; les textes publiés (Version 1.1 des
+> conditions et de la confidentialité) le reflètent. Voir LANCEMENT § 2.6.
+>
 > **Statut :** document de travail. Sa version publiable est **en ligne depuis
 > le 2026-10-09 sous le numéro « Version 1.0 »** (migration
 > `20261009010000_legal_documents_v1.sql`), sans les notes et sans les
@@ -1351,13 +1355,13 @@ Le texte ci-dessus promet ces comportements. L'app ne les tient pas encore.
 | # | Promesse du texte | État dans l'app | Gravité |
 |---|---|---|---|
 | 1 | ~~Les conditions acceptées sont enregistrées, une nouvelle version re-présentée~~ | **Fait le 2026-10-09** : écran de consentement (case + bouton) avant toute autre étape, acceptation enregistrée par le serveur pour la version affichée, re-présentation automatique quand une version change. Migration `20261009000000_legal_acceptance`, 9 tests. Reste manuel : prévenir 30 jours avant un changement important | — |
-| 2 | L'âge minimum d'un événement bloque l'achat (Terms §2, Safety) | Vérifié **par l'app seulement** ; ni `create-payment-intent` ni `issue_tickets` ne le revérifient | Moyenne |
-| 3 | 18 ans pour créer un événement (Terms §2, Organizer §1) | Vérifié **par l'app seulement** ; la règle d'insertion des événements ne regarde pas l'âge | Moyenne |
+| 2 | ~~L'âge minimum d'un événement bloque l'achat~~ | **Fait le 2026-10-09** : revérifié par `issue_tickets` (gratuit) et `create-payment-intent` (payant), sans date de naissance connue pas de billet | — |
+| 3 | ~~18 ans pour créer un événement~~ | **Fait le 2026-10-09** : règle d'insertion des événements (`i_meet_age(18)`) | — |
 | 4 | Durées de conservation (Retention) | **Aucune purge** ; pg_cron absent | Haute si les durées restent écrites |
 | 5 | Contenu illégal masqué mais **préservé** (Moderation §3) | Retirer une publication la **supprime** | Haute — obligation légale |
 | 6 | Versements après retenue, vérifications (Payments §5) | Rien d'exécuté ; retenue à **3 jours** dans le code contre 5 décidés | Haute avant toute vente payante réelle |
 | 7 | Photos privées non accessibles sans connexion (Privacy §6) | Adresses publiques et devinables | Moyenne — le texte le dit honnêtement en attendant |
-| 8 | La date de naissance n'est pas modifiable à volonté | Elle l'est : métadonnées et profil acceptent une mise à jour par la personne elle-même | Moyenne — contourne toutes les règles d'âge |
+| 8 | ~~La date de naissance n'est pas modifiable à volonté~~ | **Fait le 2026-10-09** : figée par un déclencheur une fois donnée, sauf correction par le serveur | — |
 | 9 | Connexion Apple | Bouton factice | Bloquant pour l'iPhone |
 | 10 | ~~Bloquer coupe la messagerie~~ | **Vérifié tenu le 2026-10-08** : la règle d'envoi et de lecture exclut les paires bloquées, conversations déjà ouvertes comprises. L'audit du même jour s'était trompé ; quatre tests le gardent désormais (`tests/rls/access_rules.sql`) | — |
 | 11 | ~~Le délai d'annulation est annoncé avant l'achat~~ | **Fait le 2026-10-08** : délai et frais de service affichés au-dessus du bouton de paiement, rappelés sur le billet et dans la confirmation d'annulation | — |
