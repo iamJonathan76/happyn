@@ -2768,6 +2768,84 @@ abstract class AppLocalizations {
   /// **'Got it'**
   String get dobTooYoungOk;
 
+  /// No description provided for @consentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you start'**
+  String get consentTitle;
+
+  /// No description provided for @consentTitleUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Our terms have changed'**
+  String get consentTitleUpdate;
+
+  /// No description provided for @consentIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'These documents are the agreement between you and HAPPYN: what you can do on the app, what we do with your information, and the community rules. Take the time to read them.'**
+  String get consentIntro;
+
+  /// No description provided for @consentIntroUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version is in effect. Read what changed, then accept it to keep using HAPPYN.'**
+  String get consentIntroUpdate;
+
+  /// No description provided for @consentCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read and accept these documents.'**
+  String get consentCheckbox;
+
+  /// No description provided for @consentAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept and continue'**
+  String get consentAccept;
+
+  /// No description provided for @consentRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get consentRead;
+
+  /// No description provided for @consentNeedCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the box to accept.'**
+  String get consentNeedCheck;
+
+  /// No description provided for @consentVersionChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'A document was just updated. Read it again before accepting.'**
+  String get consentVersionChanged;
+
+  /// No description provided for @consentUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get consentUpdated;
+
+  /// No description provided for @legalTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get legalTerms;
+
+  /// No description provided for @legalPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get legalPrivacy;
+
+  /// No description provided for @legalCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Guidelines'**
+  String get legalCommunity;
+
   /// No description provided for @getDirections.
   ///
   /// In en, this message translates to:

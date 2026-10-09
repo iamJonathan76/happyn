@@ -1537,6 +1537,48 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dobTooYoungOk => 'Compris';
 
   @override
+  String get consentTitle => 'Avant de commencer';
+
+  @override
+  String get consentTitleUpdate => 'Nos conditions ont changé';
+
+  @override
+  String get consentIntro =>
+      'Ces documents forment l\'accord entre toi et HAPPYN : ce que tu peux faire sur l\'app, ce que nous faisons de tes informations, et les règles de la communauté. Prends le temps de les lire.';
+
+  @override
+  String get consentIntroUpdate =>
+      'Une nouvelle version est en vigueur. Lis ce qui a changé, puis accepte-la pour continuer à utiliser HAPPYN.';
+
+  @override
+  String get consentCheckbox => 'J\'ai lu et j\'accepte ces documents.';
+
+  @override
+  String get consentAccept => 'Accepter et continuer';
+
+  @override
+  String get consentRead => 'Lire';
+
+  @override
+  String get consentNeedCheck => 'Coche la case pour accepter.';
+
+  @override
+  String get consentVersionChanged =>
+      'Un document vient d\'être mis à jour. Relis-le avant d\'accepter.';
+
+  @override
+  String get consentUpdated => 'Mis à jour';
+
+  @override
+  String get legalTerms => 'Conditions d\'utilisation';
+
+  @override
+  String get legalPrivacy => 'Politique de confidentialité';
+
+  @override
+  String get legalCommunity => 'Règles de la communauté';
+
+  @override
   String get getDirections => 'Itinéraire';
 
   @override

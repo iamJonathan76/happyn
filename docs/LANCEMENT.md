@@ -264,6 +264,26 @@ donne son empreinte SHA-256 à Google et la valeur brute à Supabase
 Supabase, et la connexion Google a été vérifiée sur appareil ensuite. Un jeton
 Google qui fuirait ne peut plus être rejoué pour ouvrir une session.
 
+### 3.2 bis Le consentement aux conditions — enregistré depuis le 2026-10-09
+
+Avant toute autre étape (date de naissance comprise), un compte qui n'a pas
+accepté la version en vigueur des **conditions d'utilisation**, de la
+**politique de confidentialité** et des **règles de la communauté** voit un
+écran dédié : les trois documents à lire, une case à cocher, puis « Accepter et
+continuer ». Refuser = se déconnecter.
+
+L'acceptation est écrite **par le serveur** (`accept_legal_documents`), avec
+son heure, et seulement pour les versions que l'écran a affichées — l'app ne
+peut plus écrire dans `user_legal_acceptances`. Si une version change entre
+l'affichage et le clic, le serveur refuse et l'écran se recharge.
+
+**Publier une nouvelle version** : changer `version` dans `legal_documents`.
+Au lancement suivant, chaque compte se voit re-présenter le document, marqué
+« Mis à jour ». Ce qui reste manuel : prévenir **30 jours avant** un changement
+important, comme les conditions le promettent.
+
+Les comptes existants (testeurs) passent par l'écran au prochain lancement.
+
 ### 3.3 Les textes légaux existent à trois endroits
 
 `legal_documents` en base, `web/assets/data/legal-fallback.json`, et **254

@@ -238,3 +238,31 @@ select t.record(
   (select platform_fee = 0 and gross - withheld - stripe_fee - platform_fee = 0
      from public.event_ledger() where event_id = '00000000-0000-0000-0000-0000000000e4'),
   'Versement : un billet annule par l''acheteur ne coute rien a l''organisateur');
+
+-- Le consentement aux conditions : enregistre par le serveur, pour la version
+-- montree, et re-demande quand elle change
+reset role;
+insert into legal_documents (slug, title, content, version, effective_date, requires_acceptance, sort_order, updated_at) values
+  ('terms',     'Terms',     '...', 'Version 1.1', current_date, true,  1, now()),
+  ('privacy',   'Privacy',   '...', 'Version 1.2', current_date, true,  2, now()),
+  ('community', 'Community', '...', 'Version 1.1', current_date, true,  3, now()),
+  ('cookie',    'Cookies',   '...', 'Version 1.1', current_date, false, 4, now());
+select t.as_anon();
+select t.fails_with('select * from public.pending_legal_documents()', 'permission denied', 'Consentement : un visiteur n''a rien a accepter');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000c');
+select t.sees('select * from public.pending_legal_documents()', 3, 'Consentement : un nouveau compte a trois documents a accepter');
+select t.cannot_write($$insert into user_legal_acceptances (user_id, slug, version, accepted_at) values (auth.uid(), 'terms', 'Version 9.9', now() - interval '1 year')$$, 'Consentement : une acceptation ne s''ecrit pas a la main (version ou date inventees)');
+select t.fails_with($$select public.accept_legal_documents('{"terms":"Version 1.0","privacy":"Version 1.2","community":"Version 1.1"}')$$, 'version_changed', 'Consentement : on n''accepte pas une version qu''on n''a pas vue');
+select t.fails_with($$select public.accept_legal_documents('{"terms":"Version 1.1"}')$$, 'version_changed', 'Consentement : tout ou rien, un document manquant refuse l''ensemble');
+select public.accept_legal_documents('{"terms":"Version 1.1","privacy":"Version 1.2","community":"Version 1.1"}');
+select t.sees('select * from public.pending_legal_documents()', 0, 'Consentement : une fois accepte, plus rien a accepter');
+select t.sees('select * from user_legal_acceptances', 3, 'Consentement : chacun relit ses propres acceptations');
+reset role;
+update legal_documents set version = 'Version 2.0' where slug = 'terms';
+select t.as_user('00000000-0000-0000-0000-00000000000c');
+select t.sees('select * from public.pending_legal_documents() where previously_accepted', 1, 'Consentement : une nouvelle version est re-presentee, comme une mise a jour');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.sees_nothing($$select * from user_legal_acceptances where user_id = '00000000-0000-0000-0000-00000000000c'$$, 'Consentement : on ne lit pas les acceptations des autres');
+reset role;

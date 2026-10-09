@@ -132,8 +132,9 @@ agreement is with you personally — and you carry personal liability for it.
 That is the strongest practical reason to incorporate before selling tickets
 for third parties.
 
-By creating an account or using HAPPYN, you accept these Terms, the Privacy
-Policy, and the Community Guidelines. The other policies listed at the top of
+Before using HAPPYN, you are asked to read and **explicitly accept** these
+Terms, the Privacy Policy, and the Community Guidelines, by ticking a box and
+confirming. We record which version of each document you accepted, and when. The other policies listed at the top of
 this page form part of these Terms where they apply to what you do (for
 example, the Organizer Standards when you create an event).
 
@@ -351,12 +352,10 @@ Ontario.
 ## 13. Changes to these Terms
 
 We may update these Terms. For a **material change**, we will notify you in the
-app at least **30 days** before it takes effect, and ask you to accept the new
-version. Small corrections (typos, clarifications that change nothing) take
-effect when published.
-
-**[À CONSTRUIRE]** — The app does not yet record which version of the Terms each
-person accepted, nor ask for acceptance of a new version. See Annex A.
+app at least **30 days** before it takes effect. When the new version takes
+effect, the app asks you to read and accept it before you continue. Small
+corrections (typos, clarifications that change nothing) take effect when
+published, without a new acceptance.
 
 ## 14. Contact
 
@@ -1350,7 +1349,7 @@ Le texte ci-dessus promet ces comportements. L'app ne les tient pas encore.
 
 | # | Promesse du texte | État dans l'app | Gravité |
 |---|---|---|---|
-| 1 | Les conditions acceptées sont enregistrées, et une nouvelle version est re-présentée (Terms §13) | La table `user_legal_acceptances` existe mais **l'app n'y écrit jamais** | Haute — sans preuve d'acceptation, la clause des 30 jours est vide |
+| 1 | ~~Les conditions acceptées sont enregistrées, une nouvelle version re-présentée~~ | **Fait le 2026-10-09** : écran de consentement (case + bouton) avant toute autre étape, acceptation enregistrée par le serveur pour la version affichée, re-présentation automatique quand une version change. Migration `20261009000000_legal_acceptance`, 9 tests. Reste manuel : prévenir 30 jours avant un changement important | — |
 | 2 | L'âge minimum d'un événement bloque l'achat (Terms §2, Safety) | Vérifié **par l'app seulement** ; ni `create-payment-intent` ni `issue_tickets` ne le revérifient | Moyenne |
 | 3 | 18 ans pour créer un événement (Terms §2, Organizer §1) | Vérifié **par l'app seulement** ; la règle d'insertion des événements ne regarde pas l'âge | Moyenne |
 | 4 | Durées de conservation (Retention) | **Aucune purge** ; pg_cron absent | Haute si les durées restent écrites |

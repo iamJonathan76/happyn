@@ -372,6 +372,41 @@ create table public."user_legal_acceptances" (
   "accepted_at" timestamp with time zone not null
 );
 
+CREATE OR REPLACE FUNCTION public.accept_legal_documents(p_versions jsonb)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_user uuid := auth.uid();
+  d      record;
+begin
+  if v_user is null then
+    raise exception 'not_authenticated';
+  end if;
+
+  for d in
+    select l.slug, l.version from public.legal_documents l
+    where l.requires_acceptance
+  loop
+    -- Un document exigé mais absent de la demande : l'écran ne l'a pas montré.
+    if not (p_versions ? d.slug) then
+      raise exception 'version_changed';
+    end if;
+    if p_versions ->> d.slug is distinct from d.version then
+      raise exception 'version_changed';
+    end if;
+  end loop;
+
+  insert into public.user_legal_acceptances (user_id, slug, version, accepted_at)
+  select v_user, l.slug, l.version, now()
+  from public.legal_documents l
+  where l.requires_acceptance
+  on conflict (user_id, slug, version) do nothing;
+end;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.account_deletion_preview()
  RETURNS json
  LANGUAGE plpgsql
@@ -1958,6 +1993,27 @@ CREATE OR REPLACE FUNCTION public.payout_delay_days()
  SET search_path TO 'public'
 AS $function$ select 3 $function$;
 
+CREATE OR REPLACE FUNCTION public.pending_legal_documents()
+ RETURNS TABLE(slug text, title text, version text, previously_accepted boolean)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select d.slug, d.title, d.version,
+         exists (select 1 from public.user_legal_acceptances a
+                 where a.user_id = auth.uid() and a.slug = d.slug)
+  from public.legal_documents d
+  where d.requires_acceptance
+    and auth.uid() is not null
+    and not exists (
+      select 1 from public.user_legal_acceptances a
+      where a.user_id = auth.uid()
+        and a.slug = d.slug
+        and a.version = d.version
+    )
+  order by d.sort_order;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.platform_fee_bps()
  RETURNS integer
  LANGUAGE sql
@@ -2919,9 +2975,9 @@ alter table public."user_legal_acceptances" alter column "id" set default gen_ra
 
 alter table public."user_legal_acceptances" alter column "accepted_at" set default now();
 
-alter table public."device_tokens" add constraint "device_tokens_pkey" PRIMARY KEY (token);
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_pkey" PRIMARY KEY (id);
 
-alter table public."follows" add constraint "follows_pkey" PRIMARY KEY (follower_id, following_id);
+alter table public."event_attendance" add constraint "event_attendance_pkey" PRIMARY KEY (user_id, event_id);
 
 alter table public."reports" add constraint "reports_pkey" PRIMARY KEY (id);
 
@@ -2937,11 +2993,11 @@ alter table public."profiles" add constraint "profiles_pkey" PRIMARY KEY (id);
 
 alter table public."legal_documents" add constraint "legal_documents_pkey" PRIMARY KEY (slug);
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_pkey" PRIMARY KEY (id);
-
 alter table public."admin_actions" add constraint "admin_actions_pkey" PRIMARY KEY (id);
 
-alter table public."event_attendance" add constraint "event_attendance_pkey" PRIMARY KEY (user_id, event_id);
+alter table public."device_tokens" add constraint "device_tokens_pkey" PRIMARY KEY (token);
+
+alter table public."follows" add constraint "follows_pkey" PRIMARY KEY (follower_id, following_id);
 
 alter table public."notifications" add constraint "notifications_pkey" PRIMARY KEY (id);
 
@@ -2973,7 +3029,7 @@ alter table public."direct_messages" add constraint "direct_messages_pkey" PRIMA
 
 alter table public."categories" add constraint "categories_pkey" PRIMARY KEY (id);
 
-alter table public."profiles" add constraint "profiles_username_key" UNIQUE (username);
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_slug_version_key" UNIQUE (user_id, slug, version);
 
 alter table public."profiles" add constraint "profiles_email_key" UNIQUE (email);
 
@@ -2985,7 +3041,7 @@ alter table public."categories" add constraint "categories_name_key" UNIQUE (nam
 
 alter table public."stripe_accounts" add constraint "stripe_accounts_account_id_key" UNIQUE (account_id);
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_slug_version_key" UNIQUE (user_id, slug, version);
+alter table public."profiles" add constraint "profiles_username_key" UNIQUE (username);
 
 alter table public."tickets" add constraint "tickets_qr_token_key" UNIQUE (qr_token);
 
@@ -3058,13 +3114,13 @@ alter table public."notifications" add constraint "notifications_user_id_fkey" F
 
 alter table public."event_attendance" add constraint "event_attendance_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."follows" add constraint "follows_following_id_fkey" FOREIGN KEY (following_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."ticket_types" add constraint "ticket_types_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
 alter table public."event_attendance" add constraint "event_attendance_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public."follows" add constraint "follows_follower_id_fkey" FOREIGN KEY (follower_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."follows" add constraint "follows_following_id_fkey" FOREIGN KEY (following_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."events" add constraint "events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -3072,7 +3128,7 @@ alter table public."device_tokens" add constraint "device_tokens_user_id_fkey" F
 
 alter table public."admin_actions" add constraint "admin_actions_admin_id_fkey" FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."follows" add constraint "follows_follower_id_fkey" FOREIGN KEY (follower_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."admin_actions" add constraint "admin_actions_report_id_fkey" FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE SET NULL;
 
@@ -3251,9 +3307,9 @@ alter table public."blocked_users" enable row level security;
 
 alter table public."legal_documents" enable row level security;
 
-alter table public."user_legal_acceptances" enable row level security;
-
 alter table public."follows" enable row level security;
+
+alter table public."user_legal_acceptances" enable row level security;
 
 alter table public."event_addresses" enable row level security;
 
@@ -3331,15 +3387,13 @@ create policy "own blocks select" on public."blocked_users" as permissive for se
 
 create policy "legal readable by all" on public."legal_documents" as permissive for select to authenticated, anon using (true);
 
-create policy "own acceptances insert" on public."user_legal_acceptances" as permissive for insert to authenticated with check ((auth.uid() = user_id));
-
-create policy "own acceptances select" on public."user_legal_acceptances" as permissive for select to authenticated using ((auth.uid() = user_id));
-
 create policy "follows readable" on public."follows" as permissive for select to authenticated, anon using (true);
 
 create policy "own follows delete" on public."follows" as permissive for delete to authenticated using ((auth.uid() = follower_id));
 
 create policy "own follows insert" on public."follows" as permissive for insert to authenticated with check ((auth.uid() = follower_id));
+
+create policy "own acceptances select" on public."user_legal_acceptances" as permissive for select to authenticated using ((auth.uid() = user_id));
 
 create policy "addresses readable when allowed" on public."event_addresses" as permissive for select to authenticated, anon using (can_see_exact_address(event_id));
 
@@ -3469,163 +3523,161 @@ revoke all on public."public_profiles" from public, anon, authenticated, service
 
 revoke all on public."feed_posts" from public, anon, authenticated, service_role;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."admin_actions" to anon;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."admin_actions" to anon;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."admin_actions" to authenticated;
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."admin_actions" to authenticated;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."admin_actions" to service_role;
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."admin_actions" to service_role;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."blocked_users" to anon;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."blocked_users" to anon;
 
 grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."blocked_users" to authenticated;
 
-grant TRIGGER, TRUNCATE, INSERT, SELECT, UPDATE, REFERENCES, DELETE on public."blocked_users" to service_role;
+grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."blocked_users" to service_role;
 
-grant TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES on public."categories" to anon;
+grant SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."categories" to anon;
 
-grant TRIGGER, DELETE, UPDATE, SELECT, INSERT, TRUNCATE, REFERENCES on public."categories" to authenticated;
+grant INSERT, SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."categories" to authenticated;
 
-grant DELETE, UPDATE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT on public."categories" to service_role;
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."categories" to service_role;
 
-grant DELETE, INSERT, SELECT, UPDATE, TRUNCATE, REFERENCES, TRIGGER on public."cities" to anon;
+grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."cities" to anon;
 
-grant SELECT, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, UPDATE on public."cities" to authenticated;
+grant TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, REFERENCES on public."cities" to authenticated;
 
-grant INSERT, REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT on public."cities" to service_role;
+grant TRUNCATE, REFERENCES, TRIGGER, DELETE, INSERT, UPDATE, SELECT on public."cities" to service_role;
 
-grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."device_tokens" to anon;
+grant UPDATE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, DELETE on public."device_tokens" to anon;
 
-grant TRUNCATE, INSERT, UPDATE, SELECT, DELETE, TRIGGER, REFERENCES on public."device_tokens" to authenticated;
+grant SELECT, TRUNCATE, REFERENCES, TRIGGER, INSERT, DELETE, UPDATE on public."device_tokens" to authenticated;
 
-grant REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER on public."device_tokens" to service_role;
+grant REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."device_tokens" to service_role;
 
 grant SELECT on public."direct_conversations" to authenticated;
 
-grant DELETE, TRIGGER, REFERENCES, TRUNCATE, UPDATE, SELECT, INSERT on public."direct_conversations" to service_role;
+grant INSERT, TRUNCATE, REFERENCES, TRIGGER, UPDATE, SELECT, DELETE on public."direct_conversations" to service_role;
 
-grant SELECT, INSERT on public."direct_messages" to authenticated;
+grant INSERT, SELECT on public."direct_messages" to authenticated;
 
-grant SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT on public."direct_messages" to service_role;
+grant TRUNCATE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, DELETE on public."direct_messages" to service_role;
 
-grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE on public."event_addresses" to anon;
+grant INSERT, DELETE, UPDATE, SELECT, REFERENCES, TRUNCATE, TRIGGER on public."event_addresses" to anon;
 
-grant TRUNCATE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, DELETE on public."event_addresses" to authenticated;
+grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."event_addresses" to authenticated;
 
-grant DELETE, TRIGGER, REFERENCES, TRUNCATE, UPDATE, SELECT, INSERT on public."event_addresses" to service_role;
+grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."event_addresses" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."event_attendance" to anon;
+grant INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, SELECT on public."event_attendance" to anon;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."event_attendance" to authenticated;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."event_attendance" to authenticated;
 
-grant INSERT, TRUNCATE, REFERENCES, TRIGGER, DELETE, UPDATE, SELECT on public."event_attendance" to service_role;
+grant INSERT, SELECT, REFERENCES, TRUNCATE, DELETE, UPDATE, TRIGGER on public."event_attendance" to service_role;
 
-grant REFERENCES, SELECT, TRIGGER, TRUNCATE on public."event_payouts" to anon;
+grant TRIGGER, REFERENCES, TRUNCATE, SELECT on public."event_payouts" to anon;
 
-grant SELECT, TRUNCATE, TRIGGER, REFERENCES on public."event_payouts" to authenticated;
+grant REFERENCES, TRUNCATE, TRIGGER, SELECT on public."event_payouts" to authenticated;
 
-grant REFERENCES, TRIGGER, SELECT, UPDATE, DELETE, TRUNCATE, INSERT on public."event_payouts" to service_role;
+grant TRIGGER, TRUNCATE, UPDATE, DELETE, SELECT, INSERT, REFERENCES on public."event_payouts" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."event_unlocks" to anon;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."event_unlocks" to anon;
 
-grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, TRIGGER, REFERENCES on public."event_unlocks" to authenticated;
+grant SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."event_unlocks" to authenticated;
 
 grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."event_unlocks" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, SELECT, UPDATE, DELETE on public."events" to anon;
+grant DELETE, TRUNCATE, TRIGGER, REFERENCES, INSERT, SELECT, UPDATE on public."events" to anon;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."events" to authenticated;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."events" to authenticated;
 
-grant INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, SELECT on public."events" to service_role;
+grant DELETE, TRIGGER, REFERENCES, TRUNCATE, UPDATE, SELECT, INSERT on public."events" to service_role;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."favorites" to anon;
+grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, TRUNCATE, REFERENCES on public."favorites" to anon;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."favorites" to authenticated;
+grant TRUNCATE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, DELETE on public."favorites" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."favorites" to service_role;
+grant REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER on public."favorites" to service_role;
 
-grant DELETE, TRIGGER, REFERENCES, TRUNCATE, UPDATE, INSERT on public."feed_posts" to anon;
+grant DELETE, TRUNCATE, REFERENCES, TRIGGER, UPDATE, INSERT on public."feed_posts" to anon;
 
-grant UPDATE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, DELETE on public."feed_posts" to authenticated;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."feed_posts" to authenticated;
 
-grant UPDATE, INSERT, DELETE, SELECT, TRUNCATE, REFERENCES, TRIGGER on public."feed_posts" to service_role;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."feed_posts" to service_role;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."follows" to anon;
+grant TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, REFERENCES on public."follows" to anon;
 
-grant REFERENCES, TRIGGER, TRUNCATE, UPDATE, SELECT, INSERT, DELETE on public."follows" to authenticated;
+grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."follows" to authenticated;
 
-grant TRUNCATE, UPDATE, INSERT, SELECT, TRIGGER, REFERENCES, DELETE on public."follows" to service_role;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."follows" to service_role;
 
-grant UPDATE, INSERT, SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."legal_documents" to anon;
+grant TRIGGER, SELECT, UPDATE, DELETE, TRUNCATE, INSERT, REFERENCES on public."legal_documents" to anon;
 
-grant REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."legal_documents" to authenticated;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."legal_documents" to authenticated;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."legal_documents" to service_role;
+grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."legal_documents" to service_role;
 
-grant SELECT, TRUNCATE, REFERENCES, DELETE, UPDATE, TRIGGER, INSERT on public."notifications" to anon;
+grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."notifications" to anon;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."notifications" to authenticated;
+grant UPDATE, SELECT, INSERT, REFERENCES, TRIGGER, DELETE, TRUNCATE on public."notifications" to authenticated;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRIGGER, REFERENCES, TRUNCATE on public."notifications" to service_role;
+grant SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT on public."notifications" to service_role;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."payments" to service_role;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."payments" to service_role;
 
 grant INSERT, DELETE, SELECT on public."post_comments" to authenticated;
 
-grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE on public."post_comments" to service_role;
+grant TRUNCATE, REFERENCES, TRIGGER, UPDATE, DELETE, SELECT, INSERT on public."post_comments" to service_role;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."post_likes" to anon;
+grant REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."post_likes" to anon;
 
-grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."post_likes" to authenticated;
+grant SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT on public."post_likes" to authenticated;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."post_likes" to service_role;
+grant INSERT, REFERENCES, TRUNCATE, DELETE, UPDATE, TRIGGER, SELECT on public."post_likes" to service_role;
 
-grant DELETE, TRIGGER, REFERENCES, TRUNCATE, INSERT, UPDATE, SELECT on public."posts" to anon;
+grant INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, SELECT on public."posts" to anon;
 
-grant UPDATE, DELETE, TRUNCATE, REFERENCES, INSERT, TRIGGER, SELECT on public."posts" to authenticated;
+grant UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT on public."posts" to authenticated;
 
-grant DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE on public."posts" to service_role;
+grant INSERT, TRUNCATE, REFERENCES, TRIGGER, UPDATE, SELECT, DELETE on public."posts" to service_role;
 
-grant INSERT, REFERENCES, TRUNCATE, DELETE, TRIGGER, UPDATE, SELECT on public."profiles" to anon;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."profiles" to anon;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."profiles" to authenticated;
+grant UPDATE, TRIGGER, REFERENCES, TRUNCATE, DELETE, SELECT, INSERT on public."profiles" to authenticated;
 
-grant SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."profiles" to service_role;
+grant TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT, UPDATE, DELETE on public."profiles" to service_role;
 
-grant UPDATE, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."public_profiles" to anon;
+grant REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, INSERT on public."public_profiles" to anon;
 
-grant UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."public_profiles" to authenticated;
+grant REFERENCES, TRIGGER, INSERT, UPDATE, SELECT, DELETE, TRUNCATE on public."public_profiles" to authenticated;
 
-grant UPDATE, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, SELECT on public."public_profiles" to service_role;
+grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."public_profiles" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."reports" to anon;
+grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."reports" to anon;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."reports" to authenticated;
+grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."reports" to authenticated;
 
-grant UPDATE, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, SELECT on public."reports" to service_role;
+grant TRUNCATE, REFERENCES, TRIGGER, SELECT, UPDATE, INSERT, DELETE on public."reports" to service_role;
 
-grant SELECT, TRIGGER, REFERENCES, TRUNCATE on public."stripe_accounts" to anon;
+grant SELECT, TRUNCATE, REFERENCES, TRIGGER on public."stripe_accounts" to anon;
 
-grant TRIGGER, REFERENCES, TRUNCATE, SELECT on public."stripe_accounts" to authenticated;
+grant REFERENCES, TRIGGER, SELECT, TRUNCATE on public."stripe_accounts" to authenticated;
 
-grant REFERENCES, TRUNCATE, UPDATE, DELETE, SELECT, INSERT, TRIGGER on public."stripe_accounts" to service_role;
+grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."stripe_accounts" to service_role;
 
-grant UPDATE, TRIGGER, REFERENCES, TRUNCATE, DELETE, SELECT, INSERT on public."ticket_types" to anon;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."ticket_types" to anon;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."ticket_types" to authenticated;
+grant INSERT, TRIGGER, TRUNCATE, DELETE, REFERENCES, UPDATE, SELECT on public."ticket_types" to authenticated;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."ticket_types" to service_role;
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."ticket_types" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."tickets" to anon;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."tickets" to anon;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."tickets" to authenticated;
+grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."tickets" to authenticated;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."tickets" to service_role;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."tickets" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."user_legal_acceptances" to anon;
+grant SELECT, REFERENCES, TRIGGER on public."user_legal_acceptances" to authenticated;
 
-grant DELETE, INSERT, TRIGGER, REFERENCES, TRUNCATE, SELECT, UPDATE on public."user_legal_acceptances" to authenticated;
-
-grant INSERT, SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."user_legal_acceptances" to service_role;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."user_legal_acceptances" to service_role;
 
 revoke all on function events_lock_fee() from public, anon, authenticated, service_role;
 
@@ -4098,5 +4150,17 @@ grant execute on function can_cancel_ticket(uuid) to service_role;
 revoke all on function cancel_ticket(uuid,uuid,text,bigint) from public, anon, authenticated, service_role;
 
 grant execute on function cancel_ticket(uuid,uuid,text,bigint) to service_role;
+
+revoke all on function pending_legal_documents() from public, anon, authenticated, service_role;
+
+grant execute on function pending_legal_documents() to authenticated;
+
+grant execute on function pending_legal_documents() to service_role;
+
+revoke all on function accept_legal_documents(jsonb) from public, anon, authenticated, service_role;
+
+grant execute on function accept_legal_documents(jsonb) to authenticated;
+
+grant execute on function accept_legal_documents(jsonb) to service_role;
 
 grant usage on schema public to anon, authenticated, service_role;

@@ -5,6 +5,7 @@ import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/push/push_service.dart';
 import 'package:happyn/features/auth/birth_date_screen.dart';
 import 'package:happyn/features/auth/complete_profile_screen.dart';
+import 'package:happyn/features/auth/consent_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Où aller une fois la session ouverte, quelle que soit la porte d'entrée
@@ -15,6 +16,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// le formulaire restaient dessous, et le retour Android y ramenait une
 /// personne déjà connectée.
 Future<void> routeAfterAuth(BuildContext context) async {
+  // D'abord l'accord : la politique de confidentialité s'accepte avant qu'on
+  // demande quoi que ce soit d'autre — la date de naissance en tête. Couvre
+  // aussi une nouvelle version des documents pour un compte existant.
+  final pending = await PendingLegalDoc.fetch();
+  if (!context.mounted) return;
+  if (pending != null && pending.isNotEmpty) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+          builder: (_) =>
+              ConsentScreen(docs: pending, onDone: routeAfterAuth)),
+      (_) => false,
+    );
+    return;
+  }
+
   // Avant tout le reste : sans date de naissance, aucune règle d'âge ne
   // s'applique. Cas de toute inscription par Google.
   if (BirthDateScreen.isMissing()) {
