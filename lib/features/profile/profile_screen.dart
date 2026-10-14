@@ -22,6 +22,8 @@ import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/settings/settings_screen.dart';
+import 'package:happyn/core/providers/messages_provider.dart';
+import 'package:happyn/features/social/messages_screen.dart';
 
 /// Profil — le sien ou celui de quelqu'un d'autre.
 ///
@@ -41,6 +43,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _supabase = Supabase.instance.client;
   // 0 = evenements, 1 = moments, 2 = favoris (soi), 3 = a propos
   int _selectedTab = 0;
+  bool _openingMessage = false;
 
   String get _uid => widget.userId ?? _supabase.auth.currentUser?.id ?? '';
 
@@ -326,35 +329,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 // ── Action : editer (soi) ou suivre (autre) ───────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _isMe
-                      ? GestureDetector(
-                          onTap: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const EditProfileScreen(),
-                              ),
-                            );
-                            ref.invalidate(userProfileProvider); // ville/bio
-                            if (mounted) setState(() {}); // nom/photo
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            height: 46,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [AppColors.primary, AppColors.pink],
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Center(
-                              child: Text(
-                                AppLocalizations.of(context).editProfile,
-                                style: AppText.h4.copyWith(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        )
-                      : _followButton(),
+                  child: _isMe ? _profileActions() : _followButton(),
                 ),
 
                 const SizedBox(height: 16),
@@ -464,11 +439,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ref.invalidate(publicProfileProvider(_uid));
     }
 
-    return SizedBox(
-      width: double.infinity,
-      height: 46,
-      child: isFollowing
-          ? OutlinedButton.icon(
+    if (isFollowing) {
+      return Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 46,
+              child: OutlinedButton.icon(
               onPressed: toggle,
               icon: const Icon(Icons.check, size: 17, color: Colors.white),
               label: Text(
@@ -481,8 +458,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-            )
-          : DecoratedBox(
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 52,
+            height: 46,
+            child: IconButton(
+              tooltip: l.messageAction,
+              onPressed: _openingMessage ? null : _openDirectMessage,
+              icon: _openingMessage
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.chat_bubble_outline),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      height: 46,
+      child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(14),
@@ -501,6 +508,81 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
     );
+  }
+
+  Widget _profileActions() {
+    final l = AppLocalizations.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+              );
+              ref.invalidate(userProfileProvider);
+              if (mounted) setState(() {});
+            },
+            child: Container(
+              height: 46,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.pink],
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Center(
+                child: Text(l.editProfile,
+                    style: AppText.h4.copyWith(color: Colors.white)),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 52,
+          height: 46,
+          child: IconButton(
+            tooltip: l.messages,
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const MessagesScreen(),
+            )),
+            icon: const Icon(Icons.forum_outlined),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: BorderSide(color: Colors.white.withOpacity(0.2)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _openDirectMessage() async {
+    if (_openingMessage) return;
+    setState(() => _openingMessage = true);
+    try {
+      final conversationId = await startDirectConversation(_uid);
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => DirectChatScreen(
+          conversationId: conversationId,
+          otherUserId: _uid,
+          otherUserName: _userName,
+          otherUserAvatar: _avatarUrl,
+        ),
+      ));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context).messageStartFailed),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _openingMessage = false);
+    }
   }
 
   Widget _moreMenu() {
