@@ -2382,4 +2382,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get profileNoMomentsOtherBody => 'Ses moments apparaîtront ici.';
+
+  @override
+  String get directionsTo => 'Itinéraire vers';
+
+  @override
+  String get appleMaps => 'Plans';
+
+  @override
+  String get copyAddress => 'Copier l\'adresse';
+
+  @override
+  String get addressCopied => 'Adresse copiée';
 }

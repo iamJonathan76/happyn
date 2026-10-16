@@ -4189,6 +4189,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Their moments will show up here.'**
   String get profileNoMomentsOtherBody;
+
+  /// No description provided for @directionsTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions to'**
+  String get directionsTo;
+
+  /// No description provided for @appleMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Maps'**
+  String get appleMaps;
+
+  /// No description provided for @copyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy address'**
+  String get copyAddress;
+
+  /// No description provided for @addressCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Address copied'**
+  String get addressCopied;
 }
 
 class _AppLocalizationsDelegate

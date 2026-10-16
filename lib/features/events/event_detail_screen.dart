@@ -234,22 +234,20 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   }
 
   /// Ouvre l'app Maps sur l'adresse de l'event (lieu + ville).
-  Future<void> _openDirections(
-      Map<String, dynamic> ev, String? exactAddress) async {
-    // L'adresse exacte quand on y a droit, sinon le repere public et la ville.
-    // Un itineraire vers « Ottawa » est inutile, mais c'est moins grave que de
-    // reveler une adresse qu'on n'est pas cense connaitre.
-    final address = [exactAddress ?? ev['location'], ev['city']]
-        .where((s) => s != null && s.toString().trim().isNotEmpty)
-        .join(', ');
-    final ok = await openInMaps(address);
-    if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(AppLocalizations.of(context).couldNotOpenMaps)),
-      );
-    }
-  }
+  /// L'adresse complète et le point GPS quand on y a droit ; sinon la ville
+  /// seule. Un itinéraire vers « Ottawa » est inutile, mais c'est moins grave
+  /// que de révéler une adresse qu'on n'est pas censé connaître — et la base
+  /// ne nous la donne de toute façon pas.
+  Future<void> _openDirections({
+    required String title,
+    required String address,
+    EventAddress? point,
+  }) =>
+      openDirections(context,
+          title: title,
+          address: address,
+          latitude: point?.latitude,
+          longitude: point?.longitude);
 
   @override
   Widget build(BuildContext context) {
@@ -617,7 +615,15 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                   townOnly,
                               ].join('\n'),
                               bottomMaxLines: 2,
-                              onTap: () => _openDirections(ev, exactAddress),
+                              onTap: () => _openDirections(
+                                title: venue ?? exactAddress ?? townOnly,
+                                address: [
+                                  ?venue,
+                                  if (exactAddress != null) ...[exactAddress, locality]
+                                  else townOnly,
+                                ].join(', '),
+                                point: address,
+                              ),
                               trailing: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 7),

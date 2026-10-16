@@ -740,5 +740,9 @@
   "profileNoMomentsMine": "Tu n'as pas encore partagé de moment.",
   "profileNoMomentsMineBody": "Touche le bouton + pour partager ton premier moment.",
   "profileNoMomentsOther": "Aucun moment pour l'instant",
-  "profileNoMomentsOtherBody": "Ses moments apparaîtront ici."
+  "profileNoMomentsOtherBody": "Ses moments apparaîtront ici.",
+  "directionsTo": "Itinéraire vers",
+  "appleMaps": "Plans",
+  "copyAddress": "Copier l'adresse",
+  "addressCopied": "Adresse copiée"
 }

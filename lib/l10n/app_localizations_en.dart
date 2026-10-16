@@ -2354,4 +2354,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileNoMomentsOtherBody => 'Their moments will show up here.';
+
+  @override
+  String get directionsTo => 'Directions to';
+
+  @override
+  String get appleMaps => 'Apple Maps';
+
+  @override
+  String get copyAddress => 'Copy address';
+
+  @override
+  String get addressCopied => 'Address copied';
 }

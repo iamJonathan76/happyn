@@ -787,5 +787,9 @@
   "profileNoMomentsMine": "You haven't shared any moments yet.",
   "profileNoMomentsMineBody": "Tap the + button to share your first moment.",
   "profileNoMomentsOther": "No moments yet",
-  "profileNoMomentsOtherBody": "Their moments will show up here."
+  "profileNoMomentsOtherBody": "Their moments will show up here.",
+  "directionsTo": "Directions to",
+  "appleMaps": "Apple Maps",
+  "copyAddress": "Copy address",
+  "addressCopied": "Address copied"
 }
