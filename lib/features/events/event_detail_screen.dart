@@ -12,6 +12,8 @@ import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/utils/places.dart';
+import 'package:happyn/core/payments/pricing.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/utils/maps.dart';
 import 'package:happyn/features/events/organizer_event_screen.dart';
@@ -254,8 +256,17 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final l = AppLocalizations.of(context);
     final ev = widget.event;
     // Adresse precise, ou null si la base refuse de la donner.
-    final exactAddress =
-        ref.watch(eventAddressProvider(ev['id'] as String)).asData?.value?.addressLine;
+    final address =
+        ref.watch(eventAddressProvider(ev['id'] as String)).asData?.value;
+    final exactAddress = address?.addressLine;
+    // Dernière ligne au format canadien : « Gatineau, QC  J8X 2K1 ». Le code
+    // postal n'arrive qu'avec l'adresse, donc seulement à qui a le droit de la voir.
+    final locality = cityLine(
+        city: ev['city'] as String?,
+        province: ev['province'] as String?,
+        postal: address?.postalCode);
+    final townOnly = cityLine(
+        city: ev['city'] as String?, province: ev['province'] as String?);
 
     final imageUrl = (ev['image_url'] ?? '') as String;
     // Un nom de lieu distinct de la ville. Jamais pour un evenement prive :
@@ -270,7 +281,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         ? rawLocation
         : null;
     final price = ev['price'];
-    final priceText = (price == null || price == 0) ? l.free : '\$$price';
+    final priceText = (price == null || price == 0)
+        ? l.free
+        : Pricing.ticketPrice(
+            price as num, Localizations.localeOf(context).languageCode);
     final cat = (ev['category'] ?? '') as String;
     final catColor = categoryColor(cat);
     final past = isEventPast(ev);
@@ -587,14 +601,22 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             // qu'elle n'a pas le droit d'afficher.
                             _infoRow(
                               Icons.location_on_outlined,
-                              // Le nom du lieu en tete s'il y en a un (public
-                              // seulement), l'adresse dessous.
-                              venue ?? exactAddress ?? (ev['location'] ?? 'TBD') as String,
-                              venue != null
-                                  ? (exactAddress ?? _capitalized((ev['city'] ?? '') as String))
-                                  : exactAddress == null && isEventPrivate(ev)
-                                      ? l.addressRevealedWithTicket
-                                      : _capitalized((ev['city'] ?? '') as String),
+                              // Format d'adresse canadien, le même dans tous
+                              // les cas : le nom du lieu en tête s'il y en a un
+                              // (public seulement), puis la rue, puis
+                              // « Ville, PROV  code postal ». Sans nom de lieu,
+                              // la rue prend la tête.
+                              venue ?? exactAddress ?? townOnly,
+                              [
+                                if (venue != null && exactAddress != null) exactAddress,
+                                if (exactAddress != null)
+                                  locality
+                                else if (isEventPrivate(ev))
+                                  l.addressRevealedWithTicket
+                                else if (venue != null)
+                                  townOnly,
+                              ].join('\n'),
+                              bottomMaxLines: 2,
                               onTap: () => _openDirections(ev, exactAddress),
                               trailing: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -907,19 +929,19 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final s = start == null ? null : DateTime.tryParse(start);
     final e = DateTime.tryParse(end);
     if (e == null) return '';
-    final sameDay =
-        s != null && s.year == e.year && s.month == e.month && s.day == e.day;
+    // Une fin « avant » le début sur la même date est en réalité le
+    // lendemain (ou une saisie à corriger) : on écrit alors la date en
+    // entier plutôt que « jusqu'à 9 h 30 », qui ferait croire à une fin
+    // avant le début.
+    final sameDay = s != null &&
+        s.year == e.year &&
+        s.month == e.month &&
+        s.day == e.day &&
+        !e.isBefore(s);
     return sameDay
         ? l.eventUntilTime(AppDates.time(context, end))
         : l.eventUntilDate(
             AppDates.dowDayMonthYear(context, end), AppDates.time(context, end));
-  }
-
-  /// « ottawa » → « Ottawa ». A l'affichage seulement : la donnee reste telle
-  /// que l'organisateur l'a saisie.
-  String _capitalized(String v) {
-    final t = v.trim();
-    return t.isEmpty ? t : t[0].toUpperCase() + t.substring(1);
   }
 
   /// Pastille posee sur l'affiche, lisible sur n'importe quelle image.
@@ -948,7 +970,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   }
 
   Widget _infoRow(IconData icon, String top, String bottom,
-      {VoidCallback? onTap, Widget? trailing}) {
+      {VoidCallback? onTap, Widget? trailing, int bottomMaxLines = 1}) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -980,8 +1002,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   const SizedBox(height: 2),
                   Text(
                     bottom,
-                    style: AppText.caption.copyWith(fontSize: 11.5),
-                    maxLines: 1,
+                    style: AppText.caption.copyWith(fontSize: 11.5, height: 1.4),
+                    maxLines: bottomMaxLines,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

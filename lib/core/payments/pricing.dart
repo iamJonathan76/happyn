@@ -85,6 +85,14 @@ class Pricing {
   /// Formatage monétaire minimal, dans la langue affichée.
   /// En français canadien le symbole suit le montant, séparé par une espace
   /// insécable : « 22,04 $ », jamais « $22.04 ».
+  /// Le prix d'un billet sur une carte : « 10 $ » plutôt que « 10,00 $ »,
+  /// mais « 22,50 $ » quand les cents comptent. Les cartes affichaient le
+  /// nombre brut derrière un « $ » : « $10.0 ».
+  static String ticketPrice(num price, String languageCode) {
+    final s = money(price.toDouble(), languageCode);
+    return s.replaceFirst(RegExp(r'[.,]00(?=\D|$)'), '');
+  }
+
   static String money(double amount, String languageCode) {
     final negative = amount < 0;
     final fixed = amount.abs().toStringAsFixed(2);

@@ -7,6 +7,8 @@ import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/core/categories/category_visuals.dart';
 import 'package:happyn/core/providers/favorites_provider.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:happyn/core/payments/pricing.dart';
+import 'package:happyn/core/utils/places.dart';
 import 'package:happyn/core/utils/dates.dart';
 
 class HeroEventCard extends ConsumerWidget {
@@ -26,10 +28,11 @@ class HeroEventCard extends ConsumerWidget {
     final cat = (ev['category'] ?? '') as String;
     final color = categoryColor(cat);
     final (mon, day) = _dateParts(context, ev['start_date'] as String?);
-    final priceText = (ev['price'] == 0 || ev['price'] == null)
+    final price = ev['price'] as num?;
+    final priceText = (price == null || price == 0)
         ? AppLocalizations.of(context).free
-        : '\$${ev['price']}';
-    final city = (ev['city'] ?? ev['location'] ?? '') as String;
+        : Pricing.ticketPrice(price, Localizations.localeOf(context).languageCode);
+    final city = displayCity(ev['city'] as String?);
     final favIds = ref.watch(favoritesProvider).asData?.value ?? <String>{};
     final isFav = favIds.contains(eventId);
 
