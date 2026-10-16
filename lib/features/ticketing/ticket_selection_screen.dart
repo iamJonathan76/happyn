@@ -285,7 +285,8 @@ class _TicketSelectionScreenState
             ? l.errSalesNotOpen
             : msg.contains('event_ended')
             ? l.errEventEndedTickets
-            : msg.contains('exceeds_max_per_order')
+            : msg.contains('exceeds_max_per_order') ||
+                    msg.contains('exceeds_per_person')
             ? l.errLimitPerPerson
             : msg.contains('insufficient_stock')
             ? l.errNotEnoughTickets

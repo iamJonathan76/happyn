@@ -386,3 +386,22 @@ reset role;
 select t.as_user('00000000-0000-0000-0000-00000000000b');
 select t.fails_with($$select public.issue_tickets_paid('00000000-0000-0000-0000-0000000000f2', 1, auth.uid(), 'pi_pirate')$$, 'permission', 'Paiement : un compte n''emet pas de billet paye lui-meme');
 reset role;
+
+-- La limite de l'organisateur est par personne, pas par commande
+reset role;
+insert into ticket_types (id, event_id, name, price, quantity_total, quantity_sold, max_per_order) values
+  ('00000000-0000-0000-0000-0000000000f6', '00000000-0000-0000-0000-0000000000e1', 'Gratuit limite', 0, 100, 0, 2)
+on conflict (id) do nothing;
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.can_write($$select public.issue_tickets('00000000-0000-0000-0000-0000000000f6', 2)$$, 'Limite : jusqu''a la limite, ca passe');
+-- can_write annule ce qu'il essaie : la commande est rejouee pour de bon.
+select count(*) from public.issue_tickets('00000000-0000-0000-0000-0000000000f6', 2);
+select t.fails_with($$select public.issue_tickets('00000000-0000-0000-0000-0000000000f6', 1)$$, 'exceeds_per_person', 'Limite : une deuxieme commande ne la depasse pas');
+select t.sees($$select * from tickets where ticket_type_id = '00000000-0000-0000-0000-0000000000f6' and user_id = auth.uid()$$, 2, 'Limite : la personne garde ses 2 billets, pas un de plus');
+reset role;
+-- Un billet annule ne compte plus : on peut en reprendre un
+update tickets set status = 'refunded'
+ where id = (select id from tickets where ticket_type_id = '00000000-0000-0000-0000-0000000000f6' limit 1);
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.can_write($$select public.issue_tickets('00000000-0000-0000-0000-0000000000f6', 1)$$, 'Limite : un billet annule libere sa place dans la limite');
+reset role;

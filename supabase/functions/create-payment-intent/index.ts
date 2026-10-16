@@ -146,6 +146,28 @@ Deno.serve(async (req) => {
     );
   }
 
+  // La limite est PAR PERSONNE, comme pour les billets gratuits
+  // (issue_tickets) : sinon deux commandes de 2 passaient sur une limite de 2.
+  // Contrôlée ici, avant de payer : refuser dans le webhook, une fois
+  // l'argent pris, obligerait à rembourser et ferait perdre les frais Stripe.
+  // Un billet utilisé compte ; un billet remboursé ou transféré, non.
+  const { count: held, error: heldErr } = await admin
+    .from("tickets")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("ticket_type_id", ticketTypeId)
+    .in("status", ["valid", "used"]);
+  if (heldErr) {
+    console.error("tickets held:", heldErr.message);
+    return jsonResponse({ error: "check_failed" }, 500);
+  }
+  if ((held ?? 0) + quantity > maxPerOrder) {
+    return jsonResponse(
+      { error: "exceeds_per_person", max: maxPerOrder, held: held ?? 0 },
+      409,
+    );
+  }
+
   const remaining = (tt.quantity_total ?? 0) - (tt.quantity_sold ?? 0);
   if (remaining < quantity) {
     return jsonResponse({ error: "insufficient_stock" }, 409);
