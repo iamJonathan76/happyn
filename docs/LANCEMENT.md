@@ -457,6 +457,22 @@ notifications poussées iOS en dépendent aussi (APNs).
 **Ordre conseillé :** Google Play en **test interne** d'abord. Pas de Mac, 25 $,
 et l'app arrive sur de vrais téléphones sans passer par la validation publique.
 
+### Maintenance et version minimale — en place le 2026-10-16
+
+Réglages → Modération → **Maintenance et version** (administrateurs seulement).
+
+- **Maintenance** : bloque l'app pour tout le monde sauf les admins, avec un
+  message facultatif en français et en anglais. Les apps ouvertes basculent
+  en direct (temps réel), pas besoin de les relancer.
+- **Version minimale** : une app plus ancienne affiche « Mets à jour HAPPYN ».
+  Le bouton vers le store n'apparaît qu'une fois `kAppStoreUrl` /
+  `kPlayStoreUrl` remplis dans `lib/core/config/store_config.dart` — **à faire
+  dès qu'App Store Connect donne l'identifiant de l'app.**
+- En dépannage, sans l'app : `update public.app_status set maintenance = false;`
+  dans l'éditeur SQL de Supabase.
+- **Limite** : ça bloque l'app, pas l'API. Pour une vraie coupure, mettre le
+  projet Supabase en pause.
+
 ---
 
 ## 6. Dette technique connue

@@ -352,3 +352,24 @@ select t.sees($$select * from direct_messages where shared_kind = 'ticket' and t
 select t.sees($$select * from notifications where type = 'direct_message'$$, 0, 'Transfert : pas de deuxieme notification pour le message du billet');
 select t.sees($$select * from notifications where type = 'ticket_received'$$, 1, 'Transfert : la notification du billet, elle, part');
 reset role;
+
+-- Maintenance et version minimale : lues par tous, écrites par un admin seul
+reset role;
+select t.as_anon();
+select t.sees('select * from app_status', 1, 'Maintenance : l''etat se lit sans compte (ecran avant connexion)');
+select t.cannot_write($$update app_status set maintenance = true$$, 'Maintenance : un visiteur ne l''active pas');
+select t.fails_with($$select public.admin_set_app_status(true)$$, 'permission', 'Maintenance : un visiteur n''appelle pas la fonction admin');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.cannot_write($$update app_status set maintenance = true$$, 'Maintenance : un compte ne l''ecrit pas directement');
+select t.cannot_write($$delete from app_status$$, 'Maintenance : personne ne supprime la ligne');
+select t.cannot_write($$insert into app_status (id) values (false)$$, 'Maintenance : personne n''ajoute de deuxieme ligne');
+select t.fails_with($$select public.admin_set_app_status(true, 'pirate')$$, 'not_admin', 'Maintenance : un compte ordinaire ne l''active pas');
+reset role;
+select t.as_user('00000000-0000-0000-0000-0000000000ad');
+select public.admin_set_app_status(true, '  Retour a 22 h  ', null, '1.2.0');
+select t.sees($$select * from app_status where maintenance and message_fr = 'Retour a 22 h' and message_en is null and min_version = '1.2.0' and updated_by = auth.uid()$$, 1, 'Maintenance : un admin l''active, et c''est trace');
+select t.fails_with($$select public.admin_set_app_status(false, null, null, 'v2')$$, 'check', 'Maintenance : une version minimale mal formee est refusee');
+select public.admin_set_app_status(false);
+select t.sees($$select * from app_status where not maintenance and min_version is null$$, 1, 'Maintenance : un admin la leve');
+reset role;

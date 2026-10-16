@@ -746,5 +746,22 @@
   "copyAddress": "Copier l'adresse",
   "addressCopied": "Adresse copiée",
   "changePhoto": "Changer la photo",
-  "removePhoto": "Supprimer la photo"
+  "removePhoto": "Supprimer la photo",
+  "maintenanceTitle": "On revient très vite",
+  "maintenanceBody": "HAPPYN fait une petite mise à jour. L'app sera de retour dans quelques instants.",
+  "updateRequiredTitle": "Mets à jour HAPPYN",
+  "updateRequiredBody": "Cette version de l'app n'est plus prise en charge. Installe la dernière version depuis l'App Store pour continuer.",
+  "updateRequiredButton": "Mettre à jour",
+  "appStatusTitle": "Maintenance et version",
+  "appStatusMaintenance": "Mode maintenance",
+  "appStatusMaintenanceHint": "Bloque l'app pour tout le monde, sauf les admins.",
+  "appStatusMessageFr": "Message en français (facultatif)",
+  "appStatusMessageEn": "Message en anglais (facultatif)",
+  "appStatusMinVersion": "Version minimale (facultatif)",
+  "appStatusMinVersionHint": "Les versions plus anciennes devront se mettre à jour. Cette app : {version}.",
+  "appStatusBadVersion": "Version attendue au format 1.2.0.",
+  "appStatusSaved": "Enregistré. Les apps ouvertes basculent tout de suite.",
+  "appStatusConfirmTitle": "Activer la maintenance ?",
+  "appStatusConfirmBody": "Toute l'app sera bloquée pour tout le monde, sauf les admins, jusqu'à ce que tu la désactives.",
+  "appStatusConfirmAction": "Activer"
 }

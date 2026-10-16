@@ -54,6 +54,7 @@ dependencies:
   # Google sign-in (OAuth)
   google_sign_in: ^7.2.0
   # Ouvrir l'app Maps (itinéraire vers un event)
+  package_info_plus: ^9.0.1
   url_launcher: ^6.3.0
   # Navigation
   go_router: ^14.0.0

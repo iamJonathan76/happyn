@@ -2372,4 +2372,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removePhoto => 'Remove photo';
+
+  @override
+  String get maintenanceTitle => 'Back very soon';
+
+  @override
+  String get maintenanceBody =>
+      'HAPPYN is making a quick update. The app will be back in a few moments.';
+
+  @override
+  String get updateRequiredTitle => 'Update HAPPYN';
+
+  @override
+  String get updateRequiredBody =>
+      'This version of the app is no longer supported. Install the latest version from the App Store to continue.';
+
+  @override
+  String get updateRequiredButton => 'Update';
+
+  @override
+  String get appStatusTitle => 'Maintenance and version';
+
+  @override
+  String get appStatusMaintenance => 'Maintenance mode';
+
+  @override
+  String get appStatusMaintenanceHint =>
+      'Blocks the app for everyone except admins.';
+
+  @override
+  String get appStatusMessageFr => 'French message (optional)';
+
+  @override
+  String get appStatusMessageEn => 'English message (optional)';
+
+  @override
+  String get appStatusMinVersion => 'Minimum version (optional)';
+
+  @override
+  String appStatusMinVersionHint(String version) {
+    return 'Older versions will have to update. This app: $version.';
+  }
+
+  @override
+  String get appStatusBadVersion => 'Expected version format: 1.2.0.';
+
+  @override
+  String get appStatusSaved => 'Saved. Open apps switch over right away.';
+
+  @override
+  String get appStatusConfirmTitle => 'Turn on maintenance?';
+
+  @override
+  String get appStatusConfirmBody =>
+      'The whole app will be blocked for everyone except admins until you turn it off.';
+
+  @override
+  String get appStatusConfirmAction => 'Turn on';
 }

@@ -4225,6 +4225,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove photo'**
   String get removePhoto;
+
+  /// No description provided for @maintenanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back very soon'**
+  String get maintenanceTitle;
+
+  /// No description provided for @maintenanceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'HAPPYN is making a quick update. The app will be back in a few moments.'**
+  String get maintenanceBody;
+
+  /// No description provided for @updateRequiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update HAPPYN'**
+  String get updateRequiredTitle;
+
+  /// No description provided for @updateRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This version of the app is no longer supported. Install the latest version from the App Store to continue.'**
+  String get updateRequiredBody;
+
+  /// No description provided for @updateRequiredButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get updateRequiredButton;
+
+  /// No description provided for @appStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance and version'**
+  String get appStatusTitle;
+
+  /// No description provided for @appStatusMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance mode'**
+  String get appStatusMaintenance;
+
+  /// No description provided for @appStatusMaintenanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks the app for everyone except admins.'**
+  String get appStatusMaintenanceHint;
+
+  /// No description provided for @appStatusMessageFr.
+  ///
+  /// In en, this message translates to:
+  /// **'French message (optional)'**
+  String get appStatusMessageFr;
+
+  /// No description provided for @appStatusMessageEn.
+  ///
+  /// In en, this message translates to:
+  /// **'English message (optional)'**
+  String get appStatusMessageEn;
+
+  /// No description provided for @appStatusMinVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum version (optional)'**
+  String get appStatusMinVersion;
+
+  /// No description provided for @appStatusMinVersionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Older versions will have to update. This app: {version}.'**
+  String appStatusMinVersionHint(String version);
+
+  /// No description provided for @appStatusBadVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected version format: 1.2.0.'**
+  String get appStatusBadVersion;
+
+  /// No description provided for @appStatusSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved. Open apps switch over right away.'**
+  String get appStatusSaved;
+
+  /// No description provided for @appStatusConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on maintenance?'**
+  String get appStatusConfirmTitle;
+
+  /// No description provided for @appStatusConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole app will be blocked for everyone except admins until you turn it off.'**
+  String get appStatusConfirmBody;
+
+  /// No description provided for @appStatusConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get appStatusConfirmAction;
 }
 
 class _AppLocalizationsDelegate
