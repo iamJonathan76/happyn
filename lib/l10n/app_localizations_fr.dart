@@ -2394,4 +2394,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get addressCopied => 'Adresse copiée';
+
+  @override
+  String get changePhoto => 'Changer la photo';
+
+  @override
+  String get removePhoto => 'Supprimer la photo';
 }

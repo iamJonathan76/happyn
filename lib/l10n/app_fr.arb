@@ -744,5 +744,7 @@
   "directionsTo": "Itinéraire vers",
   "appleMaps": "Plans",
   "copyAddress": "Copier l'adresse",
-  "addressCopied": "Adresse copiée"
+  "addressCopied": "Adresse copiée",
+  "changePhoto": "Changer la photo",
+  "removePhoto": "Supprimer la photo"
 }

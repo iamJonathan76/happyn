@@ -38,6 +38,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   UsernameStatus? _forcedUsernameStatus;
   XFile? _pickedAvatar;
   String? _currentAvatarUrl;
+  // Photo retirée, effacée à l'enregistrement seulement : « Annuler » en
+  // quittant l'écran doit la laisser en place.
+  bool _removeAvatar = false;
   bool _saving = false;
   // Faux tant que ville et bio n'ont pas ete lues. Enregistrer sans les avoir
   // lues ecraserait les vraies valeurs par les champs vides.
@@ -101,7 +104,83 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       maxWidth: 600,
       imageQuality: 85,
     );
-    if (picked != null) setState(() => _pickedAvatar = picked);
+    if (picked != null) {
+      setState(() {
+        _pickedAvatar = picked;
+        _removeAvatar = false;
+      });
+    }
+  }
+
+  bool get _hasPhoto =>
+      !_removeAvatar &&
+      (_pickedAvatar != null || (_currentAvatarUrl ?? '').isNotEmpty);
+
+  /// Sans photo, on va droit à la galerie. Avec une photo, on propose aussi
+  /// de la retirer : jusqu'ici on pouvait la remplacer, jamais revenir à
+  /// « pas de photo ».
+  Future<void> _onAvatarTap() async {
+    if (!_hasPhoto) return _pickAvatar();
+    final l = AppLocalizations.of(context);
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.sheet,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined,
+                    color: AppColors.lavenderLight),
+                title: Text(l.changePhoto,
+                    style: AppText.bodySm.copyWith(color: Colors.white)),
+                onTap: () => Navigator.of(ctx).pop('change'),
+              ),
+              ListTile(
+                leading:
+                    const Icon(Icons.delete_outline, color: AppColors.error),
+                title: Text(l.removePhoto,
+                    style: AppText.bodySm.copyWith(color: AppColors.error)),
+                onTap: () => Navigator.of(ctx).pop('remove'),
+              ),
+              ListTile(
+                title: Center(child: Text(l.cancel, style: AppText.bodySm)),
+                onTap: () => Navigator.of(ctx).pop(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (choice == 'change') {
+      await _pickAvatar();
+    } else if (choice == 'remove') {
+      setState(() {
+        _pickedAvatar = null;
+        _removeAvatar = true;
+      });
+    }
+  }
+
+  /// Efface l'ancien fichier du stockage. Sans ça, une photo « supprimée »
+  /// restait en ligne, lisible par quiconque avait gardé son lien. Au mieux :
+  /// un échec ici ne doit pas faire échouer l'enregistrement du profil.
+  Future<void> _deleteStoredAvatar(String? url) async {
+    if (url == null || url.isEmpty) return;
+    const marker = '/storage/v1/object/public/avatars/';
+    final i = url.indexOf(marker);
+    if (i < 0) return; // photo Google ou autre : pas chez nous
+    final path = Uri.decodeComponent(url.substring(i + marker.length).split('?').first);
+    try {
+      await _supabase.storage.from('avatars').remove([path]);
+    } catch (e, st) {
+      reportCaught(e, st, where: 'editProfile.deleteAvatar');
+    }
   }
 
   Future<String?> _uploadAvatar(String userId) async {
@@ -146,18 +225,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _saving = true);
     try {
       final user = _supabase.auth.currentUser!;
-      final avatarUrl = await _uploadAvatar(user.id);
+      final previousUrl = _currentAvatarUrl;
+      final avatarUrl = _removeAvatar ? null : await _uploadAvatar(user.id);
 
       await _supabase.auth.updateUser(UserAttributes(data: {
         'full_name': name,
-        'avatar_url': ?avatarUrl,
+        // null efface : `?` laissait l'ancienne photo en place.
+        if (_removeAvatar) 'avatar_url': null else 'avatar_url': ?avatarUrl,
       }));
       // upsert : crée la ligne profiles si elle n'existe pas encore.
       await _supabase.from('profiles').upsert({
         'id': user.id,
         'email': user.email,
         'full_name': name,
-        'avatar_url': ?avatarUrl,
+        if (_removeAvatar) 'avatar_url': null else 'avatar_url': ?avatarUrl,
         // Non lues : on n'envoie que ce que la personne a tape elle-meme.
         if (_extraLoaded || city.isNotEmpty) 'city': city,
         if (_extraLoaded || bio.isNotEmpty) 'bio': bio,
@@ -167,6 +248,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       // Rafraichi ici plutot que par l'appelant : cet ecran s'ouvre depuis le
       // profil ET depuis les reglages, et seul le premier chemin le faisait.
       // Depuis les reglages, on revenait sur un ancien identifiant.
+      // Retirée ou remplacée : l'ancien fichier part aussi.
+      if (_removeAvatar || (_pickedAvatar != null && avatarUrl != previousUrl)) {
+        await _deleteStoredAvatar(previousUrl);
+      }
+
       ref.invalidate(userProfileProvider);
       ref.invalidate(publicProfileProvider(user.id));
 
@@ -220,7 +306,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           // ── Avatar ────────────────────────────────────────────────
           Center(
             child: GestureDetector(
-              onTap: _pickAvatar,
+              onTap: _onAvatarTap,
               child: Stack(
                 children: [
                   Container(
@@ -352,6 +438,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Widget _avatarInner() {
+    if (_removeAvatar) return _initialsCircle();
     if (_pickedAvatar != null) {
       return Image.file(File(_pickedAvatar!.path),
           width: 98, height: 98, fit: BoxFit.cover);

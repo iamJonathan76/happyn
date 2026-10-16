@@ -791,5 +791,7 @@
   "directionsTo": "Directions to",
   "appleMaps": "Apple Maps",
   "copyAddress": "Copy address",
-  "addressCopied": "Address copied"
+  "addressCopied": "Address copied",
+  "changePhoto": "Change photo",
+  "removePhoto": "Remove photo"
 }
