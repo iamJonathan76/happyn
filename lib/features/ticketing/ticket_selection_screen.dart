@@ -129,8 +129,25 @@ class _TicketSelectionScreenState
     );
   }
 
+  /// Stripe a-t-il encaissé, ou est-il en train de le faire ? En cas de doute
+  /// (lecture impossible), on répond non : l'acheteur verra « annulé », et le
+  /// webhook émettra quand même ses billets si l'argent a été pris.
+  Future<bool> _paymentWentThrough(String clientSecret) async {
+    try {
+      final pi = await Stripe.instance.retrievePaymentIntent(clientSecret);
+      return pi.status == PaymentIntentsStatus.Succeeded ||
+          pi.status == PaymentIntentsStatus.Processing ||
+          pi.status == PaymentIntentsStatus.RequiresCapture;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _purchaseTicket() async {
-    if (_selectedTypeIndex == null) return;
+    // Le bouton est désactivé pendant un achat, mais seulement au prochain
+    // dessin de l'écran : deux appuis très rapprochés passaient tous deux, et
+    // créaient deux paiements.
+    if (_selectedTypeIndex == null || _isPurchasing) return;
     final l = AppLocalizations.of(context);
 
     // Soft-gate d'âge : si l'event a une exigence et que l'âge connu est en
@@ -146,11 +163,17 @@ class _TicketSelectionScreenState
 
     setState(() => _isPurchasing = true);
 
+    // Gardés hors du `try` : après une erreur Stripe, on en a besoin pour
+    // demander à Stripe si le paiement est quand même passé.
+    String? clientSecret;
+    String? paymentIntentId;
+    Map<String, dynamic>? selectedType;
+
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) throw Exception('Not authenticated');
 
-      final selectedType = _ticketTypes[_selectedTypeIndex!];
+      selectedType = _ticketTypes[_selectedTypeIndex!];
       final ticketTypeId = selectedType['id'] as String;
       final unitPrice = (selectedType['price'] ?? 0 as num).toDouble();
 
@@ -175,7 +198,7 @@ class _TicketSelectionScreenState
               builder: (_) => QrTicketScreen(
                 ticket: tickets.first,
                 event: widget.event,
-                ticketType: selectedType,
+                ticketType: selectedType!,
                 totalTickets: tickets.length,
               ),
             ),
@@ -195,8 +218,8 @@ class _TicketSelectionScreenState
         body: {'ticket_type_id': ticketTypeId, 'quantity': _quantity},
       );
       final data = (res.data as Map).cast<String, dynamic>();
-      final clientSecret = data['client_secret'] as String;
-      final paymentIntentId = data['payment_intent_id'] as String;
+      clientSecret = data['client_secret'] as String;
+      paymentIntentId = data['payment_intent_id'] as String;
 
       // 2. PaymentSheet Stripe
       await Stripe.instance.initPaymentSheet(
@@ -214,15 +237,33 @@ class _TicketSelectionScreenState
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => PaymentProcessingScreen(
-              paymentIntentId: paymentIntentId,
+              paymentIntentId: paymentIntentId!,
               event: widget.event,
-              ticketType: selectedType,
+              ticketType: selectedType!,
             ),
           ),
         );
       }
     } on StripeException catch (_) {
-      // Annulation ou échec côté Stripe : on reste sur l'écran, message discret.
+      // Une erreur de la feuille ne prouve pas que rien n'a été débité : si le
+      // réseau tombe juste après la confirmation, Stripe a encaissé mais l'app
+      // reçoit une erreur. Afficher « paiement annulé » pousserait alors à
+      // racheter — et à payer deux fois. On demande donc à Stripe ce qu'il en
+      // est avant de conclure.
+      if (clientSecret != null && await _paymentWentThrough(clientSecret)) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => PaymentProcessingScreen(
+                paymentIntentId: paymentIntentId!,
+                event: widget.event,
+                ticketType: selectedType!,
+              ),
+            ),
+          );
+        }
+        return;
+      }
       if (mounted) {
         showAppSnack(context, l.paymentCancelled);
       }

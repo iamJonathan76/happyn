@@ -355,6 +355,8 @@ reset role;
 
 -- Maintenance et version minimale : lues par tous, écrites par un admin seul
 reset role;
+-- Le schéma régénéré ne porte pas les données : la ligne unique est recréée ici.
+insert into app_status (id) values (true) on conflict (id) do nothing;
 select t.as_anon();
 select t.sees('select * from app_status', 1, 'Maintenance : l''etat se lit sans compte (ecran avant connexion)');
 select t.cannot_write($$update app_status set maintenance = true$$, 'Maintenance : un visiteur ne l''active pas');
@@ -372,4 +374,15 @@ select t.sees($$select * from app_status where maintenance and message_fr = 'Ret
 select t.fails_with($$select public.admin_set_app_status(false, null, null, 'v2')$$, 'check', 'Maintenance : une version minimale mal formee est refusee');
 select public.admin_set_app_status(false);
 select t.sees($$select * from app_status where not maintenance and min_version is null$$, 1, 'Maintenance : un admin la leve');
+reset role;
+
+-- Paiement : un webhook rejoué n'émet pas les billets deux fois
+reset role;
+select t.as_server();
+select count(*) from public.issue_tickets_paid('00000000-0000-0000-0000-0000000000f2', 2, '00000000-0000-0000-0000-00000000000a', 'pi_test_rejeu');
+select count(*) from public.issue_tickets_paid('00000000-0000-0000-0000-0000000000f2', 2, '00000000-0000-0000-0000-00000000000a', 'pi_test_rejeu');
+select t.sees($$select * from tickets where payment_intent_id = 'pi_test_rejeu'$$, 2, 'Paiement : rejoue, le webhook renvoie les memes billets au lieu d''en creer');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.fails_with($$select public.issue_tickets_paid('00000000-0000-0000-0000-0000000000f2', 1, auth.uid(), 'pi_pirate')$$, 'permission', 'Paiement : un compte n''emet pas de billet paye lui-meme');
 reset role;
