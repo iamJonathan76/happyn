@@ -405,3 +405,12 @@ update tickets set status = 'refunded'
 select t.as_user('00000000-0000-0000-0000-00000000000b');
 select t.can_write($$select public.issue_tickets('00000000-0000-0000-0000-0000000000f6', 1)$$, 'Limite : un billet annule libere sa place dans la limite');
 reset role;
+
+-- Versements : personne ne déclenche la tâche depuis l'app
+reset role;
+select t.as_anon();
+select t.fails_with($$select private.run_payouts_tick()$$, 'permission', 'Versements : un visiteur ne declenche pas la tache');
+reset role;
+select t.as_user('00000000-0000-0000-0000-0000000000ad');
+select t.fails_with($$select private.run_payouts_tick()$$, 'permission', 'Versements : meme un admin ne la declenche pas depuis l''app');
+reset role;

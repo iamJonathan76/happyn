@@ -562,14 +562,14 @@ choses qu'un nouveau contexte ne peut pas deviner.
 - **Le taux de commission** — `platform_fee_bps()` est à 500 (5 %), un
   placeholder. Figé par événement à sa création, donc le changer ne corrige pas
   les événements déjà publiés. Voir § 2.1.
-- **Les versements ne partent jamais tout seuls.** Vérifié le 2026-10-07 :
-  l'extension `pg_cron` n'est pas installée, aucune tâche n'appelle
-  `run-payouts`. L'écran « Get paid » annonce une date de versement que rien
-  ne tiendra. À faire, dans cet ordre : un premier versement SURVEILLÉ (petit
-  événement payé de test, terminé depuis plus de 3 jours, appel manuel de
-  `run-payouts` en regardant Stripe) ; puis seulement, `pg_cron` et un appel
-  quotidien, le secret `PAYOUT_HOOK_SECRET` rangé dans `private.settings`
-  comme celui des notifications.
+- **Les versements sont planifiés depuis le 2026-10-16.** `pg_cron` est
+  installé ; la tâche `happyn-payouts` appelle `run-payouts` chaque jour à
+  9 h 17 UTC via `private.run_payouts_tick()`. Elle ne fait **rien** tant que
+  `private.settings` n'a pas `payout_hook_url` et `payout_hook_secret` — à
+  poser une fois, sans jamais afficher le secret (commande dans l'historique
+  de la session du 2026-10-16). Versement surveillé à la main, dans l'éditeur
+  SQL : `select private.run_payouts_tick();` puis
+  `select status_code, content from net._http_response order by id desc limit 1;`
 - **L'historique des migrations côté Supabase est vide.** Les migrations ont
   toujours été appliquées à la main (éditeur SQL, `db query`), jamais par
   `db push` : la CLI croit donc qu'aucune n'est passée. **Ne jamais lancer

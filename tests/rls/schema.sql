@@ -1568,6 +1568,7 @@ declare
   v_event     uuid;
   v_remaining int;
   v_max       int;
+  v_held      int;
   v_end       timestamptz;
   v_status    text;
   v_title     text;
@@ -1614,6 +1615,18 @@ begin
   end if;
   if v_end is not null and v_end < now() then raise exception 'event_ended'; end if;
   if p_quantity > v_max then raise exception 'exceeds_max_per_order'; end if;
+  -- La limite de l'organisateur est PAR PERSONNE, pas par commande : sans ce
+  -- compte, deux commandes de 2 sur une limite de 2 passaient, et une seule
+  -- personne pouvait vider un événement gratuit. Compté après le verrou pris
+  -- sur le palier plus haut : deux commandes simultanées de la même personne
+  -- passent l'une après l'autre. Un billet utilisé compte (il a été détenu) ;
+  -- un billet annulé (« refunded ») ou transféré à quelqu'un d'autre, non.
+  select count(*) into v_held
+    from public.tickets
+   where user_id = v_user
+     and ticket_type_id = p_ticket_type_id
+     and status in ('valid', 'used');
+  if v_held + p_quantity > v_max then raise exception 'exceeds_per_person'; end if;
   if v_remaining < p_quantity then raise exception 'insufficient_stock'; end if;
 
   for v_i in 1..p_quantity loop
@@ -1654,6 +1667,14 @@ declare
   v_token     text;
   v_existing  int;
 begin
+  -- Un verrou par paiement, AVANT de regarder si les billets existent déjà.
+  -- Stripe peut livrer deux fois le même `payment_intent.succeeded`, parfois
+  -- presque en même temps : sans ce verrou, les deux livraisons voyaient
+  -- « aucun billet » et en émettaient chacune — billets en double, stock
+  -- décompté deux fois. Le verrou les fait passer l'une après l'autre ; la
+  -- seconde trouve les billets de la première et les renvoie.
+  perform pg_advisory_xact_lock(hashtextextended('issue_tickets_paid:' || p_payment_intent_id, 0));
+
   select count(*) into v_existing
   from public.tickets where payment_intent_id = p_payment_intent_id;
 
@@ -4375,12 +4396,6 @@ grant execute on function i_meet_age(integer) to authenticated;
 
 grant execute on function i_meet_age(integer) to service_role;
 
-revoke all on function issue_tickets(uuid,integer) from public, anon, authenticated, service_role;
-
-grant execute on function issue_tickets(uuid,integer) to authenticated;
-
-grant execute on function issue_tickets(uuid,integer) to service_role;
-
 revoke all on function accept_legal_documents(jsonb,text) from public, anon, authenticated, service_role;
 
 grant execute on function accept_legal_documents(jsonb,text) to authenticated;
@@ -4392,5 +4407,11 @@ revoke all on function admin_set_app_status(boolean,text,text,text) from public,
 grant execute on function admin_set_app_status(boolean,text,text,text) to authenticated;
 
 grant execute on function admin_set_app_status(boolean,text,text,text) to service_role;
+
+revoke all on function issue_tickets(uuid,integer) from public, anon, authenticated, service_role;
+
+grant execute on function issue_tickets(uuid,integer) to authenticated;
+
+grant execute on function issue_tickets(uuid,integer) to service_role;
 
 grant usage on schema public to anon, authenticated, service_role;
