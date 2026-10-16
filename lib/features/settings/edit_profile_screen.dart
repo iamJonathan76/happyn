@@ -4,6 +4,7 @@ import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -122,7 +123,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _onAvatarTap() async {
     if (!_hasPhoto) return _pickAvatar();
     final l = AppLocalizations.of(context);
-    final choice = await showModalBottomSheet<String>(
+    // Sur iPhone, la feuille d'actions native ; ailleurs, la feuille Material.
+    final choice = Platform.isIOS
+        ? await showCupertinoModalPopup<String>(
+            context: context,
+            builder: (ctx) => CupertinoActionSheet(
+              actions: [
+                CupertinoActionSheetAction(
+                  onPressed: () => Navigator.of(ctx).pop('change'),
+                  child: Text(l.changePhoto),
+                ),
+                CupertinoActionSheetAction(
+                  isDestructiveAction: true,
+                  onPressed: () => Navigator.of(ctx).pop('remove'),
+                  child: Text(l.removePhoto),
+                ),
+              ],
+              cancelButton: CupertinoActionSheetAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text(l.cancel),
+              ),
+            ),
+          )
+        : await showModalBottomSheet<String>(
       context: context,
       backgroundColor: AppColors.sheet,
       shape: const RoundedRectangleBorder(

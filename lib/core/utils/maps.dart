@@ -1,9 +1,8 @@
 import 'dart:io' show Platform;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:happyn/core/theme/app_colors.dart';
-import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -69,80 +68,37 @@ Future<void> openDirections(
   }
   if (!context.mounted) return;
 
-  await showModalBottomSheet<void>(
+  // La feuille d'actions native d'iOS, celle de Plans ou de Mail : titre
+  // gris, choix en bleu, « Annuler » à part. Une feuille maison y faisait
+  // tache.
+  await showCupertinoModalPopup<void>(
     context: context,
-    backgroundColor: AppColors.sheet,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (sheetCtx) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(22, 18, 22, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.textFaint,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            Text(l.directionsTo, style: AppText.caption),
-            const SizedBox(height: 2),
-            Text(title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppText.h3),
-            const SizedBox(height: 14),
-            for (final (name, icon, uri) in options)
-              _option(icon, name, () {
-                Navigator.of(sheetCtx).pop();
-                launchOrWarn(uri);
-              }),
-            const Divider(color: AppColors.border, height: 20),
-            _option(Icons.copy_rounded, l.copyAddress, () {
-              Clipboard.setData(ClipboardData(text: address));
+    builder: (sheetCtx) => CupertinoActionSheet(
+      title: Text('${l.directionsTo} $title'),
+      actions: [
+        for (final (name, _, uri) in options)
+          CupertinoActionSheetAction(
+            onPressed: () {
               Navigator.of(sheetCtx).pop();
-              messenger.showSnackBar(SnackBar(content: Text(l.addressCopied)));
-            }),
-          ],
+              launchOrWarn(uri);
+            },
+            child: Text(name),
+          ),
+        CupertinoActionSheetAction(
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: address));
+            Navigator.of(sheetCtx).pop();
+            messenger.showSnackBar(SnackBar(content: Text(l.addressCopied)));
+          },
+          child: Text(l.copyAddress),
         ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        isDefaultAction: true,
+        onPressed: () => Navigator.of(sheetCtx).pop(),
+        child: Text(l.cancel),
       ),
     ),
   );
 }
 
-Widget _option(IconData icon, String label, VoidCallback onTap) {
-  return GestureDetector(
-    onTap: onTap,
-    behavior: HitTestBehavior.opaque,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: AppColors.lavenderLight, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(label,
-                style: AppText.bodySm
-                    .copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
-    ),
-  );
-}
