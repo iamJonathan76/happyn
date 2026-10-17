@@ -457,6 +457,19 @@ notifications poussées iOS en dépendent aussi (APNs).
 **Ordre conseillé :** Google Play en **test interne** d'abord. Pas de Mac, 25 $,
 et l'app arrive sur de vrais téléphones sans passer par la validation publique.
 
+### Notes d'événement — prêtes, demande pas encore activée (2026-10-17)
+
+Serveur, écran de notation, moyenne publique (dès 5 notes) et retours de
+l'organisateur sont en place ; textes légaux publiés (confidentialité 1.3,
+communauté 1.1). **Reste à activer la demande « Comment était… ? »**, une fois
+la version de l'app qui contient l'écran de notation installée chez les
+testeurs — sinon la notification mène à une page sans rien à noter :
+
+```sql
+select cron.schedule('happyn-rating-requests', '23 * * * *',
+                     'select private.send_rating_requests()');
+```
+
 ### Maintenance et version minimale — en place le 2026-10-16
 
 Réglages → Modération → **Maintenance et version** (administrateurs seulement).

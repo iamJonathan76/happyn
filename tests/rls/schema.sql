@@ -80,6 +80,11 @@ exception when duplicate_object then null; end $$;
 
 create schema if not exists private;
 
+create table private."payout_hold_alerts" (
+  "event_id" uuid not null,
+  "sent_at" timestamp with time zone not null
+);
+
 create table private."rating_requests" (
   "event_id" uuid not null,
   "sent_at" timestamp with time zone not null
@@ -305,6 +310,14 @@ create table public."payments" (
   "retained_fee_cents" bigint not null
 );
 
+create table public."payout_reviews" (
+  "event_id" uuid not null,
+  "decision" text not null,
+  "reason" text,
+  "decided_by" uuid,
+  "decided_at" timestamp with time zone not null
+);
+
 create table public."post_comments" (
   "id" uuid not null,
   "post_id" uuid not null,
@@ -489,6 +502,51 @@ begin
     'blocked_pending_earnings', public.deletion_pending_earnings(v_user),
     'blocked_paid_tickets',     public.deletion_paid_tickets(v_user)
   );
+end;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.admin_payout_queue()
+ RETURNS TABLE(event_id uuid, event_title text, organizer_id uuid, organizer_name text, end_date timestamp with time zone, due_at timestamp with time zone, net_cents bigint, tickets_sold integer, tickets_scanned integer, state text, hold_reason text, failure_reason text)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.i_am_admin() then raise exception 'not_admin'; end if;
+  return query
+  select
+    e.id, e.title, e.created_by, pr.full_name, e.end_date,
+    e.end_date + (public.payout_delay_days() || ' days')::interval,
+    greatest(l.gross - l.withheld - l.stripe_fee - l.platform_fee, 0)::bigint,
+    (select count(*)::int from public.tickets t
+      where t.event_id = e.id and t.status in ('valid', 'used')),
+    (select count(*)::int from public.tickets t
+      where t.event_id = e.id and t.status = 'used'),
+    -- « waiting » passe avant « held » : tant que le délai court, il n'y a
+    -- rien à décider, mais hold_reason prévient déjà de ce qui attend.
+    case
+      when pay.status = 'failed' then 'failed'
+      when e.end_date + (public.payout_delay_days() || ' days')::interval >= now() then 'waiting'
+      when public.payout_hold_reason(e.id, e.created_by) is not null then 'held'
+      when a.account_id is null or not a.transfers_enabled or a.disabled_reason is not null then 'no_account'
+      else 'ready'
+    end,
+    public.payout_hold_reason(e.id, e.created_by),
+    pay.failure_reason
+  from public.events e
+  join public.event_ledger() l on l.event_id = e.id
+  left join public.stripe_accounts a on a.user_id = e.created_by
+  left join public.event_payouts pay on pay.event_id = e.id
+  left join public.profiles pr on pr.id = e.created_by
+  where (pay.id is null or pay.status = 'failed')
+    and coalesce(e.status, 'published') <> 'cancelled'
+    and e.end_date is not null
+    and e.end_date < now()
+  order by
+    case when pay.status = 'failed' then 0
+         when public.payout_hold_reason(e.id, e.created_by) is not null then 1
+         else 2 end,
+    e.end_date asc;
 end;
 $function$;
 
@@ -751,6 +809,27 @@ begin
 end;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.admin_set_payout_review(p_event uuid, p_decision text, p_reason text DEFAULT NULL::text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.i_am_admin() then raise exception 'not_admin'; end if;
+  if p_decision not in ('released', 'held') then raise exception 'invalid_decision'; end if;
+  if exists (select 1 from public.event_payouts p
+             where p.event_id = p_event and p.status = 'paid') then
+    raise exception 'already_paid';
+  end if;
+  insert into public.payout_reviews (event_id, decision, reason, decided_by, decided_at)
+  values (p_event, p_decision, nullif(trim(p_reason), ''), auth.uid(), now())
+  on conflict (event_id) do update
+     set decision = excluded.decision, reason = excluded.reason,
+         decided_by = excluded.decided_by, decided_at = excluded.decided_at;
+end;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.admin_set_suspended(p_user uuid, p_suspended boolean, p_report uuid DEFAULT NULL::uuid, p_note text DEFAULT NULL::text)
  RETURNS void
  LANGUAGE plpgsql
@@ -776,6 +855,56 @@ begin
   values (auth.uid(),
           case when p_suspended then 'suspend_user' else 'unsuspend_user' end,
           'user', p_user, p_report, p_note);
+end;
+$function$;
+
+CREATE OR REPLACE FUNCTION private.alert_payout_holds()
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'private', 'public'
+AS $function$
+declare
+  v_ev     record;
+  v_reason text;
+  v_n      integer := 0;
+begin
+  for v_ev in
+    select e.id, e.title, e.created_by
+    from public.events e
+    join public.event_ledger() l on l.event_id = e.id
+    left join public.event_payouts pay on pay.event_id = e.id
+    where pay.id is null
+      and coalesce(e.status, 'published') <> 'cancelled'
+      and e.end_date + (public.payout_delay_days() || ' days')::interval < now()
+      and not exists (select 1 from private.payout_hold_alerts x where x.event_id = e.id)
+  loop
+    v_reason := public.payout_hold_reason(v_ev.id, v_ev.created_by);
+    if v_reason is null or v_reason = 'manual' then continue; end if;
+
+    insert into private.payout_hold_alerts (event_id) values (v_ev.id)
+    on conflict (event_id) do nothing;
+    if not found then continue; end if;
+
+    insert into public.notifications (user_id, type, title, body, event_id)
+    select p.id, 'payout_review',
+           case when p.language = 'fr' then 'Versement à vérifier : ' || v_ev.title
+                else 'Payout to review: ' || v_ev.title end,
+           case
+             when v_reason = 'no_scans' and p.language = 'fr'
+               then 'Aucun billet n''a été scanné à l''entrée. Libère ou bloque le versement.'
+             when v_reason = 'no_scans'
+               then 'No ticket was scanned at the door. Release or hold the payout.'
+             when p.language = 'fr'
+               then 'Premier événement payant de cet organisateur. Libère ou bloque le versement.'
+             else 'This organizer''s first paid event. Release or hold the payout.'
+           end,
+           v_ev.id
+    from public.profiles p
+    where p.is_admin;
+    v_n := v_n + 1;
+  end loop;
+  return v_n;
 end;
 $function$;
 
@@ -1411,6 +1540,7 @@ AS $function$
     and e.end_date + (public.payout_delay_days() || ' days')::interval < now()
     and a.transfers_enabled
     and a.disabled_reason is null
+    and public.payout_hold_reason(e.id, e.created_by) is null
   order by e.end_date asc;
 $function$;
 
@@ -2175,7 +2305,26 @@ CREATE OR REPLACE FUNCTION public.payout_delay_days()
  LANGUAGE sql
  IMMUTABLE
  SET search_path TO 'public'
-AS $function$ select 3 $function$;
+AS $function$ select 7 $function$;
+
+CREATE OR REPLACE FUNCTION public.payout_hold_reason(p_event uuid, p_organizer uuid)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select case
+    when r.decision = 'held' then 'manual'
+    when r.decision = 'released' then null
+    when not exists (select 1 from public.tickets t
+                     where t.event_id = p_event and t.status = 'used') then 'no_scans'
+    when not exists (select 1 from public.event_payouts p
+                     where p.organizer_id = p_organizer and p.status = 'paid') then 'first_event'
+    else null
+  end
+  from (select 1) one
+  left join public.payout_reviews r on r.event_id = p_event;
+$function$;
 
 CREATE OR REPLACE FUNCTION public.pending_legal_documents(p_locale text DEFAULT NULL::text)
  RETURNS TABLE(slug text, title text, version text, previously_accepted boolean)
@@ -2627,12 +2776,11 @@ declare
   v_url    text := private.setting('payout_hook_url');
   v_secret text := private.setting('payout_hook_secret');
 begin
+  perform private.alert_payout_holds();
   if v_url is null or v_secret is null then
     raise notice 'run_payouts_tick : payout_hook_url / payout_hook_secret absents, rien n''est appele';
     return null;
   end if;
-  -- Asynchrone : la réponse arrive dans net._http_response, sous l'identifiant
-  -- renvoyé ici. C'est là qu'on lit le bilan (considered, paid, skipped…).
   return net.http_post(
     url     := v_url,
     headers := jsonb_build_object(
@@ -2640,8 +2788,6 @@ begin
                  'x-happyn-secret', v_secret
                ),
     body    := '{}'::jsonb,
-    -- run-payouts relit chaque compte chez Stripe : plus lent qu'un envoi de
-    -- notification.
     timeout_milliseconds := 60000
   );
 end;
@@ -3233,6 +3379,8 @@ AS $function$
   order by a.created_at desc;
 $function$;
 
+alter table private."payout_hold_alerts" alter column "sent_at" set default now();
+
 alter table private."rating_requests" alter column "sent_at" set default now();
 
 alter table public."admin_actions" alter column "id" set default gen_random_uuid();
@@ -3349,6 +3497,8 @@ alter table public."payments" alter column "created_at" set default now();
 
 alter table public."payments" alter column "retained_fee_cents" set default 0;
 
+alter table public."payout_reviews" alter column "decided_at" set default now();
+
 alter table public."post_comments" alter column "id" set default gen_random_uuid();
 
 alter table public."post_comments" alter column "created_at" set default now();
@@ -3407,29 +3557,43 @@ alter table public."user_legal_acceptances" alter column "id" set default gen_ra
 
 alter table public."user_legal_acceptances" alter column "accepted_at" set default now();
 
-alter table public."profiles" add constraint "profiles_pkey" PRIMARY KEY (id);
-
-alter table private."rating_requests" add constraint "rating_requests_pkey" PRIMARY KEY (event_id);
-
-alter table public."events" add constraint "events_pkey" PRIMARY KEY (id);
-
-alter table public."payments" add constraint "payments_pkey" PRIMARY KEY (payment_intent_id);
-
-alter table public."blocked_users" add constraint "blocked_users_pkey" PRIMARY KEY (blocker_id, blocked_id);
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_pkey" PRIMARY KEY (id);
 
 alter table public."post_likes" add constraint "post_likes_pkey" PRIMARY KEY (post_id, user_id);
 
-alter table public."legal_documents" add constraint "legal_documents_pkey" PRIMARY KEY (slug);
+alter table private."payout_hold_alerts" add constraint "payout_hold_alerts_pkey" PRIMARY KEY (event_id);
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_pkey" PRIMARY KEY (id);
-
-alter table public."direct_conversations" add constraint "direct_conversations_pkey" PRIMARY KEY (id);
+alter table public."event_addresses" add constraint "event_addresses_pkey" PRIMARY KEY (event_id);
 
 alter table public."follows" add constraint "follows_pkey" PRIMARY KEY (follower_id, following_id);
 
-alter table public."event_payouts" add constraint "event_payouts_pkey" PRIMARY KEY (id);
+alter table private."rating_requests" add constraint "rating_requests_pkey" PRIMARY KEY (event_id);
 
-alter table public."event_addresses" add constraint "event_addresses_pkey" PRIMARY KEY (event_id);
+alter table public."event_ratings" add constraint "event_ratings_pkey" PRIMARY KEY (id);
+
+alter table public."app_status" add constraint "app_status_pkey" PRIMARY KEY (id);
+
+alter table public."legal_document_translations" add constraint "legal_document_translations_pkey" PRIMARY KEY (slug, locale);
+
+alter table public."post_comments" add constraint "post_comments_pkey" PRIMARY KEY (id);
+
+alter table public."events" add constraint "events_pkey" PRIMARY KEY (id);
+
+alter table private."settings" add constraint "settings_pkey" PRIMARY KEY (key);
+
+alter table public."direct_messages" add constraint "direct_messages_pkey" PRIMARY KEY (id);
+
+alter table public."payments" add constraint "payments_pkey" PRIMARY KEY (payment_intent_id);
+
+alter table public."ticket_types" add constraint "ticket_types_pkey" PRIMARY KEY (id);
+
+alter table public."direct_conversations" add constraint "direct_conversations_pkey" PRIMARY KEY (id);
+
+alter table public."tickets" add constraint "tickets_pkey" PRIMARY KEY (id);
+
+alter table public."payout_reviews" add constraint "payout_reviews_pkey" PRIMARY KEY (event_id);
+
+alter table public."event_payouts" add constraint "event_payouts_pkey" PRIMARY KEY (id);
 
 alter table public."admin_actions" add constraint "admin_actions_pkey" PRIMARY KEY (id);
 
@@ -3437,109 +3601,71 @@ alter table public."device_tokens" add constraint "device_tokens_pkey" PRIMARY K
 
 alter table public."event_attendance" add constraint "event_attendance_pkey" PRIMARY KEY (user_id, event_id);
 
-alter table public."ticket_types" add constraint "ticket_types_pkey" PRIMARY KEY (id);
-
-alter table public."posts" add constraint "posts_pkey" PRIMARY KEY (id);
-
-alter table public."notifications" add constraint "notifications_pkey" PRIMARY KEY (id);
-
-alter table public."favorites" add constraint "favorites_pkey" PRIMARY KEY (id);
-
-alter table public."stripe_accounts" add constraint "stripe_accounts_pkey" PRIMARY KEY (user_id);
-
-alter table public."cities" add constraint "cities_pkey" PRIMARY KEY (slug);
-
-alter table public."event_unlocks" add constraint "event_unlocks_pkey" PRIMARY KEY (user_id, event_id);
-
-alter table public."app_status" add constraint "app_status_pkey" PRIMARY KEY (id);
-
-alter table public."tickets" add constraint "tickets_pkey" PRIMARY KEY (id);
-
-alter table public."event_ratings" add constraint "event_ratings_pkey" PRIMARY KEY (id);
-
-alter table public."legal_document_translations" add constraint "legal_document_translations_pkey" PRIMARY KEY (slug, locale);
-
-alter table public."post_comments" add constraint "post_comments_pkey" PRIMARY KEY (id);
-
-alter table private."settings" add constraint "settings_pkey" PRIMARY KEY (key);
+alter table public."profiles" add constraint "profiles_pkey" PRIMARY KEY (id);
 
 alter table public."categories" add constraint "categories_pkey" PRIMARY KEY (id);
 
 alter table public."reports" add constraint "reports_pkey" PRIMARY KEY (id);
 
-alter table public."direct_messages" add constraint "direct_messages_pkey" PRIMARY KEY (id);
+alter table public."notifications" add constraint "notifications_pkey" PRIMARY KEY (id);
 
-alter table public."event_payouts" add constraint "event_payouts_event_id_key" UNIQUE (event_id);
+alter table public."stripe_accounts" add constraint "stripe_accounts_pkey" PRIMARY KEY (user_id);
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_slug_version_key" UNIQUE (user_id, slug, version);
+alter table public."event_unlocks" add constraint "event_unlocks_pkey" PRIMARY KEY (user_id, event_id);
 
-alter table public."event_ratings" add constraint "event_ratings_event_id_user_id_key" UNIQUE (event_id, user_id);
+alter table public."cities" add constraint "cities_pkey" PRIMARY KEY (slug);
 
-alter table public."stripe_accounts" add constraint "stripe_accounts_account_id_key" UNIQUE (account_id);
+alter table public."favorites" add constraint "favorites_pkey" PRIMARY KEY (id);
 
-alter table public."direct_conversations" add constraint "direct_conversations_member_a_member_b_key" UNIQUE (member_a, member_b);
+alter table public."blocked_users" add constraint "blocked_users_pkey" PRIMARY KEY (blocker_id, blocked_id);
 
-alter table public."categories" add constraint "categories_name_key" UNIQUE (name);
+alter table public."posts" add constraint "posts_pkey" PRIMARY KEY (id);
+
+alter table public."legal_documents" add constraint "legal_documents_pkey" PRIMARY KEY (slug);
 
 alter table public."profiles" add constraint "profiles_email_key" UNIQUE (email);
 
+alter table public."profiles" add constraint "profiles_username_key" UNIQUE (username);
+
 alter table public."tickets" add constraint "tickets_qr_token_key" UNIQUE (qr_token);
 
-alter table public."event_payouts" add constraint "event_payouts_transfer_id_key" UNIQUE (transfer_id);
+alter table public."categories" add constraint "categories_name_key" UNIQUE (name);
+
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_slug_version_key" UNIQUE (user_id, slug, version);
 
 alter table public."favorites" add constraint "favorites_user_id_event_id_key" UNIQUE (user_id, event_id);
 
-alter table public."profiles" add constraint "profiles_username_key" UNIQUE (username);
+alter table public."stripe_accounts" add constraint "stripe_accounts_account_id_key" UNIQUE (account_id);
 
-alter table public."direct_messages" add constraint "direct_message_body_length" CHECK (((char_length(body) <= 2000) AND ((char_length(TRIM(BOTH FROM body)) >= 1) OR (shared_kind IS NOT NULL))));
+alter table public."event_payouts" add constraint "event_payouts_event_id_key" UNIQUE (event_id);
 
-alter table public."profiles" add constraint "profiles_language_check" CHECK ((language = ANY (ARRAY['en'::text, 'fr'::text])));
+alter table public."event_payouts" add constraint "event_payouts_transfer_id_key" UNIQUE (transfer_id);
 
-alter table public."profiles" add constraint "username_format" CHECK (((username IS NULL) OR ((username = lower(username)) AND (username ~ '^[a-z0-9._]{3,20}$'::text) AND (username !~ '^\.|\.$|\.\.'::text))));
+alter table public."direct_conversations" add constraint "direct_conversations_member_a_member_b_key" UNIQUE (member_a, member_b);
 
-alter table public."events" add constraint "event_ends_after_start" CHECK (((end_date IS NULL) OR (end_date >= start_date))) NOT VALID;
-
-alter table public."events" add constraint "events_cancellation_hours_check" CHECK (((cancellation_hours >= 0) AND (cancellation_hours <= 720)));
-
-alter table public."events" add constraint "events_min_age_check" CHECK ((min_age = ANY (ARRAY[0, 18, 21])));
-
-alter table public."events" add constraint "events_posts_visibility_check" CHECK ((posts_visibility = ANY (ARRAY['invitees'::text, 'public'::text])));
-
-alter table public."events" add constraint "events_status_check" CHECK ((status = ANY (ARRAY['published'::text, 'draft'::text, 'cancelled'::text])));
-
-alter table public."tickets" add constraint "tickets_status_check" CHECK ((status = ANY (ARRAY['valid'::text, 'used'::text, 'expired'::text, 'refunded'::text])));
-
-alter table public."reports" add constraint "reports_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'reviewed'::text, 'actioned'::text, 'dismissed'::text])));
-
-alter table public."reports" add constraint "reports_target_type_check" CHECK ((target_type = ANY (ARRAY['event'::text, 'user'::text, 'post'::text, 'message'::text, 'comment'::text])));
-
-alter table public."blocked_users" add constraint "no_self_block" CHECK ((blocker_id <> blocked_id));
-
-alter table public."follows" add constraint "no_self_follow" CHECK ((follower_id <> following_id));
-
-alter table public."posts" add constraint "post_not_empty" CHECK (((COALESCE(TRIM(BOTH FROM caption), ''::text) <> ''::text) OR (COALESCE(image_url, ''::text) <> ''::text)));
-
-alter table public."posts" add constraint "posts_image_aspect_range" CHECK (((image_aspect IS NULL) OR ((image_aspect >= (0.2)::double precision) AND (image_aspect <= (5)::double precision))));
+alter table public."event_ratings" add constraint "event_ratings_event_id_user_id_key" UNIQUE (event_id, user_id);
 
 alter table public."event_attendance" add constraint "event_attendance_status_check" CHECK ((status = ANY (ARRAY['going'::text, 'attended'::text])));
 
-alter table public."device_tokens" add constraint "device_tokens_platform_check" CHECK ((platform = ANY (ARRAY['android'::text, 'ios'::text])));
+alter table public."tickets" add constraint "tickets_status_check" CHECK ((status = ANY (ARRAY['valid'::text, 'used'::text, 'expired'::text, 'refunded'::text])));
 
 alter table public."event_payouts" add constraint "event_payouts_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'paid'::text, 'failed'::text, 'skipped'::text])));
 
-alter table public."direct_conversations" add constraint "direct_conversation_members_ordered" CHECK ((member_a < member_b));
-
-alter table public."direct_messages" add constraint "direct_message_shared_kind" CHECK (
-CASE shared_kind
-    WHEN 'post'::text THEN ((event_id IS NULL) AND (ticket_id IS NULL))
-    WHEN 'event'::text THEN ((post_id IS NULL) AND (ticket_id IS NULL))
-    WHEN 'ticket'::text THEN (post_id IS NULL)
-    ELSE ((shared_kind IS NULL) AND (post_id IS NULL) AND (event_id IS NULL) AND (ticket_id IS NULL))
-END);
+alter table public."events" add constraint "events_posts_visibility_check" CHECK ((posts_visibility = ANY (ARRAY['invitees'::text, 'public'::text])));
 
 alter table public."post_comments" add constraint "post_comment_body_length" CHECK (((char_length(TRIM(BOTH FROM body)) >= 1) AND (char_length(TRIM(BOTH FROM body)) <= 500)));
 
+alter table public."profiles" add constraint "profiles_language_check" CHECK ((language = ANY (ARRAY['en'::text, 'fr'::text])));
+
+alter table public."events" add constraint "events_min_age_check" CHECK ((min_age = ANY (ARRAY[0, 18, 21])));
+
+alter table public."direct_conversations" add constraint "direct_conversation_members_ordered" CHECK ((member_a < member_b));
+
 alter table public."legal_document_translations" add constraint "legal_document_translations_locale_check" CHECK ((locale = 'fr'::text));
+
+alter table public."reports" add constraint "reports_target_type_check" CHECK ((target_type = ANY (ARRAY['event'::text, 'user'::text, 'post'::text, 'message'::text, 'comment'::text])));
+
+alter table public."payout_reviews" add constraint "payout_reviews_reason_check" CHECK ((char_length(reason) <= 300));
 
 alter table public."app_status" add constraint "app_status_id_check" CHECK (id);
 
@@ -3549,57 +3675,47 @@ alter table public."app_status" add constraint "app_status_message_fr_check" CHE
 
 alter table public."app_status" add constraint "app_status_min_version_check" CHECK ((min_version ~ '^\d+(\.\d+){0,2}$'::text));
 
+alter table public."events" add constraint "events_cancellation_hours_check" CHECK (((cancellation_hours >= 0) AND (cancellation_hours <= 720)));
+
+alter table public."profiles" add constraint "username_format" CHECK (((username IS NULL) OR ((username = lower(username)) AND (username ~ '^[a-z0-9._]{3,20}$'::text) AND (username !~ '^\.|\.$|\.\.'::text))));
+
 alter table public."event_ratings" add constraint "event_ratings_comment_check" CHECK ((char_length(comment) <= 500));
+
+alter table public."device_tokens" add constraint "device_tokens_platform_check" CHECK ((platform = ANY (ARRAY['android'::text, 'ios'::text])));
+
+alter table public."blocked_users" add constraint "no_self_block" CHECK ((blocker_id <> blocked_id));
+
+alter table public."events" add constraint "event_ends_after_start" CHECK (((end_date IS NULL) OR (end_date >= start_date))) NOT VALID;
 
 alter table public."event_ratings" add constraint "event_ratings_stars_check" CHECK (((stars >= 1) AND (stars <= 5)));
 
 alter table public."event_ratings" add constraint "event_ratings_tags_check" CHECK ((cardinality(tags) <= 8));
 
-alter table private."rating_requests" add constraint "rating_requests_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+alter table public."reports" add constraint "reports_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'reviewed'::text, 'actioned'::text, 'dismissed'::text])));
 
-alter table public."device_tokens" add constraint "device_tokens_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."posts" add constraint "post_not_empty" CHECK (((COALESCE(TRIM(BOTH FROM caption), ''::text) <> ''::text) OR (COALESCE(image_url, ''::text) <> ''::text)));
 
-alter table public."admin_actions" add constraint "admin_actions_admin_id_fkey" FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."direct_messages" add constraint "direct_message_body_length" CHECK (((char_length(body) <= 2000) AND ((char_length(TRIM(BOTH FROM body)) >= 1) OR (shared_kind IS NOT NULL))));
 
-alter table public."post_likes" add constraint "post_likes_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."follows" add constraint "no_self_follow" CHECK ((follower_id <> following_id));
 
-alter table public."admin_actions" add constraint "admin_actions_report_id_fkey" FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE SET NULL;
+alter table public."direct_messages" add constraint "direct_message_shared_kind" CHECK (
+CASE shared_kind
+    WHEN 'post'::text THEN ((event_id IS NULL) AND (ticket_id IS NULL))
+    WHEN 'event'::text THEN ((post_id IS NULL) AND (ticket_id IS NULL))
+    WHEN 'ticket'::text THEN (post_id IS NULL)
+    ELSE ((shared_kind IS NULL) AND (post_id IS NULL) AND (event_id IS NULL) AND (ticket_id IS NULL))
+END);
 
-alter table public."post_likes" add constraint "post_likes_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
+alter table public."posts" add constraint "posts_image_aspect_range" CHECK (((image_aspect IS NULL) OR ((image_aspect >= (0.2)::double precision) AND (image_aspect <= (5)::double precision))));
 
-alter table public."event_payouts" add constraint "event_payouts_organizer_id_fkey" FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."payout_reviews" add constraint "payout_reviews_decision_check" CHECK ((decision = ANY (ARRAY['released'::text, 'held'::text])));
 
-alter table public."event_addresses" add constraint "event_addresses_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
-
-alter table public."profiles" add constraint "profiles_id_fkey" FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public."follows" add constraint "follows_following_id_fkey" FOREIGN KEY (following_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public."tickets" add constraint "tickets_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id);
-
-alter table public."direct_conversations" add constraint "direct_conversations_member_a_fkey" FOREIGN KEY (member_a) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-alter table public."follows" add constraint "follows_follower_id_fkey" FOREIGN KEY (follower_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public."direct_conversations" add constraint "direct_conversations_member_b_fkey" FOREIGN KEY (member_b) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public."payments" add constraint "payments_buyer_id_fkey" FOREIGN KEY (buyer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-alter table public."payments" add constraint "payments_organizer_id_fkey" FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-alter table public."blocked_users" add constraint "blocked_users_blocker_id_fkey" FOREIGN KEY (blocker_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public."blocked_users" add constraint "blocked_users_blocked_id_fkey" FOREIGN KEY (blocked_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public."app_status" add constraint "app_status_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."events" add constraint "events_status_check" CHECK ((status = ANY (ARRAY['published'::text, 'draft'::text, 'cancelled'::text])));
 
 alter table public."direct_messages" add constraint "direct_messages_conversation_id_fkey" FOREIGN KEY (conversation_id) REFERENCES direct_conversations(id) ON DELETE CASCADE;
 
 alter table public."direct_messages" add constraint "direct_messages_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL;
-
-alter table public."reports" add constraint "reports_reporter_id_fkey" FOREIGN KEY (reporter_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."direct_messages" add constraint "direct_messages_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE SET NULL;
 
@@ -3607,29 +3723,53 @@ alter table public."direct_messages" add constraint "direct_messages_sender_id_f
 
 alter table public."direct_messages" add constraint "direct_messages_ticket_id_fkey" FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE SET NULL;
 
-alter table public."tickets" add constraint "tickets_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-alter table public."event_ratings" add constraint "event_ratings_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
 alter table public."post_comments" add constraint "post_comments_author_id_fkey" FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public."tickets" add constraint "tickets_transferred_from_fkey" FOREIGN KEY (transferred_from) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."post_comments" add constraint "post_comments_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
 
-alter table public."event_ratings" add constraint "event_ratings_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
-
-alter table public."tickets" add constraint "tickets_ticket_type_id_fkey" FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(id);
+alter table public."events" add constraint "events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."legal_document_translations" add constraint "legal_document_translations_slug_fkey" FOREIGN KEY (slug) REFERENCES legal_documents(slug) ON DELETE CASCADE;
 
-alter table public."ticket_types" add constraint "ticket_types_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+alter table public."app_status" add constraint "app_status_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."event_unlocks" add constraint "event_unlocks_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."event_ratings" add constraint "event_ratings_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+
+alter table public."profiles" add constraint "profiles_id_fkey" FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."event_ratings" add constraint "event_ratings_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table private."rating_requests" add constraint "rating_requests_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+
+alter table public."follows" add constraint "follows_following_id_fkey" FOREIGN KEY (following_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."event_addresses" add constraint "event_addresses_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+
+alter table public."follows" add constraint "follows_follower_id_fkey" FOREIGN KEY (follower_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."post_likes" add constraint "post_likes_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."post_likes" add constraint "post_likes_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
+
+alter table public."posts" add constraint "posts_author_id_fkey" FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."posts" add constraint "posts_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+
+alter table public."favorites" add constraint "favorites_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+
+alter table public."blocked_users" add constraint "blocked_users_blocker_id_fkey" FOREIGN KEY (blocker_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."favorites" add constraint "favorites_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."blocked_users" add constraint "blocked_users_blocked_id_fkey" FOREIGN KEY (blocked_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."event_unlocks" add constraint "event_unlocks_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."favorites" add constraint "favorites_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."event_unlocks" add constraint "event_unlocks_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."payout_reviews" add constraint "payout_reviews_decided_by_fkey" FOREIGN KEY (decided_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."stripe_accounts" add constraint "stripe_accounts_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -3637,7 +3777,7 @@ alter table public."notifications" add constraint "notifications_conversation_id
 
 alter table public."notifications" add constraint "notifications_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL;
 
-alter table public."favorites" add constraint "favorites_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+alter table public."reports" add constraint "reports_reporter_id_fkey" FOREIGN KEY (reporter_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."notifications" add constraint "notifications_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
 
@@ -3645,13 +3785,33 @@ alter table public."notifications" add constraint "notifications_user_id_fkey" F
 
 alter table public."event_attendance" add constraint "event_attendance_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."posts" add constraint "posts_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
-
-alter table public."events" add constraint "events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."tickets" add constraint "tickets_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."event_attendance" add constraint "event_attendance_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public."posts" add constraint "posts_author_id_fkey" FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."tickets" add constraint "tickets_transferred_from_fkey" FOREIGN KEY (transferred_from) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."device_tokens" add constraint "device_tokens_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public."admin_actions" add constraint "admin_actions_admin_id_fkey" FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."tickets" add constraint "tickets_ticket_type_id_fkey" FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(id);
+
+alter table public."admin_actions" add constraint "admin_actions_report_id_fkey" FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE SET NULL;
+
+alter table public."event_payouts" add constraint "event_payouts_organizer_id_fkey" FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."direct_conversations" add constraint "direct_conversations_member_a_fkey" FOREIGN KEY (member_a) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."direct_conversations" add constraint "direct_conversations_member_b_fkey" FOREIGN KEY (member_b) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."tickets" add constraint "tickets_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id);
+
+alter table public."payments" add constraint "payments_buyer_id_fkey" FOREIGN KEY (buyer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."payments" add constraint "payments_organizer_id_fkey" FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."ticket_types" add constraint "ticket_types_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
 create or replace view public."public_profiles" as  SELECT id,
     full_name,
@@ -3824,6 +3984,8 @@ alter table public."app_status" enable row level security;
 
 alter table public."event_ratings" enable row level security;
 
+alter table public."payout_reviews" enable row level security;
+
 create policy "Users can view own profile" on public."profiles" as permissive for select to public using ((auth.uid() = id));
 
 create policy "Users can insert own profile" on public."profiles" as permissive for insert to public with check ((auth.uid() = id));
@@ -3952,6 +4114,8 @@ create policy "app status readable by all" on public."app_status" as permissive 
 
 -- Droits : on part de zero, puis on rejoue exactement ceux de la production.
 
+revoke all on private."payout_hold_alerts" from public, anon, authenticated, service_role;
+
 revoke all on private."rating_requests" from public, anon, authenticated, service_role;
 
 revoke all on private."settings" from public, anon, authenticated, service_role;
@@ -3995,6 +4159,8 @@ revoke all on public."legal_documents" from public, anon, authenticated, service
 revoke all on public."notifications" from public, anon, authenticated, service_role;
 
 revoke all on public."payments" from public, anon, authenticated, service_role;
+
+revoke all on public."payout_reviews" from public, anon, authenticated, service_role;
 
 revoke all on public."post_comments" from public, anon, authenticated, service_role;
 
@@ -4086,7 +4252,7 @@ grant SELECT, TRIGGER, DELETE, TRUNCATE, REFERENCES, INSERT, UPDATE on public."e
 
 grant REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."event_unlocks" to authenticated;
 
-grant TRIGGER, DELETE, TRUNCATE, UPDATE, SELECT, INSERT, REFERENCES on public."event_unlocks" to service_role;
+grant TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, REFERENCES on public."event_unlocks" to service_role;
 
 grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."events" to anon;
 
@@ -4106,87 +4272,89 @@ grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."f
 
 grant TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, REFERENCES on public."feed_posts" to service_role;
 
-grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES, TRIGGER on public."follows" to anon;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."follows" to anon;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."follows" to authenticated;
+grant DELETE, TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT, UPDATE on public."follows" to authenticated;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."follows" to service_role;
+grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, TRIGGER, REFERENCES on public."follows" to service_role;
 
 grant SELECT on public."legal_document_translations" to anon;
 
 grant SELECT on public."legal_document_translations" to authenticated;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."legal_document_translations" to service_role;
+grant INSERT, UPDATE, SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."legal_document_translations" to service_role;
 
 grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."legal_documents" to anon;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."legal_documents" to authenticated;
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."legal_documents" to authenticated;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."legal_documents" to service_role;
+grant UPDATE, REFERENCES, TRUNCATE, TRIGGER, INSERT, SELECT, DELETE on public."legal_documents" to service_role;
 
-grant UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."notifications" to anon;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."notifications" to anon;
 
-grant UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."notifications" to authenticated;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."notifications" to authenticated;
 
-grant DELETE, SELECT, INSERT, UPDATE, TRIGGER, REFERENCES, TRUNCATE on public."notifications" to service_role;
+grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."notifications" to service_role;
 
-grant TRUNCATE, TRIGGER, REFERENCES, DELETE, UPDATE, SELECT, INSERT on public."payments" to service_role;
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."payments" to service_role;
 
-grant INSERT, DELETE, SELECT on public."post_comments" to authenticated;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."payout_reviews" to service_role;
 
-grant DELETE, TRUNCATE, UPDATE, REFERENCES, TRIGGER, SELECT, INSERT on public."post_comments" to service_role;
+grant DELETE, INSERT, SELECT on public."post_comments" to authenticated;
 
-grant TRUNCATE, TRIGGER, REFERENCES, INSERT, SELECT, UPDATE, DELETE on public."post_likes" to anon;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."post_comments" to service_role;
 
-grant DELETE, TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT, UPDATE on public."post_likes" to authenticated;
+grant SELECT, INSERT, DELETE, UPDATE, TRIGGER, REFERENCES, TRUNCATE on public."post_likes" to anon;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."post_likes" to service_role;
+grant TRUNCATE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, DELETE on public."post_likes" to authenticated;
 
-grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."posts" to anon;
+grant TRUNCATE, REFERENCES, TRIGGER, DELETE, UPDATE, SELECT, INSERT on public."post_likes" to service_role;
 
-grant SELECT, REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, INSERT on public."posts" to authenticated;
+grant SELECT, DELETE, TRIGGER, REFERENCES, UPDATE, TRUNCATE, INSERT on public."posts" to anon;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."posts" to service_role;
+grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."posts" to authenticated;
 
-grant SELECT, UPDATE, INSERT, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."profiles" to anon;
+grant TRIGGER, TRUNCATE, INSERT, SELECT, UPDATE, DELETE, REFERENCES on public."posts" to service_role;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."profiles" to authenticated;
+grant SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, INSERT, TRIGGER on public."profiles" to anon;
 
-grant UPDATE, TRIGGER, REFERENCES, INSERT, TRUNCATE, DELETE, SELECT on public."profiles" to service_role;
+grant REFERENCES, INSERT, DELETE, UPDATE, TRUNCATE, TRIGGER, SELECT on public."profiles" to authenticated;
 
-grant TRUNCATE, REFERENCES, TRIGGER, UPDATE, INSERT, DELETE on public."public_profiles" to anon;
+grant UPDATE, SELECT, INSERT, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."profiles" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."public_profiles" to authenticated;
+grant REFERENCES, TRIGGER, INSERT, UPDATE, DELETE, TRUNCATE on public."public_profiles" to anon;
 
-grant INSERT, SELECT, UPDATE, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."public_profiles" to service_role;
+grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."public_profiles" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."reports" to anon;
+grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."public_profiles" to service_role;
 
-grant UPDATE, DELETE, TRIGGER, INSERT, SELECT, REFERENCES, TRUNCATE on public."reports" to authenticated;
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."reports" to anon;
 
-grant UPDATE, INSERT, REFERENCES, TRIGGER, SELECT, DELETE, TRUNCATE on public."reports" to service_role;
+grant REFERENCES, UPDATE, TRIGGER, INSERT, DELETE, SELECT, TRUNCATE on public."reports" to authenticated;
 
-grant SELECT, TRUNCATE, TRIGGER, REFERENCES on public."stripe_accounts" to anon;
+grant UPDATE, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, SELECT on public."reports" to service_role;
 
-grant TRUNCATE, TRIGGER, REFERENCES, SELECT on public."stripe_accounts" to authenticated;
+grant TRUNCATE, REFERENCES, TRIGGER, SELECT on public."stripe_accounts" to anon;
 
-grant DELETE, UPDATE, SELECT, TRIGGER, REFERENCES, TRUNCATE, INSERT on public."stripe_accounts" to service_role;
+grant TRUNCATE, REFERENCES, TRIGGER, SELECT on public."stripe_accounts" to authenticated;
 
-grant SELECT, TRUNCATE, DELETE, REFERENCES, TRIGGER, INSERT, UPDATE on public."ticket_types" to anon;
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."stripe_accounts" to service_role;
 
-grant INSERT, REFERENCES, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT on public."ticket_types" to authenticated;
+grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."ticket_types" to anon;
 
-grant TRUNCATE, REFERENCES, TRIGGER, UPDATE, SELECT, INSERT, DELETE on public."ticket_types" to service_role;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."ticket_types" to authenticated;
+
+grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."ticket_types" to service_role;
 
 grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."tickets" to anon;
 
-grant TRUNCATE, REFERENCES, TRIGGER, DELETE, UPDATE, SELECT, INSERT on public."tickets" to authenticated;
+grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."tickets" to authenticated;
 
-grant TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, UPDATE, DELETE on public."tickets" to service_role;
+grant INSERT, SELECT, UPDATE, REFERENCES, DELETE, TRUNCATE, TRIGGER on public."tickets" to service_role;
 
-grant REFERENCES, SELECT, TRIGGER on public."user_legal_acceptances" to authenticated;
+grant SELECT, REFERENCES, TRIGGER on public."user_legal_acceptances" to authenticated;
 
-grant TRUNCATE, DELETE, UPDATE, INSERT, SELECT, TRIGGER, REFERENCES on public."user_legal_acceptances" to service_role;
+grant UPDATE, TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT, DELETE on public."user_legal_acceptances" to service_role;
 
 revoke all on function rating_tags_for(uuid) from public, anon, authenticated, service_role;
 
@@ -4228,13 +4396,21 @@ grant execute on function event_rating_summary(uuid) to service_role;
 
 revoke all on function private.send_rating_requests() from public, anon, authenticated, service_role;
 
-revoke all on function events_lock_fee() from public, anon, authenticated, service_role;
+revoke all on function payout_hold_reason(uuid,uuid) from public, anon, authenticated, service_role;
 
-grant execute on function events_lock_fee() to anon;
+grant execute on function payout_hold_reason(uuid,uuid) to service_role;
 
-grant execute on function events_lock_fee() to authenticated;
+revoke all on function admin_payout_queue() from public, anon, authenticated, service_role;
 
-grant execute on function events_lock_fee() to service_role;
+grant execute on function admin_payout_queue() to authenticated;
+
+grant execute on function admin_payout_queue() to service_role;
+
+revoke all on function admin_set_payout_review(uuid,text,text) from public, anon, authenticated, service_role;
+
+grant execute on function admin_set_payout_review(uuid,text,text) to authenticated;
+
+grant execute on function admin_set_payout_review(uuid,text,text) to service_role;
 
 revoke all on function payout_delay_days() from public, anon, authenticated, service_role;
 
@@ -4243,6 +4419,16 @@ grant execute on function payout_delay_days() to anon;
 grant execute on function payout_delay_days() to authenticated;
 
 grant execute on function payout_delay_days() to service_role;
+
+revoke all on function private.alert_payout_holds() from public, anon, authenticated, service_role;
+
+revoke all on function events_lock_fee() from public, anon, authenticated, service_role;
+
+grant execute on function events_lock_fee() to anon;
+
+grant execute on function events_lock_fee() to authenticated;
+
+grant execute on function events_lock_fee() to service_role;
 
 revoke all on function settle_payout(uuid,text,text) from public, anon, authenticated, service_role;
 
@@ -4616,13 +4802,13 @@ revoke all on function cancel_event(uuid,uuid) from public, anon, authenticated,
 
 grant execute on function cancel_event(uuid,uuid) to service_role;
 
-revoke all on function events_due_for_payout() from public, anon, authenticated, service_role;
-
-grant execute on function events_due_for_payout() to service_role;
-
 revoke all on function private.setting(text) from public, anon, authenticated, service_role;
 
 revoke all on function private.push_notification() from public, anon, authenticated, service_role;
+
+revoke all on function events_due_for_payout() from public, anon, authenticated, service_role;
+
+grant execute on function events_due_for_payout() to service_role;
 
 revoke all on function profiles_guard_birth_date() from public, anon, authenticated, service_role;
 
@@ -4736,12 +4922,12 @@ grant execute on function admin_set_app_status(boolean,text,text,text) to authen
 
 grant execute on function admin_set_app_status(boolean,text,text,text) to service_role;
 
+revoke all on function private.run_payouts_tick() from public, anon, authenticated, service_role;
+
 revoke all on function issue_tickets(uuid,integer) from public, anon, authenticated, service_role;
 
 grant execute on function issue_tickets(uuid,integer) to authenticated;
 
 grant execute on function issue_tickets(uuid,integer) to service_role;
-
-revoke all on function private.run_payouts_tick() from public, anon, authenticated, service_role;
 
 grant usage on schema public to anon, authenticated, service_role;
