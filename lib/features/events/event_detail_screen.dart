@@ -14,6 +14,7 @@ import 'package:happyn/features/ticketing/ticket_selection_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/core/utils/places.dart';
 import 'package:happyn/features/events/rate_event_screen.dart';
+import 'package:happyn/features/events/event_feedback_screen.dart';
 import 'package:happyn/core/payments/pricing.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/utils/maps.dart';
@@ -674,6 +675,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       // Tu y étais : noter la soirée. Ne s'affiche que si le
                       // serveur dit qu'on peut (billet scanné, fenêtre ouverte).
                       if (past) RateEventPrompt(event: ev),
+                      // L'organisateur : les retours des participants.
+                      if (past && isOrganizer) EventFeedbackEntry(event: ev),
 
                       // Preuve visuelle : ce que l'evenement a donne.
                       EventMoments(eventId: ev['id'] as String),

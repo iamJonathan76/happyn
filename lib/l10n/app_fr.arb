@@ -815,5 +815,14 @@
   "payoutHoldTitle": "Bloquer ce versement ?",
   "payoutHoldReasonHint": "Pourquoi ? (gardé dans l'historique)",
   "payoutReleasedDone": "Libéré : il partira au prochain passage, demain matin.",
-  "payoutHeldDone": "Versement bloqué."
+  "payoutHeldDone": "Versement bloqué.",
+  "ratingsCount": "{count, plural, =1{1 note} other{{count} notes}}",
+  "feedbackTitle": "Retours des participants",
+  "feedbackEntry": "{count, plural, =1{1 retour des participants} other{{count} retours des participants}}",
+  "feedbackEntryEmpty": "Retours des participants",
+  "feedbackNone": "Pas encore de note. Les participants scannés à l'entrée reçoivent une demande 24 h après la fin.",
+  "feedbackMostCited": "Le plus cité",
+  "feedbackComments": "Commentaires",
+  "feedbackNoComments": "Aucun commentaire pour l'instant.",
+  "feedbackAnonymous": "Les retours sont anonymes : tu vois ce qui a été dit, jamais qui l'a dit."
 }

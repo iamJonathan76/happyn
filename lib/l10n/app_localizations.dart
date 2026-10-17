@@ -4639,6 +4639,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payout held.'**
   String get payoutHeldDone;
+
+  /// No description provided for @ratingsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 rating} other{{count} ratings}}'**
+  String ratingsCount(int count);
+
+  /// No description provided for @feedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendee feedback'**
+  String get feedbackTitle;
+
+  /// No description provided for @feedbackEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 piece of attendee feedback} other{{count} pieces of attendee feedback}}'**
+  String feedbackEntry(int count);
+
+  /// No description provided for @feedbackEntryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendee feedback'**
+  String get feedbackEntryEmpty;
+
+  /// No description provided for @feedbackNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No ratings yet. Attendees scanned at the door get a request 24 hours after the end.'**
+  String get feedbackNone;
+
+  /// No description provided for @feedbackMostCited.
+  ///
+  /// In en, this message translates to:
+  /// **'Most mentioned'**
+  String get feedbackMostCited;
+
+  /// No description provided for @feedbackComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get feedbackComments;
+
+  /// No description provided for @feedbackNoComments.
+  ///
+  /// In en, this message translates to:
+  /// **'No comments yet.'**
+  String get feedbackNoComments;
+
+  /// No description provided for @feedbackAnonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback is anonymous: you see what was said, never who said it.'**
+  String get feedbackAnonymous;
 }
 
 class _AppLocalizationsDelegate

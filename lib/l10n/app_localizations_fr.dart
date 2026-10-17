@@ -2625,4 +2625,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get payoutHeldDone => 'Versement bloqué.';
+
+  @override
+  String ratingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '1 note',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get feedbackTitle => 'Retours des participants';
+
+  @override
+  String feedbackEntry(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count retours des participants',
+      one: '1 retour des participants',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get feedbackEntryEmpty => 'Retours des participants';
+
+  @override
+  String get feedbackNone =>
+      'Pas encore de note. Les participants scannés à l\'entrée reçoivent une demande 24 h après la fin.';
+
+  @override
+  String get feedbackMostCited => 'Le plus cité';
+
+  @override
+  String get feedbackComments => 'Commentaires';
+
+  @override
+  String get feedbackNoComments => 'Aucun commentaire pour l\'instant.';
+
+  @override
+  String get feedbackAnonymous =>
+      'Les retours sont anonymes : tu vois ce qui a été dit, jamais qui l\'a dit.';
 }

@@ -59,3 +59,51 @@ Future<void> rateEvent({
     'p_comment': comment,
   });
 }
+
+/// La moyenne publique d'un organisateur. `null` sous 5 notes : le serveur ne
+/// la donne pas, pour qu'une seule mauvaise soirée ne juge pas quelqu'un.
+final organizerRatingProvider = FutureProvider.autoDispose
+    .family<({double average, int count})?, String>((ref, organizerId) async {
+  final rows = await Supabase.instance.client.rpc('organizer_public_rating',
+      params: {'p_organizer': organizerId}) as List;
+  if (rows.isEmpty) return null;
+  final r = Map<String, dynamic>.from(rows.first as Map);
+  final avg = (r['average'] as num?)?.toDouble();
+  final n = (r['ratings'] as num?)?.toInt() ?? 0;
+  return avg == null ? null : (average: avg, count: n);
+});
+
+/// Le détail des retours d'un événement, pour son organisateur seulement —
+/// sans l'identité de ceux qui ont noté.
+class EventFeedback {
+  final int count;
+  final double? average;
+  final Map<String, int> tags;
+  final List<({int stars, String comment, DateTime? at})> comments;
+  const EventFeedback(this.count, this.average, this.tags, this.comments);
+}
+
+final eventFeedbackProvider = FutureProvider.autoDispose
+    .family<EventFeedback, String>((ref, eventId) async {
+  final raw = await Supabase.instance.client
+      .rpc('event_rating_summary', params: {'p_event': eventId});
+  final m = Map<String, dynamic>.from((raw ?? const {}) as Map);
+  final tags = <String, int>{
+    for (final e in Map<String, dynamic>.from((m['tags'] ?? const {}) as Map).entries)
+      e.key: (e.value as num).toInt(),
+  };
+  final comments = [
+    for (final c in (m['comments'] ?? const []) as List)
+      (
+        stars: ((c as Map)['stars'] as num).toInt(),
+        comment: (c['comment'] ?? '') as String,
+        at: DateTime.tryParse((c['at'] ?? '') as String),
+      ),
+  ];
+  return EventFeedback(
+    ((m['count'] ?? 0) as num).toInt(),
+    (m['average'] as num?)?.toDouble(),
+    tags,
+    comments,
+  );
+});

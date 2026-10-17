@@ -22,6 +22,7 @@ import 'package:happyn/core/providers/direct_messages_provider.dart';
 import 'package:happyn/core/providers/moderation_provider.dart';
 import 'package:happyn/features/social/direct_messages_screen.dart';
 import 'package:happyn/features/social/user_moments_screen.dart';
+import 'package:happyn/features/events/event_feedback_screen.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/core/widgets/event_list_card.dart';
 import 'package:happyn/features/settings/edit_profile_screen.dart';
@@ -321,6 +322,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ],
                     ),
                   ),
+
+                // Moyenne des notes reçues, à partir de 5 notes seulement.
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: OrganizerRatingChip(organizerId: _uid),
+                  ),
+                ),
 
                 const SizedBox(height: 16),
 

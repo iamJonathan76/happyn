@@ -2596,4 +2596,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payoutHeldDone => 'Payout held.';
+
+  @override
+  String ratingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ratings',
+      one: '1 rating',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get feedbackTitle => 'Attendee feedback';
+
+  @override
+  String feedbackEntry(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pieces of attendee feedback',
+      one: '1 piece of attendee feedback',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get feedbackEntryEmpty => 'Attendee feedback';
+
+  @override
+  String get feedbackNone =>
+      'No ratings yet. Attendees scanned at the door get a request 24 hours after the end.';
+
+  @override
+  String get feedbackMostCited => 'Most mentioned';
+
+  @override
+  String get feedbackComments => 'Comments';
+
+  @override
+  String get feedbackNoComments => 'No comments yet.';
+
+  @override
+  String get feedbackAnonymous =>
+      'Feedback is anonymous: you see what was said, never who said it.';
 }

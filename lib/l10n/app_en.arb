@@ -867,5 +867,16 @@
   "payoutHoldTitle": "Hold this payout?",
   "payoutHoldReasonHint": "Why? (kept in the history)",
   "payoutReleasedDone": "Released: it goes out with the next run, tomorrow morning.",
-  "payoutHeldDone": "Payout held."
+  "payoutHeldDone": "Payout held.",
+  "ratingsCount": "{count, plural, =1{1 rating} other{{count} ratings}}",
+  "@ratingsCount": {"placeholders": {"count": {"type": "int"}}},
+  "feedbackTitle": "Attendee feedback",
+  "feedbackEntry": "{count, plural, =1{1 piece of attendee feedback} other{{count} pieces of attendee feedback}}",
+  "@feedbackEntry": {"placeholders": {"count": {"type": "int"}}},
+  "feedbackEntryEmpty": "Attendee feedback",
+  "feedbackNone": "No ratings yet. Attendees scanned at the door get a request 24 hours after the end.",
+  "feedbackMostCited": "Most mentioned",
+  "feedbackComments": "Comments",
+  "feedbackNoComments": "No comments yet.",
+  "feedbackAnonymous": "Feedback is anonymous: you see what was said, never who said it."
 }
