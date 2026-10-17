@@ -414,3 +414,47 @@ reset role;
 select t.as_user('00000000-0000-0000-0000-0000000000ad');
 select t.fails_with($$select private.run_payouts_tick()$$, 'permission', 'Versements : meme un admin ne la declenche pas depuis l''app');
 reset role;
+
+-- Notes d'événement : seuls les présents notent, dans la fenêtre, avec les bons tags
+reset role;
+insert into events (id, title, created_by, status, visibility, start_date, end_date, posts_visibility, access_code, min_age, category) values
+  ('00000000-0000-0000-0000-0000000000e9', 'Soiree tech', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() - interval '30 hours', now() - interval '26 hours', 'public', null, 0, 'Technology'),
+  ('00000000-0000-0000-0000-0000000000e8', 'Vieux concert', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() - interval '6 days', now() - interval '5 days', 'public', null, 0, 'Music');
+insert into ticket_types (id, event_id, name, price, quantity_total, quantity_sold, max_per_order) values
+  ('00000000-0000-0000-0000-0000000000f9', '00000000-0000-0000-0000-0000000000e9', 'Entree', 25, 100, 2, 10),
+  ('00000000-0000-0000-0000-0000000000f8', '00000000-0000-0000-0000-0000000000e8', 'Entree', 0, 100, 1, 10);
+insert into tickets (ticket_type_id, event_id, user_id, qr_token, status) values
+  ('00000000-0000-0000-0000-0000000000f9', '00000000-0000-0000-0000-0000000000e9', '00000000-0000-0000-0000-00000000000b', 'HPN-note-1', 'used'),
+  ('00000000-0000-0000-0000-0000000000f9', '00000000-0000-0000-0000-0000000000e9', '00000000-0000-0000-0000-00000000000c', 'HPN-note-2', 'valid'),
+  ('00000000-0000-0000-0000-0000000000f8', '00000000-0000-0000-0000-0000000000e8', '00000000-0000-0000-0000-00000000000b', 'HPN-note-3', 'used');
+
+-- La demande part une fois, aux seuls presents, et pas pour un evenement clos
+select private.send_rating_requests();
+select t.sees($$select * from notifications where type = 'rate_event' and event_id = '00000000-0000-0000-0000-0000000000e9' and user_id = '00000000-0000-0000-0000-00000000000b'$$, 1, 'Notes : la demande part a celui dont le billet a ete scanne');
+select t.sees($$select * from notifications where type = 'rate_event' and user_id = '00000000-0000-0000-0000-00000000000c'$$, 0, 'Notes : pas de demande a un billet jamais scanne');
+select t.sees($$select * from notifications where type = 'rate_event' and event_id = '00000000-0000-0000-0000-0000000000e8'$$, 0, 'Notes : pas de demande quand la fenetre est fermee');
+select private.send_rating_requests();
+select t.sees($$select * from notifications where type = 'rate_event'$$, 1, 'Notes : la demande ne part qu''une fois');
+
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.sees($$select * from unnest(public.rating_tags_for('00000000-0000-0000-0000-0000000000e9')) t where t in ('speakers', 'value')$$, 2, 'Notes : une soiree tech payante propose intervenants et qualite-prix');
+select t.sees($$select * from unnest(public.rating_tags_for('00000000-0000-0000-0000-0000000000e9')) t where t = 'music'$$, 0, 'Notes : une soiree tech ne demande pas la musique');
+select t.fails_with($$select public.rate_event('00000000-0000-0000-0000-0000000000e9', 5, array['music'])$$, 'invalid_tag', 'Notes : un tag hors de la categorie est refuse');
+select t.fails_with($$select public.rate_event('00000000-0000-0000-0000-0000000000e9', 6)$$, 'invalid_stars', 'Notes : pas plus de 5 etoiles');
+select t.fails_with($$select public.rate_event('00000000-0000-0000-0000-0000000000e8', 4)$$, 'rating_closed', 'Notes : fermees au meme delai que le versement');
+select public.rate_event('00000000-0000-0000-0000-0000000000e9', 4, array['content', 'ambiance', 'content'], '  Super intervenants  ');
+select public.rate_event('00000000-0000-0000-0000-0000000000e9', 5, array['speakers']);
+select t.sees($$select * from public.my_event_rating('00000000-0000-0000-0000-0000000000e9') where stars = 5 and tags = array['speakers'] and comment is null$$, 1, 'Notes : on corrige sa note, sans en creer une seconde');
+select t.fails_with($$select * from event_ratings$$, 'permission', 'Notes : la table ne se lit pas directement');
+select t.fails_with($$select public.event_rating_summary('00000000-0000-0000-0000-0000000000e9')$$, 'not_organizer', 'Notes : le detail est reserve a l''organisateur');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000c');
+select t.fails_with($$select public.rate_event('00000000-0000-0000-0000-0000000000e9', 1)$$, 'not_attended', 'Notes : un billet non scanne ne note pas');
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.fails_with($$select public.rate_event('00000000-0000-0000-0000-0000000000e9', 5)$$, 'organizer_cannot_rate', 'Notes : l''organisateur ne note pas sa soiree');
+select t.sees($$select 1 from (select public.event_rating_summary('00000000-0000-0000-0000-0000000000e9') s) x where (s->>'count')::int = 1 and s::text not like '%00000000-0000-0000-0000-00000000000b%'$$, 1, 'Notes : l''organisateur voit le detail, sans savoir qui a note');
+reset role;
+select t.as_anon();
+select t.sees($$select * from public.organizer_public_rating('00000000-0000-0000-0000-00000000000a')$$, 0, 'Notes : pas de moyenne publique sous 5 notes');
+reset role;
