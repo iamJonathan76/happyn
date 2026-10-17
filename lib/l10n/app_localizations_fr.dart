@@ -2458,4 +2458,111 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get appStatusConfirmAction => 'Activer';
+
+  @override
+  String get rateTitle => 'Noter la soirée';
+
+  @override
+  String get rateTapStars => 'Touche les étoiles pour noter';
+
+  @override
+  String get rateStars1 => 'Décevant';
+
+  @override
+  String get rateStars2 => 'Bof';
+
+  @override
+  String get rateStars3 => 'Correct';
+
+  @override
+  String get rateStars4 => 'Très bien';
+
+  @override
+  String get rateStars5 => 'Génial';
+
+  @override
+  String get rateTagsTitle => 'Ce qui t\'a plu (facultatif)';
+
+  @override
+  String get rateCommentHint => 'Un mot pour l\'organisateur…';
+
+  @override
+  String get rateCommentPrivacy =>
+      'Seul l\'organisateur lira ton commentaire, sans savoir qui l\'a écrit.';
+
+  @override
+  String get rateSubmit => 'Envoyer ma note';
+
+  @override
+  String get rateUpdate => 'Mettre à jour ma note';
+
+  @override
+  String rateEditableUntil(String date) {
+    return 'Modifiable jusqu\'au $date';
+  }
+
+  @override
+  String get rateThanks => 'Merci, ta note est enregistrée !';
+
+  @override
+  String get rateClosed => 'Les notes pour cet événement sont fermées.';
+
+  @override
+  String get rateCta => 'Tu y étais ? Note la soirée';
+
+  @override
+  String rateYourRating(int stars) {
+    return 'Ta note : $stars/5 · Modifier';
+  }
+
+  @override
+  String get rateTagAmbiance => 'Ambiance';
+
+  @override
+  String get rateTagOrganization => 'Organisation';
+
+  @override
+  String get rateTagVenue => 'Lieu';
+
+  @override
+  String get rateTagValue => 'Qualité-prix';
+
+  @override
+  String get rateTagMusic => 'Musique';
+
+  @override
+  String get rateTagSoundLight => 'Son et lumière';
+
+  @override
+  String get rateTagSpeakers => 'Intervenants';
+
+  @override
+  String get rateTagContent => 'Contenu';
+
+  @override
+  String get rateTagNetworking => 'Réseautage';
+
+  @override
+  String get rateTagLevel => 'Niveau du jeu';
+
+  @override
+  String get rateTagFacilities => 'Installations';
+
+  @override
+  String get rateTagFood => 'Nourriture';
+
+  @override
+  String get rateTagDrinks => 'Boissons';
+
+  @override
+  String get rateTagArtworks => 'Œuvres';
+
+  @override
+  String get rateTagStaging => 'Mise en scène';
+
+  @override
+  String get rateTagMessage => 'Message';
+
+  @override
+  String get rateTagWorship => 'Louange';
 }

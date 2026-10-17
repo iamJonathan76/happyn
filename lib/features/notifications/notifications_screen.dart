@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
+import 'package:happyn/features/events/rate_event_screen.dart';
 import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_colors.dart';
@@ -46,7 +47,9 @@ class NotificationsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _openEvent(BuildContext context, String eventId) async {
+  /// `rate` : la demande de note ouvre directement l'écran de notation.
+  Future<void> _openEvent(BuildContext context, String eventId,
+      {bool rate = false}) async {
     try {
       final row = await Supabase.instance.client
           .from('events')
@@ -55,8 +58,9 @@ class NotificationsScreen extends ConsumerWidget {
           .maybeSingle();
       if (row != null && context.mounted) {
         Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) =>
-                EventDetailScreen(event: Map<String, dynamic>.from(row))));
+            builder: (_) => rate
+                ? RateEventScreen(event: Map<String, dynamic>.from(row))
+                : EventDetailScreen(event: Map<String, dynamic>.from(row))));
       }
     } catch (e, st) {
       // Sans message, le tap semblait simplement ne rien faire.
@@ -107,6 +111,8 @@ class NotificationsScreen extends ConsumerWidget {
         return (Icons.chat_bubble, AppColors.lavender);
       case 'post_comment':
         return (Icons.mode_comment, AppColors.pink);
+      case 'rate_event':
+        return (Icons.star_rounded, AppColors.amber);
       default:
         return (Icons.notifications, AppColors.lavender);
     }
@@ -277,6 +283,8 @@ class NotificationsScreen extends ConsumerWidget {
               recipientAvatar: '',
             ),
           ));
+        } else if (type == 'rate_event' && eventId != null) {
+          _openEvent(context, eventId, rate: true);
         } else if (postId != null) {
           _openPost(context, postId);
         } else if (eventId != null) {

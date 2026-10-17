@@ -4327,6 +4327,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn on'**
   String get appStatusConfirmAction;
+
+  /// No description provided for @rateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate the event'**
+  String get rateTitle;
+
+  /// No description provided for @rateTapStars.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the stars to rate'**
+  String get rateTapStars;
+
+  /// No description provided for @rateStars1.
+  ///
+  /// In en, this message translates to:
+  /// **'Disappointing'**
+  String get rateStars1;
+
+  /// No description provided for @rateStars2.
+  ///
+  /// In en, this message translates to:
+  /// **'Meh'**
+  String get rateStars2;
+
+  /// No description provided for @rateStars3.
+  ///
+  /// In en, this message translates to:
+  /// **'Okay'**
+  String get rateStars3;
+
+  /// No description provided for @rateStars4.
+  ///
+  /// In en, this message translates to:
+  /// **'Very good'**
+  String get rateStars4;
+
+  /// No description provided for @rateStars5.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazing'**
+  String get rateStars5;
+
+  /// No description provided for @rateTagsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you liked (optional)'**
+  String get rateTagsTitle;
+
+  /// No description provided for @rateCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A word for the organizer…'**
+  String get rateCommentHint;
+
+  /// No description provided for @rateCommentPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the organizer will read your comment, without knowing who wrote it.'**
+  String get rateCommentPrivacy;
+
+  /// No description provided for @rateSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send my rating'**
+  String get rateSubmit;
+
+  /// No description provided for @rateUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update my rating'**
+  String get rateUpdate;
+
+  /// No description provided for @rateEditableUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change it until {date}'**
+  String rateEditableUntil(String date);
+
+  /// No description provided for @rateThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks, your rating is saved!'**
+  String get rateThanks;
+
+  /// No description provided for @rateClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ratings for this event are closed.'**
+  String get rateClosed;
+
+  /// No description provided for @rateCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Were you there? Rate the event'**
+  String get rateCta;
+
+  /// No description provided for @rateYourRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating: {stars}/5 · Edit'**
+  String rateYourRating(int stars);
+
+  /// No description provided for @rateTagAmbiance.
+  ///
+  /// In en, this message translates to:
+  /// **'Atmosphere'**
+  String get rateTagAmbiance;
+
+  /// No description provided for @rateTagOrganization.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get rateTagOrganization;
+
+  /// No description provided for @rateTagVenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get rateTagVenue;
+
+  /// No description provided for @rateTagValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value for money'**
+  String get rateTagValue;
+
+  /// No description provided for @rateTagMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get rateTagMusic;
+
+  /// No description provided for @rateTagSoundLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound and lights'**
+  String get rateTagSoundLight;
+
+  /// No description provided for @rateTagSpeakers.
+  ///
+  /// In en, this message translates to:
+  /// **'Speakers'**
+  String get rateTagSpeakers;
+
+  /// No description provided for @rateTagContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get rateTagContent;
+
+  /// No description provided for @rateTagNetworking.
+  ///
+  /// In en, this message translates to:
+  /// **'Networking'**
+  String get rateTagNetworking;
+
+  /// No description provided for @rateTagLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level of play'**
+  String get rateTagLevel;
+
+  /// No description provided for @rateTagFacilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Facilities'**
+  String get rateTagFacilities;
+
+  /// No description provided for @rateTagFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get rateTagFood;
+
+  /// No description provided for @rateTagDrinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinks'**
+  String get rateTagDrinks;
+
+  /// No description provided for @rateTagArtworks.
+  ///
+  /// In en, this message translates to:
+  /// **'Artworks'**
+  String get rateTagArtworks;
+
+  /// No description provided for @rateTagStaging.
+  ///
+  /// In en, this message translates to:
+  /// **'Staging'**
+  String get rateTagStaging;
+
+  /// No description provided for @rateTagMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get rateTagMessage;
+
+  /// No description provided for @rateTagWorship.
+  ///
+  /// In en, this message translates to:
+  /// **'Worship'**
+  String get rateTagWorship;
 }
 
 class _AppLocalizationsDelegate
