@@ -419,7 +419,7 @@ reset role;
 reset role;
 insert into events (id, title, created_by, status, visibility, start_date, end_date, posts_visibility, access_code, min_age, category) values
   ('00000000-0000-0000-0000-0000000000e9', 'Soiree tech', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() - interval '30 hours', now() - interval '26 hours', 'public', null, 0, 'Technology'),
-  ('00000000-0000-0000-0000-0000000000e8', 'Vieux concert', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() - interval '6 days', now() - interval '5 days', 'public', null, 0, 'Music');
+  ('00000000-0000-0000-0000-0000000000e8', 'Vieux concert', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() - interval '11 days', now() - interval '10 days', 'public', null, 0, 'Music');
 insert into ticket_types (id, event_id, name, price, quantity_total, quantity_sold, max_per_order) values
   ('00000000-0000-0000-0000-0000000000f9', '00000000-0000-0000-0000-0000000000e9', 'Entree', 25, 100, 2, 10),
   ('00000000-0000-0000-0000-0000000000f8', '00000000-0000-0000-0000-0000000000e8', 'Entree', 0, 100, 1, 10);
@@ -457,4 +457,54 @@ select t.sees($$select 1 from (select public.event_rating_summary('00000000-0000
 reset role;
 select t.as_anon();
 select t.sees($$select * from public.organizer_public_rating('00000000-0000-0000-0000-00000000000a')$$, 0, 'Notes : pas de moyenne publique sous 5 notes');
+reset role;
+
+-- Versements : 7 jours, retenues automatiques, decision de l'administrateur
+reset role;
+update stripe_accounts set transfers_enabled = true, disabled_reason = null where user_id = '00000000-0000-0000-0000-00000000000a';
+insert into events (id, title, created_by, status, visibility, start_date, end_date, posts_visibility, access_code, min_age) values
+  ('00000000-0000-0000-0000-0000000000e7', 'Personne a la porte', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() - interval '11 days', now() - interval '10 days', 'public', null, 0),
+  ('00000000-0000-0000-0000-0000000000e6', 'Vraie soiree', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() - interval '11 days', now() - interval '10 days', 'public', null, 0),
+  ('00000000-0000-0000-0000-0000000000e5', 'Il y a 5 jours', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() - interval '6 days', now() - interval '5 days', 'public', null, 0);
+insert into ticket_types (id, event_id, name, price, quantity_total, quantity_sold, max_per_order) values
+  ('00000000-0000-0000-0000-0000000000fa', '00000000-0000-0000-0000-0000000000e7', 'Entree', 20, 100, 1, 10),
+  ('00000000-0000-0000-0000-0000000000fb', '00000000-0000-0000-0000-0000000000e6', 'Entree', 20, 100, 1, 10),
+  ('00000000-0000-0000-0000-0000000000fc', '00000000-0000-0000-0000-0000000000e5', 'Entree', 20, 100, 1, 10);
+insert into tickets (ticket_type_id, event_id, user_id, qr_token, status, payment_intent_id) values
+  ('00000000-0000-0000-0000-0000000000fa', '00000000-0000-0000-0000-0000000000e7', '00000000-0000-0000-0000-00000000000b', 'HPN-pay-1', 'valid', 'pi_porte_vide'),
+  ('00000000-0000-0000-0000-0000000000fb', '00000000-0000-0000-0000-0000000000e6', '00000000-0000-0000-0000-00000000000b', 'HPN-pay-2', 'used', 'pi_vraie'),
+  ('00000000-0000-0000-0000-0000000000fc', '00000000-0000-0000-0000-0000000000e5', '00000000-0000-0000-0000-00000000000b', 'HPN-pay-3', 'used', 'pi_recent');
+insert into payments (payment_intent_id, event_id, ticket_type_id, organizer_id, buyer_id, quantity, gross_cents, platform_fee_bps) values
+  ('pi_porte_vide', '00000000-0000-0000-0000-0000000000e7', '00000000-0000-0000-0000-0000000000fa', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b', 1, 2000, 500),
+  ('pi_vraie',      '00000000-0000-0000-0000-0000000000e6', '00000000-0000-0000-0000-0000000000fb', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b', 1, 2000, 500),
+  ('pi_recent',     '00000000-0000-0000-0000-0000000000e5', '00000000-0000-0000-0000-0000000000fc', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b', 1, 2000, 500);
+
+select t.sees($$select * from public.events_due_for_payout() where event_id = '00000000-0000-0000-0000-0000000000e5'$$, 0, 'Versement : pas avant 7 jours apres la fin');
+select t.sees($$select * from public.events_due_for_payout() where event_id = '00000000-0000-0000-0000-0000000000e7'$$, 0, 'Versement : retenu si aucun billet n''a ete scanne');
+select t.sees($$select * from public.events_due_for_payout() where event_id = '00000000-0000-0000-0000-0000000000e6'$$, 0, 'Versement : retenu pour le premier evenement paye d''un organisateur');
+
+select private.alert_payout_holds();
+select t.sees($$select * from notifications where type = 'payout_review' and user_id = '00000000-0000-0000-0000-0000000000ad'$$, 2, 'Versement : l''administrateur est prevenu des deux retenues');
+select t.sees($$select * from notifications where type = 'payout_review' and user_id <> '00000000-0000-0000-0000-0000000000ad'$$, 0, 'Versement : seuls les administrateurs sont prevenus');
+select private.alert_payout_holds();
+select t.sees($$select * from notifications where type = 'payout_review'$$, 2, 'Versement : une seule alerte par evenement');
+
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.fails_with($$select * from public.admin_payout_queue()$$, 'not_admin', 'Versement : l''organisateur ne voit pas la file admin');
+select t.fails_with($$select public.admin_set_payout_review('00000000-0000-0000-0000-0000000000e6', 'released')$$, 'not_admin', 'Versement : l''organisateur ne libere pas son propre versement');
+reset role;
+select t.as_user('00000000-0000-0000-0000-0000000000ad');
+select t.sees($$select * from public.admin_payout_queue() where state = 'held' and hold_reason in ('no_scans', 'first_event')$$, 2, 'Versement : l''administrateur voit les retenues et leur raison');
+select t.sees($$select * from public.admin_payout_queue() where event_id = '00000000-0000-0000-0000-0000000000e5' and state = 'waiting'$$, 1, 'Versement : et ceux dont le delai court encore');
+select public.admin_set_payout_review('00000000-0000-0000-0000-0000000000e6', 'released', 'Verifie : vraie soiree');
+reset role;
+select t.sees($$select * from public.events_due_for_payout() where event_id = '00000000-0000-0000-0000-0000000000e6'$$, 1, 'Versement : libere par l''administrateur, il part');
+select t.sees($$select * from public.events_due_for_payout() where event_id = '00000000-0000-0000-0000-0000000000e7'$$, 0, 'Versement : l''autre reste retenu');
+select t.as_user('00000000-0000-0000-0000-0000000000ad');
+select public.admin_set_payout_review('00000000-0000-0000-0000-0000000000e6', 'held', 'Plainte recue');
+reset role;
+select t.sees($$select * from public.events_due_for_payout() where event_id = '00000000-0000-0000-0000-0000000000e6'$$, 0, 'Versement : bloque par l''administrateur, il ne part plus');
+select t.sees($$select * from payout_reviews where event_id = '00000000-0000-0000-0000-0000000000e6' and decided_by = '00000000-0000-0000-0000-0000000000ad' and reason = 'Plainte recue'$$, 1, 'Versement : la decision garde qui et pourquoi');
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.fails_with($$select * from payout_reviews$$, 'permission', 'Versement : les decisions ne se lisent pas depuis l''app');
 reset role;

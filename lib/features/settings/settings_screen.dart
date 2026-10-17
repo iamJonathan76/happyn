@@ -22,6 +22,7 @@ import 'package:happyn/core/providers/legal_provider.dart';
 import 'package:happyn/core/providers/locale_provider.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/settings/app_status_screen.dart';
+import 'package:happyn/features/settings/payouts_admin_screen.dart';
 
 /// Écran Settings complet, suivant la structure du « Account & Settings » doc.
 /// Les items fonctionnels naviguent ; ceux pas encore prêts affichent
@@ -114,6 +115,9 @@ class SettingsScreen extends ConsumerWidget {
             _tile(context, Icons.shield_outlined, l.moderationQueue,
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const ModerationScreen()))),
+            _tile(context, Icons.payments_outlined, l.payoutsAdminTitle,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const PayoutsAdminScreen()))),
             _tile(context, Icons.construction_rounded, l.appStatusTitle,
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const AppStatusScreen()))),

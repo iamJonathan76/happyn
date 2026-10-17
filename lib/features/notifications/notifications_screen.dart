@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/features/events/rate_event_screen.dart';
+import 'package:happyn/features/settings/payouts_admin_screen.dart';
 import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_colors.dart';
@@ -113,6 +114,8 @@ class NotificationsScreen extends ConsumerWidget {
         return (Icons.mode_comment, AppColors.pink);
       case 'rate_event':
         return (Icons.star_rounded, AppColors.amber);
+      case 'payout_review':
+        return (Icons.payments_outlined, AppColors.warning);
       default:
         return (Icons.notifications, AppColors.lavender);
     }
@@ -283,6 +286,9 @@ class NotificationsScreen extends ConsumerWidget {
               recipientAvatar: '',
             ),
           ));
+        } else if (type == 'payout_review') {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const PayoutsAdminScreen()));
         } else if (type == 'rate_event' && eventId != null) {
           _openEvent(context, eventId, rate: true);
         } else if (postId != null) {

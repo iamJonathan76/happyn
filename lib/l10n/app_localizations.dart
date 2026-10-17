@@ -3521,7 +3521,7 @@ abstract class AppLocalizations {
   /// No description provided for @payoutReadyBody.
   ///
   /// In en, this message translates to:
-  /// **'Your account is verified. For each event, your money is transferred 3 days after it ends — that delay is what lets us refund an attendee up to the last minute.'**
+  /// **'Your account is verified. For each event, your money is transferred 7 days after it ends — time to process refunds and make sure everything went well. Your first payout goes through a check on our side.'**
   String get payoutReadyBody;
 
   /// No description provided for @payoutManageAccount.
@@ -4531,6 +4531,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Worship'**
   String get rateTagWorship;
+
+  /// No description provided for @payoutsAdminTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payouts'**
+  String get payoutsAdminTitle;
+
+  /// No description provided for @payoutsAdminEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing pending. Every payout has gone out or is on its way without a hold.'**
+  String get payoutsAdminEmpty;
+
+  /// No description provided for @payoutStateHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Held'**
+  String get payoutStateHeld;
+
+  /// No description provided for @payoutStateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe failure'**
+  String get payoutStateFailed;
+
+  /// No description provided for @payoutStateWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get payoutStateWaiting;
+
+  /// No description provided for @payoutStateNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account not ready'**
+  String get payoutStateNoAccount;
+
+  /// No description provided for @payoutStateReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get payoutStateReady;
+
+  /// No description provided for @payoutReasonNoScans.
+  ///
+  /// In en, this message translates to:
+  /// **'No ticket scanned'**
+  String get payoutReasonNoScans;
+
+  /// No description provided for @payoutReasonFirstEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'First paid event'**
+  String get payoutReasonFirstEvent;
+
+  /// No description provided for @payoutReasonManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Held by an admin'**
+  String get payoutReasonManual;
+
+  /// No description provided for @payoutScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'{scanned}/{sold} tickets scanned'**
+  String payoutScanned(int scanned, int sold);
+
+  /// No description provided for @payoutDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String payoutDue(String date);
+
+  /// No description provided for @payoutRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'Release'**
+  String get payoutRelease;
+
+  /// No description provided for @payoutHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold'**
+  String get payoutHold;
+
+  /// No description provided for @payoutHoldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold this payout?'**
+  String get payoutHoldTitle;
+
+  /// No description provided for @payoutHoldReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why? (kept in the history)'**
+  String get payoutHoldReasonHint;
+
+  /// No description provided for @payoutReleasedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Released: it goes out with the next run, tomorrow morning.'**
+  String get payoutReleasedDone;
+
+  /// No description provided for @payoutHeldDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout held.'**
+  String get payoutHeldDone;
 }
 
 class _AppLocalizationsDelegate

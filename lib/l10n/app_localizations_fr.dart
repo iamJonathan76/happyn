@@ -1976,7 +1976,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get payoutReadyBody =>
-      'Ton compte est vérifié. Pour chaque événement, ton argent est viré 3 jours après la fin — ce délai permet de rembourser un participant jusqu\'au dernier moment.';
+      'Ton compte est vérifié. Pour chaque événement, ton argent est viré 7 jours après la fin — le temps de traiter les remboursements et de vérifier que tout s\'est bien passé. Ton premier versement passe par une vérification de notre part.';
 
   @override
   String get payoutManageAccount => 'Gérer mon compte bancaire';
@@ -2565,4 +2565,64 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rateTagWorship => 'Louange';
+
+  @override
+  String get payoutsAdminTitle => 'Versements';
+
+  @override
+  String get payoutsAdminEmpty =>
+      'Rien en attente. Tous les versements sont partis ou à venir sans retenue.';
+
+  @override
+  String get payoutStateHeld => 'Retenu';
+
+  @override
+  String get payoutStateFailed => 'Échec Stripe';
+
+  @override
+  String get payoutStateWaiting => 'En attente';
+
+  @override
+  String get payoutStateNoAccount => 'Compte non prêt';
+
+  @override
+  String get payoutStateReady => 'Prêt';
+
+  @override
+  String get payoutReasonNoScans => 'Aucun billet scanné';
+
+  @override
+  String get payoutReasonFirstEvent => 'Premier événement payant';
+
+  @override
+  String get payoutReasonManual => 'Bloqué par un admin';
+
+  @override
+  String payoutScanned(int scanned, int sold) {
+    return '$scanned/$sold billets scannés';
+  }
+
+  @override
+  String payoutDue(String date) {
+    return 'Prévu le $date';
+  }
+
+  @override
+  String get payoutRelease => 'Libérer';
+
+  @override
+  String get payoutHold => 'Bloquer';
+
+  @override
+  String get payoutHoldTitle => 'Bloquer ce versement ?';
+
+  @override
+  String get payoutHoldReasonHint => 'Pourquoi ? (gardé dans l\'historique)';
+
+  @override
+  String get payoutReleasedDone =>
+      'Libéré : il partira au prochain passage, demain matin.';
+
+  @override
+  String get payoutHeldDone => 'Versement bloqué.';
 }

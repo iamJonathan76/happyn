@@ -1954,7 +1954,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payoutReadyBody =>
-      'Your account is verified. For each event, your money is transferred 3 days after it ends — that delay is what lets us refund an attendee up to the last minute.';
+      'Your account is verified. For each event, your money is transferred 7 days after it ends — time to process refunds and make sure everything went well. Your first payout goes through a check on our side.';
 
   @override
   String get payoutManageAccount => 'Manage my bank account';
@@ -2536,4 +2536,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rateTagWorship => 'Worship';
+
+  @override
+  String get payoutsAdminTitle => 'Payouts';
+
+  @override
+  String get payoutsAdminEmpty =>
+      'Nothing pending. Every payout has gone out or is on its way without a hold.';
+
+  @override
+  String get payoutStateHeld => 'Held';
+
+  @override
+  String get payoutStateFailed => 'Stripe failure';
+
+  @override
+  String get payoutStateWaiting => 'Waiting';
+
+  @override
+  String get payoutStateNoAccount => 'Account not ready';
+
+  @override
+  String get payoutStateReady => 'Ready';
+
+  @override
+  String get payoutReasonNoScans => 'No ticket scanned';
+
+  @override
+  String get payoutReasonFirstEvent => 'First paid event';
+
+  @override
+  String get payoutReasonManual => 'Held by an admin';
+
+  @override
+  String payoutScanned(int scanned, int sold) {
+    return '$scanned/$sold tickets scanned';
+  }
+
+  @override
+  String payoutDue(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String get payoutRelease => 'Release';
+
+  @override
+  String get payoutHold => 'Hold';
+
+  @override
+  String get payoutHoldTitle => 'Hold this payout?';
+
+  @override
+  String get payoutHoldReasonHint => 'Why? (kept in the history)';
+
+  @override
+  String get payoutReleasedDone =>
+      'Released: it goes out with the next run, tomorrow morning.';
+
+  @override
+  String get payoutHeldDone => 'Payout held.';
 }
