@@ -1,16 +1,21 @@
 # HAPPYN — État et ce qui reste
 
-État au 2026-09-27. **Le code n'est plus le goulot d'étranglement.** Ce qui
-reste se répartit en trois familles très inégales : des **décisions** (rapides,
-mais elles bloquent le reste), de la **configuration** (mécanique), et ce qui
-n'est **pas encore écrit**.
+État au 2026-10-18 — 84 migrations, 12 fonctions Edge. **Le code n'est plus le
+goulot d'étranglement.** Ce qui reste se répartit en trois familles très
+inégales : des **décisions** (rapides, mais elles bloquent le reste), de la
+**configuration** (mécanique), et ce qui n'est **pas encore écrit**.
 
-Ce dernier groupe a changé : Stripe Connect est fait (§ 4). Ce qui manque encore
-et **n'est pas du peaufinage** : l'organisateur ne voit nulle part ses
-statistiques (aucun écran `analytics` dans `lib/`), aucun rappel avant un
-événement n'existe (ni `pg_cron` ni courriel destiné à un utilisateur), et Sign
-in with Apple n'est pas implémenté alors que la guideline 4.8 peut l'exiger dès
-que Google est proposé.
+Ce qui manque encore et **n'est pas du peaufinage**, vérifié dans le dépôt le
+2026-10-18 :
+
+- **Sign in with Apple** — `sign_in_with_apple` est absent de `pubspec.yaml` et
+  `auth_choice_screen.dart` affiche toujours `appleSignInSoon`. L'écran de
+  choix existe, le bouton ne fait rien. Règle 4.8 : bloquant pour la revue
+  App Store, pas pour TestFlight interne.
+- **Les statistiques de l'organisateur** — aucun écran `analytics` dans `lib/`.
+  Il voit ses ventes et ses versements, pas ses chiffres.
+- **Les rappels avant événement** — aucune des 12 fonctions Edge ne les envoie.
+  `pg_cron` est désormais installé (§ 8), mais il ne sert qu'aux versements.
 
 ---
 
@@ -378,7 +383,8 @@ Versements**.
 ### Le montage retenu, et ce qu'il implique
 
 « **Separate charges and transfers** » : HAPPYN encaisse la totalité, puis vire à
-l'organisateur 3 jours après l'événement. Les deux autres montages Stripe
+l'organisateur 7 jours après l'événement (`payout_delay_days()`, porté de 3 à 7
+le 2026-10-17). Les deux autres montages Stripe
 envoient l'argent à l'achat, ce qui rendrait un remboursement dépendant du solde
 d'un compte qu'on ne contrôle pas.
 
@@ -408,8 +414,12 @@ personne physique, c'est une responsabilité personnelle.
    `charge.dispute.created`, `charge.dispute.closed` en plus de
    `payment_intent.succeeded`. Sans eux, un remboursement ne serait pas déduit
    du versement — donc versé deux fois.
-6. **Planifier `run-payouts`** une fois par jour. À exécuter dans le SQL Editor,
-   avec le vrai secret — **ne jamais committer cette version** :
+6. ~~**Planifier `run-payouts`**~~ — **fait le 2026-10-16.** `pg_cron` appelle
+   la tâche `happyn-payouts` chaque jour à 9 h 17 UTC via
+   `private.run_payouts_tick()`, qui lit l'URL et le secret dans
+   `private.settings` au lieu de les porter en clair dans la définition du cron.
+   Voir § 8 pour la commande de surveillance. La forme ci-dessous est conservée
+   pour mémoire — **ne jamais committer une version contenant le vrai secret** :
 
    ```sql
    -- pg_cron + pg_net doivent etre actives (Database > Extensions).
@@ -688,9 +698,10 @@ Play Console (25 $), bundle avec `--dart-define-from-file`, symboles Sentry.
 
 ### 3. Les versements
 
-Un premier versement surveillé, puis `pg_cron`, la retenue de 5 jours (le
-code dit encore 3) et les vérifications du § 2.2. Avant le premier événement
-payant d'un tiers. Décider aussi § 2.2 ter.
+`pg_cron` est en place depuis le 2026-10-16 et la retenue est à **7 jours**
+(`payout_delay_days()`). Reste : **un premier versement réel surveillé à la
+main**, les vérifications du § 2.2, et la décision du § 2.2 ter. Avant le
+premier événement payant d'un tiers.
 
 ### 4. Relecture légale des deux langues — § 3.4.
 
