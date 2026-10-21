@@ -97,4 +97,9 @@ language sql immutable as $$
 $$;
 grant usage on schema storage to anon, authenticated, service_role;
 grant select on storage.buckets to anon, authenticated;
+-- Comme en prod : les roles ont le privilege sur la table, et c'est la RLS qui
+-- filtre. Sans ces grants, un SELECT authentifie serait refuse en bloc (« droit
+-- refuse pour la table objects ») au lieu d'etre filtre par les policies.
+grant select, insert, update, delete on storage.objects to authenticated;
+grant select on storage.objects to anon;
 grant all on storage.objects to service_role;

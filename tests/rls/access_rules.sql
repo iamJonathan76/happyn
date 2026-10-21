@@ -74,6 +74,12 @@ insert into posts (id, author_id, event_id, caption) values
 insert into post_comments (post_id, author_id, body) values
   ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000e', 'commentaire d''Eve');
 
+-- Deux vidéos dans le bucket event-videos. Chemin réel : <event>/<auteur>/fichier.
+-- v-pub est sur l'événement public e1 ; v-brouillon sur le brouillon e3.
+insert into storage.objects (bucket_id, name, owner) values
+  ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4',    '00000000-0000-0000-0000-00000000000a'),
+  ('event-videos', '00000000-0000-0000-0000-0000000000e3/00000000-0000-0000-0000-00000000000a/clip-brouillon.mp4', '00000000-0000-0000-0000-00000000000a');
+
 insert into direct_conversations (id, member_a, member_b) values
   ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b'),
   -- Ouverte entre Alice et Eve AVANT qu'Alice ne bloque Eve : le cas d'une
@@ -537,4 +543,47 @@ select t.sees($$select 1 from device_tokens where token = 'sonde-alice' and user
   'device_tokens : la reattribution passe par le serveur (register_device_token)');
 select t.sees($$select 1 from device_tokens where token = 'sonde-alice' and user_id = '00000000-0000-0000-0000-00000000000a'$$, 0,
   'device_tokens : l''ancien proprietaire ne garde pas la ligne reattribuee');
+reset role;
+
+
+-- ═══ Vidéos d'événement (bucket event-videos) ═══════════════════════════════
+-- Même logique que les publications : la vidéo d'un événement public se lit,
+-- celle d'un brouillon reste à l'organisateur et aux présents. Le téléversement
+-- n'appartient qu'à l'organisateur, et dans SON dossier ; la suppression, au
+-- seul propriétaire du fichier.
+
+\set V_PUB '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4'
+\set V_DRAFT '00000000-0000-0000-0000-0000000000e3/00000000-0000-0000-0000-00000000000a/clip-brouillon.mp4'
+
+select t.as_anon();
+select t.sees_nothing($$select 1 from storage.objects where bucket_id = 'event-videos'$$,
+  'Vidéo : un visiteur sans compte ne lit aucune vidéo');
+reset role;
+
+select t.as_user('00000000-0000-0000-0000-00000000000b');  -- Bruno, ni organisateur ni présent
+select t.sees($$select 1 from storage.objects where name = '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4'$$, 1,
+  'Vidéo : un compte lit la vidéo d''un événement public');
+select t.sees($$select 1 from storage.objects where name = '00000000-0000-0000-0000-0000000000e3/00000000-0000-0000-0000-00000000000a/clip-brouillon.mp4'$$, 0,
+  'Vidéo : un compte ne lit pas la vidéo d''un brouillon');
+-- Bruno téléverse SOUS SON dossier, mais sur l'événement d'Alice : refusé,
+-- il n'en est pas l'organisateur.
+select t.cannot_write($$insert into storage.objects (bucket_id, name) values ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000b/tentative.mp4')$$,
+  'Vidéo : un non-organisateur ne téléverse pas sur l''événement d''un autre');
+-- Bruno supprime le fichier d'Alice (dossier à son nom à elle) : refusé.
+select t.cannot_write($$delete from storage.objects where name = '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4'$$,
+  'Vidéo : on ne supprime pas le fichier d''un autre');
+reset role;
+
+select t.as_user('00000000-0000-0000-0000-00000000000a');  -- Alice, organisatrice
+select t.sees($$select 1 from storage.objects where name = '00000000-0000-0000-0000-0000000000e3/00000000-0000-0000-0000-00000000000a/clip-brouillon.mp4'$$, 1,
+  'Vidéo : l''organisateur lit la vidéo de son brouillon');
+select t.can_write($$insert into storage.objects (bucket_id, name) values ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/nouvelle.mp4')$$,
+  'Vidéo : l''organisateur téléverse sur son événement, dans son dossier');
+-- Alice téléverse sur son événement mais sous le dossier de Bruno : refusé,
+-- le deuxième segment du chemin doit être l'identifiant de l'uploadeur.
+select t.cannot_write($$insert into storage.objects (bucket_id, name) values ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000b/usurpation.mp4')$$,
+  'Vidéo : le téléversement se fait sous son propre dossier, pas celui d''un autre');
+-- Alice supprime bien sa propre vidéo.
+select t.can_write($$delete from storage.objects where name = '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4'$$,
+  'Vidéo : le propriétaire supprime son propre fichier');
 reset role;
