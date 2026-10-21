@@ -2694,6 +2694,26 @@ begin
 end;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.register_device_token(p_token text, p_platform text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if auth.uid() is null then raise exception 'not_authenticated'; end if;
+  if p_token is null or length(p_token) = 0 then
+    raise exception 'invalid_token';
+  end if;
+  if p_platform not in ('android', 'ios') then
+    raise exception 'invalid_platform';
+  end if;
+
+  delete from public.device_tokens where token = p_token;
+  insert into public.device_tokens (token, user_id, platform, created_at, updated_at)
+  values (p_token, auth.uid(), p_platform, now(), now());
+end $function$;
+
 CREATE OR REPLACE FUNCTION public.reports_fill_label()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -4046,8 +4066,6 @@ create policy "own tokens upsert" on public."device_tokens" as permissive for in
 
 create policy "own tokens update" on public."device_tokens" as permissive for update to authenticated using ((auth.uid() = user_id));
 
-create policy "delete by exact token" on public."device_tokens" as permissive for delete to authenticated using (true);
-
 create policy "Users can update own events" on public."events" as permissive for update to authenticated using ((auth.uid() = created_by));
 
 create policy "Users can delete own events" on public."events" as permissive for delete to authenticated using ((auth.uid() = created_by));
@@ -4111,6 +4129,8 @@ create policy "own notifs delete" on public."notifications" as permissive for de
 create policy "conversation participants can send messages" on public."direct_messages" as permissive for insert to authenticated with check (((sender_id = auth.uid()) AND can_access_direct_conversation(conversation_id) AND direct_conversation_is_open(conversation_id) AND (shared_kind IS DISTINCT FROM 'ticket'::text)));
 
 create policy "app status readable by all" on public."app_status" as permissive for select to authenticated, anon using (true);
+
+create policy "own tokens delete" on public."device_tokens" as permissive for delete to authenticated using ((auth.uid() = user_id));
 
 -- Droits : on part de zero, puis on rejoue exactement ceux de la production.
 
@@ -4451,6 +4471,14 @@ revoke all on function ticket_paid_cents(uuid) from public, anon, authenticated,
 grant execute on function ticket_paid_cents(uuid) to authenticated;
 
 grant execute on function ticket_paid_cents(uuid) to service_role;
+
+revoke all on function register_device_token(text,text) from public, anon, authenticated, service_role;
+
+grant execute on function register_device_token(text,text) to anon;
+
+grant execute on function register_device_token(text,text) to authenticated;
+
+grant execute on function register_device_token(text,text) to service_role;
 
 revoke all on function record_stripe_fee(text,bigint) from public, anon, authenticated, service_role;
 
