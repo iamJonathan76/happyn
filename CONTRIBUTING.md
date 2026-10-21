@@ -98,6 +98,23 @@ change la base de l'autre.
 **Symptôme classique** : l'app fonctionnait, tu fais `git pull`, et soudain un
 écran plante ou une insertion échoue → il te manque une migration.
 
+> **Piège — `supabase db query -f` avale les fonctions.** Appliquée avec
+> `npx supabase db query --linked -f <fichier>`, une migration qui contient une
+> fonction au corps entre `$function$ … $function$` (ou `$$ … $$`) peut voir
+> cette seule instruction **sautée en silence** : l'outil découpe sur les `;`, y
+> compris ceux à l'intérieur du corps, pose un fragment invalide, et **continue**
+> sans erreur visible. Le reste de la migration passe ; la fonction, non.
+> Arrivé pour de vrai le 2026-10-20 : un `create or replace function` de sécurité
+> n'avait pas pris, alors que colonnes, bucket, policies et vue de la même
+> migration étaient bien là. Le banc `tests/rls/run.sh` ne l'avait pas vu, parce
+> que `psql -f` gère le dollar-quoting correctement, lui.
+>
+> **Donc** : après avoir appliqué une migration qui (re)définit une fonction,
+> **vérifie la fonction en base**, par exemple
+> `select pg_get_functiondef('public.ma_fonction(uuid)'::regprocedure);`. Si elle
+> manque, ré-applique le `create function` seul (il tient dans une requête, sans
+> découpage). Le SQL Editor de Supabase, lui, n'a pas ce défaut.
+
 ---
 
 ## 5. Sécurité — règle absolue sur les clés
