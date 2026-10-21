@@ -2,6 +2,29 @@
 alter table public.posts
   add column if not exists video_url text;
 
+-- Cette fonctionnalité pose une publication vidéo DÈS la création de
+-- l'événement, brouillon compris. Or event_posts_are_public ne regardait que
+-- posts_visibility : un brouillon à visibilité « public » laissait donc lire
+-- ses publications (et la vidéo) depuis la table posts par n'importe quel
+-- compte — la vue feed_posts les cachait, mais pas la table, et c'est la table
+-- qu'interroge quelqu'un avec la clé publique. On exige le statut « publié ».
+-- L'organisateur garde l'accès par l'autre branche des policies
+-- (can_attach_event), donc il voit toujours ses propres brouillons.
+create or replace function public.event_posts_are_public(p_event uuid)
+ returns boolean
+ language sql
+ stable security definer
+ set search_path to 'public'
+as $function$
+  select coalesce(
+    (select coalesce(e.posts_visibility, 'public') = 'public'
+            and coalesce(e.status, 'published') <> 'draft'
+       from public.events e
+      where e.id = p_event),
+    false
+  );
+$function$;
+
 alter table public.posts
   drop constraint if exists post_not_empty;
 alter table public.posts

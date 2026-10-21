@@ -70,7 +70,8 @@ insert into private.settings (key, value) values ('push_hook_secret', 'secret-de
 
 insert into posts (id, author_id, event_id, caption) values
   ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', 'photo publique'),
-  ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e2', 'photo entre invites');
+  ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e2', 'photo entre invites'),
+  ('00000000-0000-0000-0000-0000000000a3', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e3', 'photo sur un brouillon');
 insert into post_comments (post_id, author_id, body) values
   ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000e', 'commentaire d''Eve');
 
@@ -545,6 +546,24 @@ select t.sees($$select 1 from device_tokens where token = 'sonde-alice' and user
   'device_tokens : l''ancien proprietaire ne garde pas la ligne reattribuee');
 reset role;
 
+
+-- ═══ Publications d'un brouillon ════════════════════════════════════════════
+-- Un brouillon n'est pas publié. Ses publications — y compris la vidéo posée à
+-- la création de l'événement — ne doivent pas se lire depuis la table posts par
+-- quelqu'un qui n'y est pour rien, même si posts_visibility vaut 'public'.
+-- L'organisateur, lui, les voit (can_attach_event).
+
+select t.as_user('00000000-0000-0000-0000-00000000000b');  -- Bruno, étranger au brouillon
+select t.sees_nothing($$select 1 from posts where event_id = '00000000-0000-0000-0000-0000000000e3'$$,
+  'Brouillon : un compte ne lit pas les publications d''un brouillon');
+select t.sees($$select 1 from feed_posts where event_id = '00000000-0000-0000-0000-0000000000e3'$$, 0,
+  'Brouillon : les publications d''un brouillon n''apparaissent pas dans le fil');
+reset role;
+
+select t.as_user('00000000-0000-0000-0000-00000000000a');  -- Alice, organisatrice
+select t.sees($$select 1 from posts where event_id = '00000000-0000-0000-0000-0000000000e3'$$, 1,
+  'Brouillon : l''organisateur lit les publications de son brouillon');
+reset role;
 
 -- ═══ Vidéos d'événement (bucket event-videos) ═══════════════════════════════
 -- Même logique que les publications : la vidéo d'un événement public se lit,
