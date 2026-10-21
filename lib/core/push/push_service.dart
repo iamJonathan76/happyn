@@ -65,14 +65,21 @@ class PushService {
   }
 
   static Future<void> _save(String token) async {
-    final uid = Supabase.instance.client.auth.currentUser?.id;
-    if (uid == null) return;
+    // Inutile d'enregistrer un jeton sans compte connecté : le serveur
+    // l'attacherait à personne (auth.uid() nul) et refuserait.
+    if (Supabase.instance.client.auth.currentUser == null) return;
     try {
-      await Supabase.instance.client.from('device_tokens').upsert({
-        'token': token,
-        'user_id': uid,
-        'platform': Platform.isIOS ? 'ios' : 'android',
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      // Passe par la fonction serveur plutôt qu'un upsert direct. Si cet
+      // appareil servait déjà à un autre compte, sa ligne lui appartient
+      // encore : l'upsert ne pouvait pas l'écraser (la policy UPDATE refuse la
+      // ligne d'autrui) et la suppression est désormais limitée à ses propres
+      // lignes. `register_device_token` retire la ligne de l'ancien compte puis
+      // pose la nôtre, de façon atomique et côté serveur — le seul endroit
+      // habilité à toucher la ligne d'un autre. Voir la migration
+      // 20261020000000_device_tokens_delete_own.
+      await Supabase.instance.client.rpc('register_device_token', params: {
+        'p_token': token,
+        'p_platform': Platform.isIOS ? 'ios' : 'android',
       });
     } catch (e) {
       debugPrint('PushService._save: $e');
