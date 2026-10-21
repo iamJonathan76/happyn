@@ -998,6 +998,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Optionnel — une image par défaut est utilisée si vous passez.';
 
   @override
+  String get eventVideoLabel => 'Vidéo pour le fil';
+
+  @override
+  String get eventVideoHelp =>
+      'Choisis une vidéo de ta galerie. Elle sera publiée dans le fil de l\'événement avec les commentaires activés. Les réglages de confidentialité de l\'événement restent appliqués.';
+
+  @override
+  String get chooseEventVideo => 'Choisir une vidéo';
+
+  @override
+  String get removeEventVideo => 'Supprimer la vidéo';
+
+  @override
   String get ageRequirementLabel => 'Exigence d\'âge';
 
   @override
@@ -1643,7 +1656,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get postNeedsText =>
-      'Une publication sans photo a besoin d\'un texte.';
+      'Une publication sans média a besoin d\'un texte.';
 
   @override
   String get deletePost => 'Supprimer la publication';
