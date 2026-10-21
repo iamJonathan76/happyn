@@ -51,6 +51,8 @@ dependencies:
   flutter_stripe: ^11.1.0
   # Image picking (event covers)
   image_picker: ^1.1.2
+  # Video playback in the event feed
+  video_player: ^2.10.0
   # Google sign-in (OAuth)
   google_sign_in: ^7.2.0
   # Ouvrir l'app Maps (itinéraire vers un event)

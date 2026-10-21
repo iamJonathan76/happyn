@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/events_provider.dart';
+import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/utils/age.dart';
 import 'widgets/ticket_tier.dart';
 import 'widgets/ticket_tier_card.dart';
@@ -67,6 +68,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final List<TicketTier> _tiers = [TicketTier(name: 'General Admission')];
 
   XFile? _pickedImage;
+  XFile? _pickedVideo;
 
   String _selectedCategory = 'Music';
   DateTime _startDate = DateTime.now().add(const Duration(days: 1));
@@ -248,6 +250,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     }
   }
 
+  Future<void> _pickVideo() async {
+    final picked = await ImagePicker().pickVideo(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _pickedVideo = picked);
+    }
+  }
+
   /// Upload l'image choisie dans le bucket `events` et renvoie son URL publique.
   Future<String?> _uploadImage(String userId) async {
     final image = _pickedImage;
@@ -267,6 +276,36 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         );
 
     return Supabase.instance.client.storage.from('events').getPublicUrl(path);
+  }
+
+  Future<String?> _uploadVideo({
+    required String userId,
+    required String eventId,
+  }) async {
+    final video = _pickedVideo;
+    if (video == null) return null;
+
+    final bytes = await video.readAsBytes();
+    final ext = video.name.contains('.')
+        ? video.name.split('.').last.toLowerCase()
+        : 'mp4';
+    final contentType = video.mimeType ??
+        switch (ext) {
+          'mov' => 'video/quicktime',
+          'm4v' => 'video/x-m4v',
+          'webm' => 'video/webm',
+          _ => 'video/mp4',
+        };
+    final path =
+        '$eventId/$userId/${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    await Supabase.instance.client.storage.from('event-videos').uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: contentType, upsert: false),
+        );
+
+    return path;
   }
 
   Future<void> _createEvent() async {
@@ -530,7 +569,27 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           .toList();
       await Supabase.instance.client.from('ticket_types').insert(ticketRows);
 
+      final uploadedVideoPath = await _uploadVideo(
+        userId: user.id,
+        eventId: createdEvent['id'] as String,
+      );
+      if (uploadedVideoPath != null) {
+        await Supabase.instance.client.from('posts').insert({
+          'author_id': user.id,
+          'event_id': createdEvent['id'],
+          'video_url': uploadedVideoPath,
+        });
+      }
+
       if (mounted) {
+        // La vidéo vient de créer une publication : la découverte et le profil
+        // doivent la voir tout de suite. L'événement lui-même, lui, est
+        // rafraîchi dans le finally (via container, même si l'écran se ferme) —
+        // le réinvalider ici ferait doublon.
+        if (uploadedVideoPath != null) {
+          ref.invalidate(discoverFeedProvider);
+          ref.invalidate(userPostsProvider(user.id));
+        }
         // Event privé : on montre le code d'invitation à partager.
         if (accessCode != null) {
           await showInviteCodeDialog(context,
@@ -849,6 +908,64 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         l.coverOptional,
                         style: AppText.small,
                       ),
+
+                      if (!_isEditing) ...[
+                        const SizedBox(height: 20),
+                        AppLabel(l.eventVideoLabel),
+                        Text(l.eventVideoHelp, style: AppText.small),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: _isLoading ? null : _pickVideo,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.09)),
+                            ),
+                            child: _pickedVideo == null
+                                ? Row(
+                                    children: [
+                                      const Icon(Icons.video_library_outlined,
+                                          color: AppColors.lavender),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(l.chooseEventVideo,
+                                            style: AppText.bodySm.copyWith(
+                                                color: Colors.white)),
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    children: [
+                                      const Icon(Icons.movie_outlined,
+                                          color: AppColors.lavender),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _pickedVideo!.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: AppText.bodySm.copyWith(
+                                              color: Colors.white),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        tooltip: l.removeEventVideo,
+                                        onPressed: _isLoading
+                                            ? null
+                                            : () => setState(
+                                                () => _pickedVideo = null),
+                                        icon: const Icon(Icons.close,
+                                            color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      ],
 
                       const SizedBox(height: 24),
 

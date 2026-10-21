@@ -1008,6 +1008,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Optional — a default image is used if you skip this.';
 
   @override
+  String get eventVideoLabel => 'Video for the feed';
+
+  @override
+  String get eventVideoHelp =>
+      'Choose a video from your camera roll. It will be posted to the event feed with comments enabled. Event privacy settings still apply.';
+
+  @override
+  String get chooseEventVideo => 'Choose a video';
+
+  @override
+  String get removeEventVideo => 'Remove video';
+
+  @override
   String get ageRequirementLabel => 'Age requirement';
 
   @override
@@ -1777,7 +1790,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postEdited => 'edited';
 
   @override
-  String get postNeedsText => 'A post without a photo needs some text.';
+  String get postNeedsText => 'A post without media needs some text.';
 
   @override
   String get deletePost => 'Delete post';

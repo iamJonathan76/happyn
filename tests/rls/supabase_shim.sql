@@ -68,3 +68,33 @@ returns trigger language plpgsql as $$ begin return new; end $$;
 do $$ begin
   create publication supabase_realtime;
 exception when duplicate_object then null; end $$;
+
+-- Le schema `storage` de Supabase, reduit a ce qu'une migration de politique
+-- de stockage touche : les deux tables et le helper foldername. Sans lui, toute
+-- migration qui cree un bucket ou une policy sur storage.objects echouait ici
+-- avec « relation storage.buckets does not exist », et restait donc non testee.
+create schema if not exists storage;
+create table if not exists storage.buckets (
+  id text primary key,
+  name text not null,
+  public boolean not null default false,
+  created_at timestamptz default now()
+);
+create table if not exists storage.objects (
+  id uuid primary key default extensions.gen_random_uuid(),
+  bucket_id text references storage.buckets(id),
+  name text,
+  owner uuid,
+  created_at timestamptz default now()
+);
+alter table storage.objects enable row level security;
+-- Comme la vraie : renvoie les DOSSIERS du chemin, sans le nom de fichier.
+-- 'eventId/userId/clip.mp4' => {eventId, userId}, donc [1]=event et [2]=user,
+-- exactement ce que lisent les policies de event-videos.
+create or replace function storage.foldername(name text) returns text[]
+language sql immutable as $$
+  select (string_to_array($1, '/'))[1 : greatest(array_length(string_to_array($1, '/'), 1) - 1, 0)]
+$$;
+grant usage on schema storage to anon, authenticated, service_role;
+grant select on storage.buckets to anon, authenticated;
+grant all on storage.objects to service_role;

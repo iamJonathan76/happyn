@@ -77,6 +77,33 @@ do $$ begin
   create publication supabase_realtime;
 exception when duplicate_object then null; end $$;
 
+-- Schema `storage` de Supabase (voir supabase_shim.sql). Reproduit ici par
+-- snapshot_schema.py a chaque --refresh ; sans lui, une migration qui cree un
+-- bucket ou une policy sur storage.objects ne peut pas etre rejouee sur ce
+-- Postgres nu.
+create schema if not exists storage;
+create table if not exists storage.buckets (
+  id text primary key,
+  name text not null,
+  public boolean not null default false,
+  created_at timestamptz default now()
+);
+create table if not exists storage.objects (
+  id uuid primary key default extensions.gen_random_uuid(),
+  bucket_id text references storage.buckets(id),
+  name text,
+  owner uuid,
+  created_at timestamptz default now()
+);
+alter table storage.objects enable row level security;
+create or replace function storage.foldername(name text) returns text[]
+language sql immutable as $$
+  select (string_to_array($1, '/'))[1 : greatest(array_length(string_to_array($1, '/'), 1) - 1, 0)]
+$$;
+grant usage on schema storage to anon, authenticated, service_role;
+grant select on storage.buckets to anon, authenticated;
+grant all on storage.objects to service_role;
+
 
 create schema if not exists private;
 

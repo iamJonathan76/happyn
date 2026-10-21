@@ -19,6 +19,7 @@ import 'package:happyn/features/profile/profile_screen.dart';
 import 'package:happyn/features/social/widgets/comments_sheet.dart';
 import 'package:happyn/features/social/widgets/share_sheet.dart';
 import 'package:happyn/l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
 
 /// Carte d'une publication du fil.
 ///
@@ -149,7 +150,8 @@ class _PostCardState extends ConsumerState<PostCard> {
   Future<void> _editCaption(AppLocalizations l) async {
     final controller =
         TextEditingController(text: (_p['caption'] as String?) ?? '');
-    final hasImage = ((_p['image_url'] as String?) ?? '').isNotEmpty;
+    final hasMedia = ((_p['image_url'] as String?) ?? '').isNotEmpty ||
+        ((_p['video_url'] as String?) ?? '').isNotEmpty;
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -201,7 +203,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                     // Une publication sans photo ET sans texte n'existe pas :
                     // la contrainte `post_not_empty` la refuse en base. Mieux
                     // vaut le dire ici que laisser partir une erreur SQL.
-                    if (!hasImage && controller.text.trim().isEmpty) {
+                    if (!hasMedia && controller.text.trim().isEmpty) {
                       showAppSnack(sheetCtx, l.postNeedsText);
                       return;
                     }
@@ -306,6 +308,7 @@ class _PostCardState extends ConsumerState<PostCard> {
     final l = AppLocalizations.of(context);
     final caption = (_p['caption'] as String?)?.trim() ?? '';
     final imageUrl = (_p['image_url'] as String?) ?? '';
+    final videoUrl = (_p['video_url'] as String?) ?? '';
     final eventTitle = _p['event_title'] as String?;
     final author = ((_p['author_name'] as String?) ?? '').trim();
 
@@ -326,7 +329,9 @@ class _PostCardState extends ConsumerState<PostCard> {
           // L'image dans sa forme, bornee entre 4:5 et 1.91:1 : une affiche
           // paysage n'est plus rognee. La forme est connue avant que l'image
           // arrive (`image_aspect`), donc le fil ne saute pas au chargement.
-          if (imageUrl.isNotEmpty)
+          if (videoUrl.isNotEmpty)
+            _PostVideo(url: videoUrl)
+          else if (imageUrl.isNotEmpty)
             AspectRatio(
               aspectRatio:
                   displayAspect((_p['image_aspect'] as num?)?.toDouble()),
@@ -714,6 +719,114 @@ class _PostCardState extends ConsumerState<PostCard> {
               child: Text(l.viewAction,
                   style: AppText.smallBold.copyWith(color: Colors.white)),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PostVideo extends StatefulWidget {
+  final String url;
+
+  const _PostVideo({required this.url});
+
+  @override
+  State<_PostVideo> createState() => _PostVideoState();
+}
+
+class _PostVideoState extends State<_PostVideo> {
+  VideoPlayerController? _controller;
+  bool _failed = false;
+  bool _lastPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVideo();
+  }
+
+  Future<void> _loadVideo() async {
+    try {
+      final signedUrl = await Supabase.instance.client.storage
+          .from('event-videos')
+          .createSignedUrl(widget.url, 86400);
+      if (!mounted) return;
+      final controller =
+          VideoPlayerController.networkUrl(Uri.parse(signedUrl));
+      _controller = controller;
+      await controller.initialize();
+      _lastPlaying = controller.value.isPlaying;
+      controller.addListener(_onVideoChanged);
+      if (mounted) setState(() {});
+    } catch (error) {
+      debugPrint('Feed video failed to initialize: $error');
+      if (mounted) setState(() => _failed = true);
+    }
+  }
+
+  void _onVideoChanged() {
+    final isPlaying = _controller?.value.isPlaying ?? false;
+    if (mounted && isPlaying != _lastPlaying) {
+      _lastPlaying = isPlaying;
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_onVideoChanged);
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = _controller;
+    if (_failed) {
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Container(
+          color: AppColors.imagePlaceholder,
+          alignment: Alignment.center,
+          child: Icon(Icons.video_library_outlined, color: AppColors.textLow),
+        ),
+      );
+    }
+    if (controller == null || !controller.value.isInitialized) {
+      return AspectRatio(
+        aspectRatio: 9 / 16,
+        child: Container(
+          color: AppColors.imagePlaceholder,
+          alignment: Alignment.center,
+          child: const CircularProgressIndicator(color: AppColors.lavender),
+        ),
+      );
+    }
+
+    return AspectRatio(
+      aspectRatio: controller.value.aspectRatio,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            controller.value.isPlaying ? controller.pause() : controller.play();
+          });
+        },
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            VideoPlayer(controller),
+            if (!controller.value.isPlaying)
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Color(0x66000000),
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(14),
+                  child: Icon(Icons.play_arrow, color: Colors.white, size: 36),
+                ),
+              ),
           ],
         ),
       ),

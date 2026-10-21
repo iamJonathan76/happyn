@@ -1814,6 +1814,30 @@ abstract class AppLocalizations {
   /// **'Optional — a default image is used if you skip this.'**
   String get coverOptional;
 
+  /// No description provided for @eventVideoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Video for the feed'**
+  String get eventVideoLabel;
+
+  /// No description provided for @eventVideoHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a video from your camera roll. It will be posted to the event feed with comments enabled. Event privacy settings still apply.'**
+  String get eventVideoHelp;
+
+  /// No description provided for @chooseEventVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a video'**
+  String get chooseEventVideo;
+
+  /// No description provided for @removeEventVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove video'**
+  String get removeEventVideo;
+
   /// No description provided for @ageRequirementLabel.
   ///
   /// In en, this message translates to:
@@ -3185,7 +3209,7 @@ abstract class AppLocalizations {
   /// No description provided for @postNeedsText.
   ///
   /// In en, this message translates to:
-  /// **'A post without a photo needs some text.'**
+  /// **'A post without media needs some text.'**
   String get postNeedsText;
 
   /// No description provided for @deletePost.
