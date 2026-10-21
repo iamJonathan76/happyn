@@ -508,3 +508,33 @@ select t.sees($$select * from payout_reviews where event_id = '00000000-0000-000
 select t.as_user('00000000-0000-0000-0000-00000000000a');
 select t.fails_with($$select * from payout_reviews$$, 'permission', 'Versement : les decisions ne se lisent pas depuis l''app');
 reset role;
+
+-- ═══ device_tokens : la suppression ne vaut que pour ses propres lignes ═════
+-- Piege subtil. Le test « ne supprime pas les jetons des autres » (section
+-- Bruno) passe parce que son WHERE lit une colonne (user_id) : Postgres
+-- applique alors la policy SELECT (propres lignes), et Bruno ne « voit » que la
+-- sienne. Mais un DELETE SANS WHERE ne lit aucune colonne — la policy SELECT ne
+-- joue pas, et un using(true) sur le DELETE laisse un seul compte vider toute la
+-- table, coupant les notifications push de tout le monde. C'est le trou reel.
+reset role;
+delete from device_tokens;
+insert into device_tokens (token, user_id, platform) values
+  ('sonde-alice', '00000000-0000-0000-0000-00000000000a', 'android'),
+  ('sonde-bruno', '00000000-0000-0000-0000-00000000000b', 'ios');
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+delete from device_tokens;                 -- l'attaque : aucun WHERE
+reset role;
+select t.sees($$select 1 from device_tokens where token = 'sonde-alice'$$, 1,
+  'device_tokens : un compte ne supprime pas le jeton d''un autre (DELETE sans WHERE)');
+
+-- La reattribution d'appareil reste possible, mais par le serveur seul :
+-- register_device_token retire la ligne de l'ancien proprietaire puis pose la
+-- sienne. Le client n'ecrase plus la ligne d'autrui lui-meme.
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select public.register_device_token('sonde-alice', 'ios');   -- Bruno reprend l'appareil d'Alice
+reset role;
+select t.sees($$select 1 from device_tokens where token = 'sonde-alice' and user_id = '00000000-0000-0000-0000-00000000000b'$$, 1,
+  'device_tokens : la reattribution passe par le serveur (register_device_token)');
+select t.sees($$select 1 from device_tokens where token = 'sonde-alice' and user_id = '00000000-0000-0000-0000-00000000000a'$$, 0,
+  'device_tokens : l''ancien proprietaire ne garde pas la ligne reattribuee');
+reset role;
