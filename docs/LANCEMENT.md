@@ -480,6 +480,42 @@ select cron.schedule('happyn-rating-requests', '23 * * * *',
                      'select private.send_rating_requests()');
 ```
 
+### Moments vidéo — en cours (plan arrêté le 2026-10-26)
+
+Au départ, la demande était de **partager un moment en vidéo**, comme les
+photos. Ce que Demba avait livré (`feature/video-posts`, fusionné) est autre
+chose : l'**organisateur** joint une vidéo à **son** événement, à la création.
+On garde ça, et on ajoute le vrai moment vidéo par-dessus.
+
+**Décisions prises (maquette validée) :**
+
+- Un moment est une **photo OU une vidéo**, pas les deux.
+- **Vidéo ≤ 30 s.** L'utilisateur **choisit** la portion (petit rogneur) :
+  prendre les 30 premières secondes couperait le meilleur moment.
+- **Qui peut poster une vidéo : au moins un billet valide** (ou l'organisateur).
+  C'est déjà la règle des photos — acheter un billet crée une présence
+  « going », et `can_attach_event` la lit sans exiger de scan. On élargit donc
+  la policy d'upload du bucket `event-videos` de « organisateur seulement »
+  (Demba) à `can_attach_event`, dossier au nom de l'uploadeur. **Nouveau test
+  de sécurité à écrire** avant livraison.
+- **Affichage dans le fil : vidéo bornée, muette, qui tourne** — une seule joue
+  à la fois (celle qui est au centre de l'écran). Pas d'étiquette « en
+  lecture » : inutile.
+- **Bouton haut-parleur** sur la vidéo = son ici même ; **tap sur la vidéo** =
+  plein écran avec le son. Une fois le son activé, **les vidéos suivantes se
+  lancent aussi avec le son** (préférence gardée pour la session).
+- **Garde-fous « taille raisonnable »** : plafond de résolution (720p) et de
+  poids à l'upload ; image de couverture tirée de la vidéo pour la vignette.
+
+**Ordre d'implémentation (un écran à la fois, testé au téléphone avant le
+suivant) :**
+
+1. Composeur de moments (`create_post_screen`) : choix photo/vidéo + rogneur.
+2. Policy du bucket élargie à `can_attach_event` + test `tests/rls`.
+3. Affichage dans le fil : vignette bornée, lecture muette de la carte visible,
+   bouton haut-parleur.
+4. Écran plein écran au tap, son activé.
+
 ### Maintenance et version minimale — en place le 2026-10-16
 
 Réglages → Modération → **Maintenance et version** (administrateurs seulement).
