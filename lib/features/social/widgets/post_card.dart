@@ -20,6 +20,9 @@ import 'package:happyn/features/social/widgets/comments_sheet.dart';
 import 'package:happyn/features/social/widgets/share_sheet.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:video_player/video_player.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+import 'package:happyn/core/providers/feed_video_provider.dart';
+import 'package:happyn/features/social/widgets/post_video_fullscreen.dart';
 
 /// Carte d'une publication du fil.
 ///
@@ -330,7 +333,12 @@ class _PostCardState extends ConsumerState<PostCard> {
           // paysage n'est plus rognee. La forme est connue avant que l'image
           // arrive (`image_aspect`), donc le fil ne saute pas au chargement.
           if (videoUrl.isNotEmpty)
-            _PostVideo(url: videoUrl)
+            _PostVideo(
+              postId: _p['id'] as String,
+              url: videoUrl,
+              posterUrl: imageUrl.isNotEmpty ? imageUrl : null,
+              aspect: (_p['image_aspect'] as num?)?.toDouble(),
+            )
           else if (imageUrl.isNotEmpty)
             AspectRatio(
               aspectRatio:
@@ -726,17 +734,33 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 }
 
-class _PostVideo extends StatefulWidget {
-  final String url;
+/// La vidéo d'un moment dans le fil.
+///
+/// Le fil reste léger : la vidéo est bornée en hauteur (forme clampée comme une
+/// photo), joue en MUET et seulement quand sa carte est au centre de l'écran —
+/// une seule à la fois, les autres en pause (coordonné par feed_video_provider).
+/// Le haut-parleur active le son sur place ; taper la vidéo l'ouvre en plein
+/// écran avec le son. Une fois le son activé, il reste actif pour les suivantes.
+class _PostVideo extends ConsumerStatefulWidget {
+  final String postId;
+  final String url; // chemin dans le bucket privé event-videos
+  final String? posterUrl;
+  final double? aspect;
 
-  const _PostVideo({required this.url});
+  const _PostVideo({
+    required this.postId,
+    required this.url,
+    this.posterUrl,
+    this.aspect,
+  });
 
   @override
-  State<_PostVideo> createState() => _PostVideoState();
+  ConsumerState<_PostVideo> createState() => _PostVideoState();
 }
 
-class _PostVideoState extends State<_PostVideo> {
+class _PostVideoState extends ConsumerState<_PostVideo> {
   VideoPlayerController? _controller;
+  String? _signedUrl;
   bool _failed = false;
   bool _lastPlaying = false;
 
@@ -752,82 +776,142 @@ class _PostVideoState extends State<_PostVideo> {
           .from('event-videos')
           .createSignedUrl(widget.url, 86400);
       if (!mounted) return;
+      _signedUrl = signedUrl;
       final controller =
           VideoPlayerController.networkUrl(Uri.parse(signedUrl));
       _controller = controller;
       await controller.initialize();
-      _lastPlaying = controller.value.isPlaying;
-      controller.addListener(_onVideoChanged);
+      await controller.setLooping(true);
+      await controller.setVolume(0); // muet par défaut dans le fil
+      controller.addListener(_onTick);
       if (mounted) setState(() {});
+      _applyPlayback();
     } catch (error) {
       debugPrint('Feed video failed to initialize: $error');
       if (mounted) setState(() => _failed = true);
     }
   }
 
-  void _onVideoChanged() {
-    final isPlaying = _controller?.value.isPlaying ?? false;
-    if (mounted && isPlaying != _lastPlaying) {
-      _lastPlaying = isPlaying;
-      setState(() {});
+  void _onTick() {
+    final playing = _controller?.value.isPlaying ?? false;
+    if (playing != _lastPlaying && mounted) {
+      setState(() => _lastPlaying = playing);
+    }
+  }
+
+  // Joue si cette carte est la vidéo active (au centre), sinon pause. Le son
+  // suit la préférence du fil.
+  void _applyPlayback() {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    final active = ref.read(feedActiveVideoProvider) == widget.postId;
+    final muted = ref.read(feedVideoMutedProvider);
+    controller.setVolume(muted ? 0 : 1);
+    if (active && !controller.value.isPlaying) {
+      controller.play();
+    } else if (!active && controller.value.isPlaying) {
+      controller.pause();
     }
   }
 
   @override
   void dispose() {
-    _controller?.removeListener(_onVideoChanged);
+    ref.read(feedVideoVisibilityProvider.notifier).remove(widget.postId);
+    _controller?.removeListener(_onTick);
     _controller?.dispose();
     super.dispose();
   }
 
+  void _openFullScreen() {
+    final signed = _signedUrl;
+    if (signed == null) return;
+    // Plein écran = avec le son. On mémorise ce choix pour le fil.
+    ref.read(feedVideoMutedProvider.notifier).state = false;
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) =>
+          PostVideoFullScreen(signedUrl: signed, posterUrl: widget.posterUrl),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final controller = _controller;
-    if (_failed) {
-      return AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Container(
-          color: AppColors.imagePlaceholder,
-          alignment: Alignment.center,
-          child: Icon(Icons.video_library_outlined, color: AppColors.textLow),
-        ),
-      );
-    }
-    if (controller == null || !controller.value.isInitialized) {
-      return AspectRatio(
-        aspectRatio: 9 / 16,
-        child: Container(
-          color: AppColors.imagePlaceholder,
-          alignment: Alignment.center,
-          child: const CircularProgressIndicator(color: AppColors.lavender),
-        ),
-      );
-    }
+    // Rejoue/arrête quand la carte active change, applique le son quand il change.
+    ref.listen(feedActiveVideoProvider, (_, _) => _applyPlayback());
+    ref.listen(feedVideoMutedProvider, (_, _) => _applyPlayback());
+    final muted = ref.watch(feedVideoMutedProvider);
 
-    return AspectRatio(
-      aspectRatio: controller.value.aspectRatio,
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            controller.value.isPlaying ? controller.pause() : controller.play();
-          });
-        },
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            VideoPlayer(controller),
-            if (!controller.value.isPlaying)
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Color(0x66000000),
-                  shape: BoxShape.circle,
+    final controller = _controller;
+    final ready = controller != null && controller.value.isInitialized;
+    final playing = ready && controller.value.isPlaying;
+
+    return VisibilityDetector(
+      key: Key('feed-video-${widget.postId}'),
+      onVisibilityChanged: (info) {
+        if (!mounted) return;
+        ref
+            .read(feedVideoVisibilityProvider.notifier)
+            .report(widget.postId, info.visibleFraction);
+      },
+      child: AspectRatio(
+        aspectRatio: displayAspect(widget.aspect),
+        child: GestureDetector(
+          onTap: _openFullScreen,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Couverture : tant que la vidéo ne tourne pas (hors écran, ou en
+              // repli si l'init échoue), on montre l'image, pas un carré vide.
+              if (widget.posterUrl != null && !playing)
+                CachedNetworkImage(
+                  imageUrl: widget.posterUrl!,
+                  fit: BoxFit.cover,
+                  placeholder: (_, _) =>
+                      Container(color: AppColors.imagePlaceholder),
+                  errorWidget: (_, _, _) =>
+                      Container(color: AppColors.imagePlaceholder),
+                )
+              else if (!playing)
+                Container(color: AppColors.imagePlaceholder),
+
+              // La vidéo, recadrée pour remplir la forme bornée (cover).
+              if (ready && !_failed)
+                FittedBox(
+                  fit: BoxFit.cover,
+                  clipBehavior: Clip.hardEdge,
+                  child: SizedBox(
+                    width: controller.value.size.width,
+                    height: controller.value.size.height,
+                    child: VideoPlayer(controller),
+                  ),
                 ),
-                child: Padding(
-                  padding: EdgeInsets.all(14),
-                  child: Icon(Icons.play_arrow, color: Colors.white, size: 36),
+
+              // Pastille lecture quand la vidéo ne joue pas (vignette).
+              if (!playing && !_failed)
+                const Center(
+                  child: Icon(Icons.play_circle_fill,
+                      color: Colors.white, size: 54),
+                ),
+
+              // Haut-parleur : son ici même, sans ouvrir le plein écran.
+              Positioned(
+                right: 10,
+                bottom: 10,
+                child: GestureDetector(
+                  onTap: () => ref.read(feedVideoMutedProvider.notifier).state =
+                      !muted,
+                  child: Container(
+                    padding: const EdgeInsets.all(9),
+                    decoration: const BoxDecoration(
+                      color: Color(0x8C000000),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(muted ? Icons.volume_off : Icons.volume_up,
+                        color: Colors.white, size: 19),
+                  ),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -57,6 +57,9 @@ dependencies:
   # d'un moment vidéo — en natif (iOS/Android), sans ffmpeg, pour ne pas alourdir
   # l'app. Voir create_post_screen.
   video_compress: ^3.1.4
+  # Savoir quelle vidéo est au centre de l'écran : dans le fil, une seule joue à
+  # la fois (celle qu'on regarde), les autres se mettent en pause.
+  visibility_detector: ^0.4.0+2
   # Google sign-in (OAuth)
   google_sign_in: ^7.2.0
   # Ouvrir l'app Maps (itinéraire vers un event)
