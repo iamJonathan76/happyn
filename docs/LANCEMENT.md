@@ -490,8 +490,14 @@ On garde ça, et on ajoute le vrai moment vidéo par-dessus.
 **Décisions prises (maquette validée) :**
 
 - Un moment est une **photo OU une vidéo**, pas les deux.
-- **Vidéo ≤ 30 s.** L'utilisateur **choisit** la portion (petit rogneur) :
-  prendre les 30 premières secondes couperait le meilleur moment.
+- **Vidéo ≤ 60 s** (décidé le 2026-10-26). Vidéo ≤ 60 s : postée telle quelle.
+  Vidéo plus longue : on prévient « seules les 60 premières secondes seront
+  publiées » et on **coupe au début (0 → 60 s)**. Pas de rogneur choisi : comme
+  c'est toujours le début, le découpage est un simple appel **natif**
+  (iOS/Android), **sans ffmpeg** — ce qui garde l'app légère. Même outil natif
+  pour compresser à 720p et tirer l'image de couverture.
+  - *Plan B si le découpage natif est instable :* refuser les vidéos > 60 s et
+    demander de raccourcir dans la galerie (zéro découpage).
 - **Qui peut poster une vidéo : au moins un billet valide** (ou l'organisateur).
   C'est déjà la règle des photos — acheter un billet crée une présence
   « going », et `can_attach_event` la lit sans exiger de scan. On élargit donc
