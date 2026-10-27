@@ -1808,6 +1808,48 @@ abstract class AppLocalizations {
   /// **'Tap to choose a cover photo'**
   String get tapToChoosePhoto;
 
+  /// No description provided for @postAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get postAddPhoto;
+
+  /// No description provided for @postAddVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get postAddVideo;
+
+  /// No description provided for @videoPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing video…'**
+  String get videoPreparing;
+
+  /// No description provided for @videoTrimmedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the first 60 seconds will be posted.'**
+  String get videoTrimmedNotice;
+
+  /// No description provided for @videoTrimmedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'60s max'**
+  String get videoTrimmedBadge;
+
+  /// No description provided for @videoBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get videoBadge;
+
+  /// No description provided for @videoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t prepare the video. Try again.'**
+  String get videoFailed;
+
   /// No description provided for @coverOptional.
   ///
   /// In en, this message translates to:

@@ -1004,6 +1004,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tapToChoosePhoto => 'Tap to choose a cover photo';
 
   @override
+  String get postAddPhoto => 'Photo';
+
+  @override
+  String get postAddVideo => 'Video';
+
+  @override
+  String get videoPreparing => 'Preparing video…';
+
+  @override
+  String get videoTrimmedNotice => 'Only the first 60 seconds will be posted.';
+
+  @override
+  String get videoTrimmedBadge => '60s max';
+
+  @override
+  String get videoBadge => 'Video';
+
+  @override
+  String get videoFailed => 'Couldn\'t prepare the video. Try again.';
+
+  @override
   String get coverOptional =>
       'Optional — a default image is used if you skip this.';
 

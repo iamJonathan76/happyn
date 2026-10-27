@@ -5,6 +5,7 @@ import 'package:happyn/core/config/observability.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/providers/social_provider.dart';
 import 'package:happyn/core/utils/post_image.dart';
@@ -54,8 +55,17 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   // La photo telle que choisie, pour pouvoir la recadrer a nouveau sans la
   // rechoisir — et sans recadrer un recadrage.
   XFile? _original;
-  // Largeur / hauteur de l'image recadree, enregistree avec la publication.
+  // Largeur / hauteur de l'image recadree (ou de la video), enregistree avec
+  // la publication pour que le fil connaisse la forme avant le chargement.
   double? _aspect;
+
+  // Un moment est une photo OU une video, jamais les deux : _image et _video
+  // s'excluent. Pour la video : le clip compresse a 720p et coupe a 60 s, son
+  // image de couverture (vignette du fil), et un drapeau si on a du couper.
+  XFile? _video;
+  File? _poster;
+  bool _videoTrimmed = false;
+  bool _processingVideo = false;
 
   @override
   void initState() {
@@ -142,12 +152,98 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     return Supabase.instance.client.storage.from('posts').getPublicUrl(path);
   }
 
+  /// Choisir une vidéo dans la galerie, la préparer sur l'appareil (natif, sans
+  /// ffmpeg) : couper aux 60 premières secondes si elle est plus longue,
+  /// compresser à 720p, et tirer une image de couverture. Tout est fait AVANT
+  /// l'upload — on n'envoie jamais le fichier d'origine, qui peut peser 100 Mo.
+  Future<void> _pickVideo() async {
+    final l = AppLocalizations.of(context);
+    final picked = await ImagePicker().pickVideo(source: ImageSource.gallery);
+    if (picked == null) return;
+    setState(() {
+      _processingVideo = true;
+      _image = null;
+      _original = null;
+      _video = null;
+      _poster = null;
+    });
+    try {
+      final info = await VideoCompress.getMediaInfo(picked.path);
+      // duration est en millisecondes.
+      final tooLong = (info.duration ?? 0) > 60000;
+      final result = await VideoCompress.compressVideo(
+        picked.path,
+        quality: VideoQuality.Res1280x720Quality,
+        includeAudio: true,
+        startTime: 0,
+        // En secondes. On ne coupe que si ça dépasse : sinon on garde tout.
+        duration: tooLong ? 60 : null,
+      );
+      final outPath = result?.path;
+      if (outPath == null) throw StateError('compressVideo a renvoyé null');
+      final poster = await VideoCompress.getFileThumbnail(outPath,
+          quality: 75, position: -1);
+      final w = result?.width, h = result?.height;
+      if (!mounted) return;
+      setState(() {
+        _video = XFile(outPath, mimeType: 'video/mp4', name: 'moment.mp4');
+        _poster = poster;
+        _aspect = (w != null && h != null && h != 0) ? w / h : null;
+        _videoTrimmed = tooLong;
+        _processingVideo = false;
+      });
+      if (tooLong && mounted) showAppSnack(context, l.videoTrimmedNotice);
+    } catch (e, st) {
+      reportCaught(e, st, where: 'createPost.pickVideo');
+      if (!mounted) return;
+      setState(() => _processingVideo = false);
+      showAppSnack(context, l.videoFailed);
+    }
+  }
+
+  /// Le clip va dans le bucket privé event-videos, au chemin
+  /// `<event>/<auteur>/…` qu'exige sa politique d'accès. On stocke ce chemin
+  /// dans video_url (pas une URL publique) : la lecture passe par une URL
+  /// signée, comme la vidéo d'organisateur.
+  Future<String?> _uploadVideo(String userId, String eventId) async {
+    final video = _video;
+    if (video == null) return null;
+    final bytes = await video.readAsBytes();
+    final path = '$eventId/$userId/${DateTime.now().millisecondsSinceEpoch}.mp4';
+    await Supabase.instance.client.storage.from('event-videos').uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(contentType: 'video/mp4', upsert: false),
+        );
+    return path;
+  }
+
+  /// La couverture va dans le bucket public posts : c'est elle, la vignette du
+  /// fil, visible sans URL signée.
+  Future<String?> _uploadPoster(String userId) async {
+    final poster = _poster;
+    if (poster == null) return null;
+    final bytes = await poster.readAsBytes();
+    final path = '$userId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    await Supabase.instance.client.storage.from('posts').uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
+        );
+    return Supabase.instance.client.storage.from('posts').getPublicUrl(path);
+  }
+
   Future<void> _publish() async {
     final l = AppLocalizations.of(context);
     final caption = _captionController.text.trim();
     // La base refuse une publication vide ; on prévient avant l'aller-retour.
-    if (caption.isEmpty && _image == null) {
+    if (caption.isEmpty && _image == null && _video == null) {
       showAppSnack(context, l.postNeedsContent);
+      return;
+    }
+    // On n'envoie rien tant que la vidéo n'est pas prête.
+    if (_processingVideo) {
+      showAppSnack(context, l.videoPreparing);
       return;
     }
     // Une publication documente toujours une expérience.
@@ -160,13 +256,28 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     setState(() => _saving = true);
     try {
       final uid = Supabase.instance.client.auth.currentUser!.id;
-      final imageUrl = await _uploadImage(uid);
-      await createPost(
-        eventId: eventId,
-        caption: caption,
-        imageUrl: imageUrl,
-        imageAspect: imageUrl == null ? null : _aspect,
-      );
+      if (_video != null) {
+        // Vidéo : la couverture (publique) sert de vignette, le clip (privé)
+        // va dans event-videos. On envoie la couverture d'abord : si le clip
+        // échoue, on n'a pas de vignette orpheline qui pointe vers rien.
+        final posterUrl = await _uploadPoster(uid);
+        final videoPath = await _uploadVideo(uid, eventId);
+        await createPost(
+          eventId: eventId,
+          caption: caption,
+          imageUrl: posterUrl,
+          imageAspect: _aspect,
+          videoUrl: videoPath,
+        );
+      } else {
+        final imageUrl = await _uploadImage(uid);
+        await createPost(
+          eventId: eventId,
+          caption: caption,
+          imageUrl: imageUrl,
+          imageAspect: imageUrl == null ? null : _aspect,
+        );
+      }
 
       ref.invalidate(discoverFeedProvider);
       ref.invalidate(userPostsProvider(uid));
@@ -180,6 +291,172 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       setState(() => _saving = false);
       showAppSnack(context, l.postFailed);
     }
+  }
+
+  BoxDecoration get _mediaBox => BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+      );
+
+  /// Petit bouton rond foncé posé sur un média (fermer, recadrer…).
+  Widget _overlayButton({
+    required IconData icon,
+    String? label,
+    required VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: label == null
+            ? const EdgeInsets.all(6)
+            : const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(label == null ? 40 : 20),
+          shape: label == null ? BoxShape.circle : BoxShape.rectangle,
+        ),
+        child: label == null
+            ? Icon(icon, color: Colors.white, size: 16)
+            : Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(icon, color: Colors.white, size: 15),
+                const SizedBox(width: 6),
+                Text(label,
+                    style: AppText.smallBold.copyWith(color: Colors.white)),
+              ]),
+      ),
+    );
+  }
+
+  void _clearMedia() => setState(() {
+        _image = null;
+        _original = null;
+        _video = null;
+        _poster = null;
+        _videoTrimmed = false;
+        _aspect = null;
+      });
+
+  Widget _mediaPicker(AppLocalizations l) {
+    // En préparation de la vidéo : on montre que ça travaille, rien d'autre.
+    if (_processingVideo) {
+      return Container(
+        height: 210,
+        decoration: _mediaBox,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 26,
+              height: 26,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2.4, color: AppColors.lavender),
+            ),
+            const SizedBox(height: 12),
+            Text(l.videoPreparing, style: AppText.small),
+          ],
+        ),
+      );
+    }
+
+    // Aperçu vidéo : la couverture, un repère « lecture », et le rappel de coupe.
+    if (_video != null && _poster != null) {
+      return AspectRatio(
+        aspectRatio: displayAspect(_aspect),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(fit: StackFit.expand, children: [
+            Image.file(_poster!, fit: BoxFit.cover),
+            const Center(
+              child: Icon(Icons.play_circle_fill,
+                  color: Colors.white, size: 54),
+            ),
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: _overlayButton(
+                  icon: Icons.videocam,
+                  label: _videoTrimmed ? l.videoTrimmedBadge : l.videoBadge,
+                  onTap: null),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: _overlayButton(
+                  icon: Icons.close, onTap: _saving ? null : _clearMedia),
+            ),
+          ]),
+        ),
+      );
+    }
+
+    // Aperçu photo (inchangé) : recadrer, retirer.
+    if (_image != null) {
+      return AspectRatio(
+        aspectRatio: displayAspect(_aspect),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(fit: StackFit.expand, children: [
+            Image.file(File(_image!.path), fit: BoxFit.cover),
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: _overlayButton(
+                  icon: Icons.crop,
+                  label: l.cropAction,
+                  onTap: _saving ? null : _crop),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: _overlayButton(
+                  icon: Icons.close, onTap: _saving ? null : _clearMedia),
+            ),
+          ]),
+        ),
+      );
+    }
+
+    // Rien de choisi : on propose photo OU vidéo.
+    return Container(
+      height: 210,
+      decoration: _mediaBox,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _mediaChoice(
+              icon: Icons.add_photo_alternate_outlined,
+              label: l.postAddPhoto,
+              onTap: _saving ? null : _pickImage),
+          Container(
+            width: 1,
+            height: 64,
+            margin: const EdgeInsets.symmetric(horizontal: 18),
+            color: Colors.white.withValues(alpha: 0.09),
+          ),
+          _mediaChoice(
+              icon: Icons.videocam_outlined,
+              label: l.postAddVideo,
+              onTap: _saving ? null : _pickVideo),
+        ],
+      ),
+    );
+  }
+
+  Widget _mediaChoice({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 34, color: AppColors.textLow),
+        const SizedBox(height: 10),
+        Text(label, style: AppText.small),
+      ]),
+    );
   }
 
   @override
@@ -217,89 +494,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
-          // Image (optionnelle)
-          GestureDetector(
-            onTap: _saving ? null : _pickImage,
-            child: Container(
-              // L'apercu prend la forme que la publication aura dans le fil :
-              // ce qu'on voit ici est ce que les autres verront.
-              height: _image == null ? 210 : null,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
-              ),
-              child: _image == null
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_photo_alternate_outlined,
-                            size: 34, color: AppColors.textLow),
-                        const SizedBox(height: 10),
-                        Text(l.tapToChoosePhoto, style: AppText.small),
-                      ],
-                    )
-                  : AspectRatio(
-                      aspectRatio: displayAspect(_aspect),
-                      child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(18),
-                          child: Image.file(File(_image!.path),
-                              fit: BoxFit.cover),
-                        ),
-                        Positioned(
-                          left: 8,
-                          bottom: 8,
-                          child: GestureDetector(
-                            onTap: _saving ? null : _crop,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.55),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.crop,
-                                      color: Colors.white, size: 15),
-                                  const SizedBox(width: 6),
-                                  Text(l.cropAction,
-                                      style: AppText.smallBold
-                                          .copyWith(color: Colors.white)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: GestureDetector(
-                            onTap: () => setState(() {
-                              _image = null;
-                              _original = null;
-                              _aspect = null;
-                            }),
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.55),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.close,
-                                  color: Colors.white, size: 16),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    ),
-            ),
-          ),
+          // Média (optionnel) : une photo OU une vidéo.
+          _mediaPicker(l),
           const SizedBox(height: 18),
 
           AppLabel(l.postCaptionHint),

@@ -1008,6 +1008,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tapToChoosePhoto => 'Touchez pour choisir une photo de couverture';
 
   @override
+  String get postAddPhoto => 'Photo';
+
+  @override
+  String get postAddVideo => 'Vidéo';
+
+  @override
+  String get videoPreparing => 'Préparation de la vidéo…';
+
+  @override
+  String get videoTrimmedNotice =>
+      'Seules les 60 premières secondes seront publiées.';
+
+  @override
+  String get videoTrimmedBadge => '60 s max';
+
+  @override
+  String get videoBadge => 'Vidéo';
+
+  @override
+  String get videoFailed => 'Vidéo impossible à préparer. Réessaie.';
+
+  @override
   String get coverOptional =>
       'Optionnel — une image par défaut est utilisée si vous passez.';
 

@@ -164,6 +164,7 @@ Future<void> createPost({
   String? caption,
   String? imageUrl,
   double? imageAspect,
+  String? videoUrl,
 }) async {
   final uid = Supabase.instance.client.auth.currentUser?.id;
   if (uid == null) return;
@@ -171,8 +172,11 @@ Future<void> createPost({
     'author_id': uid,
     'event_id': eventId,
     if (caption != null && caption.trim().isNotEmpty) 'caption': caption.trim(),
+    // Pour une vidéo, l'image sert de couverture (vignette du fil), et
+    // video_url porte le clip (chemin dans le bucket privé event-videos).
     'image_url': ?imageUrl,
     'image_aspect': ?imageAspect,
+    'video_url': ?videoUrl,
   });
 }
 
