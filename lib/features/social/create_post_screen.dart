@@ -313,8 +313,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             : const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(label == null ? 40 : 20),
+          // Un cercle ne tolère pas de borderRadius (Flutter l'interdit) : on
+          // ne le pose que pour la pastille rectangulaire.
           shape: label == null ? BoxShape.circle : BoxShape.rectangle,
+          borderRadius: label == null ? null : BorderRadius.circular(20),
         ),
         child: label == null
             ? Icon(icon, color: Colors.white, size: 16)
