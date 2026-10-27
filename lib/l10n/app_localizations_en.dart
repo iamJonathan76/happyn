@@ -1025,6 +1025,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get videoFailed => 'Couldn\'t prepare the video. Try again.';
 
   @override
+  String get videoTooLong =>
+      'Your video is longer than 60s. Trim it in your gallery (60s max), then try again.';
+
+  @override
   String get coverOptional =>
       'Optional — a default image is used if you skip this.';
 

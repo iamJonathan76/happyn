@@ -1850,6 +1850,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t prepare the video. Try again.'**
   String get videoFailed;
 
+  /// No description provided for @videoTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Your video is longer than 60s. Trim it in your gallery (60s max), then try again.'**
+  String get videoTooLong;
+
   /// No description provided for @coverOptional.
   ///
   /// In en, this message translates to:

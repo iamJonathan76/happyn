@@ -60,11 +60,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   double? _aspect;
 
   // Un moment est une photo OU une video, jamais les deux : _image et _video
-  // s'excluent. Pour la video : le clip compresse a 720p et coupe a 60 s, son
-  // image de couverture (vignette du fil), et un drapeau si on a du couper.
+  // s'excluent. Pour la video : le clip compresse a 720p (<= 60 s, imposé au
+  // choix) et son image de couverture (vignette du fil).
   XFile? _video;
   File? _poster;
-  bool _videoTrimmed = false;
   bool _processingVideo = false;
 
   @override
@@ -169,15 +168,21 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     });
     try {
       final info = await VideoCompress.getMediaInfo(picked.path);
-      // duration est en millisecondes.
-      final tooLong = (info.duration ?? 0) > 60000;
+      // On impose 60 s. On NE coupe PAS nous-mêmes : la coupe de video_compress
+      // ne marche qu'en supprimant l'audio (getComposition renvoie la vidéo
+      // entière dès qu'on garde le son), et on veut le son. Donc au-delà de
+      // 60 s, on demande de raccourcir dans la galerie — l'utilisateur choisit
+      // ainsi ses 60 s, avec l'éditeur qu'il connaît déjà.
+      if ((info.duration ?? 0) > 60000) {
+        if (!mounted) return;
+        setState(() => _processingVideo = false);
+        showAppSnack(context, l.videoTooLong);
+        return;
+      }
       final result = await VideoCompress.compressVideo(
         picked.path,
         quality: VideoQuality.Res1280x720Quality,
         includeAudio: true,
-        startTime: 0,
-        // En secondes. On ne coupe que si ça dépasse : sinon on garde tout.
-        duration: tooLong ? 60 : null,
       );
       final outPath = result?.path;
       if (outPath == null) throw StateError('compressVideo a renvoyé null');
@@ -189,10 +194,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         _video = XFile(outPath, mimeType: 'video/mp4', name: 'moment.mp4');
         _poster = poster;
         _aspect = (w != null && h != null && h != 0) ? w / h : null;
-        _videoTrimmed = tooLong;
         _processingVideo = false;
       });
-      if (tooLong && mounted) showAppSnack(context, l.videoTrimmedNotice);
     } catch (e, st) {
       reportCaught(e, st, where: 'createPost.pickVideo');
       if (!mounted) return;
@@ -335,7 +338,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         _original = null;
         _video = null;
         _poster = null;
-        _videoTrimmed = false;
         _aspect = null;
       });
 
@@ -378,7 +380,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               bottom: 8,
               child: _overlayButton(
                   icon: Icons.videocam,
-                  label: _videoTrimmed ? l.videoTrimmedBadge : l.videoBadge,
+                  label: l.videoBadge,
                   onTap: null),
             ),
             Positioned(

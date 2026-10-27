@@ -350,6 +350,7 @@
   "videoTrimmedBadge": "60s max",
   "videoBadge": "Video",
   "videoFailed": "Couldn't prepare the video. Try again.",
+  "videoTooLong": "Your video is longer than 60s. Trim it in your gallery (60s max), then try again.",
   "coverOptional": "Optional — a default image is used if you skip this.",
   "eventVideoLabel": "Video for the feed",
   "eventVideoHelp": "Choose a video from your camera roll. It will be posted to the event feed with comments enabled. Event privacy settings still apply.",
