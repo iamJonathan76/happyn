@@ -579,18 +579,26 @@ select t.sees_nothing($$select 1 from storage.objects where bucket_id = 'event-v
   'Vidéo : un visiteur sans compte ne lit aucune vidéo');
 reset role;
 
-select t.as_user('00000000-0000-0000-0000-00000000000b');  -- Bruno, ni organisateur ni présent
+select t.as_user('00000000-0000-0000-0000-00000000000b');  -- Bruno, détenteur d'un billet pour e1
 select t.sees($$select 1 from storage.objects where name = '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4'$$, 1,
   'Vidéo : un compte lit la vidéo d''un événement public');
 select t.sees($$select 1 from storage.objects where name = '00000000-0000-0000-0000-0000000000e3/00000000-0000-0000-0000-00000000000a/clip-brouillon.mp4'$$, 0,
   'Vidéo : un compte ne lit pas la vidéo d''un brouillon');
--- Bruno téléverse SOUS SON dossier, mais sur l'événement d'Alice : refusé,
--- il n'en est pas l'organisateur.
-select t.cannot_write($$insert into storage.objects (bucket_id, name) values ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000b/tentative.mp4')$$,
-  'Vidéo : un non-organisateur ne téléverse pas sur l''événement d''un autre');
+-- Bruno a un billet pour e1 : comme pour les photos, il peut y poster un
+-- moment vidéo, dans son propre dossier.
+select t.can_write($$insert into storage.objects (bucket_id, name) values ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000b/mon-moment.mp4')$$,
+  'Vidéo : un détenteur de billet poste un moment sur l''événement');
+-- Mais pas sous le dossier de quelqu'un d'autre.
+select t.cannot_write($$insert into storage.objects (bucket_id, name) values ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/usurpation.mp4')$$,
+  'Vidéo : on ne poste pas sous le dossier d''un autre');
 -- Bruno supprime le fichier d'Alice (dossier à son nom à elle) : refusé.
 select t.cannot_write($$delete from storage.objects where name = '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4'$$,
   'Vidéo : on ne supprime pas le fichier d''un autre');
+reset role;
+
+select t.as_user('00000000-0000-0000-0000-00000000000c');  -- Chloe, ni billet ni événement
+select t.cannot_write($$insert into storage.objects (bucket_id, name) values ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000c/sans-billet.mp4')$$,
+  'Vidéo : sans billet ni événement organisé, pas de téléversement');
 reset role;
 
 select t.as_user('00000000-0000-0000-0000-00000000000a');  -- Alice, organisatrice
