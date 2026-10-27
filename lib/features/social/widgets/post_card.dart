@@ -338,6 +338,10 @@ class _PostCardState extends ConsumerState<PostCard> {
               url: videoUrl,
               posterUrl: imageUrl.isNotEmpty ? imageUrl : null,
               aspect: (_p['image_aspect'] as num?)?.toDouble(),
+              authorName: author,
+              authorAvatar: (_p['author_avatar'] as String?) ?? '',
+              caption: caption,
+              eventTitle: eventTitle,
             )
           else if (imageUrl.isNotEmpty)
             AspectRatio(
@@ -746,12 +750,20 @@ class _PostVideo extends ConsumerStatefulWidget {
   final String url; // chemin dans le bucket privé event-videos
   final String? posterUrl;
   final double? aspect;
+  final String authorName;
+  final String authorAvatar;
+  final String caption;
+  final String? eventTitle;
 
   const _PostVideo({
     required this.postId,
     required this.url,
     this.posterUrl,
     this.aspect,
+    this.authorName = '',
+    this.authorAvatar = '',
+    this.caption = '',
+    this.eventTitle,
   });
 
   @override
@@ -828,8 +840,14 @@ class _PostVideoState extends ConsumerState<_PostVideo> {
     // Plein écran = avec le son. On mémorise ce choix pour le fil.
     ref.read(feedVideoMutedProvider.notifier).state = false;
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) =>
-          PostVideoFullScreen(signedUrl: signed, posterUrl: widget.posterUrl),
+      builder: (_) => PostVideoFullScreen(
+        signedUrl: signed,
+        posterUrl: widget.posterUrl,
+        authorName: widget.authorName,
+        authorAvatar: widget.authorAvatar,
+        caption: widget.caption,
+        eventTitle: widget.eventTitle,
+      ),
     ));
   }
 
