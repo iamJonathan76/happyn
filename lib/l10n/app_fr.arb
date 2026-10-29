@@ -350,6 +350,8 @@
   "dashHoldManual": "Retenu par un administrateur",
   "dashPaidOn": "Versé le {date}",
   "@dashPaidOn": {"placeholders":{"date":{"type":"String"}}},
+  "dashTicketing": "Billetterie",
+  "dashPresence": "Présence",
   "dashByEvent": "Par événement",
   "dashFree": "Gratuit",
   "dashNoEvents": "Aucun événement pour cette période",

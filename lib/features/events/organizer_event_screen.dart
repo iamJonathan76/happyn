@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/payments/pricing.dart';
 import 'package:happyn/core/providers/organizer_provider.dart';
+import 'package:happyn/core/providers/organizer_dashboard_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/utils/dates.dart';
@@ -386,6 +387,20 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
         ),
         data: (tiers) {
           final totals = EventTotals.from(tiers);
+          // Le net et l'état du versement viennent du tableau de bord
+          // organisateur (même source que l'écran Mes revenus), pour cet
+          // événement précis.
+          final dash =
+              ref.watch(organizerDashboardProvider(DashboardRange.all)).asData?.value;
+          OrganizerEventStat? stat;
+          if (dash != null) {
+            for (final e in dash) {
+              if (e.eventId == _eventId) {
+                stat = e;
+                break;
+              }
+            }
+          }
           return RefreshIndicator(
             color: AppColors.primary,
             backgroundColor: AppColors.card,
@@ -397,11 +412,15 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      _revenueCard(l, totals),
-                      const SizedBox(height: 10),
-                      _secondaryStats(l, totals),
-                      const SizedBox(height: 18),
                       _scanButton(l),
+                      const SizedBox(height: 18),
+                      _statsRow(l, totals, stat),
+                      const SizedBox(height: 10),
+                      _progressBlock(l, totals),
+                      if (stat != null && stat.hasPayout) ...[
+                        const SizedBox(height: 10),
+                        _payoutCard(l, stat),
+                      ],
                       const SizedBox(height: 30),
                       _sectionLabel(l.byTierSection),
                       const SizedBox(height: 12),
@@ -501,75 +520,160 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
     );
   }
 
-  /// Le chiffre principal, seul et en grand.
-  ///
-  /// Il portait trois lignes expliquant qu'il etait brut. Un chiffre dont on
-  /// s'excuse n'inspire pas confiance, et l'organisateur sait deja qu'un brut
-  /// n'est pas un net. Le libelle « Ventes brutes » suffit a le dire.
-  Widget _revenueCard(AppLocalizations l, EventTotals t) {
-    return _panel(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _label(l.grossSalesLabel),
-          const SizedBox(height: 6),
+  /// Trois tuiles : vendus, scannés, revenu net. Le net vient du dashboard
+  /// (après les 5 % et Stripe). « … » tant qu'il charge, « Gratuit » si l'event
+  /// n'a pas de tarif payant.
+  Widget _statsRow(AppLocalizations l, EventTotals t, OrganizerEventStat? stat) {
+    final lang = Localizations.localeOf(context).languageCode;
+    final netLabel = stat == null
+        ? '…'
+        : (stat.isPaid ? Pricing.money(stat.netCents / 100, lang) : l.dashFree);
+    final netColor = (stat != null && stat.isPaid)
+        ? AppColors.lavenderLight
+        : AppColors.textSecondary;
+    return Row(children: [
+      Expanded(child: _statTile(l.dashTicketsSold, '${t.sold}', Colors.white)),
+      const SizedBox(width: 8),
+      Expanded(
+          child: _statTile(l.dashAttendees, '${t.checkedIn}',
+              t.checkedIn > 0 ? AppColors.success : Colors.white)),
+      const SizedBox(width: 8),
+      Expanded(child: _statTile(l.dashNetRevenue, netLabel, netColor)),
+    ]);
+  }
+
+  Widget _statTile(String label, String value, Color color) => _panel(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(
-              '\$${t.grossRevenue.toStringAsFixed(0)}',
-              style: AppText.display.copyWith(
-                  fontSize: 42, color: Colors.white, height: 1),
+            child: Text(value,
+                style: AppText.display
+                    .copyWith(fontSize: 20, color: color, height: 1.1)),
+          ),
+          const SizedBox(height: 4),
+          _label(label),
+        ]),
+      );
+
+  /// Deux jauges distinctes : la billetterie (vendus / capacité) et la présence
+  /// (scannés / vendus). Sans plafond, la billetterie n'a pas de jauge.
+  Widget _progressBlock(AppLocalizations l, EventTotals t) => _panel(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (t.isCapped) ...[
+            _barHeader(l.dashTicketing, l.soldOfCapacity(t.sold, t.capacity)),
+            const SizedBox(height: 6),
+            _progress(t.capacity, t.sold),
+            const SizedBox(height: 14),
+          ],
+          _barHeader(l.dashPresence, '${t.checkedIn} / ${t.sold}'),
+          const SizedBox(height: 6),
+          _progress(t.sold, t.checkedIn),
+        ]),
+      );
+
+  Widget _barHeader(String left, String right) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(left,
+              style: AppText.small.copyWith(color: AppColors.textSecondary)),
+          Text(right,
+              style: AppText.small.copyWith(color: AppColors.textMuted)),
+        ],
+      );
+
+  /// La carte versement, même grammaire que le tableau de bord : anneau de
+  /// compte à rebours quand rien ne bloque, raison quand c'est retenu.
+  Widget _payoutCard(AppLocalizations l, OrganizerEventStat stat) {
+    final (sub, subColor) = _payoutSubtitle(l, stat);
+    final held = stat.payoutStatus == 'manual' ||
+        stat.payoutStatus == 'no_scans' ||
+        stat.payoutStatus == 'first_event';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+          color: AppColors.card, borderRadius: BorderRadius.circular(18)),
+      child: Row(children: [
+        _payoutLeading(l, stat),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(l.dashNextPayout,
+                style: AppText.small.copyWith(color: Colors.white)),
+            const SizedBox(height: 2),
+            Text(sub,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.small.copyWith(color: subColor)),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        Text(
+            Pricing.money(stat.netCents / 100,
+                Localizations.localeOf(context).languageCode),
+            style: AppText.h4.copyWith(
+                color: held ? AppColors.textSecondary : Colors.white)),
+      ]),
+    );
+  }
+
+  Widget _payoutLeading(AppLocalizations l, OrganizerEventStat stat) {
+    if (stat.payoutStatus == 'counting') {
+      final days = stat.payoutDaysLeft ?? 0;
+      final progress = ((7 - days) / 7).clamp(0.0, 1.0).toDouble();
+      return SizedBox(
+        width: 48,
+        height: 48,
+        child: Stack(alignment: Alignment.center, children: [
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 4,
+              backgroundColor: Colors.white.withValues(alpha: 0.08),
+              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
             ),
           ),
-          const SizedBox(height: 16),
-          // La jauge de remplissage vit ici, sous le montant : les deux
-          // racontent la meme chose, la vente.
-          _progress(t.isCapped ? t.capacity : 0, t.sold),
-          const SizedBox(height: 8),
-          Text(
-            t.isCapped
-                ? l.soldOfCapacity(t.sold, t.capacity)
-                : l.noCapacity(t.sold),
-            style: AppText.small.copyWith(color: AppColors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Entrees et places restantes. Sans plafond, « restants » n'a pas de sens :
-  /// la case cede la place aux entrees, qui prennent toute la largeur.
-  Widget _secondaryStats(AppLocalizations l, EventTotals t) {
-    final checkedIn = _miniStat(l.checkedInLabel, '${t.checkedIn}',
-        accent: t.checkedIn > 0 ? AppColors.success : null);
-    if (!t.isCapped) return checkedIn;
-    return Row(
-      children: [
-        Expanded(child: checkedIn),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _miniStat(
-              l.remainingSection, '${(t.capacity - t.sold).clamp(0, t.capacity)}'),
-        ),
-      ],
-    );
-  }
-
-  Widget _miniStat(String label, String value, {Color? accent}) => _panel(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _label(label),
-            const SizedBox(height: 4),
-            Text(value,
-                style: AppText.display.copyWith(
-                    fontSize: 24, color: accent ?? Colors.white, height: 1.1)),
-          ],
-        ),
+          Text(l.dashDaysShort(days),
+              style: AppText.smallBold.copyWith(color: Colors.white)),
+        ]),
       );
+    }
+    final (IconData icon, Color color) = switch (stat.payoutStatus) {
+      'paid' => (Icons.check_circle, AppColors.green),
+      'ready' => (Icons.check_circle_outline, AppColors.green),
+      'scheduled' => (Icons.schedule, AppColors.lavender),
+      _ => (Icons.pause_circle_outline, AppColors.amber),
+    };
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+      child: Icon(icon, color: color, size: 22),
+    );
+  }
+
+  (String, Color) _payoutSubtitle(AppLocalizations l, OrganizerEventStat e) =>
+      switch (e.payoutStatus) {
+        'counting' =>
+          (l.dashPayoutInDays(e.payoutDaysLeft ?? 0), AppColors.textSecondary),
+        'ready' => (l.dashPayoutReady, AppColors.green),
+        'scheduled' => (l.dashPayoutScheduled, AppColors.textSecondary),
+        'no_scans' => (l.dashHoldNoScans, AppColors.amber),
+        'first_event' => (l.dashHoldFirstEvent, AppColors.amber),
+        'manual' => (l.dashHoldManual, AppColors.amber),
+        'paid' => (
+            l.dashPaidOn(
+                AppDates.dayMonthYear(context, e.paidAt?.toIso8601String())),
+            AppColors.green
+          ),
+        _ => ('', AppColors.textSecondary),
+      };
 
   /// Un seul contenant pour toutes les cartes de l'ecran : meme fond, meme
   /// rayon, meme bordure. C'est ce qui fait qu'un tableau de bord se lit comme

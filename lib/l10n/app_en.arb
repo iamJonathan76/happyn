@@ -374,6 +374,8 @@
   "dashHoldManual": "On hold by an admin",
   "dashPaidOn": "Paid on {date}",
   "@dashPaidOn": {"placeholders":{"date":{"type":"String"}}},
+  "dashTicketing": "Ticketing",
+  "dashPresence": "Attendance",
   "dashByEvent": "By event",
   "dashFree": "Free",
   "dashNoEvents": "No events for this period",

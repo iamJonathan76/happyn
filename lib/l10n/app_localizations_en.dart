@@ -1094,6 +1094,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dashTicketing => 'Ticketing';
+
+  @override
+  String get dashPresence => 'Attendance';
+
+  @override
   String get dashByEvent => 'By event';
 
   @override

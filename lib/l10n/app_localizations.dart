@@ -1970,6 +1970,18 @@ abstract class AppLocalizations {
   /// **'Paid on {date}'**
   String dashPaidOn(String date);
 
+  /// No description provided for @dashTicketing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticketing'**
+  String get dashTicketing;
+
+  /// No description provided for @dashPresence.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get dashPresence;
+
   /// No description provided for @dashByEvent.
   ///
   /// In en, this message translates to:
