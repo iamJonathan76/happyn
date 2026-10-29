@@ -1034,6 +1034,80 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ta vidéo dépasse 60 s. Raccourcis-la dans ta galerie (60 s max), puis réessaie.';
 
   @override
+  String get dashTitle => 'Mes revenus';
+
+  @override
+  String get dashSubtitle => 'Revenu, billets et versements';
+
+  @override
+  String get dashWeek => '7 jours';
+
+  @override
+  String get dashMonth => '30 jours';
+
+  @override
+  String get dashAll => 'Tout';
+
+  @override
+  String get dashNetRevenue => 'Revenu net';
+
+  @override
+  String get dashTicketsSold => 'Billets vendus';
+
+  @override
+  String get dashAttendees => 'Présents';
+
+  @override
+  String get dashAttendanceRate => 'Taux de présence';
+
+  @override
+  String dashScannedOf(int scanned, int sold) {
+    return '$scanned billets scannés sur $sold vendus';
+  }
+
+  @override
+  String get dashNextPayout => 'Prochain versement';
+
+  @override
+  String dashPayoutInDays(int days) {
+    return 'Versement dans $days j';
+  }
+
+  @override
+  String dashDaysShort(int days) {
+    return '$days j';
+  }
+
+  @override
+  String get dashPayoutReady => 'Prêt';
+
+  @override
+  String get dashPayoutScheduled => 'Versement 7 jours après l\'événement';
+
+  @override
+  String get dashHoldNoScans => 'Retenu · aucun billet scanné';
+
+  @override
+  String get dashHoldFirstEvent => 'Retenu · premier événement (vérif.)';
+
+  @override
+  String get dashHoldManual => 'Retenu par un administrateur';
+
+  @override
+  String dashPaidOn(String date) {
+    return 'Versé le $date';
+  }
+
+  @override
+  String get dashByEvent => 'Par événement';
+
+  @override
+  String get dashFree => 'Gratuit';
+
+  @override
+  String get dashNoEvents => 'Aucun événement pour cette période';
+
+  @override
   String get coverOptional =>
       'Optionnel — une image par défaut est utilisée si vous passez.';
 

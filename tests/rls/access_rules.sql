@@ -614,3 +614,26 @@ select t.cannot_write($$insert into storage.objects (bucket_id, name) values ('e
 select t.can_write($$delete from storage.objects where name = '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4'$$,
   'Vidéo : le propriétaire supprime son propre fichier');
 reset role;
+
+-- ═══ Tableau de bord organisateur (organizer_dashboard) ═════════════════════
+-- Chacun ne voit QUE ses propres événements et leur argent. Alice organise
+-- e1..e4 ; Bruno n'organise rien (il a juste un billet).
+
+select t.as_user('00000000-0000-0000-0000-00000000000a');  -- Alice, organisatrice
+select t.sees($$select 1 from organizer_dashboard() where event_id = '00000000-0000-0000-0000-0000000000e1'$$, 1,
+  'Dashboard : l''organisateur voit son propre événement');
+select t.sees($$select 1 from organizer_dashboard() where event_id = '00000000-0000-0000-0000-0000000000e1' and net_cents = 2375$$, 1,
+  'Dashboard : le net est calculé (2500 − 5 % = 2375)');
+reset role;
+
+select t.as_user('00000000-0000-0000-0000-00000000000b');  -- Bruno, détenteur de billet, pas organisateur
+select t.sees_nothing($$select 1 from organizer_dashboard()$$,
+  'Dashboard : un non-organisateur ne voit aucun revenu');
+select t.sees_nothing($$select 1 from organizer_dashboard() where event_id = '00000000-0000-0000-0000-0000000000e1'$$,
+  'Dashboard : on ne voit pas le revenu de l''événement d''un autre');
+reset role;
+
+select t.as_anon();
+select t.fails_with($$select * from organizer_dashboard()$$, 'permission',
+  'Dashboard : un visiteur sans compte ne peut pas l''appeler');
+reset role;

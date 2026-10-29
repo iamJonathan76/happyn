@@ -16,6 +16,7 @@ import 'package:happyn/features/settings/edit_profile_screen.dart';
 import 'package:happyn/features/ticketing/my_tickets_screen.dart';
 import 'package:happyn/features/settings/legal_page_screen.dart';
 import 'package:happyn/features/settings/payouts_screen.dart';
+import 'package:happyn/features/settings/organizer_dashboard_screen.dart';
 import 'package:happyn/features/settings/delete_account_screen.dart';
 import 'package:happyn/features/settings/blocked_users_screen.dart';
 import 'package:happyn/core/providers/legal_provider.dart';
@@ -101,6 +102,9 @@ class SettingsScreen extends ConsumerWidget {
           // ventes sont bloquees. L'ecran explique la demarche meme a qui n'a
           // encore rien vendu.
           _section(l.sectionOrganizerTools),
+          _tile(context, Icons.insights_outlined, l.dashTitle,
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const OrganizerDashboardScreen()))),
           _tile(context, Icons.account_balance_wallet_outlined, l.payouts,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const PayoutsScreen()))),

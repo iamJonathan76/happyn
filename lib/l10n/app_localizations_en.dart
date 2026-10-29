@@ -1029,6 +1029,80 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your video is longer than 60s. Trim it in your gallery (60s max), then try again.';
 
   @override
+  String get dashTitle => 'My revenue';
+
+  @override
+  String get dashSubtitle => 'Revenue, tickets and payouts';
+
+  @override
+  String get dashWeek => '7 days';
+
+  @override
+  String get dashMonth => '30 days';
+
+  @override
+  String get dashAll => 'All';
+
+  @override
+  String get dashNetRevenue => 'Net revenue';
+
+  @override
+  String get dashTicketsSold => 'Tickets sold';
+
+  @override
+  String get dashAttendees => 'Attendees';
+
+  @override
+  String get dashAttendanceRate => 'Attendance rate';
+
+  @override
+  String dashScannedOf(int scanned, int sold) {
+    return '$scanned of $sold tickets scanned';
+  }
+
+  @override
+  String get dashNextPayout => 'Next payout';
+
+  @override
+  String dashPayoutInDays(int days) {
+    return 'Payout in $days d';
+  }
+
+  @override
+  String dashDaysShort(int days) {
+    return '$days d';
+  }
+
+  @override
+  String get dashPayoutReady => 'Ready';
+
+  @override
+  String get dashPayoutScheduled => 'Payout 7 days after the event';
+
+  @override
+  String get dashHoldNoScans => 'On hold · no ticket scanned';
+
+  @override
+  String get dashHoldFirstEvent => 'On hold · first event (review)';
+
+  @override
+  String get dashHoldManual => 'On hold by an admin';
+
+  @override
+  String dashPaidOn(String date) {
+    return 'Paid on $date';
+  }
+
+  @override
+  String get dashByEvent => 'By event';
+
+  @override
+  String get dashFree => 'Free';
+
+  @override
+  String get dashNoEvents => 'No events for this period';
+
+  @override
   String get coverOptional =>
       'Optional — a default image is used if you skip this.';
 

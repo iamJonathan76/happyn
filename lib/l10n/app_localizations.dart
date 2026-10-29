@@ -1856,6 +1856,138 @@ abstract class AppLocalizations {
   /// **'Your video is longer than 60s. Trim it in your gallery (60s max), then try again.'**
   String get videoTooLong;
 
+  /// No description provided for @dashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My revenue'**
+  String get dashTitle;
+
+  /// No description provided for @dashSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue, tickets and payouts'**
+  String get dashSubtitle;
+
+  /// No description provided for @dashWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get dashWeek;
+
+  /// No description provided for @dashMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get dashMonth;
+
+  /// No description provided for @dashAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get dashAll;
+
+  /// No description provided for @dashNetRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Net revenue'**
+  String get dashNetRevenue;
+
+  /// No description provided for @dashTicketsSold.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets sold'**
+  String get dashTicketsSold;
+
+  /// No description provided for @dashAttendees.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendees'**
+  String get dashAttendees;
+
+  /// No description provided for @dashAttendanceRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance rate'**
+  String get dashAttendanceRate;
+
+  /// No description provided for @dashScannedOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{scanned} of {sold} tickets scanned'**
+  String dashScannedOf(int scanned, int sold);
+
+  /// No description provided for @dashNextPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Next payout'**
+  String get dashNextPayout;
+
+  /// No description provided for @dashPayoutInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout in {days} d'**
+  String dashPayoutInDays(int days);
+
+  /// No description provided for @dashDaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d'**
+  String dashDaysShort(int days);
+
+  /// No description provided for @dashPayoutReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get dashPayoutReady;
+
+  /// No description provided for @dashPayoutScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout 7 days after the event'**
+  String get dashPayoutScheduled;
+
+  /// No description provided for @dashHoldNoScans.
+  ///
+  /// In en, this message translates to:
+  /// **'On hold · no ticket scanned'**
+  String get dashHoldNoScans;
+
+  /// No description provided for @dashHoldFirstEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'On hold · first event (review)'**
+  String get dashHoldFirstEvent;
+
+  /// No description provided for @dashHoldManual.
+  ///
+  /// In en, this message translates to:
+  /// **'On hold by an admin'**
+  String get dashHoldManual;
+
+  /// No description provided for @dashPaidOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid on {date}'**
+  String dashPaidOn(String date);
+
+  /// No description provided for @dashByEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'By event'**
+  String get dashByEvent;
+
+  /// No description provided for @dashFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get dashFree;
+
+  /// No description provided for @dashNoEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'No events for this period'**
+  String get dashNoEvents;
+
   /// No description provided for @coverOptional.
   ///
   /// In en, this message translates to:
