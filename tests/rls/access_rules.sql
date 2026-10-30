@@ -496,6 +496,12 @@ select t.sees($$select * from notifications where type = 'payout_review' and use
 select private.alert_payout_holds();
 select t.sees($$select * from notifications where type = 'payout_review'$$, 2, 'Versement : une seule alerte par evenement');
 
+-- L'organisateur est prevenu de ses deux retenues, dans sa langue, et une seule
+-- fois chacune (meme deduplication que l'admin).
+select t.sees($$select * from notifications where type = 'payout_held' and user_id = '00000000-0000-0000-0000-00000000000a'$$, 2, 'Versement : l''organisateur est prevenu de ses retenues');
+select t.sees($$select * from notifications where type = 'payout_held' and user_id <> '00000000-0000-0000-0000-00000000000a'$$, 0, 'Versement : la retenue ne previent que l''organisateur concerne');
+select t.sees($$select * from notifications where type = 'payout_held' and event_id = '00000000-0000-0000-0000-0000000000e7' and body ilike '%scann%'$$, 1, 'Versement : la retenue sans scan le dit a l''organisateur');
+
 select t.as_user('00000000-0000-0000-0000-00000000000a');
 select t.fails_with($$select * from public.admin_payout_queue()$$, 'not_admin', 'Versement : l''organisateur ne voit pas la file admin');
 select t.fails_with($$select public.admin_set_payout_review('00000000-0000-0000-0000-0000000000e6', 'released')$$, 'not_admin', 'Versement : l''organisateur ne libere pas son propre versement');
@@ -514,6 +520,15 @@ select t.sees($$select * from public.events_due_for_payout() where event_id = '0
 select t.sees($$select * from payout_reviews where event_id = '00000000-0000-0000-0000-0000000000e6' and decided_by = '00000000-0000-0000-0000-0000000000ad' and reason = 'Plainte recue'$$, 1, 'Versement : la decision garde qui et pourquoi');
 select t.as_user('00000000-0000-0000-0000-00000000000a');
 select t.fails_with($$select * from payout_reviews$$, 'permission', 'Versement : les decisions ne se lisent pas depuis l''app');
+reset role;
+
+-- Versement versé : quand le virement part, l'organisateur est prevenu une
+-- fois, et repasser la ligne a 'paid' ne renotifie pas.
+insert into event_payouts (id, event_id, organizer_id, account_id, gross_cents, refunded_cents, stripe_fee_cents, platform_fee_cents, net_cents, status, transfer_id, created_at, paid_at)
+values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000e6', '00000000-0000-0000-0000-00000000000a', 'acct_test', 130000, 0, 4000, 2000, 124000, 'paid', 'tr_test', now(), now());
+select t.sees($$select * from notifications where type = 'payout_paid' and user_id = '00000000-0000-0000-0000-00000000000a'$$, 1, 'Versement verse : l''organisateur est prevenu');
+update event_payouts set status = 'paid' where event_id = '00000000-0000-0000-0000-0000000000e6';
+select t.sees($$select * from notifications where type = 'payout_paid' and user_id = '00000000-0000-0000-0000-00000000000a'$$, 1, 'Versement verse : pas de doublon si la ligne repasse a paid');
 reset role;
 
 -- ═══ device_tokens : la suppression ne vaut que pour ses propres lignes ═════

@@ -41,6 +41,8 @@ Ce qui manque encore et **n'est pas du peaufinage**, vérifié dans le dépôt l
 | Adresses structurées, coordonnées, adresse privée protégée | ✅ |
 | « Near You » — GPS, ville, trois états | ✅ |
 | **Notifications poussées (Android)** | ✅ testées |
+| Notifs versement à l'organisateur (retenu / versé) | ✅ code + banc RLS |
+| Notifs poussées sur iOS (APNs + Firebase) | ⛔ à activer, § 3 |
 | Registre des paiements (`payments`) — répond à « il a payé, pas de billet » | ✅ code |
 | Stripe Connect : inscription, versements, contestations | ✅ code, § 4 |
 
@@ -433,6 +435,18 @@ personne physique, c'est une responsabilité personnelle.
 
    En attendant, la fonction s'appelle à la main — elle est idempotente, un
    appel de plus ne verse rien deux fois.
+
+   **L'organisateur est prévenu de ses versements** (migration
+   `20261031000000`). La retenue : `alert_payout_holds()`, appelée au début de
+   chaque tick, insère — en même temps que l'alerte admin et avec la même
+   déduplication (une fois par événement) — une notification `payout_held` pour
+   l'organisateur, dans sa langue, qui dit pourquoi (aucun scan / premier
+   événement) sans le langage de modération. Le versé : un déclencheur sur
+   `event_payouts` insère une `payout_paid` quand le statut passe à `paid`, avec
+   le montant net. Les deux empruntent le webhook `notifications → send-push`
+   déjà en place : poussées sur Android aujourd'hui, sur iOS une fois le § 3
+   (APNs + `GoogleService-Info.plist`) fait. Dans l'app, les deux ouvrent
+   « Mes revenus ».
 7. **Passer Stripe en mode production** (toujours en mode test aujourd'hui).
 
 ### Effet immédiat sur les ventes

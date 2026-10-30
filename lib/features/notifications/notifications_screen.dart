@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/features/events/rate_event_screen.dart';
 import 'package:happyn/features/settings/payouts_admin_screen.dart';
+import 'package:happyn/features/settings/organizer_dashboard_screen.dart';
 import 'package:happyn/core/config/observability.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/theme/app_colors.dart';
@@ -116,6 +117,10 @@ class NotificationsScreen extends ConsumerWidget {
         return (Icons.star_rounded, AppColors.amber);
       case 'payout_review':
         return (Icons.payments_outlined, AppColors.warning);
+      case 'payout_held':
+        return (Icons.schedule, AppColors.warning);
+      case 'payout_paid':
+        return (Icons.payments, AppColors.green);
       default:
         return (Icons.notifications, AppColors.lavender);
     }
@@ -289,6 +294,11 @@ class NotificationsScreen extends ConsumerWidget {
         } else if (type == 'payout_review') {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => const PayoutsAdminScreen()));
+        } else if (type == 'payout_held' || type == 'payout_paid') {
+          // Les deux mènent l'organisateur à « Mes revenus » : c'est là qu'il
+          // voit l'état du versement et le compte à rebours de la retenue.
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const OrganizerDashboardScreen()));
         } else if (type == 'rate_event' && eventId != null) {
           _openEvent(context, eventId, rate: true);
         } else if (postId != null) {
