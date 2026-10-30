@@ -775,10 +775,15 @@ class _PostVideoState extends ConsumerState<_PostVideo> {
   String? _signedUrl;
   bool _failed = false;
   bool _lastPlaying = false;
+  // Capturé ici, pas relu via `ref` dans `dispose` : utiliser `ref` pendant la
+  // destruction lève un StateError fatal. Le provider de visibilité est
+  // long-vécu, donc son notifier reste valide après la carte.
+  late final FeedVideoVisibility _visibility;
 
   @override
   void initState() {
     super.initState();
+    _visibility = ref.read(feedVideoVisibilityProvider.notifier);
     _loadVideo();
   }
 
@@ -832,7 +837,7 @@ class _PostVideoState extends ConsumerState<_PostVideo> {
 
   @override
   void dispose() {
-    ref.read(feedVideoVisibilityProvider.notifier).remove(widget.postId);
+    _visibility.remove(widget.postId);
     _controller?.removeListener(_onTick);
     _controller?.dispose();
     super.dispose();
@@ -869,10 +874,10 @@ class _PostVideoState extends ConsumerState<_PostVideo> {
     return VisibilityDetector(
       key: Key('feed-video-${widget.postId}'),
       onVisibilityChanged: (info) {
+        // VisibilityDetector peut rappeler après la destruction : on passe par
+        // le notifier capturé, jamais `ref`, et on sort si on est démonté.
         if (!mounted) return;
-        ref
-            .read(feedVideoVisibilityProvider.notifier)
-            .report(widget.postId, info.visibleFraction);
+        _visibility.report(widget.postId, info.visibleFraction);
       },
       child: AspectRatio(
         aspectRatio: displayAspect(widget.aspect),
