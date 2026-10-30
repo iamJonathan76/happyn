@@ -21,8 +21,10 @@ SCHEMAS = ("public", "private")
 
 
 def q(sql):
+    # Depuis la CLI 2.x, `db query` sort du texte par defaut ; il faut demander
+    # explicitement le JSON, sinon on ne trouve aucune accolade et tout casse.
     out = subprocess.run(
-        ["npx", "supabase", "db", "query", "--linked", sql],
+        ["npx", "supabase", "db", "query", "--linked", "--output-format", "json", sql],
         capture_output=True, text=True, check=False,
     ).stdout
     start = out.find("{")
@@ -142,12 +144,17 @@ for r in q(f"""select n.nspname s, c.relname t, c.relrowsecurity rls, c.relforce
     if r["f"]:
         w(f"alter table {r['s']}.{ident(r['t'])} force row level security;")
 CMD = {"r": "select", "a": "insert", "w": "update", "d": "delete", "*": "all"}
+# Les politiques de storage.objects (buckets avatars, event-images, posts,
+# event-videos) sont à nous et ne référencent que bucket_id, name et owner,
+# tous présents dans le shim : on les capture aussi, sinon elles ne seraient
+# testées que lorsqu'on passe justement la migration qui les crée.
+POLICY_IN = "(" + ",".join(f"'{s}'" for s in SCHEMAS + ("storage",)) + ")"
 for r in q(f"""select n.nspname s, c.relname t, p.polname, p.polpermissive perm, p.polcmd cmd,
     coalesce((select string_agg(case when x=0 then 'public' else quote_ident(rolname) end, ', ')
        from unnest(p.polroles) x left join pg_roles ro on ro.oid=x), 'public') roles,
     pg_get_expr(p.polqual, p.polrelid) qual, pg_get_expr(p.polwithcheck, p.polrelid) chk
   from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace
-  where n.nspname in {IN}"""):
+  where n.nspname in {POLICY_IN}"""):
     stmt = (f"create policy {ident(r['polname'])} on {r['s']}.{ident(r['t'])} as "
             f"{'permissive' if r['perm'] else 'restrictive'} for {CMD[r['cmd']]} to {r['roles']}")
     if r["qual"]:

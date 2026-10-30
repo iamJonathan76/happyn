@@ -77,6 +77,11 @@ insert into post_comments (post_id, author_id, body) values
 
 -- Deux vidéos dans le bucket event-videos. Chemin réel : <event>/<auteur>/fichier.
 -- v-pub est sur l'événement public e1 ; v-brouillon sur le brouillon e3.
+-- Le bucket est semé ici : le snapshot de prod n'emporte que la structure, pas
+-- les lignes de storage.buckets, et sans lui la fixture casse pour toute
+-- migration autre que celle qui crée justement le bucket.
+insert into storage.buckets (id, name, public) values ('event-videos', 'event-videos', true)
+on conflict (id) do nothing;
 insert into storage.objects (bucket_id, name, owner) values
   ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4',    '00000000-0000-0000-0000-00000000000a'),
   ('event-videos', '00000000-0000-0000-0000-0000000000e3/00000000-0000-0000-0000-00000000000a/clip-brouillon.mp4', '00000000-0000-0000-0000-00000000000a');
