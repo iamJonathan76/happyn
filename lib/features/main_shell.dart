@@ -38,6 +38,14 @@ class _MainShellState extends State<MainShell> {
     // C'est bien ici et pas dans main() : a ce point la session est restauree,
     // et on sait que la personne est connectee.
     unawaited(PushService.registerForUser());
+
+    // Si l'app a été ouverte depuis l'état fermé en touchant une notification,
+    // c'est ici — session restaurée, navigateur prêt — qu'on ouvre son écran.
+    // Après la première frame : pousser une route pendant l'`initState`
+    // verrouillerait le navigateur en pleine construction.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PushService.consumePendingTap();
+    });
   }
 
   @override

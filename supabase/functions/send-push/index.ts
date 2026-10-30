@@ -205,6 +205,8 @@ Deno.serve(async (req: Request) => {
           },
           android: {
             priority: "high",
+            // Son et vibration par le canal par defaut.
+            notification: { sound: "default" },
             // Regroupement : dix messages d'affilee dans la meme conversation
             // remplacent la bulle precedente au lieu d'en empiler dix. Sans
             // cle, chaque notification reste distincte — ce qu'on veut pour
@@ -212,6 +214,11 @@ Deno.serve(async (req: Request) => {
             ...(conversationId
               ? { collapse_key: `dm-${conversationId}` }
               : {}),
+          },
+          // Sans ce bloc, iOS affiche la banniere mais SANS son ni vibration :
+          // FCM v1 ne met pas de son par defaut dans la charge APNs.
+          apns: {
+            payload: { aps: { sound: "default" } },
           },
         },
       }),

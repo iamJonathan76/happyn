@@ -3,7 +3,13 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// Clé du navigateur racine, posée sur le `MaterialApp`. Elle permet d'ouvrir
+/// un écran depuis l'extérieur de l'arbre de widgets — ici, au toucher d'une
+/// bannière de notification, où l'on n'a aucun `BuildContext` sous la main.
+final navigatorKey = GlobalKey<NavigatorState>();
 
 /// Notifications poussées.
 ///
@@ -21,6 +27,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// iPhone tant que ce ne sera pas le cas.
 class PushService {
   static bool _ready = false;
+
+  /// Routage du toucher d'une notification, injecté par la couche `features`
+  /// au démarrage. On passe par un hook pour que `core` n'importe pas les
+  /// écrans de `features` : ici on ne fait que transporter le message, c'est
+  /// `push_router.dart` qui sait quel écran ouvrir.
+  static void Function(RemoteMessage message)? onNotificationTap;
+
+  /// Le message qui a ouvert l'app alors qu'elle était FERMÉE. On ne peut pas
+  /// naviguer tout de suite : la session n'est pas encore restaurée et le
+  /// navigateur n'existe pas. On le garde ; `MainShell` le consomme une fois
+  /// arrivé à l'accueil, quand tout est prêt.
+  static RemoteMessage? _pendingInitial;
 
   /// Vrai quand Firebase a démarré. Sans `google-services.json` (absent du
   /// dépôt), l'initialisation échoue — et l'app doit continuer normalement :
@@ -42,6 +60,33 @@ class PushService {
     // rotation par Google). Sans cette écoute, les notifications cesseraient
     // d'arriver un jour sans que rien ne le signale.
     FirebaseMessaging.instance.onTokenRefresh.listen(_save);
+
+    // Afficher la bannière MÊME quand l'app est au premier plan. iOS la masque
+    // par défaut : sans ça, un message reçu pendant qu'on navigue n'apparaît
+    // nulle part sur le moment. (Sans effet sur Android, qui l'affiche déjà.)
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    // Toucher une bannière alors que l'app est en ARRIÈRE-PLAN : on route tout
+    // de suite, le navigateur est prêt.
+    FirebaseMessaging.onMessageOpenedApp.listen(_dispatch);
+
+    // App FERMÉE : on retient le message, sans naviguer encore (voir plus bas).
+    _pendingInitial = await FirebaseMessaging.instance.getInitialMessage();
+  }
+
+  static void _dispatch(RemoteMessage message) => onNotificationTap?.call(message);
+
+  /// À appeler une fois l'accueil atteint (session restaurée, navigateur prêt) :
+  /// ouvre l'écran de la notification qui a lancé l'app depuis l'état fermé.
+  static void consumePendingTap() {
+    final msg = _pendingInitial;
+    if (msg == null) return;
+    _pendingInitial = null;
+    onNotificationTap?.call(msg);
   }
 
   /// Demande l'autorisation et enregistre le jeton de cet appareil.

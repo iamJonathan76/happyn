@@ -18,6 +18,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:happyn/core/config/stripe_config.dart';
 import 'package:happyn/features/main_shell.dart';
 import 'package:happyn/core/push/push_service.dart';
+import 'package:happyn/features/notifications/push_router.dart';
 import 'package:happyn/core/config/observability.dart';
 
 /// Tout le demarrage passe par `runWithObservability` : sans lui, une erreur
@@ -72,6 +73,9 @@ Future<void> _start() async {
   // `try/catch` de PushService ne rattrape pas une attente infinie. Renoncer
   // aux notifications est deja le comportement prevu ici ; rester bloque sur
   // l'ecran d'ouverture ne l'est pas.
+  // Qui sait ouvrir l'écran d'une notification touchée. Posé AVANT l'init, pour
+  // qu'un message d'ouverture (app fermée) soit déjà routable quand il arrive.
+  PushService.onNotificationTap = handlePushTap;
   try {
     await _step(
       'notifications',
@@ -106,6 +110,7 @@ class HappynApp extends ConsumerWidget {
     ref.watch(notificationLanguageSyncProvider);
     return MaterialApp(
       title: 'HAPPYN',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       locale: locale,
