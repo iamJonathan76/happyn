@@ -22,18 +22,24 @@ SCHEMAS = ("public", "private")
 
 def q(sql):
     # Depuis la CLI 2.x, `db query` sort du texte par defaut ; il faut demander
-    # explicitement le JSON, sinon on ne trouve aucune accolade et tout casse.
+    # explicitement le JSON. Et la forme du JSON depend de qui appelle : lancee
+    # par une personne, la CLI renvoie un simple tableau de lignes ; lancee par
+    # un agent, elle l'enveloppe dans {rows, boundary, warning} (bac a sable
+    # anti-injection). On accepte les deux, sinon le refresh casse selon le
+    # contexte d'ou on le lance.
     out = subprocess.run(
         ["npx", "supabase", "db", "query", "--linked", "--output-format", "json", sql],
         capture_output=True, text=True, check=False,
     ).stdout
-    start = out.find("{")
-    if start < 0:
+    starts = [i for i in (out.find("["), out.find("{")) if i >= 0]
+    if not starts:
         sys.exit(f"requete sans reponse JSON :\n{sql}\n{out[-500:]}")
-    data = json.loads(out[start:])
-    if "rows" not in data:
-        sys.exit(f"echec de la requete :\n{sql}\n{data}")
-    return data["rows"]
+    data = json.loads(out[min(starts):])
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict) and "rows" in data:
+        return data["rows"]
+    sys.exit(f"echec de la requete :\n{sql}\n{data}")
 
 
 def ident(name):
