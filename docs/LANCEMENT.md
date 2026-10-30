@@ -8,10 +8,11 @@ inégales : des **décisions** (rapides, mais elles bloquent le reste), de la
 Ce qui manque encore et **n'est pas du peaufinage**, vérifié dans le dépôt le
 2026-10-18 :
 
-- **Sign in with Apple** — `sign_in_with_apple` est absent de `pubspec.yaml` et
-  `auth_choice_screen.dart` affiche toujours `appleSignInSoon`. L'écran de
-  choix existe, le bouton ne fait rien. Règle 4.8 : bloquant pour la revue
-  App Store, pas pour TestFlight interne.
+- ~~**Sign in with Apple**~~ — **fait et testé sur iPhone le 2026-10-30.**
+  `sign_in_with_apple` (natif, nonce → `signInWithIdToken`), bouton branché,
+  capacité *Sign in with Apple* sur l'App ID et fournisseur Apple activé dans
+  Supabase (bundle `com.happyn.happyn` dans *Authorized Client IDs* ; le secret
+  OAuth ne sert qu'au flux web, pas au natif iOS). Règle 4.8 levée.
 - **Les statistiques de l'organisateur** — aucun écran `analytics` dans `lib/`.
   Il voit ses ventes et ses versements, pas ses chiffres.
 - **Les rappels avant événement** — aucune des 12 fonctions Edge ne les envoie.
@@ -42,7 +43,7 @@ Ce qui manque encore et **n'est pas du peaufinage**, vérifié dans le dépôt l
 | « Near You » — GPS, ville, trois états | ✅ |
 | **Notifications poussées (Android)** | ✅ testées |
 | Notifs versement à l'organisateur (retenu / versé) | ✅ code + banc RLS |
-| Notifs poussées sur iOS (APNs + Firebase) | ⛔ à activer, § 3 |
+| Notifs poussées sur iOS (APNs + Firebase) | ✅ testées sur iPhone (2026-10-30) |
 | Registre des paiements (`payments`) — répond à « il a payé, pas de billet » | ✅ code |
 | Stripe Connect : inscription, versements, contestations | ✅ code, § 4 |
 
@@ -693,11 +694,23 @@ Lancer depuis **Xcode** puis `flutter attach` ; Xcode tolère l'échec,
 
 Ce qui n'est PAS dans le dépôt et ne descend pas avec un clone :
 `android/app/google-services.json` (console Firebase),
-`ios/Runner/GoogleService-Info.plist` (jamais créé — d'où l'absence de
-notifications sur iOS), le DSN Sentry passé en `--dart-define`, et l'empreinte
-SHA-1 du `debug.keystore`, propre à chaque machine : une machine neuve casse la
-connexion Google sur Android tant que sa nouvelle empreinte n'est pas déclarée
-dans Google Cloud.
+`ios/GoogleService-Info.plist` (créé le 2026-10-30, mais ignoré par git comme
+son équivalent Android : sur une machine neuve, le redéposer dans `ios/` et
+vérifier qu'il est coché pour la cible Runner — *Target Membership* —, sinon
+il n'est pas embarqué et `Firebase.initializeApp()` se bloque sans notif), le
+DSN Sentry passé en `--dart-define`, et l'empreinte SHA-1 du `debug.keystore`,
+propre à chaque machine : une machine neuve casse la connexion Google sur
+Android tant que sa nouvelle empreinte n'est pas déclarée dans Google Cloud.
+
+Deux pièges rencontrés le 2026-10-30, sur cette machine :
+- **`pod install` plante** avec `Unicode Normalization not appropriate for
+  ASCII-8BIT` (Ruby 4.x) — forcer la locale : `LANG=en_US.UTF-8
+  LC_ALL=en_US.UTF-8 pod install`.
+- **Changer d'équipe de signature** (passage à `LJG44FBA8C`, le compte payant
+  d'Emmanuel) fait rejeter l'install par iOS si une ancienne app signée d'une
+  autre équipe est présente : la supprimer du téléphone d'abord. Le push et
+  *Sign in with Apple* n'existent que sur ce compte payant, pas sur un compte
+  Apple gratuit.
 
 Et ne jamais mettre le dépôt dans un dossier synchronisé (Bureau, iCloud, Google
 Drive) : c'est ce qui avait corrompu `.git` avec 332 doublons « 2 ».
@@ -740,9 +753,10 @@ Une fois le compte actif, dans cet ordre :
 
 **Avant TestFlight externe et l'App Store** (ceux-là passent la revue) :
 
-- **Connexion Apple** fonctionnelle — le bouton actuel affiche « bientôt ».
-  Règle 4.8 : une app qui propose Google doit proposer Apple. Paquet
-  `sign_in_with_apple`, fournisseur Apple dans Supabase (Service ID, clé).
+- ~~**Connexion Apple** fonctionnelle~~ — **fait le 2026-10-30** (natif iOS,
+  testé sur iPhone). Pour le flux **web** (Android/navigateur) il faudra en
+  plus un *Services ID* + un secret OAuth Apple, renouvelé tous les 6 mois ;
+  inutile tant qu'on reste natif iOS.
 - **Écran de consentement Google en « Production »** (§ 3.1 bis), sinon
   personne d'autre que les testeurs listés ne se connecte avec Google.
 - Phrases de permission (`Info.plist`) en anglais seulement : ajouter un
