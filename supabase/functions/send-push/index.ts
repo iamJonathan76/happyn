@@ -147,6 +147,22 @@ Deno.serve(async (req: Request) => {
   if (!userId) return new Response("bad_request", { status: 400 });
 
   const admin = createClient(url, serviceKey);
+
+  // La personne a-t-elle coupe les notifications dans l'app ? Le jeton reste
+  // enregistre, mais on respecte le choix et on n'envoie rien. (profiles.
+  // push_enabled, migration 20261101000000.)
+  const { data: pref } = await admin
+    .from("profiles")
+    .select("push_enabled")
+    .eq("id", userId)
+    .maybeSingle();
+  if (pref && pref.push_enabled === false) {
+    return new Response(JSON.stringify({ sent: 0, skipped: "push_disabled" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const { data: tokens, error } = await admin
     .from("device_tokens")
     .select("token")
@@ -202,6 +218,8 @@ Deno.serve(async (req: Request) => {
             type: String(record.type ?? ""),
             event_id: String(record.event_id ?? ""),
             conversation_id: String(record.conversation_id ?? ""),
+            // Pour qu'un toucher sur un like / un commentaire ouvre le moment.
+            post_id: String(record.post_id ?? ""),
           },
           android: {
             priority: "high",

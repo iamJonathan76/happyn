@@ -113,6 +113,8 @@ class NotificationsScreen extends ConsumerWidget {
         return (Icons.chat_bubble, AppColors.lavender);
       case 'post_comment':
         return (Icons.mode_comment, AppColors.pink);
+      case 'post_like':
+        return (Icons.favorite, AppColors.pink);
       case 'rate_event':
         return (Icons.star_rounded, AppColors.amber);
       case 'payout_review':
@@ -137,6 +139,32 @@ class NotificationsScreen extends ConsumerWidget {
     if (d.inDays < 7) return l.timeDaysShort(d.inDays);
     return l.timeWeeksShort((d.inDays / 7).floor());
   }
+
+  /// La période d'une notification. La liste arrive triée du plus récent au plus
+  /// ancien, donc les sections sortent dans l'ordre.
+  String _group(String? iso, AppLocalizations l) {
+    final dt = DateTime.tryParse(iso ?? '')?.toLocal();
+    if (dt == null) return l.notifEarlier;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(dt.year, dt.month, dt.day);
+    final diff = today.difference(day).inDays;
+    if (diff <= 0) return l.notifToday;
+    if (diff == 1) return l.notifYesterday;
+    if (diff < 7) return l.notifThisWeek;
+    return l.notifEarlier;
+  }
+
+  Widget _groupHeader(String label) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 14, 0, 6),
+        child: Text(
+          label,
+          style: AppText.micro.copyWith(
+              color: AppColors.textMuted,
+              letterSpacing: 0.3,
+              fontWeight: FontWeight.w600),
+        ),
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,6 +214,18 @@ class NotificationsScreen extends ConsumerWidget {
           final list =
               all.where((n) => !dismissed.contains(n['id'])).toList();
           if (list.isEmpty) return _empty(l);
+          // Entrelacer des en-têtes de période. Un String = en-tête, une Map =
+          // une notification.
+          final items = <dynamic>[];
+          String? currentGroup;
+          for (final n in list) {
+            final g = _group(n['created_at'] as String?, l);
+            if (g != currentGroup) {
+              items.add(g);
+              currentGroup = g;
+            }
+            items.add(n);
+          }
           return RefreshIndicator(
             color: AppColors.primary,
             backgroundColor: AppColors.card,
@@ -195,10 +235,12 @@ class NotificationsScreen extends ConsumerWidget {
             },
             child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
-              itemCount: list.length,
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
+              itemCount: items.length,
               itemBuilder: (context, i) {
-                final n = list[i];
+                final item = items[i];
+                if (item is String) return _groupHeader(item);
+                final n = item as Map<String, dynamic>;
                 final id = n['id'] as String;
                 return Dismissible(
                   key: ValueKey(id),
@@ -206,7 +248,7 @@ class NotificationsScreen extends ConsumerWidget {
                   background: Container(
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
-                    margin: const EdgeInsets.only(bottom: 10),
+                    margin: const EdgeInsets.symmetric(vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.85),
                       borderRadius: BorderRadius.circular(16),
@@ -307,41 +349,21 @@ class NotificationsScreen extends ConsumerWidget {
           _openEvent(context, eventId);
         }
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 2),
+        padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 10),
         decoration: BoxDecoration(
-          gradient: unread
-              ? LinearGradient(
-                  colors: [
-                    color.withValues(alpha: 0.12),
-                    color.withValues(alpha: 0.04),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          color: unread ? null : Colors.white.withValues(alpha: 0.035),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: unread
-                ? color.withValues(alpha: 0.35)
-                : Colors.white.withValues(alpha: 0.06),
-          ),
+          // Non-lu : un léger voile, pas tout un cadre. Lu : rien, pour que la
+          // liste respire.
+          color: unread
+              ? AppColors.lavender.withValues(alpha: 0.07)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
+            _avatar(type, (n['title'] ?? '') as String, icon, color),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -352,42 +374,54 @@ class NotificationsScreen extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           (n['title'] ?? '') as String,
-                          style: AppText.h4.copyWith(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.body.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
                         _ago(n['created_at'] as String?, l),
                         style: AppText.micro,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     (n['body'] ?? '') as String,
-                    style: AppText.caption.copyWith(height: 1.45),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.caption
+                        .copyWith(height: 1.4, color: AppColors.textSecondary),
                   ),
-                  if (eventId != null) ...[
+                  if (type == 'rate_event' && eventId != null) ...[
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Text(
-                          l.viewEvent,
-                          style: AppText.smallBold.copyWith(color: color),
-                        ),
-                        Icon(Icons.chevron_right, size: 14, color: color),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(l.rateAction,
+                          style: AppText.smallBold
+                              .copyWith(color: AppColors.lavenderLight)),
                     ),
                   ],
                 ],
               ),
             ),
             if (unread) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Container(
+                margin: const EdgeInsets.only(top: 6),
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(
-                  color: color,
+                decoration: const BoxDecoration(
+                  color: AppColors.pink,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -396,6 +430,73 @@ class NotificationsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Pour une notif sociale (commentaire, like) : une pastille d'initiales,
+  /// comme un avatar, surmontée du petit badge du type. Pour le reste (billet,
+  /// versement, événement) : un rond coloré portant l'icône du type.
+  Widget _avatar(String type, String title, IconData icon, Color color) {
+    final isActor = type == 'post_comment' || type == 'post_like';
+    if (!isActor) {
+      return Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.16),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color, size: 21),
+      );
+    }
+    return SizedBox(
+      width: 46,
+      height: 46,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: Color(0xFF2A2150),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              _initials(title),
+              style: AppText.smallBold
+                  .copyWith(color: AppColors.lavenderLight, fontSize: 15),
+            ),
+          ),
+          Positioned(
+            right: -2,
+            bottom: -2,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.background, width: 2),
+              ),
+              child: Icon(icon, size: 10, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _initials(String name) {
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
+        .toUpperCase();
   }
 
   Widget _empty(AppLocalizations l) => Center(

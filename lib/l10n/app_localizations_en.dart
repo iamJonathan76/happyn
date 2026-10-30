@@ -18,6 +18,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionSocial => 'Social';
 
   @override
+  String get sectionNotifications => 'Notifications';
+
+  @override
+  String get pushNotificationsToggle => 'Push notifications';
+
+  @override
   String get sectionMyActivity => 'My Activity';
 
   @override
@@ -814,6 +820,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notifToday => 'Today';
+
+  @override
+  String get notifYesterday => 'Yesterday';
+
+  @override
+  String get notifThisWeek => 'This week';
+
+  @override
+  String get notifEarlier => 'Earlier';
+
+  @override
+  String get rateAction => 'Rate';
 
   @override
   String get markAllRead => 'Mark all read';

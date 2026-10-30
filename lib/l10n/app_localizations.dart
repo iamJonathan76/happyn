@@ -116,6 +116,18 @@ abstract class AppLocalizations {
   /// **'Social'**
   String get sectionSocial;
 
+  /// No description provided for @sectionNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get sectionNotifications;
+
+  /// No description provided for @pushNotificationsToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications'**
+  String get pushNotificationsToggle;
+
   /// No description provided for @sectionMyActivity.
   ///
   /// In en, this message translates to:
@@ -1483,6 +1495,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications'**
   String get notificationsTitle;
+
+  /// No description provided for @notifToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get notifToday;
+
+  /// No description provided for @notifYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get notifYesterday;
+
+  /// No description provided for @notifThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get notifThisWeek;
+
+  /// No description provided for @notifEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get notifEarlier;
+
+  /// No description provided for @rateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get rateAction;
 
   /// No description provided for @markAllRead.
   ///

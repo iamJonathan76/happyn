@@ -18,6 +18,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sectionSocial => 'Social';
 
   @override
+  String get sectionNotifications => 'Notifications';
+
+  @override
+  String get pushNotificationsToggle => 'Notifications poussées';
+
+  @override
   String get sectionMyActivity => 'Mon activité';
 
   @override
@@ -817,6 +823,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notifToday => 'Aujourd\'hui';
+
+  @override
+  String get notifYesterday => 'Hier';
+
+  @override
+  String get notifThisWeek => 'Cette semaine';
+
+  @override
+  String get notifEarlier => 'Plus tôt';
+
+  @override
+  String get rateAction => 'Noter';
 
   @override
   String get markAllRead => 'Tout marquer comme lu';

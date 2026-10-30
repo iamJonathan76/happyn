@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/providers/admin_provider.dart';
 import 'package:happyn/core/providers/nearby_provider.dart';
+import 'package:happyn/features/settings/widgets/push_toggle_tile.dart';
 import 'package:happyn/features/discover/near_you_screen.dart';
 import 'package:happyn/core/utils/support.dart';
 import 'package:happyn/features/events/my_events_screen.dart';
@@ -72,6 +73,13 @@ class SettingsScreen extends ConsumerWidget {
           _tile(context, Icons.block, l.blockedUsers,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => const BlockedUsersScreen()))),
+
+          // ── Notifications ─────────────────────────────────────────
+          // Couper les notifs ne devait pas obliger à sortir de l'app pour
+          // aller dans les Réglages du téléphone. Le choix vit en base
+          // (profiles.push_enabled) et suit la personne sur ses appareils.
+          _section(l.sectionNotifications),
+          const PushToggleTile(),
 
           // ── Localisation ──────────────────────────────────────────
           // L'utilisateur doit pouvoir revenir sur son choix : une permission

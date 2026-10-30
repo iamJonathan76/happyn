@@ -135,6 +135,8 @@ select t.sees_nothing('select * from private.settings', 'Compte : ne lit pas les
 select t.sees_nothing($$select * from reports where reporter_id <> auth.uid()$$, 'Compte : ne lit pas les signalements des autres');
 select t.sees_nothing('select * from admin_actions', 'Compte : ne lit pas le journal de moderation');
 select t.cannot_write($$update profiles set full_name = 'pirate' where id = '00000000-0000-0000-0000-00000000000a'$$, 'Compte : ne modifie pas le profil d''un autre');
+select t.can_write($$update profiles set push_enabled = false where id = auth.uid()$$, 'Notifs : on coupe ses propres notifications');
+select t.cannot_write($$update profiles set push_enabled = false where id = '00000000-0000-0000-0000-00000000000a'$$, 'Notifs : on ne coupe pas celles d''un autre');
 select t.cannot_write($$update events set title = 'pirate' where id = '00000000-0000-0000-0000-0000000000e1'$$, 'Compte : ne modifie pas l''evenement d''un autre');
 select t.cannot_write($$delete from events where id = '00000000-0000-0000-0000-0000000000e1'$$, 'Compte : ne supprime pas l''evenement d''un autre');
 select t.cannot_write($$update ticket_types set price = 0 where id = '00000000-0000-0000-0000-0000000000f2'$$, 'Compte : ne change pas le prix d''un palier d''un autre');
@@ -155,6 +157,14 @@ select t.sees_nothing($$select * from event_addresses where event_id = '00000000
 select t.sees_nothing($$select * from public.unlock_private_event('MAUVAIS-CODE')$$, 'Prive : un mauvais code ne revele rien');
 select t.sees($$select * from public.unlock_private_event('CODE-SECRET-42')$$, 1, 'Prive : le bon code ouvre l''evenement');
 select t.sees_nothing($$select * from events where status = 'draft' and created_by <> auth.uid()$$, 'Brouillons : invisibles pour les autres');
+
+-- Like : l'auteur du moment est prevenu. (a1 est la publication de l'organisateur
+-- a sur l'evenement public e1 ; b l'aime.) Insert DIRECT, pas t.can_write : ce
+-- dernier annule l'ecriture dans un savepoint, ce qui annulerait aussi la notif
+-- creee par le declencheur.
+insert into post_likes (post_id, user_id) values ('00000000-0000-0000-0000-0000000000a1', auth.uid());
+reset role;
+select t.sees($$select * from notifications where type = 'post_like' and user_id = '00000000-0000-0000-0000-00000000000a' and post_id = '00000000-0000-0000-0000-0000000000a1'$$, 1, 'Like : l''auteur du moment est prevenu');
 
 -- L'annulation
 reset role;
