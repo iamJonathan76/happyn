@@ -22,6 +22,7 @@
   "followers": "Followers",
   "messages": "Messages",
   "messageAction": "Message",
+  "reportViewEvent": "View event",
   "noMessagesYet": "No messages yet. Visit someone's profile to start a conversation.",
   "messagesLoadFailed": "Couldn't load messages. Pull down to try again.",
   "userLabel": "User",

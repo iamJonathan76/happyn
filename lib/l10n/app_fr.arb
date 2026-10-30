@@ -22,6 +22,7 @@
   "followers": "Abonnés",
   "messages": "Messages",
   "messageAction": "Message",
+  "reportViewEvent": "Voir l'événement",
   "noMessagesYet": "Aucun message. Ouvre le profil d'une personne pour démarrer une conversation.",
   "messagesLoadFailed": "Impossible de charger les messages. Fais glisser vers le bas pour réessayer.",
   "userLabel": "Utilisateur",

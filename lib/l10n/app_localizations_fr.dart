@@ -69,6 +69,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get messageAction => 'Message';
 
   @override
+  String get reportViewEvent => 'Voir l\'événement';
+
+  @override
   String get noMessagesYet =>
       'Aucun message. Ouvre le profil d\'une personne pour démarrer une conversation.';
 

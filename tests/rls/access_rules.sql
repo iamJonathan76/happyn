@@ -637,3 +637,24 @@ select t.as_anon();
 select t.fails_with($$select * from organizer_dashboard()$$, 'permission',
   'Dashboard : un visiteur sans compte ne peut pas l''appeler');
 reset role;
+
+-- ═══ Outils de modération (admin_event + message admin) ═════════════════════
+-- Depuis une fiche de signalement, l'admin ouvre l'event même brouillon/privé,
+-- et écrit à l'auteur sans le suivre. Un membre normal n'a ni l'un ni l'autre.
+
+select t.as_user('00000000-0000-0000-0000-0000000000ad');  -- Modo, admin
+select t.sees($$select 1 where public.admin_event('00000000-0000-0000-0000-0000000000e3') is not null$$, 1,
+  'Modération : l''admin ouvre un event brouillon signalé');
+select t.sees($$select 1 where public.start_direct_conversation('00000000-0000-0000-0000-00000000000b') is not null$$, 1,
+  'Modération : l''admin écrit à un membre sans le suivre');
+reset role;
+
+select t.as_user('00000000-0000-0000-0000-00000000000b');  -- Bruno, membre
+select t.sees($$select 1 where public.admin_event('00000000-0000-0000-0000-0000000000e3') is not null$$, 0,
+  'Modération : un non-admin n''ouvre pas d''event via admin_event');
+reset role;
+
+select t.as_user('00000000-0000-0000-0000-00000000000c');  -- Chloe, ne suit pas Bruno
+select t.fails_with($$select public.start_direct_conversation('00000000-0000-0000-0000-00000000000b')$$, 'must_follow',
+  'Message : un membre doit suivre la personne pour lui écrire');
+reset role;

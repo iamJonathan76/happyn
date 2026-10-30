@@ -218,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Message'**
   String get messageAction;
 
+  /// No description provided for @reportViewEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'View event'**
+  String get reportViewEvent;
+
   /// No description provided for @noMessagesYet.
   ///
   /// In en, this message translates to:

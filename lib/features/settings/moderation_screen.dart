@@ -7,6 +7,10 @@ import 'package:happyn/core/theme/app_colors.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/widgets/app_form.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:happyn/core/providers/direct_messages_provider.dart';
+import 'package:happyn/features/social/direct_messages_screen.dart';
+import 'package:happyn/features/events/event_detail_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
 /// File de modération, réservée aux administrateurs.
@@ -504,6 +508,14 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
                 // l'action a faire AVANT les deux autres, pas une de plus.
                 _action(l.reportSeeDetails, AppColors.lavenderLight,
                     () => _openDossier(l)),
+                // Ouvrir la vraie page de l'événement signalé pour l'analyser.
+                if (_type == 'event')
+                  _action(l.reportViewEvent, AppColors.lavenderLight, _openEvent),
+                // Écrire à l'auteur (organisateur, auteur d'une publication, ou
+                // le compte signalé lui-même). L'admin n'a pas à le suivre.
+                if ((_r['target_author'] as String?) != null || _type == 'user')
+                  _action(l.messageAction, AppColors.lavenderLight,
+                      _messageAuthor),
                 // Un signalement visant un compte n'a pas de contenu a retirer.
                 if (_type != 'user')
                   _action(l.actionRemove, AppColors.error,
@@ -526,6 +538,65 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
         ],
       ),
     );
+  }
+
+  /// Ouvre la page de l'événement signalé. Passe par admin_event (vérifiée
+  /// i_am_admin en base) pour y accéder même s'il est privé, brouillon ou
+  /// annulé — ce que la RLS normale cacherait.
+  Future<void> _openEvent() async {
+    final l = AppLocalizations.of(context);
+    final id = _r['target_id'] as String?;
+    if (id == null) return;
+    setState(() => _busy = true);
+    try {
+      final data = await Supabase.instance.client
+          .rpc('admin_event', params: {'p_event': id});
+      if (!mounted) return;
+      setState(() => _busy = false);
+      if (data is Map) {
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) =>
+              EventDetailScreen(event: Map<String, dynamic>.from(data)),
+        ));
+      } else {
+        showAppSnack(context, l.reportTargetGone);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      showAppSnack(context, l.actionFailed);
+    }
+  }
+
+  /// Démarre (ou retrouve) un fil avec l'auteur du contenu signalé — ou, pour un
+  /// signalement de compte, la personne elle-même. En tant qu'admin, pas besoin
+  /// de la suivre (start_direct_conversation l'autorise).
+  Future<void> _messageAuthor() async {
+    final l = AppLocalizations.of(context);
+    final recipient = (_r['target_author'] as String?) ??
+        (_type == 'user' ? _r['target_id'] as String? : null);
+    if (recipient == null) return;
+    setState(() => _busy = true);
+    try {
+      final conversationId = await startDirectConversation(recipient);
+      if (!mounted) return;
+      setState(() => _busy = false);
+      await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => DirectMessageThreadScreen(
+          conversationId: conversationId,
+          recipientName: (_r['author_name'] as String?)?.trim() ?? '',
+          // target_image est l'avatar seulement pour un signalement de compte ;
+          // pour un event/une publication, c'est l'image du contenu — pas la
+          // personne. Mieux vaut pas d'avatar qu'un mauvais.
+          recipientAvatar:
+              _type == 'user' ? (_r['target_image'] as String?) ?? '' : '',
+        ),
+      ));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      showAppSnack(context, l.messageStartFailed);
+    }
   }
 
   Widget _action(String label, Color color, VoidCallback onTap) =>
