@@ -59,4 +59,16 @@ class AuthConfig {
     }
     return true;
   }
+
+  /// Peut-on proposer « Continuer avec Apple » ?
+  ///
+  /// Natif Apple seulement (iOS/macOS) : là, la feuille système se présente
+  /// avec le seul identifiant de l'app (le bundle), sans rien à déclarer ici.
+  /// Sur Android et le Web, Apple passe par une page web (Services ID +
+  /// redirection) qu'on n'a pas mise en place — et l'écran de choix ne montre
+  /// de toute façon le bouton que sur iPhone.
+  static bool get isAppleConfigured =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
 }

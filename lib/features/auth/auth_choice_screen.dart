@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:happyn/core/auth/apple_auth.dart';
 import 'package:happyn/core/auth/google_auth.dart';
 import 'package:happyn/core/config/auth_config.dart';
 import 'package:happyn/core/theme/app_colors.dart';
@@ -71,6 +72,44 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
           kDebugMode
               ? 'Google sign-in failed: $error'
               : 'Google sign-in failed. Please try again.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Connexion native Apple : jeton Apple avec nonce, échangé contre une
+  /// session Supabase. Le détail vit dans `AppleAuth`.
+  Future<void> _apple() async {
+    if (!AuthConfig.isAppleConfigured) {
+      showAppSnack(context, AppLocalizations.of(context).appleSignInSoon);
+      return;
+    }
+    try {
+      setState(() => _busy = true);
+      final signedIn = await AppleAuth.signIn();
+      if (!signedIn) return; // annulé par l'utilisateur
+      if (mounted) await routeAfterAuth(context);
+    } on AuthException catch (e) {
+      debugPrint('Apple sign-in — Supabase a refuse le jeton : ${e.message}');
+      if (mounted) showAppSnack(context, e.message);
+    } catch (error, stackTrace) {
+      // Message générique à l'écran, mais jamais avalé sans trace. La cause la
+      // plus fréquente ici : le fournisseur Apple pas activé côté Supabase, ou
+      // le bundle absent de ses « Authorized Client IDs » — Supabase refuse
+      // alors le jeton (« unacceptable audience »).
+      debugPrint('Apple sign-in echoue : $error');
+      debugPrintStack(
+        label: 'Apple sign-in failure details',
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        showAppSnack(
+          context,
+          kDebugMode
+              ? 'Apple sign-in failed: $error'
+              : 'Apple sign-in failed. Please try again.',
         );
       }
     } finally {
@@ -154,9 +193,8 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
                             icon: FontAwesomeIcons.apple.data,
                             label: l.continueWithApple,
                             filled: true,
-                            onTap: _busy
-                                ? null
-                                : () => showAppSnack(context, l.appleSignInSoon),
+                            busy: _busy,
+                            onTap: _busy ? null : _apple,
                           ),
                           const SizedBox(height: 12),
                         ],
