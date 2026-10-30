@@ -814,6 +814,10 @@ class _PostVideoState extends ConsumerState<_PostVideo> {
   // Joue si cette carte est la vidéo active (au centre), sinon pause. Le son
   // suit la préférence du fil.
   void _applyPlayback() {
+    // Un `ref.listen` peut encore déclencher ce callback juste après que la
+    // carte a été détruite au scroll : lire `ref` alors lève un StateError
+    // fatal (« Cannot use ref after the widget was disposed »). On sort avant.
+    if (!mounted) return;
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) return;
     final active = ref.read(feedActiveVideoProvider) == widget.postId;

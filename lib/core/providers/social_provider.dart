@@ -26,6 +26,14 @@ final followingProvider = FutureProvider<Set<String>>((ref) async {
 /// nouvel inscrit.
 final discoverFeedProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  // Surveiller l'auth EN PREMIER, comme `eventsProvider`. Sans ça, si la
+  // requête `feed_posts` partait avant que la session soit attachée au client
+  // et échouait, le provider restait en erreur sans jamais se relancer : la
+  // dépendance à l'auth (via `_withoutBlocked` plus bas) n'était pas encore
+  // posée au moment du throw. Résultat : « Could not load events » tant qu'on
+  // ne tirait pas pour rafraîchir. Ici, le fil se recharge dès que la session
+  // est prête.
+  ref.watch(currentUserIdProvider);
   final data = await Supabase.instance.client
       .from('feed_posts')
       .select()
