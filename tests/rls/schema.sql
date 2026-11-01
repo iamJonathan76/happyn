@@ -4031,9 +4031,9 @@ CREATE TRIGGER trg_sync_event_attendance AFTER INSERT OR DELETE OR UPDATE ON pub
 
 CREATE TRIGGER profiles_prevent_self_admin BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION prevent_self_admin();
 
-CREATE TRIGGER notify_report_on_insert AFTER INSERT ON public.reports FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://jvjvuozvlzqqmcjanvnh.supabase.co/functions/v1/notify-report', 'POST', '{"x-happyn-secret":"IWa4KT3aB-Q0sL8F8PkaB6qyyhjznWZ3-I12rbsEXC8"}', '{}', '5000');
+CREATE TRIGGER notify_report_on_insert AFTER INSERT ON public.reports FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://jvjvuozvlzqqmcjanvnh.supabase.co/functions/v1/notify-report', 'POST', '{"x-happyn-secret":"REDACTED"}', '{}', '5000');
 
-CREATE TRIGGER send_push_on_notification AFTER INSERT ON public.notifications FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://jvjvuozvlzqqmcjanvnh.supabase.co/functions/v1/send-push', 'POST', '{"Content-Type":"application/json","x-happyn-secret":"WdIV1_-lLLlZWZ1eXcOZZeP_WMV9fnOiFcZZ--AFrUw"}', '{}', '5000');
+CREATE TRIGGER send_push_on_notification AFTER INSERT ON public.notifications FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://jvjvuozvlzqqmcjanvnh.supabase.co/functions/v1/send-push', 'POST', '{"Content-Type":"application/json","x-happyn-secret":"REDACTED"}', '{}', '5000');
 
 CREATE TRIGGER profiles_username_guard BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_username_guard();
 

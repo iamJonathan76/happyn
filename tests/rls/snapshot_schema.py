@@ -14,6 +14,7 @@ c'est contre lui que les tests des regles d'acces doivent s'executer.
 Usage : python3 tests/rls/snapshot_schema.py > tests/rls/schema.sql
 """
 import json
+import re
 import subprocess
 import sys
 
@@ -44,6 +45,18 @@ def q(sql):
 
 def ident(name):
     return '"' + name.replace('"', '""') + '"'
+
+
+# Les declencheurs de webhook portent un secret partage (x-happyn-secret) dans
+# l'en-tete passe a supabase_functions.http_request. pg_get_triggerdef le rend
+# en clair ; on le caviarde avant d'ecrire, sinon ce secret se retrouve dans le
+# depot (ce que SECURITY.md interdit). Le shim de test ignore la valeur, donc
+# un placeholder ne change rien aux tests.
+_SECRET_HEADER_RE = re.compile(r'("x-happyn-secret"\s*:\s*")[^"]*(")')
+
+
+def redact(sql):
+    return _SECRET_HEADER_RE.sub(r"\1REDACTED\2", sql)
 
 
 IN = "(" + ",".join(f"'{s}'" for s in SCHEMAS) + ")"
@@ -139,7 +152,7 @@ for r in q(f"""select pg_get_triggerdef(tg.oid) d from pg_trigger tg
   join pg_proc p on p.oid=tg.tgfoid join pg_namespace pn on pn.oid=p.pronamespace
   where not tg.tgisinternal
     and (n.nspname in {IN} or (n.nspname='auth' and pn.nspname='public'))"""):
-    w(r["d"] + ";")
+    w(redact(r["d"]) + ";")
 
 # ── RLS et politiques ──────────────────────────────────────────────────────
 for r in q(f"""select n.nspname s, c.relname t, c.relrowsecurity rls, c.relforcerowsecurity f
