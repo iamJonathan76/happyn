@@ -45,7 +45,9 @@ insert into events (id, title, created_by, status, visibility, start_date, end_d
   ('00000000-0000-0000-0000-0000000000e4', 'Soiree 21+','00000000-0000-0000-0000-00000000000a', 'published', 'public',  now() + interval '10 days', now() + interval '11 days', 'public',   null, 21);
 
 insert into event_addresses (event_id, address_line) values
-  ('00000000-0000-0000-0000-0000000000e2', '12 rue Secrete');
+  ('00000000-0000-0000-0000-0000000000e1', '500 rue Publique'),
+  ('00000000-0000-0000-0000-0000000000e2', '12 rue Secrete'),
+  ('00000000-0000-0000-0000-0000000000e3', '99 rue du Brouillon');
 
 insert into ticket_types (id, event_id, name, price, quantity_total, quantity_sold, max_per_order) values
   ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000e1', 'Gratuit', 0,  100, 0, 10),
@@ -110,7 +112,14 @@ select t.sees_nothing('select * from post_comments', 'Visiteur : ne lit aucun co
 select t.sees_nothing('select * from tickets', 'Visiteur : ne lit aucun billet');
 select t.sees_nothing('select * from payments', 'Visiteur : ne lit aucun paiement');
 select t.sees_nothing('select * from direct_messages', 'Visiteur : ne lit aucun message prive');
-select t.sees_nothing('select * from event_addresses', 'Visiteur : ne lit aucune adresse exacte');
+-- L'adresse exacte suit la lisibilite de l'evenement : publique ET PUBLIEE,
+-- elle se lit sans compte (il faut bien trouver la salle) ; un brouillon public
+-- ou un evenement prive, non. Le brouillon etait le trou trouve en tapant l'API
+-- en direct le 2026-10-31 : can_see_exact_address regardait la visibilite sans
+-- le statut, et l'adresse d'un public non publie sortait en anonyme.
+select t.sees($$select * from event_addresses where event_id = '00000000-0000-0000-0000-0000000000e1'$$, 1, 'Visiteur : lit l''adresse d''un evenement public publie');
+select t.sees_nothing($$select * from event_addresses where event_id = '00000000-0000-0000-0000-0000000000e2'$$, 'Visiteur : ne lit pas l''adresse d''un evenement prive');
+select t.sees_nothing($$select * from event_addresses where event_id = '00000000-0000-0000-0000-0000000000e3'$$, 'Visiteur : ne lit pas l''adresse d''un brouillon public');
 select t.sees_nothing('select * from notifications', 'Visiteur : ne lit aucune notification');
 select t.sees_nothing($$select * from events where visibility = 'private'$$, 'Visiteur : ne voit pas les evenements prives');
 select t.sees_nothing('select access_code from events where access_code is not null', 'Visiteur : ne lit aucun code d''invitation');
