@@ -753,3 +753,14 @@ select t.cannot_write(
   $$update public_profiles set bio = 'anon est passe'$$,
   'public_profiles : anon ne peut pas reecrire les bios (UPDATE sans WHERE)');
 reset role;
+
+-- ── feed_posts : vue de LECTURE seule ───────────────────────────────────────
+-- Non auto-modifiable (jointures + agregats) : les droits d'ecriture par defaut
+-- de Supabase sont inertes. On verrouille l'invariant « rien ne s'ecrit via la
+-- vue » pour qu'une future simplification en vue mono-table ne les reactive pas
+-- en silence.
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.cannot_write(
+  $$update feed_posts set caption = 'PIRATE' where author_id = '00000000-0000-0000-0000-00000000000a'$$,
+  'feed_posts : aucune ecriture via la vue (UPDATE refuse)');
+reset role;
