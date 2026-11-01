@@ -728,3 +728,28 @@ end $$;
 select t.fails_with($$select public.unlock_private_event('ENCORE-FAUX')$$,
   'rate_limited', 'Debit : le 11e essai de code d''invitation dans l''heure est refuse');
 reset role;
+
+-- ── public_profiles : vue de LECTURE seule ──────────────────────────────────
+-- La vue est SECURITY DEFINER (projection de colonnes voulue). Le danger etait
+-- les droits d'ECRITURE qu'y attache Supabase par defaut : ecrits via la vue,
+-- ils contournaient la RLS de `profiles`. On verifie que plus personne n'ecrit
+-- `profiles` a travers elle, et que la lecture inter-comptes reste possible.
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.cannot_write(
+  $$update public_profiles set full_name = 'PIRATE' where id = '00000000-0000-0000-0000-00000000000a'$$,
+  'public_profiles : un compte ne peut pas reecrire le profil d''un autre via la vue');
+select t.cannot_write(
+  $$update public_profiles set bio = 'sans where'$$,
+  'public_profiles : UPDATE sans WHERE refuse (pas d''ecriture de masse)');
+select t.cannot_write(
+  $$delete from public_profiles where id = '00000000-0000-0000-0000-00000000000a'$$,
+  'public_profiles : DELETE via la vue refuse');
+select t.sees($$select * from public_profiles where id = '00000000-0000-0000-0000-00000000000a'$$, 1,
+  'public_profiles : un compte connecte lit bien le profil public d''un autre');
+reset role;
+
+select t.as_anon();
+select t.cannot_write(
+  $$update public_profiles set bio = 'anon est passe'$$,
+  'public_profiles : anon ne peut pas reecrire les bios (UPDATE sans WHERE)');
+reset role;
