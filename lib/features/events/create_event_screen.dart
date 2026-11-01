@@ -625,8 +625,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   String _generateCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final rand = Random.secure();
+    // 8 caracteres (32^8 ~ 1100 milliards) : meme deviner « n'importe quel
+    // evenement prive » au hasard devient infaisable. Les codes a 5 deja emis
+    // restent valides, ils sont stockes tels quels.
     final code =
-        List.generate(5, (_) => chars[rand.nextInt(chars.length)]).join();
+        List.generate(8, (_) => chars[rand.nextInt(chars.length)]).join();
     return 'HPN-$code';
   }
 

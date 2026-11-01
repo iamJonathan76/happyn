@@ -697,3 +697,34 @@ select t.as_user('00000000-0000-0000-0000-00000000000c');  -- Chloe, ne suit pas
 select t.fails_with($$select public.start_direct_conversation('00000000-0000-0000-0000-00000000000b')$$, 'must_follow',
   'Message : un membre doit suivre la personne pour lui écrire');
 reset role;
+
+-- ═══ Limitation de debit ════════════════════════════════════════════════════
+-- Un compteur par (action, compte, fenetre fixe). Au-dela, 'rate_limited'.
+-- Teste sur les deux surfaces les plus exposees : les signalements (qui
+-- drainent les e-mails) et le deverrouillage de code (brute-force). Chloe part
+-- d'un compteur vierge sur ces deux actions.
+reset role;
+select t.as_user('00000000-0000-0000-0000-00000000000c');
+
+-- Signalements : 5 passent dans l'heure, le 6e est refuse.
+do $$ begin
+  for i in 1..5 loop
+    insert into reports (reporter_id, target_type, target_id, reason)
+    values (auth.uid(), 'user', '00000000-0000-0000-0000-00000000000a', 'spam de test');
+  end loop;
+end $$;
+select t.sees($$select * from reports where reporter_id = auth.uid()$$, 5,
+  'Debit : les 5 premiers signalements d''un compte passent');
+select t.fails_with($$insert into reports (reporter_id, target_type, target_id, reason) values (auth.uid(), 'user', '00000000-0000-0000-0000-00000000000a', 'de trop')$$,
+  'rate_limited', 'Debit : le 6e signalement dans l''heure est refuse');
+
+-- Code d'invitation : 10 essais (faux, sans rien reveler) passent, le 11e est
+-- refuse. C'est ce qui casse le brute-force du code prive.
+do $$ begin
+  for i in 1..10 loop
+    perform public.unlock_private_event('FAUX-CODE-' || i);
+  end loop;
+end $$;
+select t.fails_with($$select public.unlock_private_event('ENCORE-FAUX')$$,
+  'rate_limited', 'Debit : le 11e essai de code d''invitation dans l''heure est refuse');
+reset role;
