@@ -764,3 +764,22 @@ select t.cannot_write(
   $$update feed_posts set caption = 'PIRATE' where author_id = '00000000-0000-0000-0000-00000000000a'$$,
   'feed_posts : aucune ecriture via la vue (UPDATE refuse)');
 reset role;
+
+-- ── Fonctions trigger : non appelables directement ──────────────────────────
+-- Un declencheur s'execute sans EXECUTE accorde a l'appelant ; on verifie qu'un
+-- compte ne peut PAS invoquer la fonction trigger comme une RPC (elle tournerait
+-- en SECURITY DEFINER). On teste une representante : handle_new_user.
+select t.as_user('00000000-0000-0000-0000-00000000000b');
+select t.fails_with($$select public.handle_new_user()$$, 'permission denied',
+  'Trigger : un compte connecte ne peut pas appeler handle_new_user directement');
+reset role;
+select t.as_anon();
+select t.fails_with($$select public.sync_event_attendance()$$, 'permission denied',
+  'Trigger : anon ne peut pas appeler sync_event_attendance directement');
+reset role;
+
+-- ── register_device_token : reservee aux comptes connectes ──────────────────
+select t.as_anon();
+select t.fails_with($$select public.register_device_token('tok','ios')$$, 'permission denied',
+  'Device token : anon ne peut pas appeler register_device_token');
+reset role;
