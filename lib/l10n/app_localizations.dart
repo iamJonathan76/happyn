@@ -1625,13 +1625,13 @@ abstract class AppLocalizations {
   /// No description provided for @feeBreakdown.
   ///
   /// In en, this message translates to:
-  /// **'Stripe {stripe} · HAPPYN {platform}'**
-  String feeBreakdown(String stripe, String platform);
+  /// **'Payment processing {processing} · HAPPYN commission {platform}'**
+  String feeBreakdown(String processing, String platform);
 
   /// No description provided for @youReceiveApprox.
   ///
   /// In en, this message translates to:
-  /// **'You receive about {amount}'**
+  /// **'You receive about {amount} per ticket'**
   String youReceiveApprox(String amount);
 
   /// No description provided for @priceTooLow.
@@ -2213,7 +2213,7 @@ abstract class AppLocalizations {
   /// No description provided for @total.
   ///
   /// In en, this message translates to:
-  /// **'Total'**
+  /// **'Total to pay'**
   String get total;
 
   /// No description provided for @checkout.
@@ -3803,7 +3803,7 @@ abstract class AppLocalizations {
   /// No description provided for @payoutPendingBody.
   ///
   /// In en, this message translates to:
-  /// **'Stripe is reviewing your information. This usually takes a few minutes, sometimes one business day. Nothing to do on your side — we\'ll show it here when it\'s done.'**
+  /// **'Our payment partner is reviewing your information. This usually takes a few minutes, sometimes one business day. Nothing to do on your side — we\'ll show it here when it\'s done.'**
   String get payoutPendingBody;
 
   /// No description provided for @payoutBlocked.
@@ -3815,7 +3815,7 @@ abstract class AppLocalizations {
   /// No description provided for @payoutBlockedBody.
   ///
   /// In en, this message translates to:
-  /// **'Stripe needs one more piece of information or a document before it can send you money. Until that\'s resolved, your paid events can\'t sell.'**
+  /// **'Our payment partner needs one more piece of information or a document before it can send you money. Until that\'s resolved, your paid events can\'t sell.'**
   String get payoutBlockedBody;
 
   /// No description provided for @payoutFixAccount.
@@ -3845,7 +3845,7 @@ abstract class AppLocalizations {
   /// No description provided for @payoutNotStartedBody.
   ///
   /// In en, this message translates to:
-  /// **'To sell paid tickets, you first need to tell us where to send your money. Stripe, our payment partner, will ask for your identity and a bank account. It takes about 5 minutes.'**
+  /// **'To sell paid tickets, you first need to tell us where to send your money. Our payment partner will ask for your identity and a bank account. It takes about 5 minutes.'**
   String get payoutNotStartedBody;
 
   /// No description provided for @payoutResume.
@@ -4385,13 +4385,13 @@ abstract class AppLocalizations {
   /// No description provided for @payoutsNeededCreateBody.
   ///
   /// In en, this message translates to:
-  /// **'Paid tickets go on sale once your payout account is active — about 2 minutes with Stripe. Your event will be saved as a draft; publish it as soon as you\'re set up.'**
+  /// **'Paid tickets go on sale once your payout account is active. Your event will be saved as a draft; publish it as soon as you\'re set up.'**
   String get payoutsNeededCreateBody;
 
   /// No description provided for @payoutsNeededPublishBody.
   ///
   /// In en, this message translates to:
-  /// **'This event has paid tickets. Set up your payouts first — it takes about 2 minutes with Stripe.'**
+  /// **'This event has paid tickets. Set up your payouts first.'**
   String get payoutsNeededPublishBody;
 
   /// No description provided for @payoutsSaveDraftAndSetUp.
@@ -4817,7 +4817,7 @@ abstract class AppLocalizations {
   /// No description provided for @payoutStateFailed.
   ///
   /// In en, this message translates to:
-  /// **'Stripe failure'**
+  /// **'Payout failed'**
   String get payoutStateFailed;
 
   /// No description provided for @payoutStateWaiting.

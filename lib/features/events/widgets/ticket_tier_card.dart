@@ -268,7 +268,7 @@ class _TicketTierCardState extends State<TicketTierCard> {
   /// « 22,05 $ » veut presque toujours « 22,50 $ » — et il doit voir du même
   /// coup ce que l'arrondi lui rapporte.
   Widget _breakdown(AppLocalizations l, String lang, double display) {
-    final stripe = Pricing.stripeFee(display);
+    final processing = Pricing.stripeFee(display);
     final platform =
         Pricing.platformFee(display, platformFeeBps: widget.platformFeeBps);
     final net =
@@ -298,17 +298,17 @@ class _TicketTierCardState extends State<TicketTierCard> {
               style: AppText.micro.copyWith(color: AppColors.error, height: 1.4),
             )
           else ...[
-            Text(
-              l.feeBreakdown(money(stripe), money(platform)),
-              style: AppText.micro.copyWith(height: 1.4),
-            ),
-            const SizedBox(height: 3),
             // « environ » n'est pas une précaution de style : une carte
             // étrangère coûte plus cher à Stripe, et le montant exact
             // n'existe qu'après la vente.
             Text(
               l.youReceiveApprox(money(net)),
               style: AppText.microBold.copyWith(color: AppColors.success),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              l.feeBreakdown(money(processing), money(platform)),
+              style: AppText.micro.copyWith(height: 1.4),
             ),
           ],
           const SizedBox(height: 8),

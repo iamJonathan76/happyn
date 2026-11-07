@@ -897,13 +897,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buyerPaysLabel => 'L\'ACHETEUR PAIE';
 
   @override
-  String feeBreakdown(String stripe, String platform) {
-    return 'Stripe $stripe · HAPPYN $platform';
+  String feeBreakdown(String processing, String platform) {
+    return 'Frais de paiement $processing · Commission HAPPYN $platform';
   }
 
   @override
   String youReceiveApprox(String amount) {
-    return 'Tu reçois environ $amount';
+    return 'Tu recevras environ $amount par billet';
   }
 
   @override
@@ -1234,7 +1234,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get quantity => 'Quantité';
 
   @override
-  String get total => 'Total';
+  String get total => 'Total à payer';
 
   @override
   String get checkout => 'Payer';
@@ -2129,14 +2129,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get payoutPendingBody =>
-      'Stripe examine tes informations. Ça prend généralement quelques minutes, parfois un jour ouvrable. Tu n\'as rien à faire — on t\'affichera ici quand ce sera bon.';
+      'Notre partenaire de paiement examine tes informations. Ça prend généralement quelques minutes, parfois un jour ouvrable. Tu n\'as rien à faire — on t\'affichera ici quand ce sera bon.';
 
   @override
   String get payoutBlocked => 'Ton compte est bloqué';
 
   @override
   String get payoutBlockedBody =>
-      'Stripe a besoin d\'une information ou d\'une pièce supplémentaire avant de pouvoir t\'envoyer de l\'argent. Tant que ce n\'est pas réglé, tes événements payants ne peuvent pas vendre.';
+      'Notre partenaire de paiement a besoin d\'une information ou d\'une pièce supplémentaire avant de pouvoir t\'envoyer de l\'argent. Tant que ce n\'est pas réglé, tes événements payants ne peuvent pas vendre.';
 
   @override
   String get payoutFixAccount => 'Régler le problème';
@@ -2153,7 +2153,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get payoutNotStartedBody =>
-      'Pour vendre des billets payants, il faut d\'abord indiquer où envoyer ton argent. Stripe, notre partenaire de paiement, te demandera ton identité et un compte bancaire. Ça prend environ 5 minutes.';
+      'Pour vendre des billets payants, il faut d\'abord indiquer où envoyer ton argent. Notre partenaire de paiement te demandera ton identité et un compte bancaire. Ça prend environ 5 minutes.';
 
   @override
   String get payoutResume => 'Reprendre où j\'en étais';
@@ -2487,11 +2487,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get payoutsNeededCreateBody =>
-      'Les billets payants sont mis en vente dès que ton compte de versement est actif — environ 2 minutes avec Stripe. Ton événement sera enregistré en brouillon ; publie-le dès que c\'est prêt.';
+      'Les billets payants sont mis en vente dès que ton compte de versement est actif. Ton événement sera enregistré en brouillon ; publie-le dès que c\'est prêt.';
 
   @override
   String get payoutsNeededPublishBody =>
-      'Cet événement a des billets payants. Configure d\'abord tes versements — environ 2 minutes avec Stripe.';
+      'Cet événement a des billets payants. Configure d\'abord tes versements.';
 
   @override
   String get payoutsSaveDraftAndSetUp =>
@@ -2720,7 +2720,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get payoutStateHeld => 'Retenu';
 
   @override
-  String get payoutStateFailed => 'Échec Stripe';
+  String get payoutStateFailed => 'Échec du versement';
 
   @override
   String get payoutStateWaiting => 'En attente';

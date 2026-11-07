@@ -894,13 +894,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buyerPaysLabel => 'BUYER PAYS';
 
   @override
-  String feeBreakdown(String stripe, String platform) {
-    return 'Stripe $stripe · HAPPYN $platform';
+  String feeBreakdown(String processing, String platform) {
+    return 'Payment processing $processing · HAPPYN commission $platform';
   }
 
   @override
   String youReceiveApprox(String amount) {
-    return 'You receive about $amount';
+    return 'You receive about $amount per ticket';
   }
 
   @override
@@ -1226,7 +1226,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quantity => 'Quantity';
 
   @override
-  String get total => 'Total';
+  String get total => 'Total to pay';
 
   @override
   String get checkout => 'Checkout';
@@ -2106,14 +2106,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payoutPendingBody =>
-      'Stripe is reviewing your information. This usually takes a few minutes, sometimes one business day. Nothing to do on your side — we\'ll show it here when it\'s done.';
+      'Our payment partner is reviewing your information. This usually takes a few minutes, sometimes one business day. Nothing to do on your side — we\'ll show it here when it\'s done.';
 
   @override
   String get payoutBlocked => 'Your account is on hold';
 
   @override
   String get payoutBlockedBody =>
-      'Stripe needs one more piece of information or a document before it can send you money. Until that\'s resolved, your paid events can\'t sell.';
+      'Our payment partner needs one more piece of information or a document before it can send you money. Until that\'s resolved, your paid events can\'t sell.';
 
   @override
   String get payoutFixAccount => 'Fix this';
@@ -2130,7 +2130,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payoutNotStartedBody =>
-      'To sell paid tickets, you first need to tell us where to send your money. Stripe, our payment partner, will ask for your identity and a bank account. It takes about 5 minutes.';
+      'To sell paid tickets, you first need to tell us where to send your money. Our payment partner will ask for your identity and a bank account. It takes about 5 minutes.';
 
   @override
   String get payoutResume => 'Pick up where I left off';
@@ -2459,11 +2459,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payoutsNeededCreateBody =>
-      'Paid tickets go on sale once your payout account is active — about 2 minutes with Stripe. Your event will be saved as a draft; publish it as soon as you\'re set up.';
+      'Paid tickets go on sale once your payout account is active. Your event will be saved as a draft; publish it as soon as you\'re set up.';
 
   @override
   String get payoutsNeededPublishBody =>
-      'This event has paid tickets. Set up your payouts first — it takes about 2 minutes with Stripe.';
+      'This event has paid tickets. Set up your payouts first.';
 
   @override
   String get payoutsSaveDraftAndSetUp => 'Save as draft and set up';
@@ -2690,7 +2690,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payoutStateHeld => 'Held';
 
   @override
-  String get payoutStateFailed => 'Stripe failure';
+  String get payoutStateFailed => 'Payout failed';
 
   @override
   String get payoutStateWaiting => 'Waiting';
