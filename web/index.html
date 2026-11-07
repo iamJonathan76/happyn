@@ -1,13 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="meta.title">HAPPYN — Discover events worth showing up for</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>HAPPYN — Find the ones. Be the moment.</title>
     <meta
       name="description"
-      data-i18n-attr="content:meta.description"
-      content="Discover events in Ottawa–Gatineau, book in seconds, walk in with a ticket nobody can copy, and relive the night with the people who were there."
+      content="Discover what's happening near you, get a ticket with a rotating QR code, and relive the night with the people who were there."
     />
     <meta name="theme-color" content="#08080f" />
 
@@ -21,514 +20,107 @@
     <link rel="icon" href="assets/img/happyn-mark.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/img/happyn.png" />
 
-    <!-- Aperçu au partage. Les adresses doivent être ABSOLUES : WhatsApp,
-         iMessage ou Facebook ne résolvent pas un chemin relatif, et l'aperçu
-         s'affichait sans image. Les robots des réseaux n'exécutent pas le
-         JavaScript : le texte reste en anglais, l'image porte les deux
-         langues. -->
+    <!-- Aperçu au partage. Adresses ABSOLUES : les robots sociaux ne résolvent
+         pas un chemin relatif et n'exécutent pas le JavaScript. -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://happynevents.com/" />
     <meta property="og:site_name" content="HAPPYN" />
-    <meta property="og:title" content="HAPPYN — Discover events worth showing up for" />
+    <meta property="og:title" content="HAPPYN — Find the ones. Be the moment." />
     <meta
       property="og:description"
-      content="Events in Ottawa–Gatineau. Book in seconds, walk in with a ticket nobody can copy, relive the night."
+      content="Discover what's on near you, get a ticket with a rotating QR code, and relive the night with the people who were there."
     />
     <meta property="og:image" content="https://happynevents.com/assets/img/og-card.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="HAPPYN — Discover events worth showing up for · Des événements qui valent le déplacement" />
+    <meta property="og:image:alt" content="HAPPYN — Find the ones. Be the moment." />
     <meta property="og:locale" content="en_CA" />
     <meta property="og:locale:alternate" content="fr_CA" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://happynevents.com/assets/img/og-card.png" />
 
-    <link rel="preload" href="assets/fonts/poppins-800.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="assets/css/landing.css" />
     <!-- Dans <head> et sans defer : voir l'en-tête de i18n.js. -->
     <script src="assets/js/i18n.js"></script>
   </head>
-  <body>
-    <a class="skip-link" href="#main" data-i18n="nav.skip">Skip to content</a>
-
-    <header class="site-header">
-      <div class="container header-row">
-        <a class="brand" href="/" data-i18n-attr="aria-label:nav.home">
-          <img src="assets/img/happyn-mark.svg" alt="" width="30" height="30" />
-          <span>HAPPYN</span>
-        </a>
-
-        <nav class="site-nav" aria-label="Primary">
-          <a href="#how" data-i18n="nav.how">How it works</a>
-          <a href="#app" data-i18n="nav.app">The app</a>
-          <a href="#organizers" data-i18n="nav.organizers">Organizers</a>
-          <a href="#contact" data-i18n="nav.contact">Contact</a>
-        </nav>
-
-        <div class="header-actions">
-          <div class="lang-switch" role="group" data-i18n-attr="aria-label:lang.label" aria-label="Language">
-            <button type="button" data-set-lang="fr" aria-pressed="false">FR</button>
-            <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
-          </div>
-          <a class="button-ghost header-cta" href="#notify" data-i18n="nav.cta">Get notified</a>
-        </div>
-      </div>
-    </header>
-
-    <main id="main">
-      <!-- ── Hero ────────────────────────────────────────────────────────── -->
-      <section class="hero">
-        <div class="container hero-grid">
-          <div class="hero-copy">
-            <p class="eyebrow" data-i18n="hero.eyebrow">Ottawa–Gatineau · Coming soon to iOS &amp; Android</p>
-            <h1>
-              <span class="h1-line" data-i18n="hero.title1">Discover events</span>
-              <span class="h1-line gradient-text" data-i18n="hero.title2">worth showing up for.</span>
-            </h1>
-            <p class="lead" data-i18n="hero.lead">
-              Find what's on around you, book in seconds, and walk straight in
-              with a ticket nobody can copy. Then relive the night with the
-              people who were there.
-            </p>
-
-            <!-- Liste d'attente. Netlify Forms : le formulaire doit exister
-                 tel quel dans le HTML publié pour être détecté au déploiement.
-                 Voir web/README.md § Liste d'attente. -->
-            <form
-              class="waitlist"
-              name="waitlist"
-              method="POST"
-              data-netlify="true"
-              netlify-honeypot="bot-field"
-              data-waitlist
-              novalidate
-            >
-              <input type="hidden" name="form-name" value="waitlist" />
-              <input type="hidden" name="source" value="hero" />
-              <input type="hidden" name="lang" value="en" data-waitlist-lang />
-              <input type="hidden" name="consent_text" value="" data-waitlist-consent-text />
-              <p class="visually-hidden">
-                <label>Leave this field empty <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
-              </p>
-
-              <div class="waitlist-row">
-                <label class="visually-hidden" for="email-hero" data-i18n="waitlist.email">Email address</label>
-                <input
-                  id="email-hero"
-                  type="email"
-                  name="email"
-                  autocomplete="email"
-                  inputmode="email"
-                  required
-                  data-i18n-attr="placeholder:waitlist.placeholder"
-                  placeholder="you@example.com"
-                />
-                <button type="submit" class="button-primary" data-i18n="waitlist.submit">Notify me</button>
-              </div>
-
-              <label class="consent">
-                <input type="checkbox" name="consent" value="yes" required />
-                <span data-i18n="waitlist.consent">
-                  I agree to receive emails from HAPPYN about its launch. I can
-                  unsubscribe at any time.
-                </span>
-              </label>
-              <a class="consent-link" href="legal.html?doc=privacy" data-i18n="waitlist.privacy">What we do with your email</a>
-
-              <p class="form-status" role="status" aria-live="polite" data-waitlist-status></p>
-            </form>
-
-            <div class="store-row" aria-hidden="true">
-              <span class="store-chip">
-                <svg viewBox="0 0 24 24"><path d="M17.05 12.54c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.7-3.18-1.72-1.35-.14-2.64.79-3.33.79-.69 0-1.75-.77-2.87-.75-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.74 2.2 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.71.71 2.87.69 1.19-.02 1.94-1.08 2.66-2.14.84-1.23 1.19-2.42 1.21-2.48-.03-.01-2.32-.89-2.34-3.51zM14.9 5.6c.61-.74 1.02-1.77.91-2.8-.88.04-1.94.59-2.57 1.32-.56.65-1.05 1.7-.92 2.7.98.08 1.98-.5 2.58-1.22z" /></svg>
-                <span><small data-i18n="store.soon">Coming soon on</small> App Store</span>
-              </span>
-              <span class="store-chip">
-                <svg viewBox="0 0 24 24"><path d="M3.6 2.2c-.26.28-.41.71-.41 1.27v17.06c0 .56.15.99.41 1.27l.06.06 9.56-9.56v-.23L3.66 2.5l-.06-.3zM17.2 15.6l-3.19-3.2v-.23l3.2-3.2.07.05 3.78 2.15c1.08.61 1.08 1.62 0 2.24l-3.78 2.15-.08.04zM16.8 16.1L13.5 12.8l-9.6 9.6c.36.38.94.42 1.6.05l11.3-6.35M16.8 7.9L5.5 1.55c-.66-.38-1.24-.33-1.6.05l9.6 9.6 3.3-3.3z" /></svg>
-                <span><small data-i18n="store.soon">Coming soon on</small> Google Play</span>
-              </span>
-            </div>
-          </div>
-
-          <!-- Le billet animé : la seule chose « spectaculaire » de la page.
-               C'est une ILLUSTRATION : le motif n'est pas un vrai QR code et
-               ne peut pas être scanné. -->
-          <figure class="hero-visual">
-            <div class="phone phone--hero" role="img" data-i18n-attr="aria-label:ticket.aria" aria-label="Illustration of a HAPPYN ticket whose QR code keeps changing on its own">
-              <div class="phone-screen ticket-screen">
-                <div class="status-bar" aria-hidden="true"><span>21:04</span><span class="status-dots"></span></div>
-                <p class="ticket-header" data-i18n="ticket.header">My ticket</p>
-
-                <div class="ticket-art">
-                  <span class="ticket-art-title">Rooftop Sessions</span>
-                  <span class="ticket-art-meta" data-i18n="ticket.meta">Sat · 9:00 PM · ByWard Market</span>
-                </div>
-
-                <div class="ticket-card">
-                  <div class="qr-frame">
-                    <canvas class="qr" width="200" height="200" data-qr></canvas>
-                  </div>
-                  <p class="ticket-valid"><span class="dot"></span><span data-i18n="ticket.valid">Valid · 1 entry</span></p>
-                  <p class="ticket-tier" data-i18n="ticket.tier">General admission</p>
-                  <div class="ticket-details">
-                    <span><small data-i18n="ticket.door">Doors</small><b data-i18n="ticket.doorTime">8:30 PM</b></span>
-                    <span><small data-i18n="ticket.number">Ticket</small><b>#HPN-4821</b></span>
-                  </div>
-                  <div class="ticket-renew" data-qr-countdown>
-                    <span data-i18n="ticket.renew">New code in</span>
-                    <strong data-qr-seconds>6</strong><span>s</span>
-                    <span class="renew-bar"><span data-qr-bar></span></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <figcaption>
-              <span data-i18n="ticket.caption">The code keeps changing and expires on its own — a screenshot gets you nowhere.</span>
-              <span class="demo-tag" data-i18n="ticket.demo">Demo sped up</span>
-            </figcaption>
-          </figure>
-        </div>
-      </section>
-
-      <!-- ── Parcours en trois temps ─────────────────────────────────────── -->
-      <!-- Numérotés parce que c'est une vraie séquence : on découvre, on y va,
-           on revit — dans cet ordre. -->
-      <section id="how" class="section">
-        <div class="container">
-          <header class="section-head">
-            <p class="kicker" data-i18n="journey.kicker">How it works</p>
-            <h2 data-i18n="journey.title">From “what’s on tonight?” to the photos the next day</h2>
-            <p data-i18n="journey.lead">Three moments, one app. You never have to leave it to go out.</p>
-          </header>
-
-          <ol class="journey">
-            <li class="step">
-              <span class="step-num">01</span>
-              <span class="step-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
-              </span>
-              <h3 data-i18n="step1.title">Discover</h3>
-              <p data-i18n="step1.body">What’s happening soon near you, sorted by date. Filter by category, save what you like, and see where your connections are going — when they choose to share it.</p>
-            </li>
-            <li class="step">
-              <span class="step-num">02</span>
-              <span class="step-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5V14a2 2 0 0 0 0-4z" /><path d="M14 6v12" stroke-dasharray="2 2.2" /></svg>
-              </span>
-              <h3 data-i18n="step2.title">Go</h3>
-              <p data-i18n="step2.body">Free or paid, book in a few taps. Payment goes through Stripe, so HAPPYN never sees your card. At the door, your QR code gets you in — once.</p>
-            </li>
-            <li class="step">
-              <span class="step-num">03</span>
-              <span class="step-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1.5-2h6l1.5 2h2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z" /><circle cx="12" cy="13" r="3.5" /></svg>
-              </span>
-              <h3 data-i18n="step3.title">Relive</h3>
-              <p data-i18n="step3.body">Share your moments from the event, see everyone else’s, and follow the people you met there.</p>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      <!-- ── Galerie de captures ─────────────────────────────────────────── -->
-      <!-- Déposer les captures dans assets/img/screens/ sous ces noms exacts :
-           rien d'autre à modifier. Tant qu'un fichier manque, l'emplacement
-           affiche un écran squelette (voir site.js). -->
-      <section id="app" class="section section--band">
-        <div class="container">
-          <header class="section-head section-head--split">
-            <div>
-              <p class="kicker" data-i18n="gallery.kicker">The app</p>
-              <h2 data-i18n="gallery.title">See it before you download it</h2>
-              <p data-i18n="gallery.lead">Swipe through the screens you’ll use most.</p>
-            </div>
-            <div class="gallery-controls">
-              <button type="button" class="round-button" data-gallery-prev data-i18n-attr="aria-label:gallery.prev" aria-label="Previous screen">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6" /></svg>
-              </button>
-              <button type="button" class="round-button" data-gallery-next data-i18n-attr="aria-label:gallery.next" aria-label="Next screen">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6" /></svg>
-              </button>
-            </div>
-          </header>
-        </div>
-
-        <div class="gallery" role="region" tabindex="0" data-gallery data-i18n-attr="aria-label:gallery.region" aria-label="App screenshots">
-          <ul class="gallery-track" data-gallery-track>
-            <li class="shot">
-              <div class="phone phone--shot">
-                <div class="phone-screen">
-                  <img src="assets/img/screens/home.png" alt="" loading="lazy" data-shot />
-                  <div class="shot-skeleton" aria-hidden="true"><span></span><span></span><span></span><span></span><em data-i18n="gallery.soon">Screenshot coming soon</em></div>
-                </div>
-              </div>
-              <p class="shot-caption" data-i18n="shot.home">Home — what’s happening soon</p>
-            </li>
-            <li class="shot">
-              <div class="phone phone--shot">
-                <div class="phone-screen">
-                  <img src="assets/img/screens/event.png" alt="" loading="lazy" data-shot />
-                  <div class="shot-skeleton" aria-hidden="true"><span></span><span></span><span></span><span></span><em data-i18n="gallery.soon">Screenshot coming soon</em></div>
-                </div>
-              </div>
-              <p class="shot-caption" data-i18n="shot.event">An event, and who’s going</p>
-            </li>
-            <li class="shot">
-              <div class="phone phone--shot">
-                <div class="phone-screen">
-                  <img src="assets/img/screens/ticket.png" alt="" loading="lazy" data-shot />
-                  <div class="shot-skeleton" aria-hidden="true"><span></span><span></span><span></span><span></span><em data-i18n="gallery.soon">Screenshot coming soon</em></div>
-                </div>
-              </div>
-              <p class="shot-caption" data-i18n="shot.ticket">Your ticket at the door</p>
-            </li>
-            <li class="shot">
-              <div class="phone phone--shot">
-                <div class="phone-screen">
-                  <img src="assets/img/screens/moments.png" alt="" loading="lazy" data-shot />
-                  <div class="shot-skeleton" aria-hidden="true"><span></span><span></span><span></span><span></span><em data-i18n="gallery.soon">Screenshot coming soon</em></div>
-                </div>
-              </div>
-              <p class="shot-caption" data-i18n="shot.moments">Moments from the night</p>
-            </li>
-            <li class="shot">
-              <div class="phone phone--shot">
-                <div class="phone-screen">
-                  <img src="assets/img/screens/people.png" alt="" loading="lazy" data-shot />
-                  <div class="shot-skeleton" aria-hidden="true"><span></span><span></span><span></span><span></span><em data-i18n="gallery.soon">Screenshot coming soon</em></div>
-                </div>
-              </div>
-              <p class="shot-caption" data-i18n="shot.people">Find people you know</p>
-            </li>
-            <li class="shot">
-              <div class="phone phone--shot">
-                <div class="phone-screen">
-                  <img src="assets/img/screens/dashboard.png" alt="" loading="lazy" data-shot />
-                  <div class="shot-skeleton" aria-hidden="true"><span></span><span></span><span></span><span></span><em data-i18n="gallery.soon">Screenshot coming soon</em></div>
-                </div>
-              </div>
-              <p class="shot-caption" data-i18n="shot.dashboard">The organizer dashboard</p>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <!-- ── Confiance ───────────────────────────────────────────────────── -->
-      <section class="section">
-        <div class="container">
-          <header class="section-head">
-            <p class="kicker" data-i18n="trust.kicker">Built to be trusted</p>
-            <h2 data-i18n="trust.title">The details we didn’t cut corners on</h2>
-          </header>
-
-          <div class="trust-grid">
-            <article class="trust-card">
-              <span class="line-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2" /></svg>
-              </span>
-              <h3 data-i18n="trust1.title">A ticket that can’t be copied</h3>
-              <p data-i18n="trust1.body">Every QR code is signed, expires on its own, and is accepted at the door exactly once.</p>
-            </article>
-            <article class="trust-card">
-              <span class="line-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 10.5h18M7 15h4" /></svg>
-              </span>
-              <h3 data-i18n="trust2.title">Your card stays with Stripe</h3>
-              <p data-i18n="trust2.body">Payments are handled by Stripe. HAPPYN never stores your card number — it never even sees it.</p>
-            </article>
-            <article class="trust-card">
-              <span class="line-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" /><rect x="9.5" y="8.5" width="5" height="4" rx="0.8" /><path d="M10.5 8.5V7.4a1.5 1.5 0 0 1 3 0v1.1" /></svg>
-              </span>
-              <h3 data-i18n="trust3.title">Private addresses stay private</h3>
-              <p data-i18n="trust3.body">For a private event, the exact address is only revealed to people holding a ticket. Everyone else sees the city.</p>
-            </article>
-            <article class="trust-card">
-              <span class="line-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="3" /><path d="M4 20L20 4" /></svg>
-              </span>
-              <h3 data-i18n="trust4.title">You decide who sees you going</h3>
-              <p data-i18n="trust4.body">Your attendance is hidden by default. Only people you follow and who follow you back can see it — and only if you choose to show it.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- ── Organisateurs ───────────────────────────────────────────────── -->
-      <section id="organizers" class="section section--band">
-        <div class="container org-grid">
-          <div>
-            <header class="section-head">
-              <p class="kicker" data-i18n="org.kicker">For organizers</p>
-              <h2 data-i18n="org.title">Run your event from your phone</h2>
-              <p data-i18n="org.lead">Create it in minutes, then follow your sales and your door from a single screen.</p>
-            </header>
-
-            <ul class="org-list">
-              <li>
-                <span class="line-icon line-icon--sm" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l3.5-4 3 2.5L19 8" /></svg></span>
-                <div><h3 data-i18n="org1.title">Sales at a glance</h3><p data-i18n="org1.body">Gross sales, tickets sold per tier, seats left.</p></div>
-              </li>
-              <li>
-                <span class="line-icon line-icon--sm" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5" /><path d="M2.5 19.5c.8-3.3 3.4-5 6.5-5s5.7 1.7 6.5 5M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.8c1.9.6 3.1 2.2 3.5 4.7" /></svg></span>
-                <div><h3 data-i18n="org2.title">Your guest list</h3><p data-i18n="org2.body">Who’s coming and who’s already in. Names only — never their email.</p></div>
-              </li>
-              <li>
-                <span class="line-icon line-icon--sm" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M4 12h16" /></svg></span>
-                <div><h3 data-i18n="org3.title">Scan at the door</h3><p data-i18n="org3.body">The built-in scanner admits each ticket exactly once.</p></div>
-              </li>
-              <li>
-                <span class="line-icon line-icon--sm" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg></span>
-                <div><h3 data-i18n="org4.title">Stay in control</h3><p data-i18n="org4.body">Publish, unpublish or cancel whenever you need to. Cancelling notifies everyone who bought a ticket.</p></div>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Le tableau de bord de l'app, recomposé en HTML. Chiffres fictifs,
-               et marqué comme tel : ce ne sont pas des résultats réels. -->
-          <div class="dash" aria-hidden="true">
-            <span class="dash-example" data-i18n="dash.example">Example</span>
-            <div class="dash-banner">
-              <span class="state-pill" data-i18n="dash.state">Published</span>
-              <strong data-i18n="dash.event">Rooftop Sessions</strong>
-              <span data-i18n="dash.date">Saturday · 9:00 PM</span>
-            </div>
-            <div class="dash-body">
-              <div class="dash-panel">
-                <span class="dash-label" data-i18n="dash.gross">Gross sales</span>
-                <span class="dash-amount" data-i18n="dash.amount">$1,240</span>
-                <span class="gauge"><span class="gauge-fill gauge-fill--62"></span></span>
-                <span class="dash-sub" data-i18n="dash.sold">62 of 100 tickets</span>
-              </div>
-              <div class="dash-mini-row">
-                <div class="dash-panel dash-panel--mini">
-                  <span class="dash-label" data-i18n="dash.checkedIn">Checked in</span>
-                  <span class="dash-mini dash-mini--ok">18</span>
-                </div>
-                <div class="dash-panel dash-panel--mini">
-                  <span class="dash-label" data-i18n="dash.left">Seats left</span>
-                  <span class="dash-mini">38</span>
-                </div>
-              </div>
-              <div class="dash-panel dash-tier">
-                <span><strong data-i18n="dash.tier1">Early bird</strong><em data-i18n="dash.price1">$15</em></span>
-                <span class="dash-tier-count" data-i18n="dash.tier1Sold">40 of 40</span>
-                <span class="gauge gauge--thin"><span class="gauge-fill gauge-fill--100"></span></span>
-              </div>
-              <div class="dash-panel dash-tier">
-                <span><strong data-i18n="dash.tier2">General</strong><em data-i18n="dash.price2">$29</em></span>
-                <span class="dash-tier-count" data-i18n="dash.tier2Sold">22 of 60</span>
-                <span class="gauge gauge--thin"><span class="gauge-fill gauge-fill--37"></span></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ── Appel final ─────────────────────────────────────────────────── -->
-      <section id="notify" class="section">
-        <div class="container">
-          <div class="cta-card">
-            <h2 data-i18n="cta.title">Be there on day one</h2>
-            <p data-i18n="cta.body">HAPPYN is launching in Ottawa–Gatineau. Leave your email and we’ll let you know the moment it’s out.</p>
-
-            <form
-              class="waitlist waitlist--center"
-              name="waitlist"
-              method="POST"
-              data-netlify="true"
-              netlify-honeypot="bot-field"
-              data-waitlist
-              novalidate
-            >
-              <input type="hidden" name="form-name" value="waitlist" />
-              <input type="hidden" name="source" value="footer" />
-              <input type="hidden" name="lang" value="en" data-waitlist-lang />
-              <input type="hidden" name="consent_text" value="" data-waitlist-consent-text />
-              <p class="visually-hidden">
-                <label>Leave this field empty <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
-              </p>
-
-              <div class="waitlist-row">
-                <label class="visually-hidden" for="email-cta" data-i18n="waitlist.email">Email address</label>
-                <input
-                  id="email-cta"
-                  type="email"
-                  name="email"
-                  autocomplete="email"
-                  inputmode="email"
-                  required
-                  data-i18n-attr="placeholder:waitlist.placeholder"
-                  placeholder="you@example.com"
-                />
-                <button type="submit" class="button-primary" data-i18n="waitlist.submit">Notify me</button>
-              </div>
-
-              <label class="consent">
-                <input type="checkbox" name="consent" value="yes" required />
-                <span data-i18n="waitlist.consent">
-                  I agree to receive emails from HAPPYN about its launch. I can
-                  unsubscribe at any time.
-                </span>
-              </label>
-              <a class="consent-link" href="legal.html?doc=privacy" data-i18n="waitlist.privacy">What we do with your email</a>
-
-              <p class="form-status" role="status" aria-live="polite" data-waitlist-status></p>
-            </form>
-          </div>
-
-          <div id="contact" class="contact-line">
-            <div>
-              <h3 data-i18n="contact.title">Questions, press or partnerships?</h3>
-              <p data-i18n="contact.body">You organize events and want to launch your next one on HAPPYN? We read everything.</p>
-            </div>
-            <a class="button-ghost" href="#" data-support-link data-i18n="contact.button">Write to us</a>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="container">
-        <div class="footer-grid">
-          <div class="footer-about">
-            <a class="brand" href="/">
-              <img src="assets/img/happyn-mark.svg" alt="" width="30" height="30" />
-              <span>HAPPYN</span>
-            </a>
-            <p data-i18n="footer.about">Discover, book and relive the events happening around you.</p>
-          </div>
-
-          <div>
-            <h4 data-i18n="footer.legal">Legal</h4>
-            <!-- Rempli depuis Supabase par legal.js ; ces deux liens restent en
-                 dur pour que la politique de confidentialité soit toujours
-                 atteignable, même si le script échoue. -->
-            <ul data-legal-links>
-              <li><a href="legal.html?doc=privacy" data-i18n="footer.privacy">Privacy Policy</a></li>
-              <li><a href="legal.html?doc=terms" data-i18n="footer.terms">Terms of Service</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 data-i18n="footer.contact">Contact</h4>
-            <ul>
-              <li><a href="#" data-support-link data-i18n="footer.support">Support</a></li>
-              <li><a href="legal.html" data-i18n="footer.allPolicies">All policies</a></li>
-              <li><a href="delete-account.html" data-i18n="footer.deleteAccount">Delete your account</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="footer-bottom">
-          <span>© <span data-current-year>2026</span> HAPPYN. <span data-i18n="footer.rights">All rights reserved.</span></span>
-          <span data-i18n="footer.made">Made in Ottawa, for people who go out.</span>
-        </div>
-      </div>
-    </footer>
-
-    <script src="assets/js/config.js"></script>
-    <script src="assets/js/legal.js"></script>
-    <script src="assets/js/site.js"></script>
-  </body>
+<body>
+<a class="skip-link" href="#home" data-fr="Aller au contenu">Skip to content</a>
+<header><div class="wrap nav">
+<a class="brand" href="#home"><span class="logo" aria-hidden="true">H</span>HAPPYN</a>
+<nav aria-label="Main"><a href="#app" data-fr="L’app">The app</a><a href="#discover" data-fr="Comment ça marche">How it works</a><a href="#ticket" data-fr="Le billet">The ticket</a><a href="#organizers" data-fr="Organisateurs">Organizers</a></nav>
+<div class="actions">
+<details class="help-menu" id="help-menu">
+  <summary data-fr="Aide">Help</summary>
+  <nav aria-label="Help">
+    <a href="#guide" data-fr="Créer un événement">Create an event</a>
+    <a href="#faq">FAQ</a>
+    <a href="legal.html" data-legal data-fr="Toutes les politiques">All policies</a>
+  </nav>
+</details><button class="lang" id="language" aria-label="Afficher en français">EN ⌄</button><a class="primary" href="#launch" data-fr="Bientôt">Coming soon</a></div>
+</div></header>
+<main id="home">
+<section class="wrap hero" aria-labelledby="headline">
+<div class="hero-copy"><h1 id="headline">Find the ones.<span>Be the moment.</span></h1>
+<p data-fr="Découvre les événements près de toi, prends ton billet et revis la soirée avec les gens qui y étaient.">Discover what’s happening near you, grab a secure ticket, and relive the night with the people who were there.</p>
+<div class="buttons"><a class="primary" href="#launch" data-fr="Suivre le lancement">Get launch updates</a><a class="text-link" href="#app" data-fr="Voir l’app →">See the app →</a></div>
+<p class="meta" data-fr="Gratuit · iPhone et Android · paiements via Stripe">Free · iPhone and Android · payments by Stripe</p>
+</div>
+<div class="showcase" id="app" aria-label="HAPPYN app screenshots">
+<div class="hero-art" id="original"><svg class="art" viewBox="535 49 489 440" role="img" aria-label="HAPPYN Home on a 3D iPhone, in front of a concert crowd"><image href="assets/img/landing-artwork.jpg" width="1024" height="1536"/></svg></div>
+<div class="phone-alt" id="alternate" hidden><img id="slide-image" alt=""></div>
+<div class="carousel"><button class="arrow" id="prev" aria-label="Previous screenshot">‹</button><span class="slide-name" id="slide-name" aria-live="polite">Home</span><button class="arrow" id="next" aria-label="Next screenshot">›</button></div>
+</div></section>
+<div class="wrap pillars">
+<a href="#discover"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg><strong data-fr="Découvrir">Discover</strong><small data-fr="Des événements près de toi">Find events near you</small></a>
+<a href="#ticket"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4zM15 6v12" /></svg><strong data-fr="Réserver">Book</strong><small data-fr="Tes billets dans l’app">Get tickets in the app</small></a>
+<a href="#app" id="connect"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v3m2-17a3 3 0 0 1 0 6m1 3a5 5 0 0 1 3 5v3"/></svg><strong data-fr="Se retrouver">Connect</strong><small data-fr="Partage et suis tes rencontres">Share moments and follow people</small></a>
+<a href="#organizers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7h3v7zm7 0V4h3v17zm7 0V9h3v12z"/></svg><strong data-fr="Organiser">Organize</strong><small data-fr="Gère tes événements">Run your own events</small></a>
+</div>
+<section class="wrap feature discover" id="discover"><div class="feature-copy">
+<span class="number" data-fr="01 / Découvrir">01 / Discover</span><h2 data-fr="Quoi faire près de toi ?">What’s on near you.</h2>
+<p data-fr="Explore par catégorie, trouve les sorties de ce soir et accède aux événements privés avec un code.">Explore by category, find what’s on tonight, and join private events with a code.</p>
+<div class="chips"><button class="chip primary" data-slide="1" data-fr="Voir les événements">Browse events</button><span class="chip" data-fr="Ce soir">Tonight</span><span class="chip" data-fr="Gratuit">Free</span></div>
+</div><svg class="art" viewBox="535 601 435 245" role="img" aria-label="HAPPYN Discover on a 3D iPhone"><image href="assets/img/landing-artwork.jpg" width="1024" height="1536"/></svg></section>
+<section class="wrap feature ticket" id="ticket"><svg class="art" viewBox="127 833 315 303" role="img" aria-label="HAPPYN ticket on a 3D iPhone with a demonstration code"><image href="assets/img/landing-artwork.jpg" width="1024" height="1536"/></svg><div class="feature-copy">
+<span class="number" data-fr="02 / Le billet">02 / The ticket</span><h2 data-fr="Ton billet, prêt quand tu l’es.">Your ticket. Ready when you are.</h2>
+<p data-fr="Le code QR signé se renouvelle automatiquement. Le billet est validé une seule fois à l’entrée.">Your signed QR refreshes automatically. Each ticket can be validated once at the door.</p>
+<ul class="details"><li><strong data-fr="QR renouvelé">Rotating QR</strong><span data-fr="Ton billet reste dans l’app.">Keep your ticket in the app.</span></li><li><strong data-fr="Paiements via Stripe">Stripe payments</strong><span data-fr="Stripe gère le paiement des billets payants.">Stripe handles payments for paid tickets.</span></li><li><strong data-fr="Événements privés">Private events</strong><span data-fr="Adresse exacte réservée aux détenteurs de billets et à l’organisateur.">Exact address for ticket holders and the organizer.</span></li></ul>
+</div></section>
+<section class="wrap feature organize" id="organizers"><div class="feature-copy">
+<span class="number" data-fr="03 / Organisateurs">03 / Organizers</span><h2 data-fr="Gère ton événement depuis ton téléphone.">Run your event from your phone.</h2><p data-fr="Crée un événement, vends des billets et retrouve tes ventes au même endroit.">Create an event, sell tickets, and track your sales from one place.</p><button class="primary" data-slide="3" data-fr="Voir l’écran →">See the screen →</button> <a class="text-link" href="#guide" data-fr="Lire le guide">Read the guide</a>
+</div><svg class="art" viewBox="396 1128 269 243" role="img" aria-label="HAPPYN Create Event on a 3D iPhone"><image href="assets/img/landing-artwork.jpg" width="1024" height="1536"/></svg>
+<ul class="details"><li><span class="detail-icon" aria-hidden="true">▥</span><strong data-fr="Suis tes ventes">Track sales</strong><span data-fr="Billets vendus et places restantes.">Tickets sold and seats remaining.</span></li><li><span class="detail-icon" aria-hidden="true">▦</span><strong data-fr="Scanne à l’entrée">Scan at the door</strong><span data-fr="Valide les billets avec l’app.">Validate tickets in the app.</span></li><li><span class="detail-icon" aria-hidden="true">◎</span><strong data-fr="Suis les entrées">Manage attendance</strong><span data-fr="Consulte les participants et les entrées.">See who’s coming and who’s checked in.</span></li></ul>
+</section>
+<section class="wrap help" id="faq" aria-labelledby="faq-title">
+  <h2 id="faq-title" data-fr="FAQ">FAQ</h2>
+  <details id="guide"><summary data-fr="Comment créer mon premier événement ?">How do I create my first event?</summary>
+  <ol>
+    <li data-fr="Dans l’app, touche +, puis Événement. Ajoute un titre, une catégorie, le lieu et les dates.">In the app, tap +, then Event. Add a title, category, venue and dates.</li>
+    <li data-fr="Configure tes billets gratuits ou payants et le nombre de places. Pour vendre des billets, configure d’abord tes versements avec Stripe.">Set up free or paid tickets and choose how many spots to offer. Set up Stripe payouts before selling paid tickets.</li>
+    <li data-fr="Choisis un événement public ou privé. Vérifie la fiche, publie-la et partage le code si l’événement est privé.">Choose public or private. Review the listing, publish it, and share the code if the event is private.</li>
+    <li data-fr="Retrouve tes ventes dans la gestion de l’événement. Le jour J, ouvre le scanner intégré pour valider les billets.">Track sales from your event’s management screen. On the day, use the built-in scanner to check tickets.</li>
+  </ol>
+  </details>
+  <details><summary data-fr="Où retrouver mon billet ?">Where is my ticket?</summary><p data-fr="Ouvre l’onglet Billets dans l’app et sélectionne ton événement. Présente le QR depuis l’app à l’entrée.">Open Tickets in the app and select your event. Show the QR from the app at the door.</p></details>
+  <details><summary data-fr="Comment rejoindre un événement privé ?">How do I join a private event?</summary><p data-fr="Dans Découvrir, touche « Un code ? » et saisis le code reçu de l’organisateur.">In Discover, tap “Have a code?” and enter the code from the organizer.</p></details>
+  <details><summary data-fr="Puis-je organiser un événement gratuit ?">Can I host a free event?</summary><p data-fr="Oui. Choisis un tarif de 0 $ en configurant tes billets dans l’app.">Yes. Set your ticket price to $0 when configuring tickets in the app.</p></details>
+  <details><summary data-fr="Où lire les politiques HAPPYN ?">Where can I read HAPPYN’s policies?</summary><p><a href="legal.html" data-legal data-fr="Consulter toutes les politiques HAPPYN">View all HAPPYN policies</a></p></details>
+</section>
+<section class="launch" id="launch"><svg class="art" viewBox="38 1371 300 102" role="img" aria-label="Concert crowd under violet lights"><image href="assets/img/landing-artwork.jpg" width="1024" height="1536"/></svg><div><h2 data-fr="Le prochain moment est à toi.">The next moment is yours.</h2><p data-fr="HAPPYN arrive sur iPhone et Android.">HAPPYN is coming to iPhone and Android.</p></div><div class="store-buttons"><button class="store" data-updates><small data-fr="Bientôt sur">Coming soon on</small><strong>App Store</strong></button><button class="store" data-updates><small data-fr="Bientôt sur">Coming soon on</small><strong>Google Play</strong></button></div></section>
+</main>
+<footer class="wrap"><a class="brand" href="#home"><span class="logo" aria-hidden="true">H</span>HAPPYN</a><nav aria-label="Legal and contact"><a href="legal.html?doc=terms" data-legal data-fr="Conditions">Terms</a><a href="legal.html?doc=privacy" data-legal data-fr="Confidentialité">Privacy</a><a href="legal.html" data-legal data-fr="Toutes les politiques">All policies</a><a href="delete-account.html" data-legal data-fr="Supprimer mon compte">Delete account</a><a href="mailto:contact@happynevents.com">Contact</a></nav></footer>
+<dialog id="launch-dialog" aria-labelledby="launch-title"><h2 id="launch-title" data-fr="Suivre le lancement">Follow the launch</h2><p data-fr="Pour en savoir plus sur le lancement iPhone et Android, écris à l’équipe HAPPYN.">Email the HAPPYN team for updates about the iPhone and Android launch.</p><a class="primary" href="mailto:contact@happynevents.com?subject=HAPPYN%20launch" data-fr="Écrire à HAPPYN">Email HAPPYN</a><form class="waitlist" name="waitlist" method="POST" action="/" data-netlify="true" data-waitlist>
+  <input type="hidden" name="form-name" value="waitlist">
+  <input type="hidden" name="lang" data-waitlist-lang>
+  <input type="hidden" name="consent_text" data-waitlist-consent-text>
+  <label for="launch-email" data-i18n="waitlist.email">Email address</label>
+  <input id="launch-email" type="email" name="email" autocomplete="email" required>
+  <label><input type="checkbox" name="consent" value="yes" required> <span data-i18n="waitlist.consent">I agree to receive launch emails from HAPPYN.</span></label>
+  <a href="legal.html?doc=privacy" data-legal data-i18n="waitlist.privacy">What we do with your email</a>
+  <button class="primary" type="submit" data-i18n="waitlist.submit">Notify me</button>
+  <p role="status" data-waitlist-status></p>
+</form><form method="dialog"><button class="chip" data-fr="Fermer">Close</button></form></dialog>
+<script src="assets/js/landing.js" defer></script>
+<script src="assets/js/site.js" defer></script>
+</body>
 </html>

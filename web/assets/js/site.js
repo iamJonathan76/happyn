@@ -302,8 +302,36 @@
     });
   }
 
+  // Apparition douce des sections à l'entrée dans le viewport. Gated par la
+  // classe `.js` (ajoutée ci-dessous) : sans JavaScript, le contenu reste visible.
+  function initReveal() {
+    const items = document.querySelectorAll('.reveal');
+    if (!items.length) return;
+    if (!('IntersectionObserver' in window) ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      items.forEach((el) => el.classList.add('in'));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.14 });
+    items.forEach((el) => io.observe(el));
+  }
+
+  // Fine ligne sous la barre quand on a défilé : repère discret, pas de chrome.
+  function initNav() {
+    const nav = document.querySelector('[data-nav]');
+    if (!nav) return;
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
   function init() {
-    [initTicket, initShots, initGallery, initWaitlists].forEach((fn) => {
+    document.documentElement.classList.add('js');
+    [initTicket, initShots, initGallery, initWaitlists, initReveal, initNav].forEach((fn) => {
       try {
         fn();
       } catch (error) {
