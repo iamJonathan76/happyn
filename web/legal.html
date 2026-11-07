@@ -13,23 +13,24 @@
     <link rel="icon" href="assets/img/happyn-mark.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/img/happyn.png" />
     <link rel="stylesheet" href="assets/css/styles.css" />
-    <script src="assets/js/i18n.js"></script>
+    <link rel="stylesheet" href="assets/css/legal.css?v=policies-2" />
+    <script src="assets/js/i18n.js?v=policies-2"></script>
   </head>
-  <body>
+  <body class="policy-page">
     <a class="skip-link" href="#main" data-i18n="nav.skip">Skip to content</a>
 
     <header class="site-header">
       <div class="container header-row">
         <a class="brand" href="/" data-i18n-attr="aria-label:nav.home">
-          <img src="assets/img/happyn-mark.svg" alt="" width="30" height="30" />
+          <img src="assets/img/happyn-brand-logo.png" alt="" width="36" height="36" />
           <span>HAPPYN</span>
         </a>
 
         <nav class="site-nav" aria-label="Primary">
-          <a href="index.html#how" data-i18n="nav.how">How it works</a>
+          <a href="index.html#discover" data-i18n="nav.how">How it works</a>
           <a href="index.html#app" data-i18n="nav.app">The app</a>
           <a href="index.html#organizers" data-i18n="nav.organizers">Organizers</a>
-          <a href="index.html#contact" data-i18n="nav.contact">Contact</a>
+          <a href="mailto:contact@happynevents.com" data-i18n="nav.contact">Contact</a>
         </nav>
 
         <div class="header-actions">
@@ -43,12 +44,12 @@
 
     <main id="main" class="container">
       <div class="legal-layout">
-        <aside class="legal-sidebar">
-          <h4 data-i18n="legal.policies">Policies</h4>
+        <nav class="legal-sidebar" hidden aria-labelledby="policy-navigation">
+          <h4 id="policy-navigation" data-i18n="legal.policies">Policies</h4>
           <ul data-legal-nav>
             <li><span class="state-message" data-i18n="legal.loading">Loading…</span></li>
           </ul>
-        </aside>
+        </nav>
 
         <article class="legal-content" data-legal-content>
           <p class="state-message" data-i18n="legal.loading">Loading…</p>
@@ -66,6 +67,6 @@
     </footer>
 
     <script src="assets/js/config.js"></script>
-    <script src="assets/js/legal.js"></script>
+    <script src="assets/js/legal.js?v=policies-2"></script>
   </body>
 </html>

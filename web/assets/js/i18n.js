@@ -179,7 +179,7 @@
         "HAPPYN's Terms of Service, Privacy Policy, Community Guidelines and other policies.",
       'legal.policies': 'Policies',
       'legal.loading': 'Loading…',
-      'legal.indexTitle': 'Legal',
+      'legal.indexTitle': 'All policies',
       'legal.indexLead':
         'The policies that govern the use of HAPPYN, for attendees and organizers alike.',
       'legal.effective': 'Effective {date}',
@@ -453,7 +453,7 @@
         "Conditions d'utilisation, politique de confidentialité, règles de la communauté et autres politiques de HAPPYN.",
       'legal.policies': 'Politiques',
       'legal.loading': 'Chargement…',
-      'legal.indexTitle': 'Légal',
+      'legal.indexTitle': 'Toutes les politiques',
       'legal.indexLead':
         "Les politiques qui encadrent l'utilisation de HAPPYN, pour les participants comme pour les organisateurs.",
       'legal.effective': 'En vigueur le {date}',
