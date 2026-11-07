@@ -82,11 +82,8 @@ dialog p{margin:12px 0}
 dialog form{display:flex;justify-content:flex-end;margin-top:14px}
 @media(max-width:760px){
   .nav nav{display:none}
-  .hero{grid-template-columns:1fr;gap:0}
-  .hero-copy{padding:28px 0 12px}
-  .hero-art{width:min(100%,489px);margin:0 auto}
-  .showcase{min-height:300px;padding-bottom:36px}
-  .carousel{bottom:0}
+  .hero{grid-template-columns:minmax(0,1fr);gap:16px;min-height:0}
+  .hero-copy{padding:28px 0 0}
   .pillars{padding-top:22px}
   .organize{grid-template-columns:1fr .9fr}
   .organize .details{grid-column:1/-1;grid-template-columns:repeat(3,1fr);padding-bottom:16px}
@@ -181,14 +178,6 @@ dialog form.waitlist { display: grid; gap: 10px; }
   color: var(--muted);
   font-size: 10px;
 }
-@media(max-width:760px) {
-  .showcase {
-    min-height: 280px;
-  }
-  .hero-art {
-    width: 100%;
-  }
-}
 
 .ticket-preview,
 .phone-alt {
@@ -245,4 +234,24 @@ dialog form.waitlist { display: grid; gap: 10px; }
 .hero-art,
 .phone-alt {
   margin-bottom: 70px;
+}
+
+
+/* Le visuel et ses commandes restent sous le texte, même sur un écran étroit. */
+@media(max-width:760px) {
+  header { background: var(--bg); }
+  .showcase {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(100%, 489px);
+    min-height: 0;
+    margin-inline: auto;
+    gap: 10px;
+  }
+  .hero-art,
+  .phone-alt {
+    min-width: 0;
+    margin: 0;
+  }
+  .phone-alt { display: block; }
+  .carousel-footer { position: static; }
 }
