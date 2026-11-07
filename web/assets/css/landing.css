@@ -15,7 +15,7 @@ p{color:var(--muted)}
 header{position:sticky;top:0;z-index:4;background:#0b0a13f5}
 .nav{height:55px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .brand{display:inline-flex;align-items:center;gap:10px;font-size:18px;font-weight:800}
-.logo{display:grid;place-items:center;width:25px;height:25px;background:var(--violet);border-radius:7px}
+.logo { display: block; width: 36px; height: 36px; flex: 0 0 36px; object-fit: contain; border-radius: 8px; }
 nav,.actions,.buttons{display:flex;align-items:center;gap:24px}
 .nav nav{font-size:12px}
 .actions{gap:10px}
@@ -131,3 +131,118 @@ dialog form.waitlist { display: grid; gap: 10px; }
 @media(max-width:760px) { .nav .help-menu nav { display: grid; } }
 @media(max-width:380px) { .nav { gap: 5px; } .actions { gap: 6px; } .actions .primary { padding: 8px 10px; font-size: 12px; } }
 
+
+/* La serie validee conserve tout son cadre, sans agrandir les pixels ni rogner les appareils. */
+.hero-art {
+  width: 100%;
+  margin: 0 auto 40px;
+  mask-image: none;
+}
+.hero-art img,
+.phone-alt img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0;
+}
+.showcase {
+  display: grid;
+  align-content: center;
+  min-height: 350px;
+}
+.phone-alt {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  margin: 0 auto 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+.feature-visual {
+  min-width: 0;
+  margin: 0;
+  align-self: center;
+}
+.feature-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0;
+}
+.feature-visual figcaption {
+  padding: 5px 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+@media(max-width:760px) {
+  .showcase {
+    min-height: 280px;
+  }
+  .hero-art {
+    width: 100%;
+  }
+}
+
+.ticket-preview,
+.phone-alt {
+  position: relative;
+}
+.qr-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.demo-qr {
+  display: block;
+  width: 204px;
+  height: 204px;
+  background: #fff;
+}
+.qr-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.qr-progress {
+  width: 65px;
+  height: 4px;
+  accent-color: var(--lav);
+}
+.qr-pause {
+  padding: 5px 9px;
+}
+
+.carousel-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.carousel-footer .carousel {
+  position: static;
+  transform: none;
+}
+.carousel-footer .qr-controls {
+  justify-content: center;
+  margin-top: 0;
+}
+.hero-art,
+.phone-alt {
+  margin-bottom: 70px;
+}
