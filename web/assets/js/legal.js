@@ -171,6 +171,26 @@
     container.appendChild(notice);
   }
 
+  function renderWaitlistPrivacy(container) {
+    const section = document.createElement('section');
+    section.className = 'legal-section';
+    const title = document.createElement('h2');
+    title.textContent = t('legal.waitlistTitle');
+    section.appendChild(title);
+
+    for (const key of ['legal.waitlistUse', 'legal.waitlistRetention', 'legal.waitlistRemoval']) {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = t(key);
+      section.appendChild(paragraph);
+    }
+
+    const contact = document.createElement('a');
+    contact.href = `mailto:${HAPPYN.supportEmail}?subject=${encodeURIComponent(t('legal.waitlistSubject'))}`;
+    contact.textContent = HAPPYN.supportEmail;
+    section.appendChild(contact);
+    container.appendChild(section);
+  }
+
   function renderDocument(container, doc) {
     document.title = `${doc.title} — HAPPYN`;
     container.replaceChildren();
@@ -202,6 +222,7 @@
     container.appendChild(policies);
 
     renderNotice(container, doc.translated === true);
+    if (doc.slug === 'privacy') renderWaitlistPrivacy(container);
     renderContent(container, doc.content);
   }
 

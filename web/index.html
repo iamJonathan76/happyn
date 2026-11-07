@@ -10,12 +10,8 @@
     />
     <meta name="theme-color" content="#08080f" />
 
-    <!-- Une seule adresse, deux langues : ?lang= choisit. Les moteurs de
-         recherche exécutent le JavaScript et indexent les deux versions. -->
+    <!-- Le sélecteur de langue change l’affichage de la même page. -->
     <link rel="canonical" href="https://happynevents.com/" />
-    <link rel="alternate" hreflang="en" href="https://happynevents.com/?lang=en" />
-    <link rel="alternate" hreflang="fr" href="https://happynevents.com/?lang=fr" />
-    <link rel="alternate" hreflang="x-default" href="https://happynevents.com/" />
 
     <link rel="icon" href="assets/img/happyn-mark.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/img/happyn.png" />
@@ -39,9 +35,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://happynevents.com/assets/img/share-happyn.png" />
 
-    <link rel="stylesheet" href="assets/css/landing.css" />
+    <link rel="stylesheet" href="assets/css/landing.css?v=language-2" />
+    <link rel="stylesheet" href="assets/css/legal.css?v=language-3" />
     <!-- Dans <head> et sans defer : voir l'en-tête de i18n.js. -->
-    <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/i18n.js?v=language-3"></script>
   </head>
 <body>
 <a class="skip-link" href="#home" data-fr="Aller au contenu">Skip to content</a>
@@ -56,7 +53,15 @@
     <a href="#faq">FAQ</a>
     <a href="legal.html" data-legal data-fr="Toutes les politiques">All policies</a>
   </nav>
-</details><button class="lang" id="language" aria-label="Afficher en français">EN ⌄</button><a class="primary" href="#launch" data-fr="Bientôt">Coming soon</a></div>
+</details><label class="language-picker">
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>
+  <span data-current-lang aria-hidden="true">EN</span>
+  <span class="language-chevron" aria-hidden="true"></span>
+  <select data-language-picker data-i18n-attr="aria-label:lang.label" aria-label="Language">
+    <option value="en" lang="en">English</option>
+    <option value="fr" lang="fr">Français</option>
+  </select>
+</label><a class="primary" href="#launch" data-fr="Bientôt">Coming soon</a></div>
 </div></header>
 <main id="home">
 <section class="wrap hero" aria-labelledby="headline">
@@ -108,7 +113,7 @@
 </section>
 <section class="launch" id="launch"><svg class="art" viewBox="38 1371 300 102" role="img" aria-label="Concert crowd under violet lights"><image href="assets/img/landing-artwork.jpg" width="1024" height="1536"/></svg><div><h2 data-fr="Le prochain moment est à toi.">The next moment is yours.</h2><p data-fr="HAPPYN arrive sur iPhone et Android.">HAPPYN is coming to iPhone and Android.</p></div><div class="store-buttons"><button class="store" data-updates><small data-fr="Bientôt sur">Coming soon on</small><strong>App Store</strong></button><button class="store" data-updates><small data-fr="Bientôt sur">Coming soon on</small><strong>Google Play</strong></button></div></section>
 </main>
-<footer class="wrap"><a class="brand" href="#home"><img class="logo" src="assets/img/happyn-brand-logo.png" width="36" height="36" alt="">HAPPYN</a><nav aria-label="Legal and contact"><a href="legal.html?doc=terms" data-legal data-fr="Conditions">Terms</a><a href="legal.html?doc=privacy" data-legal data-fr="Confidentialité">Privacy</a><a href="legal.html" data-legal data-fr="Toutes les politiques">All policies</a><a href="delete-account.html" data-legal data-fr="Supprimer mon compte">Delete account</a><a href="mailto:contact@happynevents.com">Contact</a></nav></footer>
+<footer class="wrap"><a class="brand" href="#home"><img class="logo" src="assets/img/happyn-brand-logo.png" width="36" height="36" alt="">HAPPYN</a><nav aria-label="Legal and contact"><a href="legal.html?doc=terms" data-legal data-fr="Conditions">Terms</a><a href="legal.html?doc=privacy" data-legal data-fr="Confidentialité">Privacy</a><a href="legal.html?doc=cookie" data-legal data-fr="Témoins de connexion">Cookies</a><a href="legal.html" data-legal data-fr="Toutes les politiques">All policies</a><a href="delete-account.html" data-legal data-fr="Supprimer mon compte">Delete account</a><a href="mailto:contact@happynevents.com">Contact</a></nav></footer>
 <dialog id="launch-dialog" aria-labelledby="launch-title"><h2 id="launch-title" data-fr="Suivre le lancement">Follow the launch</h2><p data-fr="Pour en savoir plus sur le lancement iPhone et Android, écris à l’équipe HAPPYN.">Email the HAPPYN team for updates about the iPhone and Android launch.</p><a class="primary" href="mailto:contact@happynevents.com?subject=HAPPYN%20launch" data-fr="Écrire à HAPPYN">Email HAPPYN</a><form class="waitlist" name="waitlist" method="POST" action="/" data-netlify="true" data-waitlist>
   <input type="hidden" name="form-name" value="waitlist">
   <input type="hidden" name="lang" data-waitlist-lang>
@@ -116,11 +121,12 @@
   <label for="launch-email" data-i18n="waitlist.email">Email address</label>
   <input id="launch-email" type="email" name="email" autocomplete="email" required>
   <label><input type="checkbox" name="consent" value="yes" required> <span data-i18n="waitlist.consent">I agree to receive launch emails from HAPPYN.</span></label>
+  <p data-fr="Le formulaire est hébergé par Netlify. HAPPYN utilise ton adresse courriel pour t’envoyer les nouvelles du lancement.">Netlify hosts this form. HAPPYN uses your email address to send you launch updates.</p>
   <a href="legal.html?doc=privacy" data-legal data-i18n="waitlist.privacy">What we do with your email</a>
   <button class="primary" type="submit" data-i18n="waitlist.submit">Notify me</button>
   <p role="status" data-waitlist-status></p>
 </form><form method="dialog"><button class="chip" data-fr="Fermer">Close</button></form></dialog>
-<script src="assets/js/landing.js" defer></script>
+<script src="assets/js/landing.js?v=language-1" defer></script>
 <script src="assets/js/site.js" defer></script>
 </body>
 </html>

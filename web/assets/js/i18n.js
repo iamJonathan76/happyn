@@ -180,6 +180,11 @@
       'legal.policies': 'Policies',
       'legal.loading': 'Loading…',
       'legal.indexTitle': 'All policies',
+      'legal.waitlistTitle': 'Website launch waitlist',
+      'legal.waitlistUse': 'When you sign up, Netlify collects your email address, language preference and consent. HAPPYN uses this information to send you updates about the launch.',
+      'legal.waitlistRetention': 'We delete waitlist entries from Netlify and any copies we use as soon as the launch updates end, and no later than 30 days after HAPPYN launches or the waitlist is closed without a launch, unless the law requires us to keep specific information longer.',
+      'legal.waitlistRemoval': 'To stop receiving updates and have your entry deleted, email us from the address you signed up with.',
+      'legal.waitlistSubject': 'Delete my HAPPYN waitlist entry',
       'legal.indexLead':
         'The policies that govern the use of HAPPYN, for attendees and organizers alike.',
       'legal.effective': 'Effective {date}',
@@ -454,6 +459,11 @@
       'legal.policies': 'Politiques',
       'legal.loading': 'Chargement…',
       'legal.indexTitle': 'Toutes les politiques',
+      'legal.waitlistTitle': 'Liste d’attente du site Web',
+      'legal.waitlistUse': 'À l’inscription, Netlify recueille votre adresse courriel, votre langue et votre consentement. HAPPYN utilise ces renseignements pour vous envoyer des nouvelles du lancement.',
+      'legal.waitlistRetention': 'Nous supprimons les inscriptions dans Netlify et les copies que nous utilisons dès la fin des communications de lancement, au plus tard 30 jours après le lancement de HAPPYN ou la fermeture de la liste sans lancement, sauf si la loi exige de conserver certains renseignements plus longtemps.',
+      'legal.waitlistRemoval': 'Pour ne plus recevoir de nouvelles et faire supprimer votre inscription, écrivez-nous depuis l’adresse utilisée pour vous inscrire.',
+      'legal.waitlistSubject': 'Supprimer mon inscription à la liste d’attente HAPPYN',
       'legal.indexLead':
         "Les politiques qui encadrent l'utilisation de HAPPYN, pour les participants comme pour les organisateurs.",
       'legal.effective': 'En vigueur le {date}',
@@ -646,6 +656,10 @@
           if (attr && key) node.setAttribute(attr, t(key));
         });
     });
+    document.querySelectorAll('[data-language-picker]').forEach((picker) => {
+      picker.value = lang;
+      picker.parentElement.querySelector('[data-current-lang]').textContent = lang.toUpperCase();
+    });
     document.querySelectorAll('[data-set-lang]').forEach((button) => {
       button.setAttribute(
         'aria-pressed',
@@ -672,6 +686,9 @@
   function init() {
     try {
       apply();
+      document.querySelectorAll('[data-language-picker]').forEach((picker) => {
+        picker.addEventListener('change', () => set(picker.value));
+      });
       document.querySelectorAll('[data-set-lang]').forEach((button) => {
         button.addEventListener('click', () =>
           set(button.getAttribute('data-set-lang')),
