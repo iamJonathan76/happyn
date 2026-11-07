@@ -1,0 +1,101 @@
+/* Les documents reprennent les couleurs de la vitrine avec une largeur de lecture dédiée. */
+.policy-page {
+  --bg: #0b0a13;
+  --text: #fff;
+  --text-2: #d5d1dc;
+  --text-3: #b8b1c4;
+  --line: #26232f;
+  background: var(--bg);
+  font-family: var(--font-body);
+}
+
+.policy-page .site-header {
+  background: var(--bg);
+}
+
+.policy-page .brand img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.policy-page .lang-switch,
+.policy-page .lang-switch button {
+  border-radius: 999px;
+}
+
+.policy-page .lang-switch button {
+  min-width: 44px;
+  height: 44px;
+}
+
+.policy-page .lang-switch button[aria-pressed='true'] {
+  background: #6d2bc8;
+  color: white;
+}
+
+.policy-page .legal-layout {
+  grid-template-columns: 225px minmax(0, 68ch);
+  justify-content: center;
+  gap: 40px;
+}
+
+.policy-page .legal-layout:not(.has-document) {
+  grid-template-columns: minmax(0, 68ch);
+}
+
+.policy-page .legal-sidebar {
+  background: #14111d;
+  max-height: calc(100dvh - 110px);
+  overflow-y: auto;
+}
+
+.policy-page .legal-sidebar a.active {
+  background: #6d2bc8;
+}
+
+.policy-page .legal-content h1 {
+  font-family: inherit;
+  font-weight: 780;
+  line-height: 1.1;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+}
+
+.policy-page .site-footer {
+  background: var(--bg);
+}
+
+.legal-all-policies {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .policy-page .legal-layout {
+    grid-template-columns: minmax(0, 68ch);
+    padding: 28px 0 56px;
+  }
+
+  /* Un lien direct doit ouvrir le document sans passer par la liste. */
+  .policy-page .legal-sidebar {
+    display: none;
+  }
+
+  .policy-page .legal-meta {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .legal-all-policies {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-bottom: 22px;
+    padding: 0 14px;
+    border: 1px solid #40354f;
+    border-radius: 999px;
+    color: #e1baff;
+    font-size: .875rem;
+    font-weight: 650;
+  }
+}

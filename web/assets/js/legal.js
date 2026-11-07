@@ -94,7 +94,10 @@
       const link = document.createElement('a');
       link.href = `legal.html?doc=${encodeURIComponent(doc.slug)}`;
       link.textContent = doc.title;
-      if (doc.slug === activeSlug) link.classList.add('active');
+      if (doc.slug === activeSlug) {
+        link.classList.add('active');
+        link.setAttribute('aria-current', 'page');
+      }
 
       const item = document.createElement('li');
       item.appendChild(link);
@@ -187,6 +190,16 @@
         : '';
     meta.textContent = [doc.version, stamp].filter(Boolean).join(' · ');
     container.appendChild(meta);
+
+    const policies = document.createElement('a');
+    policies.className = 'legal-all-policies';
+    const indexUrl = new URL(location.href);
+    indexUrl.search = '';
+    indexUrl.hash = '';
+    indexUrl.searchParams.set('lang', window.HappynI18n.lang);
+    policies.href = indexUrl.href;
+    policies.textContent = t('legal.indexTitle');
+    container.appendChild(policies);
 
     renderNotice(container, doc.translated === true);
     renderContent(container, doc.content);
@@ -350,10 +363,15 @@
       const shown = localizeLegal(documents, translations);
       renderFooterLinks(shown);
       if (!container) return;
-      renderSidebar(shown, requestedSlug);
       const doc = requestedSlug
         ? shown.find((entry) => entry.slug === requestedSlug)
         : null;
+      const sidebar = container.parentElement.querySelector('.legal-sidebar');
+      if (sidebar) {
+        sidebar.hidden = !doc;
+        container.parentElement.classList.toggle('has-document', Boolean(doc));
+        if (doc) renderSidebar(shown, doc.slug);
+      }
       if (doc) {
         renderDocument(container, doc);
         if (firstTime) revealContent(container);
