@@ -144,138 +144,6 @@ async function stripeFeeCents(
   }
 }
 
-const RESEND_ENDPOINT = "https://api.resend.com/emails";
-
-function escapeHtml(input: unknown): string {
-  return String(input ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-/// Courriel de confirmation d'achat.
-///
-/// Best-effort absolu : une panne d'envoi ne doit JAMAIS faire echouer
-/// l'emission du billet. Si on levait ici, on renverrait une erreur a Stripe,
-/// qui rejouerait le webhook — et meme si l'emission est idempotente, on ne
-/// veut pas d'un billet bloque par un souci de courriel.
-///
-/// On ne met PAS le QR d'entree dans le courriel : il est minte et valide cote
-/// serveur, un QR fige par courriel serait rejouable par quiconque a l'email.
-/// Le courriel confirme, sert de recu, et renvoie vers l'app ou vit le vrai
-/// billet.
-async function sendTicketConfirmation(
-  admin: ReturnType<typeof createClient>,
-  args: {
-    buyerId: string;
-    eventId?: string;
-    grossCents: number;
-    quantity: number;
-  },
-): Promise<void> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    console.warn("stripe-webhook: RESEND_API_KEY absente, pas de confirmation");
-    return;
-  }
-  try {
-    const { data: userRes } = await admin.auth.admin.getUserById(args.buyerId);
-    const email = userRes?.user?.email;
-    if (!email) return;
-
-    const { data: prof } = await admin
-      .from("profiles")
-      .select("language, full_name")
-      .eq("id", args.buyerId)
-      .maybeSingle();
-    const fr = (prof?.language ?? "en") === "fr";
-    const firstName = String(prof?.full_name ?? "").trim().split(/\s+/)[0] ?? "";
-
-    let title = "";
-    let whenLabel = "";
-    if (args.eventId) {
-      const { data: ev } = await admin
-        .from("events")
-        .select("title, start_date")
-        .eq("id", args.eventId)
-        .maybeSingle();
-      title = String(ev?.title ?? "");
-      if (ev?.start_date) {
-        // Date seule, pas l'heure : la fonction tourne en UTC et on n'a pas le
-        // fuseau de l'evenement sous la main — une heure fausse vaut moins que
-        // pas d'heure. L'heure exacte est dans l'app.
-        whenLabel = new Date(String(ev.start_date)).toLocaleDateString(
-          fr ? "fr-CA" : "en-CA",
-          { weekday: "long", day: "numeric", month: "long", year: "numeric" },
-        );
-      }
-    }
-
-    const amount = (args.grossCents / 100).toFixed(2);
-    const qty = args.quantity;
-    const evName = title || (fr ? "ton événement" : "your event");
-
-    const subject = fr
-      ? `HAPPYN — ton billet pour ${evName}`
-      : `HAPPYN — your ticket for ${evName}`;
-    const hello = firstName
-      ? `${fr ? "Salut" : "Hi"} ${escapeHtml(firstName)},`
-      : (fr ? "Salut," : "Hi,");
-    const line1 = fr
-      ? `Ton achat est confirmé. ${qty > 1 ? `Tes ${qty} billets` : "Ton billet"} pour <strong>${escapeHtml(evName)}</strong> ${qty > 1 ? "t'attendent" : "t'attend"} dans l'app.`
-      : `Your purchase is confirmed. ${qty > 1 ? `Your ${qty} tickets` : "Your ticket"} for <strong>${escapeHtml(evName)}</strong> ${qty > 1 ? "are" : "is"} waiting in the app.`;
-    const whenRow = whenLabel
-      ? `<p style="margin:4px 0;color:#444"><strong>Date :</strong> ${escapeHtml(whenLabel)}</p>`
-      : "";
-    const cta = fr
-      ? "Ton billet, avec le QR d'entrée, est dans HAPPYN → Mes billets."
-      : "Your ticket, with the entry QR, is in HAPPYN → My Tickets.";
-    const footer = fr
-      ? "Tu reçois ce courriel parce qu'un achat a été fait sur HAPPYN."
-      : "You're receiving this because a purchase was made on HAPPYN.";
-
-    const html = `
-      <div style="font-family:system-ui,-apple-system,sans-serif;max-width:480px;margin:0 auto;color:#1a1535">
-        <h2 style="color:#7C3AED;margin:0 0 12px">HAPPYN</h2>
-        <p>${hello}</p>
-        <p>${line1}</p>
-        <div style="background:#f5f3ff;border-radius:12px;padding:16px;margin:16px 0">
-          <p style="margin:0 0 8px;font-size:16px"><strong>${escapeHtml(evName)}</strong></p>
-          ${whenRow}
-          <p style="margin:4px 0;color:#444"><strong>${fr ? "Total payé" : "Total paid"} :</strong> ${amount}&nbsp;$ CAD</p>
-          <p style="margin:4px 0;color:#444"><strong>${fr ? "Billets" : "Tickets"} :</strong> ${qty}</p>
-        </div>
-        <p style="color:#444">${cta}</p>
-        <p style="color:#6b6280;font-size:12px;margin-top:24px">${footer}</p>
-      </div>
-    `;
-
-    const res = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "HAPPYN <no-reply@happynevents.com>",
-        to: [email],
-        subject,
-        html,
-      }),
-    });
-    if (!res.ok) {
-      console.error(
-        "stripe-webhook: confirmation, resend a repondu",
-        res.status,
-      );
-    }
-  } catch (e) {
-    console.error("stripe-webhook: confirmation echouee", String(e));
-  }
-}
-
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("method_not_allowed", { status: 405 });
@@ -391,16 +259,10 @@ Deno.serve(async (req) => {
       return new Response("issuance_failed", { status: 500 });
     }
 
-    // Confirmation par courriel, après l'émission réussie. Best-effort : la
-    // fonction ne lève jamais, donc une panne d'envoi ne renvoie pas 500 à
-    // Stripe (ce qui rejouerait le webhook). On l'attend quand même, pour que
-    // l'envoi parte avant que la fonction Edge ne se fige.
-    await sendTicketConfirmation(admin, {
-      buyerId: userId,
-      eventId,
-      grossCents: pi.amount ?? 0,
-      quantity,
-    });
+    // Le courriel de confirmation n'est plus envoyé ici : un déclencheur sur la
+    // notification `ticket_confirmed` (que `issue_tickets_paid` vient de créer)
+    // appelle `send-ticket-confirmation`, pour le payant comme pour le gratuit.
+    // Un seul endroit décide du courriel, quel que soit le mode d'émission.
 
     return new Response("ok", { status: 200 });
   }

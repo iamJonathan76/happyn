@@ -68,7 +68,12 @@ insert into device_tokens (token, user_id, platform) values
   ('jeton-bruno', '00000000-0000-0000-0000-00000000000b', 'ios');
 insert into favorites (user_id, event_id) values
   ('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000e1');
-insert into private.settings (key, value) values ('push_hook_secret', 'secret-de-test');
+insert into private.settings (key, value) values
+  ('push_hook_secret', 'secret-de-test'),
+  -- Peuplees pour que le trigger de confirmation parte jusqu'au net.http_post
+  -- (stube par le shim) a chaque emission testee, au lieu de court-circuiter.
+  ('ticket_hook_url', 'http://localhost/send-ticket-confirmation'),
+  ('ticket_hook_secret', 'secret-de-test');
 
 insert into posts (id, author_id, event_id, caption) values
   ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000000e1', 'photo publique'),
@@ -778,6 +783,8 @@ reset role;
 select t.as_user('00000000-0000-0000-0000-00000000000b');
 select t.fails_with($$select public.handle_new_user()$$, 'permission denied',
   'Trigger : un compte connecte ne peut pas appeler handle_new_user directement');
+select t.fails_with($$select private.email_ticket_confirmation()$$, 'permission denied',
+  'Trigger : un compte ne peut pas appeler email_ticket_confirmation directement');
 reset role;
 select t.as_anon();
 select t.fails_with($$select public.sync_event_attendance()$$, 'permission denied',
