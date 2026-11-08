@@ -1,5 +1,5 @@
 /* Les documents reprennent les couleurs de la vitrine avec une largeur de lecture dédiée. */
-.policy-page {
+:is(.policy-page, .utility-page) {
   --bg: #0b0a13;
   --text: #fff;
   --text-2: #d5d1dc;
@@ -9,29 +9,61 @@
   font-family: var(--font-body);
 }
 
-.policy-page .site-header {
+:is(.policy-page, .utility-page) .site-header {
   background: var(--bg);
 }
 
-.policy-page .brand img {
+:is(.policy-page, .utility-page) .brand img {
   width: 36px;
   height: 36px;
   border-radius: 8px;
 }
 
-.policy-page .lang-switch,
-.policy-page .lang-switch button {
+/* Le sélecteur est commun à la vitrine et aux pages secondaires. */
+.language-picker {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 1px solid #332c41;
   border-radius: 999px;
+  background: #1e1a28;
+  color: #fff;
+  font: 650 .75rem/1 Inter, system-ui, sans-serif;
 }
 
-.policy-page .lang-switch button {
-  min-width: 44px;
-  height: 44px;
+.language-picker svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
 }
 
-.policy-page .lang-switch button[aria-pressed='true'] {
-  background: #6d2bc8;
-  color: white;
+.language-chevron {
+  width: 5px;
+  height: 5px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-1px) rotate(45deg);
+}
+
+.language-picker select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.language-picker:focus-within {
+  outline: 2px solid #d29bff;
+  outline-offset: 3px;
 }
 
 .policy-page .legal-layout {
@@ -54,7 +86,8 @@
   background: #6d2bc8;
 }
 
-.policy-page .legal-content h1 {
+:is(.policy-page, .utility-page) .legal-content h1,
+.utility-page .reset-card h1 {
   font-family: inherit;
   font-weight: 780;
   line-height: 1.1;
@@ -62,7 +95,7 @@
   overflow-wrap: anywhere;
 }
 
-.policy-page .site-footer {
+:is(.policy-page, .utility-page) .site-footer {
   background: var(--bg);
 }
 
@@ -97,5 +130,37 @@
     color: #e1baff;
     font-size: .875rem;
     font-weight: 650;
+  }
+}
+
+.utility-page .account-page {
+  max-width: 68ch;
+  margin-inline: auto;
+}
+
+.utility-page .reset-card {
+  max-width: 500px;
+  padding: clamp(20px, 5vw, 36px);
+  background: #14111d;
+  border-color: var(--line);
+}
+
+.utility-page .reset-card h1 {
+  font-size: clamp(1.75rem, 5vw, 2.15rem);
+}
+
+.utility-page .reset-card .btn-primary {
+  min-height: 44px;
+  background: #6d2bc8;
+  border-radius: 999px;
+}
+
+.utility-page .reset-card .btn-primary:hover:not(:disabled) {
+  background: #7833d5;
+}
+
+@media (max-width: 800px) {
+  .utility-page .reset-wrap {
+    padding: 28px 18px 56px;
   }
 }

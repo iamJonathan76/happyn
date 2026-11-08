@@ -34,8 +34,6 @@ function showSlide(index) {
 function translate() {
   const fr = language === 'fr';
   document.documentElement.lang = language;
-  document.querySelector('#language').textContent = fr ? 'FR ⌄' : 'EN ⌄';
-  document.querySelector('#language').setAttribute('aria-label', fr ? 'Switch to English' : 'Afficher en français');
   document.querySelector('#prev').setAttribute('aria-label', fr ? 'Capture précédente' : 'Previous screenshot');
   document.querySelector('#next').setAttribute('aria-label', fr ? 'Capture suivante' : 'Next screenshot');
   for (const [node, en] of translations) node.textContent = fr ? node.dataset.fr : en;
@@ -45,12 +43,11 @@ function translate() {
   }
   showSlide(active);
 }
-document.querySelector('#language').addEventListener('click', () => {
-  language = language === 'en' ? 'fr' : 'en';
+document.addEventListener('happyn:lang', ({ detail }) => {
+  language = detail.lang;
   const url = new URL(location.href);
   url.searchParams.set('lang', language);
   history.replaceState(null, '', url);
-  window.HappynI18n.set(language);
   translate();
 });
 document.querySelector('#prev').addEventListener('click', () => showSlide(active - 1));
