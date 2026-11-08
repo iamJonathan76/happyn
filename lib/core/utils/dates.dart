@@ -52,6 +52,37 @@ class AppDates {
     return DateFormat.MMM(_loc(c)).format(dt).toUpperCase();
   }
 
+  /// Horodatage compact pour une liste de conversations : l'heure si c'est
+  /// aujourd'hui, sinon la date courte (« Mar 14 » / « 14 mars »). Évite
+  /// d'écraser le nom quand les deux partagent une ligne.
+  static String messageListTime(BuildContext c, String? iso) {
+    final dt = _parse(iso)?.toLocal();
+    if (dt == null) return '';
+    final now = DateTime.now();
+    final sameDay =
+        dt.year == now.year && dt.month == now.month && dt.day == now.day;
+    final loc = _loc(c);
+    return sameDay
+        ? DateFormat.jm(loc).format(dt)
+        : DateFormat.MMMd(loc).format(dt);
+  }
+
+  /// Séparateur de jour dans un fil : « Fri, Mar 14 » / « ven. 14 mars ».
+  static String daySeparator(BuildContext c, String? iso) {
+    final dt = _parse(iso)?.toLocal();
+    if (dt == null) return '';
+    return DateFormat.MMMEd(_loc(c)).format(dt);
+  }
+
+  /// Vrai quand deux instants ISO tombent un jour civil différent (heure
+  /// locale) : sert à n'insérer un séparateur de date qu'au changement de jour.
+  static bool differentDay(String? isoA, String? isoB) {
+    final a = _parse(isoA)?.toLocal();
+    final b = _parse(isoB)?.toLocal();
+    if (a == null || b == null) return a != b;
+    return a.year != b.year || a.month != b.month || a.day != b.day;
+  }
+
   static DateTime? _parse(String? iso) =>
       iso == null ? null : DateTime.tryParse(iso);
 }

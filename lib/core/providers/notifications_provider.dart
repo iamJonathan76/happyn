@@ -38,6 +38,26 @@ final unreadMessagesProvider = FutureProvider<int>((ref) async {
   return (data as List).length;
 });
 
+/// Les conversations ayant au moins un message non lu — pour la pastille de la
+/// liste. Même source que [unreadMessagesProvider] : une notification
+/// `direct_message` non lue par conversation. La RPC de la liste ne porte pas
+/// l'état de lecture ; on le lit donc ici, puis on le croise par id.
+final unreadConversationIdsProvider =
+    FutureProvider.autoDispose<Set<String>>((ref) async {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null) return <String>{};
+  final data = await Supabase.instance.client
+      .from('notifications')
+      .select('conversation_id')
+      .eq('user_id', uid)
+      .eq('type', 'direct_message')
+      .eq('read', false);
+  return {
+    for (final row in (data as List))
+      if (row['conversation_id'] != null) row['conversation_id'] as String,
+  };
+});
+
 /// Ouvrir une conversation la marque comme lue : sa pastille disparaît.
 Future<void> markConversationRead(WidgetRef ref, String conversationId) async {
   final uid = Supabase.instance.client.auth.currentUser?.id;
@@ -54,6 +74,7 @@ Future<void> markConversationRead(WidgetRef ref, String conversationId) async {
     // Une pastille qui reste un peu trop longtemps ne vaut pas une erreur.
   }
   ref.invalidate(unreadMessagesProvider);
+  ref.invalidate(unreadConversationIdsProvider);
 }
 
 /// Supprime une notification, ou toutes celles de la cloche si [id] est nul.

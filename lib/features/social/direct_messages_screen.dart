@@ -22,6 +22,9 @@ class DirectMessagesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final conversations = ref.watch(directConversationsProvider);
+    final unreadIds =
+        ref.watch(unreadConversationIdsProvider).asData?.value ??
+            const <String>{};
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -67,57 +70,98 @@ class DirectMessagesScreen extends ConsumerWidget {
                             : (username.isNotEmpty ? '@$username' : l.userLabel);
                     final avatar =
                         deleted ? '' : item['other_avatar'] as String? ?? '';
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(vertical: 6),
-                      leading: _Avatar(url: avatar, name: title),
-                      title: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppText.bodySm.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      subtitle: Text(
-                        // Un partage sans mot n'a pas de texte a montrer.
+                    final convId = item['conversation_id'] as String;
+                    final unread = unreadIds.contains(convId);
+                    // Un partage sans mot n'a pas de texte a montrer.
+                    final preview =
                         (item['last_message'] as String? ?? '').trim().isEmpty
                             ? l.sharedSomething
-                            : item['last_message'] as String,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppText.caption.copyWith(
-                          color: AppColors.textLow,
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            AppDates.messageDateTime(
-                              context,
-                              item['last_message_at'] as String?,
-                            ),
-                            style: AppText.micro.copyWith(
-                              color: AppColors.textLow,
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          Icon(Icons.chevron_right, color: AppColors.textLow),
-                        ],
-                      ),
+                            : item['last_message'] as String;
+                    return InkWell(
                       onTap: () async {
                         await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => DirectMessageThreadScreen(
-                              conversationId: item['conversation_id'] as String,
+                              conversationId: convId,
                               recipientName: title,
                               recipientAvatar: avatar,
                             ),
                           ),
                         );
                         ref.invalidate(directConversationsProvider);
+                        ref.invalidate(unreadConversationIdsProvider);
                       },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          children: [
+                            _Avatar(url: avatar, name: title),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: AppText.bodySm.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: unread
+                                                ? FontWeight.w800
+                                                : FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Pastille d'etat non lu — affichee
+                                      // seulement si la conversation en porte un
+                                      // (notification `direct_message` non lue).
+                                      if (unread) ...[
+                                        Container(
+                                          width: 7,
+                                          height: 7,
+                                          decoration: const BoxDecoration(
+                                            color: AppColors.primary,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                      ],
+                                      Text(
+                                        AppDates.messageListTime(
+                                          context,
+                                          item['last_message_at'] as String?,
+                                        ),
+                                        style: AppText.micro.copyWith(
+                                          color: unread
+                                              ? AppColors.lavenderLight
+                                              : AppColors.textLow,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    preview,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppText.caption.copyWith(
+                                      color: unread
+                                          ? AppColors.textMed
+                                          : AppColors.textLow,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -240,18 +284,77 @@ class _DirectMessageThreadScreenState
                       style: AppText.bodySm.copyWith(color: Colors.white)),
                 ),
               ],
-              const SizedBox(height: 4),
-              Text(
-                AppDates.messageDateTime(
-                    context, message['created_at'] as String?),
-                style: AppText.micro.copyWith(color: AppColors.textLow),
-              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  /// Une bulle de message ordinaire : les siens en violet adouci à droite,
+  /// ceux de l'autre sur une surface mate à gauche. L'appui long signale (pas
+  /// de bouton visible : une messagerie couverte d'icônes de dénonciation
+  /// prend un ton de surveillance, alors que le cas courant est banal ; le
+  /// geste reste découvrable, et le blocage existe déjà sur le profil).
+  Widget _bubbleFor(Map<String, dynamic> message, String currentUserId) {
+    final isMine = message['sender_id'] == currentUserId;
+    final sharedKind = message['shared_kind'] as String?;
+    final body = (message['body'] as String? ?? '').trim();
+    // Un contenu partagé (publication, événement, billet) s'affiche seul, hors
+    // de la bulle, comme sur Instagram : dans une bulle, la photo était réduite
+    // à une vignette.
+    if (sharedKind != null) {
+      return _sharedMessage(message, isMine, sharedKind, body);
+    }
+    return Align(
+      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+      child: GestureDetector(
+        onLongPress: isMine
+            ? null
+            : () => showReportSheet(
+                  context,
+                  targetType: 'message',
+                  targetId: message['id'] as String,
+                ),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+          ),
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: isMine ? AppColors.messageMine : AppColors.card,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Text(
+            body,
+            style: AppText.bodySm.copyWith(color: Colors.white, height: 1.35),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Le trait avec la date au centre, posé entre deux journées.
+  Widget _daySeparator(String? iso) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        child: Row(children: [
+          Expanded(
+              child: Divider(
+                  color: Colors.white.withValues(alpha: 0.08), height: 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              AppDates.daySeparator(context, iso),
+              style: AppText.micro.copyWith(
+                  color: AppColors.textLow, fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(
+              child: Divider(
+                  color: Colors.white.withValues(alpha: 0.08), height: 1)),
+        ]),
+      );
 
   Future<void> _send() async {
     final body = _controller.text.trim();
@@ -363,6 +466,13 @@ class _DirectMessageThreadScreenState
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         titleSpacing: 0,
+        // Un filet sous l'en-tete, comme dans la maquette : il detache le nom
+        // du fil sans peser.
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+              height: 1, color: Colors.white.withValues(alpha: 0.08)),
+        ),
         actions: [
           // Rien a proposer quand l'autre a supprime son compte.
           if (peerId != null) _peerMenu(l, peerId),
@@ -447,84 +557,19 @@ class _DirectMessageThreadScreenState
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final message = items[index];
-                    final isMine = message['sender_id'] == currentUserId;
-                    final sharedKind = message['shared_kind'] as String?;
-                    final body = (message['body'] as String? ?? '').trim();
-                    // Un contenu partagé (publication, événement, billet)
-                    // s'affiche seul, hors de la bulle, comme sur Instagram :
-                    // dans une bulle, la photo était réduite à une vignette.
-                    if (sharedKind != null) {
-                      return _sharedMessage(message, isMine, sharedKind, body);
-                    }
-                    return Align(
-                      alignment: isMine
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      // Appui long pour signaler. Pas de bouton visible :
-                      // une messagerie couverte d'icones de denonciation
-                      // donne un ton de surveillance, alors que le cas
-                      // courant est une conversation ordinaire. Le geste
-                      // reste decouvrable, et le blocage existe deja sur le
-                      // profil pour la reponse immediate.
-                      child: GestureDetector(
-                        onLongPress: isMine
-                            ? null
-                            : () => showReportSheet(
-                                  context,
-                                  targetType: 'message',
-                                  targetId: message['id'] as String,
-                                ),
-                      child: Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.sizeOf(context).width * 0.78,
-                        ),
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          // Ses messages en violet, ceux de l'autre en sombre
-                          // borde : l'oeil cherche « ce que j'ai dit » a la
-                          // couleur, comme dans toutes les messageries.
-                          color: isMine ? AppColors.messageMine : AppColors.card,
-                          border: isMine
-                              ? null
-                              : Border.all(color: AppColors.border),
-                          borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(16),
-                            topRight: const Radius.circular(16),
-                            bottomLeft: Radius.circular(isMine ? 16 : 4),
-                            bottomRight: Radius.circular(isMine ? 4 : 16),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (body.isNotEmpty)
-                              Text(
-                                body,
-                                style: AppText.bodySm.copyWith(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            const SizedBox(height: 4),
-                            Text(
-                              AppDates.messageDateTime(
-                                context,
-                                message['created_at'] as String?,
-                              ),
-                              style: AppText.micro.copyWith(
-                                color: isMine
-                                    ? AppColors.lavenderLight
-                                    : AppColors.textLow,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ),
+                    // Un separateur de date uniquement au changement de jour.
+                    final showDate = index == 0 ||
+                        AppDates.differentDay(
+                          items[index - 1]['created_at'] as String?,
+                          message['created_at'] as String?,
+                        );
+                    final bubble = _bubbleFor(message, currentUserId);
+                    if (!showDate) return bubble;
+                    return Column(
+                      children: [
+                        _daySeparator(message['created_at'] as String?),
+                        bubble,
+                      ],
                     );
                   },
                 );
@@ -547,54 +592,59 @@ class _DirectMessageThreadScreenState
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      minLines: 1,
-                      maxLines: 5,
-                      maxLength: 2000,
-                      textCapitalization: TextCapitalization.sentences,
-                      decoration: InputDecoration(
-                        hintText: l.messageHint,
-                        counterText: '',
-                        filled: true,
-                        fillColor: AppColors.card,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                padding: const EdgeInsets.fromLTRB(18, 2, 6, 2),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        minLines: 1,
+                        maxLines: 5,
+                        maxLength: 2000,
+                        textCapitalization: TextCapitalization.sentences,
+                        style: AppText.bodySm.copyWith(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: l.messageHint,
+                          hintStyle: AppText.bodySm
+                              .copyWith(color: AppColors.textFaint),
+                          counterText: '',
+                          isCollapsed: true,
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 12),
+                          border: InputBorder.none,
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
+                        onSubmitted: (_) => _send(),
                       ),
-                      onSubmitted: (_) => _send(),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: _sending ? null : _send,
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                    const SizedBox(width: 6),
+                    IconButton.filled(
+                      onPressed: _sending ? null : _send,
+                      visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: _sending
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.send_rounded, size: 20),
+                      tooltip: l.sendMessage,
                     ),
-                    icon: _sending
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.send_rounded),
-                    tooltip: l.sendMessage,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
