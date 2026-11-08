@@ -837,7 +837,13 @@ class _PostVideoState extends ConsumerState<_PostVideo> {
 
   @override
   void dispose() {
-    _visibility.remove(widget.postId);
+    // dispose() s'exécute PENDANT le démontage de l'arbre ; modifier un
+    // provider à ce moment-là lève (Riverpod l'interdit, vu dans Sentry en
+    // quittant le fil). On repousse donc le retrait après la frame. L'id est
+    // capturé maintenant car `widget` n'est plus fiable une fois démonté, et
+    // le notifier, lui, vit au-delà de la carte.
+    final id = widget.postId;
+    Future(() => _visibility.remove(id));
     _controller?.removeListener(_onTick);
     _controller?.dispose();
     super.dispose();
