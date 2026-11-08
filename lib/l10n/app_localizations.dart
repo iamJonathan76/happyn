@@ -314,18 +314,6 @@ abstract class AppLocalizations {
   /// **'My Events'**
   String get myEvents;
 
-  /// No description provided for @attendeeManagement.
-  ///
-  /// In en, this message translates to:
-  /// **'Attendee Management'**
-  String get attendeeManagement;
-
-  /// No description provided for @analytics.
-  ///
-  /// In en, this message translates to:
-  /// **'Analytics'**
-  String get analytics;
-
   /// No description provided for @payouts.
   ///
   /// In en, this message translates to:
@@ -1676,12 +1664,6 @@ abstract class AppLocalizations {
   /// **'Please enter a title'**
   String get errEnterTitle;
 
-  /// No description provided for @errEnterLocation.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter a location'**
-  String get errEnterLocation;
-
   /// No description provided for @errEnterCity.
   ///
   /// In en, this message translates to:
@@ -1801,18 +1783,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location *'**
   String get locationLabel;
-
-  /// No description provided for @venueHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Venue name or address'**
-  String get venueHint;
-
-  /// No description provided for @cityHint.
-  ///
-  /// In en, this message translates to:
-  /// **'City (e.g. Ottawa, ON)'**
-  String get cityHint;
 
   /// No description provided for @dateTimeLabel.
   ///

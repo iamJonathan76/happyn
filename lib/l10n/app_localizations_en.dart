@@ -121,12 +121,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myEvents => 'My Events';
 
   @override
-  String get attendeeManagement => 'Attendee Management';
-
-  @override
-  String get analytics => 'Analytics';
-
-  @override
   String get payouts => 'Payouts';
 
   @override
@@ -931,9 +925,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errEnterTitle => 'Please enter a title';
 
   @override
-  String get errEnterLocation => 'Please enter a location';
-
-  @override
   String get errEnterCity => 'Please enter a city';
 
   @override
@@ -999,12 +990,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationLabel => 'Location *';
-
-  @override
-  String get venueHint => 'Venue name or address';
-
-  @override
-  String get cityHint => 'City (e.g. Ottawa, ON)';
 
   @override
   String get dateTimeLabel => 'Date & Time *';
