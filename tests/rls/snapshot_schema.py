@@ -29,7 +29,11 @@ def q(sql):
     # anti-injection). On accepte les deux, sinon le refresh casse selon le
     # contexte d'ou on le lance.
     out = subprocess.run(
-        ["npx", "supabase", "db", "query", "--linked", "--output-format", "json", sql],
+        # `--read-only` : toutes les requetes ici lisent le catalogue. Sans lui,
+        # la CLI lancee par un agent refuse (elle demande une confirmation
+        # qu'un agent ne peut pas donner) ; avec lui, un SELECT passe seul.
+        ["npx", "supabase", "db", "query", "--linked", "--read-only",
+         "--output-format", "json", sql],
         capture_output=True, text=True, check=False,
     ).stdout
     starts = [i for i in (out.find("["), out.find("{")) if i >= 0]
@@ -186,12 +190,26 @@ for r in q(f"""select n.nspname s, c.relname t, p.polname, p.polpermissive perm,
 w("-- Droits : on part de zero, puis on rejoue exactement ceux de la production.")
 for (s, t) in list(tables.keys()) + [(v["s"], v["v"]) for v in views]:
     w(f"revoke all on {s}.{ident(t)} from public, anon, authenticated, service_role;")
-for r in q(f"""select table_schema s, table_name t, grantee g,
-    string_agg(privilege_type, ', ') privs
-  from information_schema.role_table_grants
-  where table_schema in {IN} and grantee in ('anon','authenticated','service_role')
-  group by 1,2,3"""):
-    w(f"grant {r['privs']} on {r['s']}.{ident(r['t'])} to {r['g']};")
+# Droits de table/vue : calcules via has_table_privilege, role par role, et non
+# via information_schema.role_table_grants. Cette derniere ne montre que les
+# droits VISIBLES du role qui interroge : lancee ici, elle rendait zero ligne
+# pour post_likes alors que `authenticated` y a bien INSERT en production, d'ou
+# un « permission denied » dans le schema rejoue. has_table_privilege rend le
+# droit reellement effectif, comme on le fait deja pour les fonctions.
+rels = list(tables.keys()) + [(v["s"], v["v"]) for v in views]
+rel_values = ",".join(f"('{s}','{t}')" for (s, t) in rels)
+for r in q(f"""
+  with r(s, t) as (values {rel_values})
+  select s, t, role,
+    has_table_privilege(role, format('%I.%I', s, t), 'SELECT') sel,
+    has_table_privilege(role, format('%I.%I', s, t), 'INSERT') ins,
+    has_table_privilege(role, format('%I.%I', s, t), 'UPDATE') upd,
+    has_table_privilege(role, format('%I.%I', s, t), 'DELETE') del
+  from r, unnest(array['anon','authenticated','service_role']) role"""):
+    privs = [p for p, ok in (("select", r["sel"]), ("insert", r["ins"]),
+                             ("update", r["upd"]), ("delete", r["del"])) if ok]
+    if privs:
+        w(f"grant {', '.join(privs)} on {r['s']}.{ident(r['t'])} to {r['role']};")
 
 # ── Droits : fonctions ─────────────────────────────────────────────────────
 for r in q(f"""select p.oid::regprocedure::text sig,

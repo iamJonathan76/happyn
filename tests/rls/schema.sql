@@ -120,6 +120,13 @@ create table private."payout_hold_alerts" (
   "sent_at" timestamp with time zone not null
 );
 
+create table private."rate_limits" (
+  "action" text not null,
+  "subject" text not null,
+  "window_start" timestamp with time zone not null,
+  "hits" integer not null
+);
+
 create table private."rating_requests" (
   "event_id" uuid not null,
   "sent_at" timestamp with time zone not null
@@ -394,7 +401,8 @@ create table public."profiles" (
   "date_of_birth" date,
   "is_admin" boolean not null,
   "suspended_at" timestamp with time zone,
-  "language" text
+  "language" text,
+  "push_enabled" boolean not null
 );
 
 create table public."reports" (
@@ -1100,7 +1108,7 @@ AS $function$
     select 1 from public.events e
     where e.id = p_event
       and (
-        coalesce(e.visibility, 'public') = 'public'
+        (coalesce(e.visibility, 'public') = 'public' and e.status = 'published')
         or e.created_by = auth.uid()
         or public.user_holds_ticket_for(e.id)
       )
@@ -2259,6 +2267,50 @@ begin
 end;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.notify_post_like()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_author uuid;
+  v_name   text;
+  v_lang   text;
+begin
+  select p.author_id into v_author from public.posts p where p.id = new.post_id;
+
+  if v_author is null
+     or v_author = new.user_id
+     or public.blocked_either_way(v_author, new.user_id) then
+    return new;
+  end if;
+
+  select coalesce(nullif(trim(p.full_name), ''), p.username, 'HAPPYN')
+    into v_name
+  from public.profiles p where p.id = new.user_id;
+
+  select p.language into v_lang from public.profiles p where p.id = v_author;
+
+  delete from public.notifications
+  where user_id = v_author
+    and type = 'post_like'
+    and post_id = new.post_id
+    and read = false;
+
+  insert into public.notifications (user_id, type, title, body, post_id)
+  values (
+    v_author,
+    'post_like',
+    coalesce(v_name, 'HAPPYN'),
+    case when v_lang = 'fr' then 'A aimé ton moment' else 'Liked your moment' end,
+    new.post_id
+  );
+
+  return new;
+end;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.organizer_attendees(p_event uuid)
  RETURNS TABLE(ticket_id uuid, full_name text, avatar_url text, type_name text, status text, purchased_at timestamp with time zone)
  LANGUAGE plpgsql
@@ -2866,6 +2918,66 @@ begin
 end;
 $function$;
 
+CREATE OR REPLACE FUNCTION private.rl_free_tickets()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if new.payment_intent_id is null and auth.uid() is not null then
+    perform private.rl_hit('free_tickets', auth.uid()::text, 30, interval '1 hour');
+  end if;
+  return new;
+end $function$;
+
+CREATE OR REPLACE FUNCTION private.rl_hit(p_action text, p_subject text, p_limit integer, p_window interval)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_window timestamptz := date_bin(p_window, now(), timestamptz 'epoch');
+  v_hits   integer;
+begin
+  insert into private.rate_limits (action, subject, window_start, hits)
+  values (p_action, p_subject, v_window, 1)
+  on conflict (action, subject, window_start)
+  do update set hits = private.rate_limits.hits + 1
+  returning hits into v_hits;
+
+  if v_hits > p_limit then
+    raise exception 'rate_limited';
+  end if;
+end $function$;
+
+CREATE OR REPLACE FUNCTION private.rl_new_conversation()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if auth.uid() is not null then
+    perform private.rl_hit('new_conversation', auth.uid()::text, 20, interval '1 hour');
+  end if;
+  return new;
+end $function$;
+
+CREATE OR REPLACE FUNCTION private.rl_reports()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if auth.uid() is not null then
+    perform private.rl_hit('report', auth.uid()::text, 5, interval '1 hour');
+  end if;
+  return new;
+end $function$;
+
 CREATE OR REPLACE FUNCTION public.rls_auto_enable()
  RETURNS event_trigger
  LANGUAGE plpgsql
@@ -3401,6 +3513,10 @@ declare
   v_code  text := upper(trim(p_code));
   v_event uuid;
 begin
+  if auth.uid() is not null then
+    perform private.rl_hit('unlock', auth.uid()::text, 10, interval '1 hour');
+  end if;
+
   select id into v_event
   from public.events
   where visibility = 'private'
@@ -3417,8 +3533,8 @@ begin
     on conflict do nothing;
   end if;
 
-  -- L'adresse précise n'est PAS ici : elle est dans `event_addresses`, dont la
-  -- policy exige un billet. Déverrouiller donne accès à l'événement, pas à son
+  -- L'adresse precise n'est PAS ici : elle est dans event_addresses, dont la
+  -- policy exige un billet. Deverrouiller donne acces a l'evenement, pas a son
   -- emplacement exact.
   return query select * from public.events where id = v_event;
 end;
@@ -3510,6 +3626,8 @@ AS $function$
 $function$;
 
 alter table private."payout_hold_alerts" alter column "sent_at" set default now();
+
+alter table private."rate_limits" alter column "hits" set default 0;
 
 alter table private."rating_requests" alter column "sent_at" set default now();
 
@@ -3649,6 +3767,8 @@ alter table public."profiles" alter column "onboarded" set default false;
 
 alter table public."profiles" alter column "is_admin" set default false;
 
+alter table public."profiles" alter column "push_enabled" set default true;
+
 alter table public."reports" alter column "id" set default gen_random_uuid();
 
 alter table public."reports" alter column "status" set default 'pending'::text;
@@ -3687,11 +3807,11 @@ alter table public."user_legal_acceptances" alter column "id" set default gen_ra
 
 alter table public."user_legal_acceptances" alter column "accepted_at" set default now();
 
-alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_pkey" PRIMARY KEY (id);
-
-alter table public."event_addresses" add constraint "event_addresses_pkey" PRIMARY KEY (event_id);
+alter table public."post_likes" add constraint "post_likes_pkey" PRIMARY KEY (post_id, user_id);
 
 alter table private."payout_hold_alerts" add constraint "payout_hold_alerts_pkey" PRIMARY KEY (event_id);
+
+alter table public."event_addresses" add constraint "event_addresses_pkey" PRIMARY KEY (event_id);
 
 alter table public."posts" add constraint "posts_pkey" PRIMARY KEY (id);
 
@@ -3701,27 +3821,29 @@ alter table private."rating_requests" add constraint "rating_requests_pkey" PRIM
 
 alter table public."event_ratings" add constraint "event_ratings_pkey" PRIMARY KEY (id);
 
+alter table private."rate_limits" add constraint "rate_limits_pkey" PRIMARY KEY (action, subject, window_start);
+
 alter table public."app_status" add constraint "app_status_pkey" PRIMARY KEY (id);
 
 alter table public."legal_document_translations" add constraint "legal_document_translations_pkey" PRIMARY KEY (slug, locale);
 
-alter table public."post_comments" add constraint "post_comments_pkey" PRIMARY KEY (id);
-
 alter table public."events" add constraint "events_pkey" PRIMARY KEY (id);
+
+alter table public."post_comments" add constraint "post_comments_pkey" PRIMARY KEY (id);
 
 alter table private."settings" add constraint "settings_pkey" PRIMARY KEY (key);
 
 alter table public."direct_messages" add constraint "direct_messages_pkey" PRIMARY KEY (id);
 
-alter table public."payments" add constraint "payments_pkey" PRIMARY KEY (payment_intent_id);
-
 alter table public."ticket_types" add constraint "ticket_types_pkey" PRIMARY KEY (id);
 
-alter table public."direct_conversations" add constraint "direct_conversations_pkey" PRIMARY KEY (id);
+alter table public."payments" add constraint "payments_pkey" PRIMARY KEY (payment_intent_id);
 
 alter table public."tickets" add constraint "tickets_pkey" PRIMARY KEY (id);
 
 alter table public."payout_reviews" add constraint "payout_reviews_pkey" PRIMARY KEY (event_id);
+
+alter table public."direct_conversations" add constraint "direct_conversations_pkey" PRIMARY KEY (id);
 
 alter table public."event_payouts" add constraint "event_payouts_pkey" PRIMARY KEY (id);
 
@@ -3729,13 +3851,13 @@ alter table public."admin_actions" add constraint "admin_actions_pkey" PRIMARY K
 
 alter table public."device_tokens" add constraint "device_tokens_pkey" PRIMARY KEY (token);
 
-alter table public."event_attendance" add constraint "event_attendance_pkey" PRIMARY KEY (user_id, event_id);
-
 alter table public."profiles" add constraint "profiles_pkey" PRIMARY KEY (id);
 
 alter table public."categories" add constraint "categories_pkey" PRIMARY KEY (id);
 
 alter table public."reports" add constraint "reports_pkey" PRIMARY KEY (id);
+
+alter table public."event_attendance" add constraint "event_attendance_pkey" PRIMARY KEY (user_id, event_id);
 
 alter table public."notifications" add constraint "notifications_pkey" PRIMARY KEY (id);
 
@@ -3745,13 +3867,13 @@ alter table public."event_unlocks" add constraint "event_unlocks_pkey" PRIMARY K
 
 alter table public."cities" add constraint "cities_pkey" PRIMARY KEY (slug);
 
-alter table public."favorites" add constraint "favorites_pkey" PRIMARY KEY (id);
-
 alter table public."blocked_users" add constraint "blocked_users_pkey" PRIMARY KEY (blocker_id, blocked_id);
 
-alter table public."post_likes" add constraint "post_likes_pkey" PRIMARY KEY (post_id, user_id);
+alter table public."favorites" add constraint "favorites_pkey" PRIMARY KEY (id);
 
 alter table public."legal_documents" add constraint "legal_documents_pkey" PRIMARY KEY (slug);
+
+alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_pkey" PRIMARY KEY (id);
 
 alter table public."profiles" add constraint "profiles_email_key" UNIQUE (email);
 
@@ -3775,27 +3897,25 @@ alter table public."direct_conversations" add constraint "direct_conversations_m
 
 alter table public."event_ratings" add constraint "event_ratings_event_id_user_id_key" UNIQUE (event_id, user_id);
 
-alter table public."event_payouts" add constraint "event_payouts_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'paid'::text, 'failed'::text, 'skipped'::text])));
-
-alter table public."profiles" add constraint "profiles_language_check" CHECK ((language = ANY (ARRAY['en'::text, 'fr'::text])));
-
 alter table public."direct_conversations" add constraint "direct_conversation_members_ordered" CHECK ((member_a < member_b));
 
-alter table public."events" add constraint "events_posts_visibility_check" CHECK ((posts_visibility = ANY (ARRAY['invitees'::text, 'public'::text])));
+alter table public."reports" add constraint "reports_target_type_check" CHECK ((target_type = ANY (ARRAY['event'::text, 'user'::text, 'post'::text, 'message'::text, 'comment'::text])));
+
+alter table public."events" add constraint "events_status_check" CHECK ((status = ANY (ARRAY['published'::text, 'draft'::text, 'cancelled'::text])));
 
 alter table public."post_comments" add constraint "post_comment_body_length" CHECK (((char_length(TRIM(BOTH FROM body)) >= 1) AND (char_length(TRIM(BOTH FROM body)) <= 500)));
 
-alter table public."device_tokens" add constraint "device_tokens_platform_check" CHECK ((platform = ANY (ARRAY['android'::text, 'ios'::text])));
-
-alter table public."events" add constraint "events_min_age_check" CHECK ((min_age = ANY (ARRAY[0, 18, 21])));
-
 alter table public."payout_reviews" add constraint "payout_reviews_reason_check" CHECK ((char_length(reason) <= 300));
+
+alter table public."events" add constraint "events_posts_visibility_check" CHECK ((posts_visibility = ANY (ARRAY['invitees'::text, 'public'::text])));
+
+alter table public."reports" add constraint "reports_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'reviewed'::text, 'actioned'::text, 'dismissed'::text])));
 
 alter table public."legal_document_translations" add constraint "legal_document_translations_locale_check" CHECK ((locale = 'fr'::text));
 
-alter table public."blocked_users" add constraint "no_self_block" CHECK ((blocker_id <> blocked_id));
+alter table public."events" add constraint "events_min_age_check" CHECK ((min_age = ANY (ARRAY[0, 18, 21])));
 
-alter table public."reports" add constraint "reports_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'reviewed'::text, 'actioned'::text, 'dismissed'::text])));
+alter table public."tickets" add constraint "tickets_status_check" CHECK ((status = ANY (ARRAY['valid'::text, 'used'::text, 'expired'::text, 'refunded'::text])));
 
 alter table public."app_status" add constraint "app_status_id_check" CHECK (id);
 
@@ -3805,23 +3925,23 @@ alter table public."app_status" add constraint "app_status_message_fr_check" CHE
 
 alter table public."app_status" add constraint "app_status_min_version_check" CHECK ((min_version ~ '^\d+(\.\d+){0,2}$'::text));
 
-alter table public."events" add constraint "events_cancellation_hours_check" CHECK (((cancellation_hours >= 0) AND (cancellation_hours <= 720)));
-
 alter table public."event_attendance" add constraint "event_attendance_status_check" CHECK ((status = ANY (ARRAY['going'::text, 'attended'::text])));
+
+alter table public."blocked_users" add constraint "no_self_block" CHECK ((blocker_id <> blocked_id));
+
+alter table public."events" add constraint "events_cancellation_hours_check" CHECK (((cancellation_hours >= 0) AND (cancellation_hours <= 720)));
 
 alter table public."event_ratings" add constraint "event_ratings_comment_check" CHECK ((char_length(comment) <= 500));
 
-alter table public."reports" add constraint "reports_target_type_check" CHECK ((target_type = ANY (ARRAY['event'::text, 'user'::text, 'post'::text, 'message'::text, 'comment'::text])));
-
 alter table public."payout_reviews" add constraint "payout_reviews_decision_check" CHECK ((decision = ANY (ARRAY['released'::text, 'held'::text])));
+
+alter table public."direct_messages" add constraint "direct_message_body_length" CHECK (((char_length(body) <= 2000) AND ((char_length(TRIM(BOTH FROM body)) >= 1) OR (shared_kind IS NOT NULL))));
 
 alter table public."events" add constraint "event_ends_after_start" CHECK (((end_date IS NULL) OR (end_date >= start_date))) NOT VALID;
 
 alter table public."event_ratings" add constraint "event_ratings_stars_check" CHECK (((stars >= 1) AND (stars <= 5)));
 
 alter table public."event_ratings" add constraint "event_ratings_tags_check" CHECK ((cardinality(tags) <= 8));
-
-alter table public."direct_messages" add constraint "direct_message_body_length" CHECK (((char_length(body) <= 2000) AND ((char_length(TRIM(BOTH FROM body)) >= 1) OR (shared_kind IS NOT NULL))));
 
 alter table public."direct_messages" add constraint "direct_message_shared_kind" CHECK (
 CASE shared_kind
@@ -3837,23 +3957,25 @@ alter table public."follows" add constraint "no_self_follow" CHECK ((follower_id
 
 alter table public."posts" add constraint "post_not_empty" CHECK (((COALESCE(TRIM(BOTH FROM caption), ''::text) <> ''::text) OR (COALESCE(image_url, ''::text) <> ''::text) OR (COALESCE(video_url, ''::text) <> ''::text)));
 
-alter table public."tickets" add constraint "tickets_status_check" CHECK ((status = ANY (ARRAY['valid'::text, 'used'::text, 'expired'::text, 'refunded'::text])));
+alter table public."device_tokens" add constraint "device_tokens_platform_check" CHECK ((platform = ANY (ARRAY['android'::text, 'ios'::text])));
 
-alter table public."events" add constraint "events_status_check" CHECK ((status = ANY (ARRAY['published'::text, 'draft'::text, 'cancelled'::text])));
+alter table public."event_payouts" add constraint "event_payouts_status_check" CHECK ((status = ANY (ARRAY['pending'::text, 'paid'::text, 'failed'::text, 'skipped'::text])));
 
 alter table public."posts" add constraint "posts_image_aspect_range" CHECK (((image_aspect IS NULL) OR ((image_aspect >= (0.2)::double precision) AND (image_aspect <= (5)::double precision))));
 
-alter table public."payments" add constraint "payments_organizer_id_fkey" FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."profiles" add constraint "profiles_language_check" CHECK ((language = ANY (ARRAY['en'::text, 'fr'::text])));
 
-alter table public."ticket_types" add constraint "ticket_types_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+alter table public."tickets" add constraint "tickets_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id);
 
 alter table public."direct_messages" add constraint "direct_messages_conversation_id_fkey" FOREIGN KEY (conversation_id) REFERENCES direct_conversations(id) ON DELETE CASCADE;
 
 alter table public."direct_messages" add constraint "direct_messages_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL;
 
-alter table public."follows" add constraint "follows_follower_id_fkey" FOREIGN KEY (follower_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."ticket_types" add constraint "ticket_types_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."direct_messages" add constraint "direct_messages_sender_id_fkey" FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."direct_messages" add constraint "direct_messages_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE SET NULL;
+
+alter table public."event_addresses" add constraint "event_addresses_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
 alter table public."direct_messages" add constraint "direct_messages_ticket_id_fkey" FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE SET NULL;
 
@@ -3861,9 +3983,9 @@ alter table public."post_comments" add constraint "post_comments_author_id_fkey"
 
 alter table public."post_comments" add constraint "post_comments_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
 
-alter table public."events" add constraint "events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
 alter table public."legal_document_translations" add constraint "legal_document_translations_slug_fkey" FOREIGN KEY (slug) REFERENCES legal_documents(slug) ON DELETE CASCADE;
+
+alter table public."events" add constraint "events_created_by_fkey" FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."app_status" add constraint "app_status_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 
@@ -3875,15 +3997,15 @@ alter table public."event_ratings" add constraint "event_ratings_user_id_fkey" F
 
 alter table private."rating_requests" add constraint "rating_requests_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."follows" add constraint "follows_following_id_fkey" FOREIGN KEY (following_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
 alter table public."posts" add constraint "posts_author_id_fkey" FOREIGN KEY (author_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."posts" add constraint "posts_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."direct_messages" add constraint "direct_messages_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE SET NULL;
+alter table public."follows" add constraint "follows_following_id_fkey" FOREIGN KEY (following_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public."event_addresses" add constraint "event_addresses_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+alter table public."direct_messages" add constraint "direct_messages_sender_id_fkey" FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."follows" add constraint "follows_follower_id_fkey" FOREIGN KEY (follower_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."user_legal_acceptances" add constraint "user_legal_acceptances_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -3893,13 +4015,13 @@ alter table public."post_likes" add constraint "post_likes_user_id_fkey" FOREIGN
 
 alter table public."favorites" add constraint "favorites_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."blocked_users" add constraint "blocked_users_blocker_id_fkey" FOREIGN KEY (blocker_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
 alter table public."favorites" add constraint "favorites_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public."blocked_users" add constraint "blocked_users_blocked_id_fkey" FOREIGN KEY (blocked_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public."blocked_users" add constraint "blocked_users_blocker_id_fkey" FOREIGN KEY (blocker_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."event_unlocks" add constraint "event_unlocks_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
+
+alter table public."blocked_users" add constraint "blocked_users_blocked_id_fkey" FOREIGN KEY (blocked_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."event_unlocks" add constraint "event_unlocks_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -3911,37 +4033,37 @@ alter table public."notifications" add constraint "notifications_conversation_id
 
 alter table public."notifications" add constraint "notifications_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL;
 
-alter table public."reports" add constraint "reports_reporter_id_fkey" FOREIGN KEY (reporter_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
 alter table public."notifications" add constraint "notifications_post_id_fkey" FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
 
 alter table public."notifications" add constraint "notifications_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."event_attendance" add constraint "event_attendance_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE;
 
-alter table public."tickets" add constraint "tickets_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."reports" add constraint "reports_reporter_id_fkey" FOREIGN KEY (reporter_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."event_attendance" add constraint "event_attendance_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public."tickets" add constraint "tickets_transferred_from_fkey" FOREIGN KEY (transferred_from) REFERENCES auth.users(id) ON DELETE SET NULL;
+alter table public."tickets" add constraint "tickets_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."device_tokens" add constraint "device_tokens_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public."admin_actions" add constraint "admin_actions_admin_id_fkey" FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."tickets" add constraint "tickets_ticket_type_id_fkey" FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(id);
+alter table public."tickets" add constraint "tickets_transferred_from_fkey" FOREIGN KEY (transferred_from) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."admin_actions" add constraint "admin_actions_report_id_fkey" FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE SET NULL;
 
 alter table public."event_payouts" add constraint "event_payouts_organizer_id_fkey" FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
+alter table public."tickets" add constraint "tickets_ticket_type_id_fkey" FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(id);
+
 alter table public."direct_conversations" add constraint "direct_conversations_member_a_fkey" FOREIGN KEY (member_a) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public."direct_conversations" add constraint "direct_conversations_member_b_fkey" FOREIGN KEY (member_b) REFERENCES auth.users(id) ON DELETE SET NULL;
 
-alter table public."tickets" add constraint "tickets_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id);
-
 alter table public."payments" add constraint "payments_buyer_id_fkey" FOREIGN KEY (buyer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public."payments" add constraint "payments_organizer_id_fkey" FOREIGN KEY (organizer_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 create or replace view public."public_profiles" as  SELECT id,
     full_name,
@@ -3984,8 +4106,6 @@ create or replace view public."feed_posts" as  SELECT p.id,
   WHERE (((COALESCE(e.status, 'published'::text) <> 'draft'::text) OR can_attach_event(p.event_id)) AND ((COALESCE(e.posts_visibility, 'public'::text) = 'public'::text) OR can_attach_event(p.event_id)));
 
 CREATE INDEX event_ratings_event_idx ON public.event_ratings USING btree (event_id);
-
-CREATE UNIQUE INDEX categories_name_unique ON public.categories USING btree (name);
 
 CREATE INDEX payments_event_idx ON public.payments USING btree (event_id);
 
@@ -4057,6 +4177,14 @@ CREATE TRIGGER profiles_guard_suspension BEFORE UPDATE OF suspended_at ON public
 
 CREATE TRIGGER profiles_guard_birth_date BEFORE INSERT OR UPDATE OF date_of_birth ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_guard_birth_date();
 
+CREATE TRIGGER notify_on_post_like AFTER INSERT ON public.post_likes FOR EACH ROW EXECUTE FUNCTION notify_post_like();
+
+CREATE TRIGGER rl_reports_before BEFORE INSERT ON public.reports FOR EACH ROW EXECUTE FUNCTION private.rl_reports();
+
+CREATE TRIGGER rl_new_conversation_before BEFORE INSERT ON public.direct_conversations FOR EACH ROW EXECUTE FUNCTION private.rl_new_conversation();
+
+CREATE TRIGGER rl_free_tickets_before BEFORE INSERT ON public.tickets FOR EACH ROW EXECUTE FUNCTION private.rl_free_tickets();
+
 alter table public."profiles" enable row level security;
 
 alter table public."events" enable row level security;
@@ -4117,167 +4245,169 @@ alter table public."event_ratings" enable row level security;
 
 alter table public."payout_reviews" enable row level security;
 
-create policy "Users can view own profile" on public."profiles" as permissive for select to public using ((auth.uid() = id));
-
-create policy "Users can insert own profile" on public."profiles" as permissive for insert to public with check ((auth.uid() = id));
-
-create policy "Users can update own profile" on public."profiles" as permissive for update to public using ((auth.uid() = id));
-
 create policy "Public can read categories" on public."categories" as permissive for select to public using (true);
 
 create policy "events images are public" on storage."objects" as permissive for select to public using ((bucket_id = 'events'::text));
 
-create policy "own acceptances select" on public."user_legal_acceptances" as permissive for select to authenticated using ((auth.uid() = user_id));
+create policy "own likes insert" on public."post_likes" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = user_id));
 
-create policy "own likes insert" on public."post_likes" as permissive for insert to authenticated with check ((auth.uid() = user_id));
+create policy "Users can insert own profile" on public."profiles" as permissive for insert to public with check ((( SELECT auth.uid() AS uid) = id));
 
-create policy "users upload own event images" on storage."objects" as permissive for insert to authenticated with check (((bucket_id = 'events'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
-
-create policy "users update own event images" on storage."objects" as permissive for update to authenticated using (((bucket_id = 'events'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
-
-create policy "users delete own event images" on storage."objects" as permissive for delete to authenticated using (((bucket_id = 'events'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
+create policy "Users can view own profile" on public."profiles" as permissive for select to public using ((( SELECT auth.uid() AS uid) = id));
 
 create policy "categories are public" on public."categories" as permissive for select to public using (true);
 
-create policy "own favorites select" on public."favorites" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "own favorites insert" on public."favorites" as permissive for insert to authenticated with check ((auth.uid() = user_id));
-
-create policy "own favorites delete" on public."favorites" as permissive for delete to authenticated using ((auth.uid() = user_id));
-
 create policy "avatars are public" on storage."objects" as permissive for select to public using ((bucket_id = 'avatars'::text));
-
-create policy "users upload own avatar" on storage."objects" as permissive for insert to authenticated with check (((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
-
-create policy "users update own avatar" on storage."objects" as permissive for update to authenticated using (((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
-
-create policy "users delete own avatar" on storage."objects" as permissive for delete to authenticated using (((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
-
-create policy "own notifs select" on public."notifications" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "own notifs update" on public."notifications" as permissive for update to authenticated using ((auth.uid() = user_id));
-
-create policy "own profile select" on public."profiles" as permissive for select to authenticated using ((auth.uid() = id));
-
-create policy "own profile insert" on public."profiles" as permissive for insert to authenticated with check ((auth.uid() = id));
-
-create policy "own profile update" on public."profiles" as permissive for update to authenticated using ((auth.uid() = id));
 
 create policy "legal readable by all" on public."legal_documents" as permissive for select to authenticated, anon using (true);
 
 create policy "addresses readable when allowed" on public."event_addresses" as permissive for select to authenticated, anon using (can_see_exact_address(event_id));
 
-create policy "own reports insert" on public."reports" as permissive for insert to authenticated with check ((auth.uid() = reporter_id));
-
-create policy "own reports select" on public."reports" as permissive for select to authenticated using ((auth.uid() = reporter_id));
-
-create policy "own blocks select" on public."blocked_users" as permissive for select to authenticated using ((auth.uid() = blocker_id));
-
-create policy "own blocks insert" on public."blocked_users" as permissive for insert to authenticated with check ((auth.uid() = blocker_id));
-
-create policy "own blocks delete" on public."blocked_users" as permissive for delete to authenticated using ((auth.uid() = blocker_id));
-
 create policy "follows readable" on public."follows" as permissive for select to authenticated, anon using (true);
 
-create policy "own follows insert" on public."follows" as permissive for insert to authenticated with check ((auth.uid() = follower_id));
+create policy "own blocks insert" on public."blocked_users" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = blocker_id));
 
-create policy "own follows delete" on public."follows" as permissive for delete to authenticated using ((auth.uid() = follower_id));
-
-create policy "own posts delete" on public."posts" as permissive for delete to authenticated using ((auth.uid() = author_id));
-
-create policy "own likes delete" on public."post_likes" as permissive for delete to authenticated using ((auth.uid() = user_id));
+create policy "own blocks select" on public."blocked_users" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = blocker_id));
 
 create policy "post images are public" on storage."objects" as permissive for select to authenticated, anon using ((bucket_id = 'posts'::text));
 
-create policy "users upload own post images" on storage."objects" as permissive for insert to authenticated with check (((bucket_id = 'posts'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
-
-create policy "users delete own post images" on storage."objects" as permissive for delete to authenticated using (((bucket_id = 'posts'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)));
-
-create policy "own attendance select" on public."event_attendance" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "own tokens upsert" on public."device_tokens" as permissive for insert to authenticated with check ((auth.uid() = user_id));
-
-create policy "own tokens update" on public."device_tokens" as permissive for update to authenticated using ((auth.uid() = user_id));
-
-create policy "Users can update own events" on public."events" as permissive for update to authenticated using ((auth.uid() = created_by));
-
-create policy "Users can delete own events" on public."events" as permissive for delete to authenticated using ((auth.uid() = created_by));
-
-create policy "Users see their own tickets" on public."tickets" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "Organizers can manage ticket types" on public."ticket_types" as permissive for all to authenticated using ((auth.uid() = ( SELECT e.created_by
-   FROM events e
-  WHERE (e.id = ticket_types.event_id))));
-
-create policy "own unlocks readable" on public."event_unlocks" as permissive for select to authenticated using ((auth.uid() = user_id));
+create policy "own tokens upsert" on public."device_tokens" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = user_id));
 
 create policy "Anyone can view ticket types" on public."ticket_types" as permissive for select to authenticated, anon using (event_is_readable(event_id));
 
-create policy "own posts insert" on public."posts" as permissive for insert to authenticated with check (((auth.uid() = author_id) AND can_attach_event(event_id) AND (NOT is_suspended())));
-
-create policy "own tokens select" on public."device_tokens" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "organizer writes address" on public."event_addresses" as permissive for all to authenticated using ((auth.uid() = ( SELECT e.created_by
-   FROM events e
-  WHERE (e.id = event_addresses.event_id))));
+create policy "own tokens select" on public."device_tokens" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
 
 create policy "cities readable" on public."cities" as permissive for select to authenticated, anon using (true);
-
-create policy "own posts update" on public."posts" as permissive for update to authenticated using (((auth.uid() = author_id) AND (NOT is_suspended()))) with check (((auth.uid() = author_id) AND (NOT is_suspended())));
-
-create policy "own stripe account read" on public."stripe_accounts" as permissive for select to authenticated using ((auth.uid() = user_id));
-
-create policy "own payouts read" on public."event_payouts" as permissive for select to authenticated using ((auth.uid() = organizer_id));
 
 create policy "conversation participants can read" on public."direct_conversations" as permissive for select to authenticated using (can_access_direct_conversation(id));
 
 create policy "conversation participants can read messages" on public."direct_messages" as permissive for select to authenticated using (can_access_direct_conversation(conversation_id));
 
-create policy "comments readable" on public."post_comments" as permissive for select to authenticated using (((EXISTS ( SELECT 1
-   FROM posts p
-  WHERE ((p.id = post_comments.post_id) AND (event_posts_are_public(p.event_id) OR can_attach_event(p.event_id))))) AND (NOT blocked_either_way(auth.uid(), author_id))));
+create policy "own payouts read" on public."event_payouts" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = organizer_id));
 
-create policy "own comments insert" on public."post_comments" as permissive for insert to authenticated with check (((author_id = auth.uid()) AND (NOT is_suspended()) AND (EXISTS ( SELECT 1
-   FROM posts p
-  WHERE ((p.id = post_comments.post_id) AND (NOT p.comments_disabled) AND (event_posts_are_public(p.event_id) OR can_attach_event(p.event_id)) AND (NOT blocked_either_way(auth.uid(), p.author_id)))))));
-
-create policy "own or post author comments delete" on public."post_comments" as permissive for delete to authenticated using (((author_id = auth.uid()) OR (EXISTS ( SELECT 1
-   FROM posts p
-  WHERE ((p.id = post_comments.post_id) AND (p.author_id = auth.uid()))))));
-
-create policy "events readable" on public."events" as permissive for select to authenticated, anon using ((((COALESCE(visibility, 'public'::text) = 'public'::text) AND (COALESCE(status, 'published'::text) <> 'draft'::text)) OR (created_by = auth.uid()) OR user_holds_ticket_for(id)));
+create policy "own stripe account read" on public."stripe_accounts" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
 
 create policy "posts readable" on public."posts" as permissive for select to authenticated using ((event_posts_are_public(event_id) OR can_attach_event(event_id)));
+
+create policy "comments readable" on public."post_comments" as permissive for select to authenticated using (((EXISTS ( SELECT 1
+   FROM posts p
+  WHERE ((p.id = post_comments.post_id) AND (event_posts_are_public(p.event_id) OR can_attach_event(p.event_id))))) AND (NOT blocked_either_way(( SELECT auth.uid() AS uid), author_id))));
 
 create policy "likes readable" on public."post_likes" as permissive for select to authenticated using ((EXISTS ( SELECT 1
    FROM posts p
   WHERE ((p.id = post_likes.post_id) AND (event_posts_are_public(p.event_id) OR can_attach_event(p.event_id))))));
 
-create policy "Authenticated users can create events" on public."events" as permissive for insert to authenticated with check (((auth.uid() = created_by) AND (NOT is_suspended()) AND i_meet_age(18)));
-
 create policy "legal translations readable by all" on public."legal_document_translations" as permissive for select to authenticated, anon using (true);
-
-create policy "own notifs delete" on public."notifications" as permissive for delete to authenticated using ((auth.uid() = user_id));
-
-create policy "conversation participants can send messages" on public."direct_messages" as permissive for insert to authenticated with check (((sender_id = auth.uid()) AND can_access_direct_conversation(conversation_id) AND direct_conversation_is_open(conversation_id) AND (shared_kind IS DISTINCT FROM 'ticket'::text)));
 
 create policy "app status readable by all" on public."app_status" as permissive for select to authenticated, anon using (true);
 
-create policy "own tokens delete" on public."device_tokens" as permissive for delete to authenticated using ((auth.uid() = user_id));
+create policy "conversation participants can send messages" on public."direct_messages" as permissive for insert to authenticated with check (((sender_id = ( SELECT auth.uid() AS uid)) AND can_access_direct_conversation(conversation_id) AND direct_conversation_is_open(conversation_id) AND (shared_kind IS DISTINCT FROM 'ticket'::text)));
 
 create policy "event videos readable by attendees" on storage."objects" as permissive for select to authenticated using (((bucket_id = 'event-videos'::text) AND (EXISTS ( SELECT 1
    FROM events e
   WHERE (((e.id)::text = (storage.foldername(objects.name))[1]) AND (((COALESCE(e.status, 'published'::text) <> 'draft'::text) AND event_posts_are_public(e.id)) OR can_attach_event(e.id)))))));
 
-create policy "owners delete event videos" on storage."objects" as permissive for delete to authenticated using (((bucket_id = 'event-videos'::text) AND ((storage.foldername(name))[2] = (auth.uid())::text)));
+create policy "own blocks delete" on public."blocked_users" as permissive for delete to authenticated using ((( SELECT auth.uid() AS uid) = blocker_id));
 
-create policy "attendees upload event videos" on storage."objects" as permissive for insert to authenticated with check (((bucket_id = 'event-videos'::text) AND ((storage.foldername(name))[2] = (auth.uid())::text) AND (EXISTS ( SELECT 1
+create policy "own tokens delete" on public."device_tokens" as permissive for delete to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own tokens update" on public."device_tokens" as permissive for update to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "organizer writes address" on public."event_addresses" as permissive for all to authenticated using ((( SELECT auth.uid() AS uid) = ( SELECT e.created_by
+   FROM events e
+  WHERE (e.id = event_addresses.event_id))));
+
+create policy "own attendance select" on public."event_attendance" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own unlocks readable" on public."event_unlocks" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "Authenticated users can create events" on public."events" as permissive for insert to authenticated with check (((( SELECT auth.uid() AS uid) = created_by) AND (NOT is_suspended()) AND i_meet_age(18)));
+
+create policy "Users can delete own events" on public."events" as permissive for delete to authenticated using ((( SELECT auth.uid() AS uid) = created_by));
+
+create policy "Users can update own events" on public."events" as permissive for update to authenticated using ((( SELECT auth.uid() AS uid) = created_by));
+
+create policy "events readable" on public."events" as permissive for select to authenticated, anon using ((((COALESCE(visibility, 'public'::text) = 'public'::text) AND (COALESCE(status, 'published'::text) <> 'draft'::text)) OR (created_by = ( SELECT auth.uid() AS uid)) OR user_holds_ticket_for(id)));
+
+create policy "own favorites delete" on public."favorites" as permissive for delete to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own favorites insert" on public."favorites" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own favorites select" on public."favorites" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own follows delete" on public."follows" as permissive for delete to authenticated using ((( SELECT auth.uid() AS uid) = follower_id));
+
+create policy "own follows insert" on public."follows" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = follower_id));
+
+create policy "own notifs delete" on public."notifications" as permissive for delete to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own notifs select" on public."notifications" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own notifs update" on public."notifications" as permissive for update to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own comments insert" on public."post_comments" as permissive for insert to authenticated with check (((author_id = ( SELECT auth.uid() AS uid)) AND (NOT is_suspended()) AND (EXISTS ( SELECT 1
+   FROM posts p
+  WHERE ((p.id = post_comments.post_id) AND (NOT p.comments_disabled) AND (event_posts_are_public(p.event_id) OR can_attach_event(p.event_id)) AND (NOT blocked_either_way(( SELECT auth.uid() AS uid), p.author_id)))))));
+
+create policy "own or post author comments delete" on public."post_comments" as permissive for delete to authenticated using (((author_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1
+   FROM posts p
+  WHERE ((p.id = post_comments.post_id) AND (p.author_id = ( SELECT auth.uid() AS uid)))))));
+
+create policy "own likes delete" on public."post_likes" as permissive for delete to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own posts delete" on public."posts" as permissive for delete to authenticated using ((( SELECT auth.uid() AS uid) = author_id));
+
+create policy "own posts insert" on public."posts" as permissive for insert to authenticated with check (((( SELECT auth.uid() AS uid) = author_id) AND can_attach_event(event_id) AND (NOT is_suspended())));
+
+create policy "own reports insert" on public."reports" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = reporter_id));
+
+create policy "own posts update" on public."posts" as permissive for update to authenticated using (((( SELECT auth.uid() AS uid) = author_id) AND (NOT is_suspended()))) with check (((( SELECT auth.uid() AS uid) = author_id) AND (NOT is_suspended())));
+
+create policy "Users can update own profile" on public."profiles" as permissive for update to public using ((( SELECT auth.uid() AS uid) = id));
+
+create policy "own profile insert" on public."profiles" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = id));
+
+create policy "own profile select" on public."profiles" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = id));
+
+create policy "own profile update" on public."profiles" as permissive for update to authenticated using ((( SELECT auth.uid() AS uid) = id));
+
+create policy "own reports select" on public."reports" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = reporter_id));
+
+create policy "Organizers can manage ticket types" on public."ticket_types" as permissive for all to authenticated using ((( SELECT auth.uid() AS uid) = ( SELECT e.created_by
+   FROM events e
+  WHERE (e.id = ticket_types.event_id))));
+
+create policy "Users see their own tickets" on public."tickets" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "own acceptances select" on public."user_legal_acceptances" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = user_id));
+
+create policy "attendees upload event videos" on storage."objects" as permissive for insert to authenticated with check (((bucket_id = 'event-videos'::text) AND ((storage.foldername(name))[2] = (( SELECT auth.uid() AS uid))::text) AND (EXISTS ( SELECT 1
    FROM events e
   WHERE (((e.id)::text = (storage.foldername(objects.name))[1]) AND can_attach_event(e.id))))));
+
+create policy "owners delete event videos" on storage."objects" as permissive for delete to authenticated using (((bucket_id = 'event-videos'::text) AND ((storage.foldername(name))[2] = (( SELECT auth.uid() AS uid))::text)));
+
+create policy "users delete own avatar" on storage."objects" as permissive for delete to authenticated using (((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
+
+create policy "users delete own event images" on storage."objects" as permissive for delete to authenticated using (((bucket_id = 'events'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
+
+create policy "users delete own post images" on storage."objects" as permissive for delete to authenticated using (((bucket_id = 'posts'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
+
+create policy "users update own avatar" on storage."objects" as permissive for update to authenticated using (((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
+
+create policy "users update own event images" on storage."objects" as permissive for update to authenticated using (((bucket_id = 'events'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
+
+create policy "users upload own avatar" on storage."objects" as permissive for insert to authenticated with check (((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
+
+create policy "users upload own event images" on storage."objects" as permissive for insert to authenticated with check (((bucket_id = 'events'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
+
+create policy "users upload own post images" on storage."objects" as permissive for insert to authenticated with check (((bucket_id = 'posts'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
 
 -- Droits : on part de zero, puis on rejoue exactement ceux de la production.
 
 revoke all on private."payout_hold_alerts" from public, anon, authenticated, service_role;
+
+revoke all on private."rate_limits" from public, anon, authenticated, service_role;
 
 revoke all on private."rating_requests" from public, anon, authenticated, service_role;
 
@@ -4347,177 +4477,169 @@ revoke all on public."public_profiles" from public, anon, authenticated, service
 
 revoke all on public."feed_posts" from public, anon, authenticated, service_role;
 
-grant SELECT, TRIGGER, REFERENCES, UPDATE, DELETE, TRUNCATE, INSERT on public."admin_actions" to anon;
+grant select, insert, update, delete on public."admin_actions" to anon;
 
-grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."admin_actions" to authenticated;
+grant select on public."app_status" to anon;
 
-grant SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT on public."admin_actions" to service_role;
+grant select, insert, update, delete on public."blocked_users" to anon;
 
-grant SELECT on public."app_status" to anon;
+grant select, insert, update, delete on public."categories" to anon;
 
-grant SELECT on public."app_status" to authenticated;
+grant select, insert, update, delete on public."cities" to anon;
 
-grant DELETE, TRUNCATE, REFERENCES, TRIGGER, SELECT, INSERT, UPDATE on public."app_status" to service_role;
+grant select, insert, update, delete on public."device_tokens" to anon;
 
-grant TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, REFERENCES on public."blocked_users" to anon;
+grant select, insert, update, delete on public."event_addresses" to anon;
 
-grant DELETE, TRIGGER, REFERENCES, TRUNCATE, UPDATE, SELECT, INSERT on public."blocked_users" to authenticated;
+grant select, insert, update, delete on public."event_attendance" to anon;
 
-grant UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT on public."blocked_users" to service_role;
+grant select on public."event_payouts" to anon;
 
-grant TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES on public."categories" to anon;
+grant select, insert, update, delete on public."event_unlocks" to anon;
 
-grant TRIGGER, SELECT, UPDATE, DELETE, INSERT, TRUNCATE, REFERENCES on public."categories" to authenticated;
+grant select, insert, update, delete on public."events" to anon;
 
-grant UPDATE, DELETE, TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT on public."categories" to service_role;
+grant select, insert, update, delete on public."favorites" to anon;
 
-grant SELECT, UPDATE, TRIGGER, DELETE, TRUNCATE, REFERENCES, INSERT on public."cities" to anon;
+grant select, insert, update, delete on public."follows" to anon;
 
-grant REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER on public."cities" to authenticated;
+grant select on public."legal_document_translations" to anon;
 
-grant TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, REFERENCES on public."cities" to service_role;
+grant select, insert, update, delete on public."legal_documents" to anon;
 
-grant UPDATE, SELECT, DELETE, TRUNCATE, REFERENCES, INSERT, TRIGGER on public."device_tokens" to anon;
+grant select, insert, update, delete on public."notifications" to anon;
 
-grant REFERENCES, INSERT, TRIGGER, TRUNCATE, DELETE, UPDATE, SELECT on public."device_tokens" to authenticated;
+grant select, insert, update, delete on public."post_likes" to anon;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."device_tokens" to service_role;
+grant select, insert, update, delete on public."posts" to anon;
 
-grant SELECT on public."direct_conversations" to authenticated;
+grant select, insert, update, delete on public."profiles" to anon;
 
-grant REFERENCES, UPDATE, DELETE, TRUNCATE, TRIGGER, INSERT, SELECT on public."direct_conversations" to service_role;
+grant select, insert, update, delete on public."reports" to anon;
 
-grant SELECT, INSERT on public."direct_messages" to authenticated;
+grant select on public."stripe_accounts" to anon;
 
-grant REFERENCES, UPDATE, INSERT, SELECT, TRUNCATE, DELETE, TRIGGER on public."direct_messages" to service_role;
+grant select, insert, update, delete on public."ticket_types" to anon;
 
-grant DELETE, INSERT, SELECT, UPDATE, TRUNCATE, REFERENCES, TRIGGER on public."event_addresses" to anon;
+grant select, insert, update, delete on public."tickets" to anon;
 
-grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."event_addresses" to authenticated;
+grant select, insert, update, delete on public."admin_actions" to authenticated;
 
-grant REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT, TRIGGER on public."event_addresses" to service_role;
+grant select on public."app_status" to authenticated;
 
-grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."event_attendance" to anon;
+grant select, insert, update, delete on public."blocked_users" to authenticated;
 
-grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."event_attendance" to authenticated;
+grant select, insert, update, delete on public."categories" to authenticated;
 
-grant SELECT, INSERT, REFERENCES, TRUNCATE, DELETE, UPDATE, TRIGGER on public."event_attendance" to service_role;
+grant select, insert, update, delete on public."cities" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, SELECT on public."event_payouts" to anon;
+grant select, insert, update, delete on public."device_tokens" to authenticated;
 
-grant TRUNCATE, TRIGGER, SELECT, REFERENCES on public."event_payouts" to authenticated;
+grant select on public."direct_conversations" to authenticated;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."event_payouts" to service_role;
+grant select, insert on public."direct_messages" to authenticated;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."event_ratings" to service_role;
+grant select, insert, update, delete on public."event_addresses" to authenticated;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."event_unlocks" to anon;
+grant select, insert, update, delete on public."event_attendance" to authenticated;
 
-grant REFERENCES, INSERT, SELECT, TRIGGER, UPDATE, DELETE, TRUNCATE on public."event_unlocks" to authenticated;
+grant select on public."event_payouts" to authenticated;
 
-grant TRUNCATE, SELECT, UPDATE, INSERT, TRIGGER, REFERENCES, DELETE on public."event_unlocks" to service_role;
+grant select, insert, update, delete on public."event_unlocks" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."events" to anon;
+grant select, insert, update, delete on public."events" to authenticated;
 
-grant TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, UPDATE, DELETE on public."events" to authenticated;
+grant select, insert, update, delete on public."favorites" to authenticated;
 
-grant UPDATE, INSERT, SELECT, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."events" to service_role;
+grant select, insert, update, delete on public."follows" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT, UPDATE, DELETE on public."favorites" to anon;
+grant select on public."legal_document_translations" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."favorites" to authenticated;
+grant select, insert, update, delete on public."legal_documents" to authenticated;
 
-grant TRUNCATE, REFERENCES, TRIGGER, UPDATE, SELECT, INSERT, DELETE on public."favorites" to service_role;
+grant select, insert, update, delete on public."notifications" to authenticated;
 
-grant TRIGGER, REFERENCES, TRUNCATE, INSERT, UPDATE, DELETE on public."feed_posts" to anon;
+grant select, insert, delete on public."post_comments" to authenticated;
 
-grant TRIGGER, UPDATE, SELECT, DELETE, REFERENCES, TRUNCATE, INSERT on public."feed_posts" to authenticated;
+grant select, insert, update, delete on public."post_likes" to authenticated;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."feed_posts" to service_role;
+grant select, insert, update, delete on public."posts" to authenticated;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."follows" to anon;
+grant select, insert, update, delete on public."profiles" to authenticated;
 
-grant DELETE, TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT, UPDATE on public."follows" to authenticated;
+grant select, insert, update, delete on public."reports" to authenticated;
 
-grant TRUNCATE, INSERT, SELECT, UPDATE, DELETE, TRIGGER, REFERENCES on public."follows" to service_role;
+grant select on public."stripe_accounts" to authenticated;
 
-grant SELECT on public."legal_document_translations" to anon;
+grant select, insert, update, delete on public."ticket_types" to authenticated;
 
-grant SELECT on public."legal_document_translations" to authenticated;
+grant select, insert, update, delete on public."tickets" to authenticated;
 
-grant INSERT, UPDATE, SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE on public."legal_document_translations" to service_role;
+grant select on public."user_legal_acceptances" to authenticated;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."legal_documents" to anon;
+grant select on public."public_profiles" to authenticated;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."legal_documents" to authenticated;
+grant select on public."feed_posts" to authenticated;
 
-grant UPDATE, REFERENCES, TRUNCATE, TRIGGER, INSERT, SELECT, DELETE on public."legal_documents" to service_role;
+grant select, insert, update, delete on public."admin_actions" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."notifications" to anon;
+grant select, insert, update, delete on public."app_status" to service_role;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."notifications" to authenticated;
+grant select, insert, update, delete on public."blocked_users" to service_role;
 
-grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."notifications" to service_role;
+grant select, insert, update, delete on public."categories" to service_role;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."payments" to service_role;
+grant select, insert, update, delete on public."cities" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."payout_reviews" to service_role;
+grant select, insert, update, delete on public."device_tokens" to service_role;
 
-grant DELETE, INSERT, SELECT on public."post_comments" to authenticated;
+grant select, insert, update, delete on public."direct_conversations" to service_role;
 
-grant DELETE, TRUNCATE, REFERENCES, TRIGGER, INSERT, SELECT, UPDATE on public."post_comments" to service_role;
+grant select, insert, update, delete on public."direct_messages" to service_role;
 
-grant TRUNCATE, UPDATE, SELECT, INSERT, TRIGGER, REFERENCES, DELETE on public."post_likes" to anon;
+grant select, insert, update, delete on public."event_addresses" to service_role;
 
-grant TRUNCATE, TRIGGER, INSERT, SELECT, UPDATE, DELETE, REFERENCES on public."post_likes" to authenticated;
+grant select, insert, update, delete on public."event_attendance" to service_role;
 
-grant REFERENCES, TRIGGER, DELETE, UPDATE, SELECT, INSERT, TRUNCATE on public."post_likes" to service_role;
+grant select, insert, update, delete on public."event_payouts" to service_role;
 
-grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."posts" to anon;
+grant select, insert, update, delete on public."event_ratings" to service_role;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."posts" to authenticated;
+grant select, insert, update, delete on public."event_unlocks" to service_role;
 
-grant TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT, INSERT on public."posts" to service_role;
+grant select, insert, update, delete on public."events" to service_role;
 
-grant SELECT, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE on public."profiles" to anon;
+grant select, insert, update, delete on public."favorites" to service_role;
 
-grant INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, SELECT on public."profiles" to authenticated;
+grant select, insert, update, delete on public."follows" to service_role;
 
-grant REFERENCES, SELECT, INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."profiles" to service_role;
+grant select, insert, update, delete on public."legal_document_translations" to service_role;
 
-grant INSERT, UPDATE, REFERENCES, TRUNCATE, DELETE, TRIGGER on public."public_profiles" to anon;
+grant select, insert, update, delete on public."legal_documents" to service_role;
 
-grant INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER on public."public_profiles" to authenticated;
+grant select, insert, update, delete on public."notifications" to service_role;
 
-grant INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, SELECT on public."public_profiles" to service_role;
+grant select, insert, update, delete on public."payments" to service_role;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."reports" to anon;
+grant select, insert, update, delete on public."payout_reviews" to service_role;
 
-grant REFERENCES, UPDATE, TRIGGER, INSERT, DELETE, SELECT, TRUNCATE on public."reports" to authenticated;
+grant select, insert, update, delete on public."post_comments" to service_role;
 
-grant UPDATE, INSERT, TRIGGER, REFERENCES, TRUNCATE, DELETE, SELECT on public."reports" to service_role;
+grant select, insert, update, delete on public."post_likes" to service_role;
 
-grant TRUNCATE, REFERENCES, TRIGGER, SELECT on public."stripe_accounts" to anon;
+grant select, insert, update, delete on public."posts" to service_role;
 
-grant TRUNCATE, REFERENCES, TRIGGER, SELECT on public."stripe_accounts" to authenticated;
+grant select, insert, update, delete on public."profiles" to service_role;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."stripe_accounts" to service_role;
+grant select, insert, update, delete on public."reports" to service_role;
 
-grant SELECT, TRIGGER, REFERENCES, TRUNCATE, DELETE, UPDATE, INSERT on public."ticket_types" to anon;
+grant select, insert, update, delete on public."stripe_accounts" to service_role;
 
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."ticket_types" to authenticated;
+grant select, insert, update, delete on public."ticket_types" to service_role;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."ticket_types" to service_role;
+grant select, insert, update, delete on public."tickets" to service_role;
 
-grant REFERENCES, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, TRIGGER on public."tickets" to anon;
-
-grant TRIGGER, INSERT, SELECT, UPDATE, DELETE, TRUNCATE, REFERENCES on public."tickets" to authenticated;
-
-grant INSERT, SELECT, UPDATE, REFERENCES, DELETE, TRUNCATE, TRIGGER on public."tickets" to service_role;
-
-grant SELECT, REFERENCES, TRIGGER on public."user_legal_acceptances" to authenticated;
-
-grant UPDATE, TRIGGER, REFERENCES, TRUNCATE, INSERT, SELECT, DELETE on public."user_legal_acceptances" to service_role;
+grant select, insert, update, delete on public."user_legal_acceptances" to service_role;
 
 revoke all on function rating_tags_for(uuid) from public, anon, authenticated, service_role;
 
@@ -4611,8 +4733,6 @@ grant execute on function ticket_paid_cents(uuid) to service_role;
 
 revoke all on function register_device_token(text,text) from public, anon, authenticated, service_role;
 
-grant execute on function register_device_token(text,text) to anon;
-
 grant execute on function register_device_token(text,text) to authenticated;
 
 grant execute on function register_device_token(text,text) to service_role;
@@ -4658,10 +4778,6 @@ grant execute on function my_direct_conversations() to authenticated;
 grant execute on function my_direct_conversations() to service_role;
 
 revoke all on function handle_new_user() from public, anon, authenticated, service_role;
-
-grant execute on function handle_new_user() to anon;
-
-grant execute on function handle_new_user() to authenticated;
 
 grant execute on function handle_new_user() to service_role;
 
@@ -4709,9 +4825,39 @@ grant execute on function start_direct_conversation(uuid) to authenticated;
 
 grant execute on function start_direct_conversation(uuid) to service_role;
 
+revoke all on function notify_post_like() from public, anon, authenticated, service_role;
+
+grant execute on function notify_post_like() to service_role;
+
 revoke all on function issue_tickets_paid(uuid,integer,uuid,text) from public, anon, authenticated, service_role;
 
 grant execute on function issue_tickets_paid(uuid,integer,uuid,text) to service_role;
+
+revoke all on function private.rl_hit(text,text,integer,interval) from public, anon, authenticated, service_role;
+
+revoke all on function private.rl_reports() from public, anon, authenticated, service_role;
+
+grant execute on function private.rl_reports() to anon;
+
+grant execute on function private.rl_reports() to authenticated;
+
+grant execute on function private.rl_reports() to service_role;
+
+revoke all on function private.rl_new_conversation() from public, anon, authenticated, service_role;
+
+grant execute on function private.rl_new_conversation() to anon;
+
+grant execute on function private.rl_new_conversation() to authenticated;
+
+grant execute on function private.rl_new_conversation() to service_role;
+
+revoke all on function private.rl_free_tickets() from public, anon, authenticated, service_role;
+
+grant execute on function private.rl_free_tickets() to anon;
+
+grant execute on function private.rl_free_tickets() to authenticated;
+
+grant execute on function private.rl_free_tickets() to service_role;
 
 revoke all on function prevent_delete_with_tickets() from public, anon, authenticated, service_role;
 
@@ -4722,10 +4868,6 @@ grant execute on function prevent_delete_with_tickets() to authenticated;
 grant execute on function prevent_delete_with_tickets() to service_role;
 
 revoke all on function notify_event_change() from public, anon, authenticated, service_role;
-
-grant execute on function notify_event_change() to anon;
-
-grant execute on function notify_event_change() to authenticated;
 
 grant execute on function notify_event_change() to service_role;
 
@@ -4771,10 +4913,6 @@ grant execute on function blocked_users_details() to service_role;
 
 revoke all on function sync_event_attendance() from public, anon, authenticated, service_role;
 
-grant execute on function sync_event_attendance() to anon;
-
-grant execute on function sync_event_attendance() to authenticated;
-
 grant execute on function sync_event_attendance() to service_role;
 
 revoke all on function set_attendance_visibility(uuid,boolean) from public, anon, authenticated, service_role;
@@ -4812,10 +4950,6 @@ grant execute on function events_from_connections() to authenticated;
 grant execute on function events_from_connections() to service_role;
 
 revoke all on function prevent_self_admin() from public, anon, authenticated, service_role;
-
-grant execute on function prevent_self_admin() to anon;
-
-grant execute on function prevent_self_admin() to authenticated;
 
 grant execute on function prevent_self_admin() to service_role;
 
@@ -4922,10 +5056,6 @@ grant execute on function profile_follows(uuid,text) to authenticated;
 grant execute on function profile_follows(uuid,text) to service_role;
 
 revoke all on function reports_fill_label() from public, anon, authenticated, service_role;
-
-grant execute on function reports_fill_label() to anon;
-
-grant execute on function reports_fill_label() to authenticated;
 
 grant execute on function reports_fill_label() to service_role;
 
