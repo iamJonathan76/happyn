@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happyn/core/payments/pricing.dart';
 import 'package:happyn/core/providers/organizer_dashboard_provider.dart';
 import 'package:happyn/core/theme/app_colors.dart';
+import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
@@ -40,8 +41,7 @@ class _OrganizerDashboardScreenState
         backgroundColor: AppColors.background,
         elevation: 0,
         title: Text(l.dashTitle,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
+            style: AppText.h2.copyWith(color: Colors.white)),
       ),
       body: async.when(
         loading: () => const Center(
@@ -67,93 +67,118 @@ class _OrganizerDashboardScreenState
     final ranking = [...events]..sort((a, b) => b.netCents.compareTo(a.netCents));
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 36),
       children: [
         Text(l.dashSubtitle,
             style: const TextStyle(color: _muted, fontSize: 12)),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
 
-        // Filtres de période
-        Row(children: [
-          _chip(l.dashWeek, DashboardRange.week),
-          const SizedBox(width: 6),
-          _chip(l.dashMonth, DashboardRange.month),
-          const SizedBox(width: 6),
-          _chip(l.dashAll, DashboardRange.all),
-        ]),
-        const SizedBox(height: 14),
+        _periodSelector(l),
+        const SizedBox(height: 22),
 
         if (events.isEmpty)
           _empty(l)
         else ...[
-          // Trois tuiles de synthèse
-          Row(children: [
-            _tile(_money(net), l.dashNetRevenue, AppColors.lavenderLight),
-            const SizedBox(width: 6),
-            _tile('$sold', l.dashTicketsSold, Colors.white),
-            const SizedBox(width: 6),
-            _tile('$scanned', l.dashAttendees, Colors.white),
-          ]),
-          const SizedBox(height: 10),
+          // Le revenu net domine ; billets vendus et entrées passent en
+          // dessous, au second plan.
+          _hero(l, net, sold, scanned),
+          const SizedBox(height: 20),
 
           _attendanceCard(l, rate, scanned, sold),
-          const SizedBox(height: 10),
 
           if (payouts.isNotEmpty) ...[
-            _payoutCard(l, payouts),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+            _nextPayoutCard(l, payouts),
           ],
 
+          const SizedBox(height: 26),
           _label(l.dashByEvent),
-          const SizedBox(height: 8),
-          ...ranking.map(_eventRow),
+          const SizedBox(height: 10),
+          _byEventCard(ranking),
         ],
       ],
     );
   }
 
-  // ── Blocs ──────────────────────────────────────────────────────────────
+  // ── Sélecteur de période (segmenté) ─────────────────────────────────────
 
-  Widget _chip(String label, DashboardRange range) {
+  Widget _periodSelector(AppLocalizations l) => Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+            color: AppColors.cardDark,
+            borderRadius: BorderRadius.circular(999)),
+        child: Row(children: [
+          _seg(l.dashWeek, DashboardRange.week),
+          _seg(l.dashMonth, DashboardRange.month),
+          _seg(l.dashAll, DashboardRange.all),
+        ]),
+      );
+
+  Widget _seg(String label, DashboardRange range) {
     final on = _range == range;
-    return GestureDetector(
-      onTap: () => setState(() => _range = range),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: on ? AppColors.primary : AppColors.cardDark,
-          borderRadius: BorderRadius.circular(999),
-          border: on ? null : Border.all(color: AppColors.border),
-        ),
-        child: Text(label,
-            style: TextStyle(
-                color: on ? Colors.white : _text2,
-                fontSize: 12,
-                fontWeight: on ? FontWeight.w500 : FontWeight.w400)),
-      ),
-    );
-  }
-
-  Widget _tile(String value, String label, Color valueColor) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        decoration: BoxDecoration(
-            color: AppColors.cardDark, borderRadius: BorderRadius.circular(14)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(value,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => _range = range),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: on ? AppColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(label,
+              textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  color: valueColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600)),
-          const SizedBox(height: 3),
-          Text(label, style: const TextStyle(color: _muted, fontSize: 10)),
-        ]),
+                  color: on ? Colors.white : _text2,
+                  fontSize: 13,
+                  fontWeight: on ? FontWeight.w600 : FontWeight.w500)),
+        ),
       ),
     );
   }
+
+  // ── Hero : revenu net + stats secondaires ────────────────────────────────
+
+  Widget _hero(AppLocalizations l, int net, int sold, int scanned) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(_money(net),
+                style: AppText.display
+                    .copyWith(fontSize: 40, color: Colors.white, height: 1.0)),
+          ),
+          const SizedBox(height: 4),
+          Text(l.dashNetRevenue,
+              style: const TextStyle(color: _muted, fontSize: 13)),
+          const SizedBox(height: 20),
+          Row(children: [
+            Expanded(child: _heroStat('$sold', l.dashTicketsSold)),
+            Expanded(child: _heroStat('$scanned', l.checkedInLabel)),
+          ]),
+        ],
+      );
+
+  Widget _heroStat(String value, String label) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.h1.copyWith(color: Colors.white)),
+          const SizedBox(height: 2),
+          Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: _muted, fontSize: 12)),
+        ],
+      );
+
+  // ── Présence ─────────────────────────────────────────────────────────────
 
   Widget _attendanceCard(
       AppLocalizations l, double rate, int scanned, int sold) {
@@ -168,10 +193,7 @@ class _OrganizerDashboardScreenState
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text('${(rate * 100).round()} %',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600)),
+                  style: AppText.h1.copyWith(color: Colors.white)),
               Text(l.dashAttendanceRate,
                   style: const TextStyle(color: _muted, fontSize: 11)),
             ]),
@@ -192,100 +214,93 @@ class _OrganizerDashboardScreenState
     );
   }
 
-  Widget _payoutCard(AppLocalizations l, List<OrganizerEventStat> payouts) {
+  // ── Prochain versement (bloc prioritaire) ────────────────────────────────
+
+  Widget _nextPayoutCard(
+      AppLocalizations l, List<OrganizerEventStat> payouts) {
+    final next = payouts.first;
+    final (reason, reasonColor) = _payoutSubtitle(l, next);
+    final dimmed = _isHold(next.payoutStatus) || next.payoutStatus == 'paid';
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: AppColors.card, borderRadius: BorderRadius.circular(16)),
+          color: AppColors.card, borderRadius: BorderRadius.circular(18)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _label(l.dashNextPayout),
         const SizedBox(height: 10),
-        for (var i = 0; i < payouts.length; i++) ...[
-          if (i > 0)
-            Divider(
-                color: Colors.white.withValues(alpha: 0.07), height: 22),
-          _payoutRow(l, payouts[i]),
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Expanded(
+            child: Text(_money(next.netCents),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.display.copyWith(
+                    fontSize: 26,
+                    color: dimmed ? _text2 : Colors.white)),
+          ),
+          const SizedBox(width: 10),
+          _statusChip(l, next),
+        ]),
+        if (reason.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(reason,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: reasonColor, fontSize: 12)),
+        ],
+        // Les autres versements en attente, sans les cacher mais discrets.
+        for (var i = 1; i < payouts.length; i++) ...[
+          Divider(color: Colors.white.withValues(alpha: 0.07), height: 22),
+          _payoutMiniRow(l, payouts[i]),
         ],
       ]),
     );
   }
 
-  Widget _payoutRow(AppLocalizations l, OrganizerEventStat e) {
-    final held = _isHold(e.payoutStatus);
-    final paid = e.payoutStatus == 'paid';
-    final (sub, subColor) = _payoutSubtitle(l, e);
+  Widget _payoutMiniRow(AppLocalizations l, OrganizerEventStat e) {
+    final (label, color) = _statusMeta(l, e);
+    final dimmed = _isHold(e.payoutStatus) || e.payoutStatus == 'paid';
     return Row(children: [
-      _payoutLeading(e),
-      const SizedBox(width: 12),
       Expanded(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(e.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(height: 2),
-          Text(sub,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: subColor, fontSize: 11)),
-        ]),
+        child: Text(e.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
       ),
       const SizedBox(width: 8),
+      Text(label, style: TextStyle(color: color, fontSize: 11)),
+      const SizedBox(width: 10),
       Text(_money(e.netCents),
           style: TextStyle(
-              color: (held || paid) ? _text2 : Colors.white,
-              fontSize: 15,
+              color: dimmed ? _text2 : Colors.white,
+              fontSize: 13,
               fontWeight: FontWeight.w600)),
     ]);
   }
 
-  Widget _payoutLeading(OrganizerEventStat e) {
-    switch (e.payoutStatus) {
-      case 'counting':
-        final days = e.payoutDaysLeft ?? 0;
-        final progress = ((7 - days) / 7).clamp(0.0, 1.0).toDouble();
-        return SizedBox(
-          width: 50,
-          height: 50,
-          child: Stack(alignment: Alignment.center, children: [
-            SizedBox(
-              width: 50,
-              height: 50,
-              child: CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 4,
-                backgroundColor: Colors.white.withValues(alpha: 0.08),
-                valueColor: const AlwaysStoppedAnimation(AppColors.primary),
-              ),
-            ),
-            Text(AppLocalizations.of(context).dashDaysShort(days),
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600)),
-          ]),
-        );
-      case 'paid':
-        return _badge(Icons.check_circle, AppColors.green);
-      case 'ready':
-        return _badge(Icons.check_circle_outline, AppColors.green);
-      case 'scheduled':
-        return _badge(Icons.schedule, AppColors.lavender);
-      default: // retenues
-        return _badge(Icons.pause_circle_outline, AppColors.amber);
-    }
+  /// Pastille de statut : un mot, une couleur. Ambre pour les retenues, vert
+  /// pour prêt/versé, lavande pour en attente, et le compte à rebours sinon.
+  Widget _statusChip(AppLocalizations l, OrganizerEventStat e) {
+    final (label, color) = _statusMeta(l, e);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(999)),
+      child: Text(label,
+          style: TextStyle(
+              color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+    );
   }
 
-  Widget _badge(IconData icon, Color color) => Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-        child: Icon(icon, color: color, size: 24),
-      );
+  (String, Color) _statusMeta(AppLocalizations l, OrganizerEventStat e) =>
+      switch (e.payoutStatus) {
+        'paid' => (l.payoutStatusPaid, AppColors.green),
+        'ready' => (l.payoutStateReady, AppColors.green),
+        'scheduled' => (l.payoutStateWaiting, AppColors.lavender),
+        'counting' => (l.dashDaysShort(e.payoutDaysLeft ?? 0), AppColors.lavender),
+        _ => (l.payoutStateHeld, AppColors.amber),
+      };
 
   (String, Color) _payoutSubtitle(AppLocalizations l, OrganizerEventStat e) {
     switch (e.payoutStatus) {
@@ -312,16 +327,30 @@ class _OrganizerDashboardScreenState
     }
   }
 
+  // ── Par événement (lignes séparées) ──────────────────────────────────────
+
+  Widget _byEventCard(List<OrganizerEventStat> ranking) => Container(
+        decoration: BoxDecoration(
+            color: AppColors.cardDark, borderRadius: BorderRadius.circular(16)),
+        child: Column(children: [
+          for (var i = 0; i < ranking.length; i++) ...[
+            if (i > 0)
+              Divider(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16),
+            _eventRow(ranking[i]),
+          ],
+        ]),
+      );
+
   Widget _eventRow(OrganizerEventStat e) {
     final l = AppLocalizations.of(context);
-    final (payoutLabel, payoutColor) = e.isPaid
-        ? _shortPayout(l, e)
-        : (l.dashFree, _muted);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-          color: AppColors.cardDark, borderRadius: BorderRadius.circular(12)),
+    final (payoutLabel, payoutColor) =
+        e.isPaid ? _shortPayout(l, e) : (l.dashFree, _muted);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -330,23 +359,23 @@ class _OrganizerDashboardScreenState
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500)),
-            const SizedBox(height: 2),
-            Text(
-                '${e.ticketsSold} · ${(e.attendanceRate * 100).round()} %',
-                style: const TextStyle(color: _muted, fontSize: 10)),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 3),
+            Text('${e.ticketsSold} · ${(e.attendanceRate * 100).round()} %',
+                style: const TextStyle(color: _muted, fontSize: 11)),
           ]),
         ),
+        const SizedBox(width: 12),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Text(e.isPaid ? _money(e.netCents) : l.dashFree,
               style: TextStyle(
                   color: e.isPaid ? AppColors.lavenderLight : _text2,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(height: 1),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(height: 2),
           Text(payoutLabel,
-              style: TextStyle(color: payoutColor, fontSize: 9)),
+              style: TextStyle(color: payoutColor, fontSize: 10)),
         ]),
       ]),
     );
@@ -363,7 +392,7 @@ class _OrganizerDashboardScreenState
       case 'scheduled':
         return ('', _muted);
       default:
-        return (l.dashHoldManual.split(' ').first, AppColors.amber); // « Retenu »
+        return (l.payoutStateHeld, AppColors.amber);
     }
   }
 
@@ -372,7 +401,7 @@ class _OrganizerDashboardScreenState
           color: _muted,
           fontSize: 10,
           letterSpacing: 0.8,
-          fontWeight: FontWeight.w500));
+          fontWeight: FontWeight.w600));
 
   Widget _empty(AppLocalizations l) => Padding(
         padding: const EdgeInsets.only(top: 60),

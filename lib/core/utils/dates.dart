@@ -14,6 +14,15 @@ class AppDates {
     return DateFormat.yMMMEd(_loc(c)).format(dt);
   }
 
+  /// Ex. « Sat, Feb 15 » / « sam. 15 févr. » — jour de semaine + jour + mois,
+  /// sans l'année : pour les listes où l'événement est proche et l'année est
+  /// du bruit.
+  static String dowDayMonth(BuildContext c, String? iso) {
+    final dt = _parse(iso);
+    if (dt == null) return '';
+    return DateFormat.MMMEd(_loc(c)).format(dt);
+  }
+
   /// Ex. « Jan 5, 2026 » / « 5 janv. 2026 ».
   static String dayMonthYear(BuildContext c, String? iso) {
     final dt = _parse(iso);

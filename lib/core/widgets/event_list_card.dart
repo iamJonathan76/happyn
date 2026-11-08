@@ -18,22 +18,17 @@ class EventListCard extends ConsumerWidget {
   final Map<String, dynamic> event;
   const EventListCard({super.key, required this.event});
 
-  (String, String) _dateParts(BuildContext context, String? s) {
-    final dt = s == null ? null : DateTime.tryParse(s);
-    if (dt == null) return ('', '');
-    return (AppDates.monthBadge(context, s), dt.day.toString());
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final ev = event;
     final eventId = ev['id'] as String;
     final cat = (ev['category'] ?? '') as String;
-    final color = categoryColor(cat);
-    final (mon, day) = _dateParts(context, ev['start_date'] as String?);
+    final date = AppDates.dowDayMonth(context, ev['start_date'] as String?);
     final price = ev['price'] as num?;
-    final priceText = (price == null || price == 0)
-        ? AppLocalizations.of(context).free
+    final isFree = price == null || price == 0;
+    final priceText = isFree
+        ? l.free
         : Pricing.ticketPrice(price, Localizations.localeOf(context).languageCode);
     // La ville seulement : le nom du lieu et l'adresse sont sur la fiche, qui
     // sait quand les cacher (événement privé, adresse saisie comme lieu).
@@ -50,127 +45,105 @@ class EventListCard extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
+          color: AppColors.cardDark,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
-        child: Row(
-          children: [
-            // Vignette + badge date
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: Stack(
-                children: [
-                  SizedBox(
-                    width: 58,
-                    height: 58,
-                    child: CachedNetworkImage(
-                      imageUrl: (ev['image_url'] ?? '') as String,
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) =>
-                          Container(color: AppColors.imagePlaceholder),
-                      errorWidget: (_, _, _) => Container(
-                        color: AppColors.imagePlaceholder,
-                        child: Icon(categoryIcon(cat),
-                            color: AppColors.primary, size: 22),
-                      ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Photo généreuse à gauche, à son ratio (carré), coins arrondis.
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: SizedBox(
+                  width: 72,
+                  height: 72,
+                  child: CachedNetworkImage(
+                    imageUrl: (ev['image_url'] ?? '') as String,
+                    fit: BoxFit.cover,
+                    placeholder: (_, _) =>
+                        Container(color: AppColors.imagePlaceholder),
+                    errorWidget: (_, _, _) => Container(
+                      color: AppColors.imagePlaceholder,
+                      child: Icon(categoryIcon(cat),
+                          color: AppColors.primary, size: 24),
                     ),
                   ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.55),
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Text(
-                        '$mon $day',
-                        textAlign: TextAlign.center,
-                        style: AppText.microBold.copyWith(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            // Infos
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    (ev['title'] ?? '') as String,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.h5.copyWith(color: Colors.white),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(categoryIcon(cat), size: 11, color: color),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          cat,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppText.small.copyWith(color: AppColors.textMed),
-                        ),
-                      ),
+              const SizedBox(width: 12),
+              // Titre, puis date et lieu.
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      (ev['title'] ?? '') as String,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.h5.copyWith(color: Colors.white, height: 1.2),
+                    ),
+                    if (date.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      _metaRow(Icons.calendar_today_outlined, date),
                     ],
-                  ),
-                  if (city.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on_outlined,
-                            size: 11, color: AppColors.textMed),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            city,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppText.micro,
-                          ),
-                        ),
-                      ],
-                    ),
+                    if (city.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      _metaRow(Icons.location_on_outlined, city),
+                    ],
                   ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Favori (haut) et prix (bas), alignés à droite.
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: () async {
+                      await toggleFavorite(eventId, isFav);
+                      ref.invalidate(favoritesProvider);
+                    },
+                    child: Icon(
+                      isFav ? Icons.bookmark : Icons.bookmark_border,
+                      color: isFav ? AppColors.lavender : AppColors.textLow,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    priceText,
+                    style: AppText.h5.copyWith(
+                      color: isFree ? AppColors.textMed : Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-            // Cœur (persisté) + prix
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    await toggleFavorite(eventId, isFav);
-                    ref.invalidate(favoritesProvider);
-                  },
-                  child: Icon(
-                    isFav ? Icons.favorite : Icons.favorite_border,
-                    color: isFav
-                        ? AppColors.pink
-                        : AppColors.textLow,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  priceText,
-                  style: AppText.h5.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.lavenderLight),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
+  /// Une ligne méta : petite icône + texte réduit, tronqué.
+  Widget _metaRow(IconData icon, String text) => Row(
+        children: [
+          Icon(icon, size: 12, color: AppColors.textLow),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.caption.copyWith(color: AppColors.textMed),
+            ),
+          ),
+        ],
+      );
 }

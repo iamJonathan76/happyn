@@ -407,25 +407,27 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
             onRefresh: _refresh,
             child: CustomScrollView(
               slivers: [
-                _banner(l),
+                _appBar(l),
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
+                      _imageBand(l),
+                      const SizedBox(height: 16),
                       _scanButton(l),
                       const SizedBox(height: 18),
-                      _statsRow(l, totals, stat),
+                      _statsBand(l, totals, stat),
                       const SizedBox(height: 10),
                       _progressBlock(l, totals),
                       if (stat != null && stat.hasPayout) ...[
                         const SizedBox(height: 10),
                         _payoutCard(l, stat),
                       ],
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 28),
                       _sectionLabel(l.byTierSection),
                       const SizedBox(height: 12),
-                      for (final tier in tiers) _tierCard(l, tier),
-                      const SizedBox(height: 30),
+                      _tiersCard(l, tiers),
+                      const SizedBox(height: 28),
                       _sectionLabel(l.attendeesSection),
                       const SizedBox(height: 12),
                       _attendeeList(l),
@@ -446,20 +448,35 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
     );
   }
 
-  /// L'affiche de l'evenement en en-tete. C'est ce qui fait qu'on ouvre
-  /// « son » evenement et non un formulaire : l'organisateur reconnait son
-  /// image avant d'avoir lu un mot.
-  Widget _banner(AppLocalizations l) {
+  /// En-tete compact : le nom de l'evenement centre, la fleche de retour et le
+  /// menu de cycle de vie. L'image descend dans un bandeau bas (voir
+  /// [_imageBand]) pour garder « Scan » haut dans l'ecran.
+  Widget _appBar(AppLocalizations l) => SliverAppBar(
+        pinned: true,
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          (widget.event['title'] ?? '') as String,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppText.h3.copyWith(color: Colors.white),
+        ),
+        actions: [_lifecycleMenu(l)],
+      );
+
+  /// L'affiche de l'evenement, en bandeau bas : l'organisateur reconnait son
+  /// image, mais « Scan » reste a portee de pouce juste en dessous. L'etat et
+  /// la date s'y posent discretement.
+  Widget _imageBand(AppLocalizations l) {
     final image = (widget.event['image_url'] ?? '') as String;
-    return SliverAppBar(
-      expandedHeight: 210,
-      pinned: true,
-      backgroundColor: AppColors.background,
-      iconTheme: const IconThemeData(color: Colors.white),
-      actions: [_lifecycleMenu(l)],
-      flexibleSpace: FlexibleSpaceBar(
-        collapseMode: CollapseMode.parallax,
-        background: Stack(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: SizedBox(
+        height: 150,
+        width: double.infinity,
+        child: Stack(
           fit: StackFit.expand,
           children: [
             if (image.isEmpty)
@@ -473,45 +490,30 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
                 errorWidget: (_, _, _) =>
                     Container(color: AppColors.imagePlaceholder),
               ),
-            // Deux degrades : un en haut pour que la fleche de retour reste
-            // lisible sur une photo claire, un en bas pour le titre.
+            // Un degrade bas, juste assez pour que l'etat et la date restent
+            // lisibles sur une photo claire.
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xCC08080F),
-                    Color(0x3308080F),
-                    Color(0xF208080F),
-                  ],
-                  stops: [0, 0.45, 1],
+                  colors: [Color(0x1A08080F), Color(0xE608080F)],
+                  stops: [0.4, 1],
                 ),
               ),
             ),
+            Positioned(left: 12, top: 12, child: _stateBadge(l)),
             Positioned(
-              left: 20,
-              right: 20,
-              bottom: 16,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _stateBadge(l),
-                  const SizedBox(height: 8),
-                  Text(
-                    (widget.event['title'] ?? '') as String,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.h2.copyWith(color: Colors.white),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    AppDates.dowDayMonthYear(
-                        context, widget.event['start_date'] as String?),
-                    style: AppText.small
-                        .copyWith(color: Colors.white.withValues(alpha: 0.72)),
-                  ),
-                ],
+              left: 14,
+              right: 14,
+              bottom: 12,
+              child: Text(
+                AppDates.dowDayMonthYear(
+                    context, widget.event['start_date'] as String?),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.small
+                    .copyWith(color: Colors.white.withValues(alpha: 0.85)),
               ),
             ),
           ],
@@ -520,10 +522,10 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
     );
   }
 
-  /// Trois tuiles : vendus, scannés, revenu net. Le net vient du dashboard
-  /// (après les 5 % et Stripe). « … » tant qu'il charge, « Gratuit » si l'event
-  /// n'a pas de tarif payant.
-  Widget _statsRow(AppLocalizations l, EventTotals t, OrganizerEventStat? stat) {
+  /// Bande unique a trois colonnes : vendus, entrees, revenu net — separees par
+  /// de fins traits. Le net vient du dashboard (apres commission et frais).
+  /// « … » tant qu'il charge, « Gratuit » si l'event n'a pas de tarif payant.
+  Widget _statsBand(AppLocalizations l, EventTotals t, OrganizerEventStat? stat) {
     final lang = Localizations.localeOf(context).languageCode;
     final netLabel = stat == null
         ? '…'
@@ -531,30 +533,45 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
     final netColor = (stat != null && stat.isPaid)
         ? AppColors.lavenderLight
         : AppColors.textSecondary;
-    return Row(children: [
-      Expanded(child: _statTile(l.dashTicketsSold, '${t.sold}', Colors.white)),
-      const SizedBox(width: 8),
-      Expanded(
-          child: _statTile(l.dashAttendees, '${t.checkedIn}',
-              t.checkedIn > 0 ? AppColors.success : Colors.white)),
-      const SizedBox(width: 8),
-      Expanded(child: _statTile(l.dashNetRevenue, netLabel, netColor)),
-    ]);
+    return _panel(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _statCol(l.dashTicketsSold, '${t.sold}', Colors.white),
+          _vDivider(),
+          _statCol(l.checkedInLabel, '${t.checkedIn}',
+              t.checkedIn > 0 ? AppColors.success : Colors.white),
+          _vDivider(),
+          _statCol(l.dashNetRevenue, netLabel, netColor),
+        ],
+      ),
+    );
   }
 
-  Widget _statTile(String label, String value, Color color) => _panel(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+  Widget _statCol(String label, String value, Color color) => Expanded(
+        child: Column(children: [
           FittedBox(
             fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
             child: Text(value,
-                style: AppText.display
-                    .copyWith(fontSize: 20, color: color, height: 1.1)),
+                style: AppText.h1.copyWith(color: color, height: 1.0)),
           ),
-          const SizedBox(height: 4),
-          _label(label),
+          const SizedBox(height: 6),
+          Text(label.toUpperCase(),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.micro.copyWith(
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted)),
         ]),
+      );
+
+  Widget _vDivider() => Container(
+        width: 1,
+        height: 34,
+        color: Colors.white.withValues(alpha: 0.08),
       );
 
   /// Deux jauges distinctes : la billetterie (vendus / capacité) et la présence
@@ -690,16 +707,6 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
         child: child,
       );
 
-  /// Les libelles de chiffres : petites capitales espacees. Elles s'effacent
-  /// devant la valeur au lieu de lui disputer l'attention.
-  Widget _label(String text) => Text(
-        text.toUpperCase(),
-        style: AppText.micro.copyWith(
-            letterSpacing: 0.9,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textMuted),
-      );
-
   Widget _sectionLabel(String text) =>
       Text(text, style: AppText.h4.copyWith(color: Colors.white));
 
@@ -737,36 +744,68 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
         child: Container(
           height: 54,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(18),
+            // Action dominante : violet HAPPYN plein. Une ombre portée douce
+            // pour l'asseoir, sans halo lumineux.
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.32),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.qr_code_scanner,
                     color: Colors.white, size: 18),
                 const SizedBox(width: 9),
-                Text(l.openScanner,
-                    style: AppText.h4.copyWith(color: Colors.white)),
+                // `Flexible` + clamp : en très grande police, un libellé non
+                // borné débordait le bouton. On l'ellipse plutôt que de casser
+                // le rendu — l'icône dit déjà de quoi il s'agit.
+                Flexible(
+                  child: Text(
+                    l.openScanner,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    textScaler: MediaQuery.textScalerOf(context)
+                        .clamp(maxScaleFactor: 1.4),
+                    style: AppText.h4.copyWith(color: Colors.white),
+                  ),
+                ),
               ],
             ),
           ),
         ),
       );
 
-  Widget _tierCard(AppLocalizations l, TierStats tier) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: _panel(
-        padding: const EdgeInsets.all(16),
+  /// Les paliers regroupes dans une seule carte, en lignes separees par de fins
+  /// traits \u2014 plus faciles a parcourir qu'une pile de cartes.
+  Widget _tiersCard(AppLocalizations l, List<TierStats> tiers) {
+    if (tiers.isEmpty) return const SizedBox.shrink();
+    return _panel(
+      padding: EdgeInsets.zero,
+      child: Column(children: [
+        for (var i = 0; i < tiers.length; i++) ...[
+          if (i > 0)
+            Divider(
+                color: Colors.white.withValues(alpha: 0.06),
+                height: 1,
+                indent: 16,
+                endIndent: 16),
+          _tierRow(l, tiers[i]),
+        ],
+      ]),
+    );
+  }
+
+  Widget _tierRow(AppLocalizations l, TierStats tier) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -789,6 +828,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(width: 10),
                 Text(
                   tier.isCapped
                       ? l.soldOfCapacity(tier.sold, tier.total)
@@ -811,9 +851,7 @@ class _OrganizerEventScreenState extends ConsumerState<OrganizerEventScreen> {
             ],
           ],
         ),
-      ),
-    );
-  }
+      );
 
   Widget _attendeeList(AppLocalizations l) {
     final async = ref.watch(organizerAttendeesProvider(_eventId));

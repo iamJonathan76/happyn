@@ -272,22 +272,16 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      gradient: isActive
-                          ? AppColors.primaryGradient
-                          : null,
-                      color: isActive ? null : Colors.white.withValues(alpha: 0.055),
+                      // Un seul accent pour l'état sélectionné : le violet
+                      // HAPPYN plein. Ni dégradé ni halo — ils brouillaient la
+                      // lecture du filtre actif.
+                      color: isActive
+                          ? AppColors.primary
+                          : Colors.white.withValues(alpha: 0.055),
                       borderRadius: BorderRadius.circular(20),
                       border: isActive
                           ? null
                           : Border.all(color: Colors.white.withValues(alpha: 0.09)),
-                      boxShadow: isActive
-                          ? [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.55),
-                                blurRadius: 10,
-                              ),
-                            ]
-                          : null,
                     ),
                     child: Text(
                       _filterLabel(f, l),
@@ -327,13 +321,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20)
                             .copyWith(bottom: 12),
-                        child: Row(
-                          children: [
-                            Text(
-                              l.eventsFound(filtered.length),
-                              style: AppText.captionBold.copyWith(color: AppColors.textLow),
-                            ),
-                          ],
+                        child: Text(
+                          l.eventsFound(filtered.length),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.captionBold
+                              .copyWith(color: AppColors.textLow),
                         ),
                       ),
                       Expanded(
