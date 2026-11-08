@@ -1,0 +1,10 @@
+/* Traductions françaises des demandes de permission iOS. Sans ce fichier, un
+   appareil en français affiche les phrases anglaises de Info.plist — ce qu'Apple
+   relève (Guideline 2.3 / localisation). Le texte colle à la version anglaise :
+   ni plus ni moins que ce que l'app fait réellement. */
+
+"NSCameraUsageDescription" = "HAPPYN utilise l'appareil photo pour scanner les billets à l'entrée des événements.";
+
+"NSLocationWhenInUseUsageDescription" = "HAPPYN utilise ta position approximative uniquement pour afficher les événements près de toi, et seulement quand l'app est ouverte. Elle sert à trouver les événements proches, n'est jamais enregistrée ni montrée à personne. Tu peux aussi choisir une ville à la main.";
+
+"NSPhotoLibraryUsageDescription" = "HAPPYN accède à tes photos et vidéos pour que tu puisses choisir une photo de profil, une affiche d'événement ou un média à publier. Seul le média que tu choisis est téléversé.";

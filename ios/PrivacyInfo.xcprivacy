@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Manifeste de confidentialité de l'app (cible Runner).
+
+  Les SDK tiers (Stripe, Firebase, Sentry, GoogleSignIn, AppAuth…) embarquent
+  déjà CHACUN le leur sous ios/Pods/*/PrivacyInfo.xcprivacy : ne rien dupliquer
+  ici pour eux. Ce fichier ne couvre que le code PROPRE de l'app.
+
+  - L'app ne fait AUCUN pistage publicitaire ni inter-app : NSPrivacyTracking
+    = false, et aucun domaine de pistage. C'est l'affirmation qu'Apple lit au
+    niveau de l'app.
+  - Les types de données collectées font foi dans les « étiquettes » d'App Store
+    Connect (voir docs/APP-STORE.md) ; on les laisse vides ici pour éviter deux
+    sources qui divergeraient.
+  - NSPrivacyAccessedAPITypes est vide : le code de l'app n'appelle pas
+    directement d'« API à motif obligatoire » (ce sont les greffons qui le font,
+    via leur propre manifeste). Si le téléversement de l'archive signale une
+    catégorie manquante pour le binaire principal, l'ajouter ICI avec le code de
+    motif exact qu'Apple nomme.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>
