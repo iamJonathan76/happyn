@@ -55,6 +55,18 @@ insert into ticket_types (id, event_id, name, price, quantity_total, quantity_so
   ('00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-0000000000e2', 'Invite',  0,  100, 0, 10),
   ('00000000-0000-0000-0000-0000000000f5', '00000000-0000-0000-0000-0000000000e4', 'Entree',  0,  100, 0, 10);
 
+-- Un evenement imminent (~12 h), son palier et un detenteur (Bruno), pour les
+-- rappels. On declenche ensuite les rappels DEUX fois : la seconde ne doit rien
+-- ajouter (idempotence).
+insert into events (id, title, created_by, status, visibility, start_date, end_date, posts_visibility, access_code, min_age) values
+  ('00000000-0000-0000-0000-0000000000ea', 'Bientot', '00000000-0000-0000-0000-00000000000a', 'published', 'public', now() + interval '12 hours', now() + interval '14 hours', 'public', null, 0);
+insert into ticket_types (id, event_id, name, price, quantity_total, quantity_sold, max_per_order) values
+  ('00000000-0000-0000-0000-0000000000f7', '00000000-0000-0000-0000-0000000000ea', 'Gratuit', 0, 100, 0, 10);
+insert into tickets (id, ticket_type_id, event_id, user_id, qr_token, status) values
+  ('00000000-0000-0000-0000-0000000000ba', '00000000-0000-0000-0000-0000000000f7', '00000000-0000-0000-0000-0000000000ea', '00000000-0000-0000-0000-00000000000b', 'HPN-soon', 'valid');
+select private.send_event_reminders();
+select private.send_event_reminders();
+
 -- Bruno a paye un billet VIP.
 insert into tickets (id, ticket_type_id, event_id, user_id, qr_token, status, payment_intent_id) values
   ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-0000000000e1',
@@ -785,6 +797,14 @@ select t.fails_with($$select public.handle_new_user()$$, 'permission denied',
   'Trigger : un compte connecte ne peut pas appeler handle_new_user directement');
 select t.fails_with($$select private.email_ticket_confirmation()$$, 'permission denied',
   'Trigger : un compte ne peut pas appeler email_ticket_confirmation directement');
+select t.fails_with($$select private.send_event_reminders()$$, 'permission',
+  'Rappels : un compte ne peut pas declencher les rappels');
+select t.sees($$select 1 from notifications where type = 'event_reminder'
+    and event_id = '00000000-0000-0000-0000-0000000000ea' and user_id = auth.uid()$$,
+  1, 'Rappels : le detenteur d''un evenement imminent est prevenu (une seule fois)');
+select t.sees_nothing($$select 1 from notifications where type = 'event_reminder'
+    and event_id = '00000000-0000-0000-0000-0000000000e1'$$,
+  'Rappels : pas de rappel pour un evenement lointain');
 reset role;
 select t.as_anon();
 select t.fails_with($$select public.sync_event_attendance()$$, 'permission denied',
