@@ -959,6 +959,26 @@ begin
            v_ev.id
     from public.profiles p
     where p.is_admin;
+
+    -- L'organisateur, dans sa langue. Le délai de retenue n'est pas une
+    -- punition : on le dit en clair pour qu'il ne croie pas l'argent perdu.
+    insert into public.notifications (user_id, type, title, body, event_id)
+    select p.id, 'payout_held',
+           case when p.language = 'fr' then 'Versement en attente'
+                else 'Payout on hold' end,
+           case
+             when v_reason = 'no_scans' and p.language = 'fr'
+               then 'Ton versement pour « ' || v_ev.title || ' » est en attente : aucun billet n''a été scanné à l''entrée.'
+             when v_reason = 'no_scans'
+               then 'Your payout for "' || v_ev.title || '" is on hold: no ticket was scanned at the door.'
+             when p.language = 'fr'
+               then 'Ton premier versement (« ' || v_ev.title || ' ») est en vérification — c''est automatique pour un premier événement payant.'
+             else 'Your first payout ("' || v_ev.title || '") is under review — this is automatic for a first paid event.'
+           end,
+           v_ev.id
+    from public.profiles p
+    where p.id = v_ev.created_by;
+
     v_n := v_n + 1;
   end loop;
   return v_n;
@@ -1417,6 +1437,40 @@ AS $function$
       and c.member_b is not null
   );
 $function$;
+
+CREATE OR REPLACE FUNCTION private.email_ticket_confirmation()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_url    text := private.setting('ticket_hook_url');
+  v_secret text := private.setting('ticket_hook_secret');
+  v_qty    int;
+begin
+  if v_url is null or v_secret is null then
+    return new;  -- Base non configurée : on n'envoie pas, on n'échoue pas.
+  end if;
+
+  -- Le corps de la notif commence par le nombre de billets (« 3 tickets for … »
+  -- / « 1 ticket for … »). On en tire la quantité pour le courriel.
+  v_qty := coalesce((regexp_match(new.body, '^(\d+)'))[1]::int, 1);
+
+  perform net.http_post(
+    url     := v_url,
+    headers := jsonb_build_object(
+                 'Content-Type',    'application/json',
+                 'x-happyn-secret', v_secret
+               ),
+    body    := jsonb_build_object(
+                 'user_id',  new.user_id,
+                 'event_id', new.event_id,
+                 'quantity', v_qty
+               )
+  );
+  return new;
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.event_cancellation_preview(p_event uuid)
  RETURNS TABLE(ticket_count integer, refund_total numeric)
@@ -2214,6 +2268,48 @@ begin
   where t.event_id = new.id
   group by t.user_id;
 
+  return new;
+end;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.notify_organizer_paid()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_lang   text;
+  v_title  text;
+  v_amount text;
+begin
+  if new.status <> 'paid' then
+    return new;
+  end if;
+  if tg_op = 'UPDATE' and old.status = 'paid' then
+    return new;
+  end if;
+  if new.organizer_id is null then
+    return new;
+  end if;
+
+  select language into v_lang from public.profiles where id = new.organizer_id;
+  select title into v_title from public.events where id = new.event_id;
+  -- Montant NET en dollars. L'argent est en cents partout ; la conversion
+  -- n'a lieu qu'ici, pour l'affichage dans la notification.
+  v_amount := trim(to_char(new.net_cents::numeric / 100, 'FM999999990.00'));
+
+  insert into public.notifications (user_id, type, title, body, event_id)
+  values (
+    new.organizer_id,
+    'payout_paid',
+    case when v_lang = 'fr' then 'Versement envoyé 🎉' else 'Payout sent 🎉' end,
+    case when v_lang = 'fr'
+      then 'Ton versement de ' || replace(v_amount, '.', ',') || ' $ pour « ' || coalesce(v_title, 'ton événement') || ' » est parti.'
+      else 'Your payout of $' || v_amount || ' for "' || coalesce(v_title, 'your event') || '" is on its way.'
+    end,
+    new.event_id
+  );
   return new;
 end;
 $function$;
@@ -3069,6 +3165,40 @@ AS $function$
            p.full_name asc
   limit 20;
 $function$;
+
+CREATE OR REPLACE FUNCTION private.send_event_reminders()
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  insert into public.notifications (user_id, type, title, body, event_id)
+  select distinct
+    t.user_id,
+    'event_reminder',
+    case when p.language = 'fr' then 'Rappel' else 'Event reminder' end,
+    case when p.language = 'fr'
+         then '« ' || e.title || ' » approche. Ton billet est dans l''app.'
+         else e.title || ' is coming up. Your ticket is in the app.'
+    end,
+    e.id
+  from public.tickets t
+  join public.events e   on e.id = t.event_id
+  join public.profiles p on p.id = t.user_id
+  where t.status = 'valid'
+    and e.status = 'published'
+    -- Dans les 24 h à venir : un cron horaire attrape chaque événement au
+    -- premier passage où il entre dans la fenêtre (≈ 24 h avant), une fois.
+    and e.start_date > now()
+    and e.start_date <= now() + interval '24 hours'
+    and not exists (
+      select 1 from public.notifications n
+      where n.user_id = t.user_id
+        and n.event_id = e.id
+        and n.type = 'event_reminder'
+    );
+end $function$;
 
 CREATE OR REPLACE FUNCTION private.send_rating_requests()
  RETURNS integer
@@ -4153,8 +4283,6 @@ CREATE TRIGGER profiles_prevent_self_admin BEFORE UPDATE ON public.profiles FOR 
 
 CREATE TRIGGER notify_report_on_insert AFTER INSERT ON public.reports FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://jvjvuozvlzqqmcjanvnh.supabase.co/functions/v1/notify-report', 'POST', '{"x-happyn-secret":"REDACTED"}', '{}', '5000');
 
-CREATE TRIGGER send_push_on_notification AFTER INSERT ON public.notifications FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://jvjvuozvlzqqmcjanvnh.supabase.co/functions/v1/send-push', 'POST', '{"Content-Type":"application/json","x-happyn-secret":"REDACTED"}', '{}', '5000');
-
 CREATE TRIGGER profiles_username_guard BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_username_guard();
 
 CREATE TRIGGER posts_mark_edited BEFORE UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION posts_mark_edited();
@@ -4184,6 +4312,12 @@ CREATE TRIGGER rl_reports_before BEFORE INSERT ON public.reports FOR EACH ROW EX
 CREATE TRIGGER rl_new_conversation_before BEFORE INSERT ON public.direct_conversations FOR EACH ROW EXECUTE FUNCTION private.rl_new_conversation();
 
 CREATE TRIGGER rl_free_tickets_before BEFORE INSERT ON public.tickets FOR EACH ROW EXECUTE FUNCTION private.rl_free_tickets();
+
+CREATE TRIGGER ticket_confirmed_email AFTER INSERT ON public.notifications FOR EACH ROW WHEN ((new.type = 'ticket_confirmed'::text)) EXECUTE FUNCTION private.email_ticket_confirmation();
+
+CREATE TRIGGER send_push_on_notification AFTER INSERT ON public.notifications FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://jvjvuozvlzqqmcjanvnh.supabase.co/functions/v1/send-push', 'POST', '{"Content-Type":"application/json","x-happyn-secret":"REDACTED"}', '{}', '5000');
+
+CREATE TRIGGER notify_organizer_paid AFTER INSERT OR UPDATE OF status ON public.event_payouts FOR EACH ROW EXECUTE FUNCTION notify_organizer_paid();
 
 alter table public."profiles" enable row level security;
 
@@ -4250,12 +4384,6 @@ create policy "Public can read categories" on public."categories" as permissive 
 create policy "events images are public" on storage."objects" as permissive for select to public using ((bucket_id = 'events'::text));
 
 create policy "own likes insert" on public."post_likes" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = user_id));
-
-create policy "Users can insert own profile" on public."profiles" as permissive for insert to public with check ((( SELECT auth.uid() AS uid) = id));
-
-create policy "Users can view own profile" on public."profiles" as permissive for select to public using ((( SELECT auth.uid() AS uid) = id));
-
-create policy "categories are public" on public."categories" as permissive for select to public using (true);
 
 create policy "avatars are public" on storage."objects" as permissive for select to public using ((bucket_id = 'avatars'::text));
 
@@ -4362,8 +4490,6 @@ create policy "own posts insert" on public."posts" as permissive for insert to a
 create policy "own reports insert" on public."reports" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = reporter_id));
 
 create policy "own posts update" on public."posts" as permissive for update to authenticated using (((( SELECT auth.uid() AS uid) = author_id) AND (NOT is_suspended()))) with check (((( SELECT auth.uid() AS uid) = author_id) AND (NOT is_suspended())));
-
-create policy "Users can update own profile" on public."profiles" as permissive for update to public using ((( SELECT auth.uid() AS uid) = id));
 
 create policy "own profile insert" on public."profiles" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = id));
 
@@ -4705,8 +4831,6 @@ grant execute on function payout_delay_days() to authenticated;
 
 grant execute on function payout_delay_days() to service_role;
 
-revoke all on function private.alert_payout_holds() from public, anon, authenticated, service_role;
-
 revoke all on function events_lock_fee() from public, anon, authenticated, service_role;
 
 grant execute on function events_lock_fee() to anon;
@@ -4891,11 +5015,15 @@ grant execute on function restore_cancelled_event(uuid) to authenticated;
 
 grant execute on function restore_cancelled_event(uuid) to service_role;
 
+revoke all on function private.email_ticket_confirmation() from public, anon, authenticated, service_role;
+
 revoke all on function cancellation_fee_terms() from public, anon, authenticated, service_role;
 
 grant execute on function cancellation_fee_terms() to authenticated;
 
 grant execute on function cancellation_fee_terms() to service_role;
+
+revoke all on function private.send_event_reminders() from public, anon, authenticated, service_role;
 
 revoke all on function user_holds_ticket_for(uuid) from public, anon, authenticated, service_role;
 
@@ -4920,6 +5048,16 @@ revoke all on function set_attendance_visibility(uuid,boolean) from public, anon
 grant execute on function set_attendance_visibility(uuid,boolean) to authenticated;
 
 grant execute on function set_attendance_visibility(uuid,boolean) to service_role;
+
+revoke all on function private.alert_payout_holds() from public, anon, authenticated, service_role;
+
+revoke all on function notify_organizer_paid() from public, anon, authenticated, service_role;
+
+grant execute on function notify_organizer_paid() to anon;
+
+grant execute on function notify_organizer_paid() to authenticated;
+
+grant execute on function notify_organizer_paid() to service_role;
 
 revoke all on function who_is_going(uuid) from public, anon, authenticated, service_role;
 
