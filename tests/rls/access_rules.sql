@@ -99,11 +99,16 @@ insert into post_comments (post_id, author_id, body) values
 -- Le bucket est semé ici : le snapshot de prod n'emporte que la structure, pas
 -- les lignes de storage.buckets, et sans lui la fixture casse pour toute
 -- migration autre que celle qui crée justement le bucket.
-insert into storage.buckets (id, name, public) values ('event-videos', 'event-videos', true)
+insert into storage.buckets (id, name, public) values
+  ('event-videos', 'event-videos', true),
+  ('avatars', 'avatars', true)
 on conflict (id) do nothing;
 insert into storage.objects (bucket_id, name, owner) values
   ('event-videos', '00000000-0000-0000-0000-0000000000e1/00000000-0000-0000-0000-00000000000a/clip-public.mp4',    '00000000-0000-0000-0000-00000000000a'),
-  ('event-videos', '00000000-0000-0000-0000-0000000000e3/00000000-0000-0000-0000-00000000000a/clip-brouillon.mp4', '00000000-0000-0000-0000-00000000000a');
+  ('event-videos', '00000000-0000-0000-0000-0000000000e3/00000000-0000-0000-0000-00000000000a/clip-brouillon.mp4', '00000000-0000-0000-0000-00000000000a'),
+  -- Un avatar, pour verifier qu'un visiteur ne peut plus ENUMERER le bucket
+  -- public (l'URL publique, elle, sert toujours — hors RLS).
+  ('avatars', '00000000-0000-0000-0000-00000000000a/photo.jpg', '00000000-0000-0000-0000-00000000000a');
 
 insert into direct_conversations (id, member_a, member_b) values
   ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b'),
@@ -128,6 +133,7 @@ select t.as_anon();
 select t.sees_nothing('select email from profiles', 'Visiteur : ne lit aucun courriel de membre');
 select t.sees_nothing('select * from public_profiles', 'Visiteur : ne lit pas l''annuaire des membres');
 select t.sees('select * from categories where is_active', 1, 'Visiteur : lit les categories publiques');
+select t.sees_nothing($$select 1 from storage.objects where bucket_id = 'avatars'$$, 'Visiteur : ne peut pas enumerer un bucket public (avatars)');
 select t.sees_nothing('select * from feed_posts', 'Visiteur : ne lit pas le fil');
 select t.sees_nothing('select * from posts', 'Visiteur : ne lit aucune publication');
 select t.sees_nothing('select * from post_likes', 'Visiteur : ne lit aucun « j''aime »');
