@@ -79,11 +79,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noMessagesYet =>
-      'Aucun message. Ouvre le profil d\'une personne pour démarrer une conversation.';
+      'Aucun message. Touche ✎ en haut pour démarrer une conversation.';
 
   @override
   String get messagesLoadFailed =>
       'Impossible de charger les messages. Fais glisser vers le bas pour réessayer.';
+
+  @override
+  String get messagesSearchHint => 'Rechercher une conversation';
+
+  @override
+  String get newMessage => 'Nouveau message';
+
+  @override
+  String get newMessageEmpty => 'Suis des gens pour pouvoir leur écrire.';
 
   @override
   String get userLabel => 'Utilisateur';

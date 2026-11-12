@@ -11,53 +11,120 @@ import 'package:happyn/core/utils/dates.dart';
 import 'package:happyn/core/widgets/app_form.dart';
 import 'package:happyn/core/widgets/moderation_sheet.dart';
 import 'package:happyn/features/profile/profile_screen.dart';
+import 'package:happyn/features/social/new_message_screen.dart';
 import 'package:happyn/features/social/widgets/shared_content_card.dart';
 import 'package:happyn/features/social/widgets/ticket_message_card.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 
-class DirectMessagesScreen extends ConsumerWidget {
-  const DirectMessagesScreen({super.key});
+class DirectMessagesScreen extends ConsumerStatefulWidget {
+  /// Fourni quand l'ecran vit en PANNEAU (glisse depuis le bord droit de
+  /// l'accueil) plutot qu'en route poussee : il n'y a alors rien a `pop`, donc
+  /// la fleche retour et le bouton retour systeme passent par ce rappel pour
+  /// refermer le panneau. Null => usage classique en route (retour par defaut).
+  final VoidCallback? onClose;
+
+  const DirectMessagesScreen({super.key, this.onClose});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DirectMessagesScreen> createState() =>
+      _DirectMessagesScreenState();
+}
+
+class _DirectMessagesScreenState extends ConsumerState<DirectMessagesScreen> {
+  // Filtre LOCAL : les conversations sont deja toutes chargees, donc chercher
+  // c'est filtrer en memoire — instantane, aucun aller-retour, meme a 100.
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  /// « Nouveau message » : choisir qui, parmi les gens qu'on suit (la seule
+  /// porte que la base ouvre). Au retour, on rafraichit la liste.
+  void _newMessage() {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const NewMessageScreen()))
+        .then((_) {
+      ref.invalidate(directConversationsProvider);
+      ref.invalidate(unreadConversationIdsProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final conversations = ref.watch(directConversationsProvider);
     final unreadIds =
         ref.watch(unreadConversationIdsProvider).asData?.value ??
             const <String>{};
+    final query = _search.text.trim().toLowerCase();
 
-    return Scaffold(
+    return PopScope(
+      // En panneau, le retour systeme ne doit pas sortir de l'accueil : on
+      // l'intercepte pour refermer le panneau. En route, comportement normal.
+      canPop: widget.onClose == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) widget.onClose?.call();
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+        // En panneau, pas de route a depiler : la fleche referme le panneau.
+        leading: widget.onClose == null
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new,
+                    color: Colors.white, size: 20),
+                onPressed: widget.onClose,
+              ),
         title: Text(l.messages, style: AppText.h3),
-      ),
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        backgroundColor: AppColors.card,
-        onRefresh: () async {
-          ref.invalidate(directConversationsProvider);
-          await ref.read(directConversationsProvider.future);
-        },
-        child: conversations.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_square, color: Colors.white, size: 22),
+            onPressed: _newMessage,
+            tooltip: l.newMessage,
           ),
-          error: (_, _) => _empty(context, l.messagesLoadFailed),
-          data: (items) => items.isEmpty
-              ? _empty(context, l.noMessagesYet)
-              : ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) => Divider(
-                    height: 1,
-                    color: Colors.white.withValues(alpha: 0.07),
-                  ),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
+        ],
+      ),
+      body: conversations.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+        error: (_, _) => _refreshable(_empty(context, l.messagesLoadFailed)),
+        data: (items) {
+          if (items.isEmpty) {
+            return _refreshable(_empty(context, l.noMessagesYet));
+          }
+          // Filtre sur le nom et le pseudo de l'autre membre.
+          final shown = query.isEmpty
+              ? items
+              : items.where((c) {
+                  final n = (c['other_name'] as String? ?? '').toLowerCase();
+                  final u =
+                      (c['other_username'] as String? ?? '').toLowerCase();
+                  return n.contains(query) || u.contains(query);
+                }).toList();
+          return Column(children: [
+            _searchField(l),
+            Expanded(
+              child: _refreshable(
+                shown.isEmpty
+                    ? _empty(context, l.shareNoMatch)
+                    : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+                        itemCount: shown.length,
+                        separatorBuilder: (_, _) => Divider(
+                          height: 1,
+                          color: Colors.white.withValues(alpha: 0.07),
+                        ),
+                        itemBuilder: (context, index) {
+                    final item = shown[index];
                     // Pas d'autre membre : il a supprime son compte. La
                     // conversation reste, son identite non.
                     final deleted = item['other_user_id'] == null;
@@ -163,12 +230,47 @@ class DirectMessagesScreen extends ConsumerWidget {
                         ),
                       ),
                     );
-                  },
-                ),
-        ),
+                        },
+                      ),
+              ),
+            ),
+          ]);
+        },
+      ),
       ),
     );
   }
+
+  /// Enveloppe la liste (ou un etat vide) dans un « tirer pour rafraichir ».
+  Widget _refreshable(Widget child) => RefreshIndicator(
+        color: AppColors.primary,
+        backgroundColor: AppColors.card,
+        onRefresh: () async {
+          ref.invalidate(directConversationsProvider);
+          await ref.read(directConversationsProvider.future);
+        },
+        child: child,
+      );
+
+  Widget _searchField(AppLocalizations l) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+        child: TextField(
+          controller: _search,
+          onChanged: (_) => setState(() {}),
+          style: AppText.bodySm.copyWith(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: l.messagesSearchHint,
+            prefixIcon: Icon(Icons.search, color: AppColors.textLow),
+            filled: true,
+            fillColor: AppColors.card,
+            contentPadding: const EdgeInsets.symmetric(vertical: 10),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      );
 
   Widget _empty(BuildContext context, String text) => ListView(
     physics: const AlwaysScrollableScrollPhysics(),

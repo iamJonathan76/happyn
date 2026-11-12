@@ -725,7 +725,9 @@ class _PostCardState extends ConsumerState<PostCard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                gradient: AppColors.brandGradient,
+                // Pastille interactive → violet plein (voir app_colors :
+                // le degrade est reserve a l'identite, pas aux actions).
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(l.viewAction,

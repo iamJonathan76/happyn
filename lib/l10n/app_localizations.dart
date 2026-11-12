@@ -239,7 +239,7 @@ abstract class AppLocalizations {
   /// No description provided for @noMessagesYet.
   ///
   /// In en, this message translates to:
-  /// **'No messages yet. Visit someone\'s profile to start a conversation.'**
+  /// **'No messages yet. Tap ✎ at the top to start a conversation.'**
   String get noMessagesYet;
 
   /// No description provided for @messagesLoadFailed.
@@ -247,6 +247,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t load messages. Pull down to try again.'**
   String get messagesLoadFailed;
+
+  /// No description provided for @messagesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a conversation'**
+  String get messagesSearchHint;
+
+  /// No description provided for @newMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get newMessage;
+
+  /// No description provided for @newMessageEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow people to be able to message them.'**
+  String get newMessageEmpty;
 
   /// No description provided for @userLabel.
   ///

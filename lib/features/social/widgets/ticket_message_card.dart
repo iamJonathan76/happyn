@@ -94,8 +94,11 @@ class TicketMessageCard extends ConsumerWidget {
                 height: 30,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  gradient: isMine ? null : AppColors.brandGradient,
-                  color: isMine ? Colors.white.withValues(alpha: 0.1) : null,
+                  // Pastille cadeau interactive → violet plein ; le degrade
+                  // reste a l'identite (splash, welcome, onboarding).
+                  color: isMine
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : AppColors.primary,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(FontAwesomeIcons.gift.data,

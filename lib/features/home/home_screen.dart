@@ -12,7 +12,7 @@ import 'package:happyn/core/providers/auth_provider.dart';
 import 'package:happyn/core/providers/notifications_provider.dart';
 import 'package:happyn/core/events/event_utils.dart';
 import 'package:happyn/features/notifications/notifications_screen.dart';
-import 'package:happyn/features/social/direct_messages_screen.dart';
+import 'package:happyn/features/main_shell.dart';
 import 'package:happyn/features/social/people_search_screen.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/social/widgets/post_card.dart';
@@ -40,6 +40,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedCat = 0;
   List<String> _categories = const ['All'];
   List<Map<String, dynamic>> _catData = const [];
+
+  // Le panneau Messages (glisse depuis la droite) est porte par MainShell, pour
+  // couvrir tout l'ecran. L'accueil ne fait que le PILOTER via ce scope : le
+  // geste de bord bouge sa progression, l'icone l'ouvre.
+  MessagesPanelScope get _panel => MessagesPanelScope.of(context);
 
   // Getter (pas un champ figé) → toujours la valeur à jour après un updateUser.
   User? get user => Supabase.instance.client.auth.currentUser;
@@ -86,7 +91,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: RefreshIndicator(
+      body: Stack(children: [
+        RefreshIndicator(
         color: AppColors.primary,
         backgroundColor: AppColors.card,
         onRefresh: _refresh,
@@ -115,8 +121,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
+        _rightEdgeToMessages(),
+      ]),
     );
   }
+
+  /// Ouvre le panneau Messages (tap sur l'icone) : meme destination et meme
+  /// glisse-depuis-la-droite que le geste de bord, en version non interactive.
+  void _openMessages() => _panel.open();
+
+  /// Bande etroite collee au BORD DROIT : on la TIRE vers la gauche et le
+  /// panneau Messages suit le doigt en 1:1 — on peut s'arreter au milieu,
+  /// revenir en arriere, ou continuer. Au relacher, il se regle (ouvre ou
+  /// referme) selon la position atteinte et la vitesse. Marche depuis n'importe
+  /// ou dans le fil, meme scrolle a fond. Au bord seulement, pour ne pas voler
+  /// les gestes horizontaux des carrousels du centre.
+  Widget _rightEdgeToMessages() => Positioned(
+        top: 0,
+        bottom: 0,
+        right: 0,
+        width: 24,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragUpdate: (d) {
+            final w = MediaQuery.of(context).size.width;
+            final c = _panel.controller;
+            // Tirer vers la gauche = primaryDelta negatif = on ouvre.
+            c.value = (c.value - d.primaryDelta! / w).clamp(0.0, 1.0);
+          },
+          onHorizontalDragEnd: (d) {
+            // Passe la moitie, OU lache d'un geste franc vers la gauche → ouvre.
+            if (_panel.controller.value > 0.5 ||
+                (d.primaryVelocity ?? 0) < -700) {
+              _panel.open();
+            } else {
+              _panel.close();
+            }
+          },
+          onHorizontalDragCancel: () => _panel.close(),
+        ),
+      );
 
   Widget _buildHeader() {
     return Padding(
@@ -223,10 +267,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 button: true,
                 label: AppLocalizations.of(context).messages,
                 child: GestureDetector(
-                  onTap: () => Navigator.of(context)
-                      .push(MaterialPageRoute(
-                          builder: (_) => const DirectMessagesScreen()))
-                      .then((_) => ref.invalidate(unreadMessagesProvider)),
+                  onTap: _openMessages,
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -621,5 +662,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   }
-
 

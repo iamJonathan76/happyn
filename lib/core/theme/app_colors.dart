@@ -47,12 +47,15 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
-  /// Le dégradé de marque, violet → rose : réservé aux moments de marque —
-  /// accueil, lancement, onboarding, bouton « + » de création, pastille
-  /// « Voir » d'un événement partagé.
+  /// Le dégradé de marque, violet → rose : réservé à l'IDENTITÉ — splash,
+  /// mot-symbole « HAPPYN » du welcome, héros d'onboarding. Là, le dégradé
+  /// EST le logo.
   ///
-  /// Distinct de [primaryGradient], resté violet plein : partout à la fois, le
-  /// dégradé ne signalait plus rien. Rare, il marque les gestes qui comptent.
+  /// Les éléments INTERACTIFS (bouton « + », pastille « Voir », cadeau d'un
+  /// billet partagé) sont passés au violet plein [primary] le 2026-11-11 : sur
+  /// une action, le dégradé ne signalait rien de plus qu'un aplat, et le
+  /// garder faisait du « + » le dernier survivant incohérent. Règle : dégradé =
+  /// identité, aplat = action.
   static const LinearGradient brandGradient = LinearGradient(
     colors: [primary, pink],
     begin: Alignment.centerLeft,

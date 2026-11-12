@@ -13,17 +13,38 @@ import 'package:happyn/features/events/create_event_screen.dart';
 import 'package:happyn/features/social/create_post_screen.dart';
 import 'package:happyn/features/discover/discover_screen.dart';
 import 'package:happyn/features/ticketing/my_tickets_screen.dart';
+import 'package:happyn/features/social/direct_messages_screen.dart';
+import 'package:happyn/core/providers/notifications_provider.dart';
 
-class MainShell extends StatefulWidget {
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends ConsumerState<MainShell>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final ScrollController _homeScrollController = ScrollController();
+
+  // Progression du panneau Messages : 0 = ferme (hors ecran a droite), 1 =
+  // ouvert. Il vit ICI, au-dessus de MainShell, pour couvrir tout l'ecran,
+  // barre d'onglets comprise (facon Instagram) ; et comme il reste SOUS les
+  // routes poussees, une conversation ouverte depuis la liste passe par-dessus.
+  // Pilote au doigt par le geste de bord de l'accueil (via MessagesPanelScope).
+  late final AnimationController _msg = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+    reverseDuration: const Duration(milliseconds: 220),
+  );
+
+  void _openMessages() => _msg.animateTo(1, curve: Curves.easeOutCubic);
+
+  void _closeMessages() {
+    _msg.animateBack(0, curve: Curves.easeOutCubic);
+    ref.invalidate(unreadMessagesProvider);
+  }
 
   @override
   void initState() {
@@ -50,6 +71,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   void dispose() {
+    _msg.dispose();
     _homeScrollController.dispose();
     super.dispose();
   }
@@ -71,15 +93,57 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: IndexedStack(
-        index: _currentIndex == 2 ? 0 : _currentIndex,
-        children: _pages,
+    // Le panneau est EMPILE par-dessus toute la coque (corps + barre d'onglets),
+    // et le scope expose le controleur a l'accueil pour le geste de bord et
+    // l'icone Messages. Les routes poussees (une conversation) restent au-dessus
+    // du panneau car elles s'ajoutent au-dessus de la route MainShell entiere.
+    return MessagesPanelScope(
+      controller: _msg,
+      open: _openMessages,
+      close: _closeMessages,
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: AppColors.background,
+            body: IndexedStack(
+              index: _currentIndex == 2 ? 0 : _currentIndex,
+              children: _pages,
+            ),
+            bottomNavigationBar: _buildBottomNav(),
+          ),
+          _messagesPanel(),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
+
+  /// Le panneau Messages : hors ecran a droite a 0, en place a 1. Non monte
+  /// tant qu'il est ferme (comme une route depilee). Un voile assombrit la
+  /// coque a mesure qu'il entre, pour la profondeur. Suivi LINEAIRE : la
+  /// position colle au doigt ; la courbe n'intervient qu'au reglage (open/close).
+  Widget _messagesPanel() => AnimatedBuilder(
+        animation: _msg,
+        child: DirectMessagesScreen(onClose: _closeMessages),
+        builder: (context, child) {
+          final v = _msg.value;
+          if (v == 0) return const SizedBox.shrink();
+          final w = MediaQuery.of(context).size.width;
+          return Positioned.fill(
+            child: Stack(children: [
+              IgnorePointer(
+                child: Opacity(
+                  opacity: v * 0.45,
+                  child: const ColoredBox(color: Colors.black),
+                ),
+              ),
+              Transform.translate(
+                offset: Offset(w * (1 - v), 0),
+                child: child,
+              ),
+            ]),
+          );
+        },
+      );
 
   /// Le « + » propose les deux créations.
   ///
@@ -200,11 +264,14 @@ class _MainShellState extends State<MainShell> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      gradient: AppColors.brandGradient,
+                      // Violet plein (comme la puce de categorie active et le
+                      // selecteur de periode) : le degrade reste a l'identite
+                      // (splash, welcome, onboarding), pas aux boutons.
+                      color: AppColors.primary,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.pink.withValues(alpha: 0.35),
+                          color: AppColors.primary.withValues(alpha: 0.35),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
@@ -275,6 +342,32 @@ class _MainShellState extends State<MainShell> {
       ),
     );
   }
+}
+
+/// Donne a l'accueil (geste de bord + icone Messages) la main sur le panneau
+/// Messages porte par MainShell, sans remonter d'etat ni de cle globale.
+class MessagesPanelScope extends InheritedWidget {
+  const MessagesPanelScope({
+    super.key,
+    required this.controller,
+    required this.open,
+    required this.close,
+    required super.child,
+  });
+
+  /// Progression du panneau (0 ferme → 1 ouvert) : le geste la pilote au doigt.
+  final AnimationController controller;
+
+  /// Ouvre / referme en animant jusqu'au bout (tap icone, fin de geste).
+  final VoidCallback open;
+  final VoidCallback close;
+
+  static MessagesPanelScope of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<MessagesPanelScope>()!;
+
+  @override
+  bool updateShouldNotify(MessagesPanelScope old) =>
+      controller != old.controller;
 }
 
 /// L'onglet Profil : la photo de la personne si elle en a une, sinon l'icône
