@@ -653,6 +653,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get cancellation7Days => '7 days before';
+
+  @override
   String get addressLabel => 'Exact address';
 
   @override
@@ -915,6 +918,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roundUpTo => 'Round up to';
 
   @override
+  String get createTicketsAvailable => 'Tickets available';
+
+  @override
+  String get createMaxPerPerson => 'Maximum per person';
+
+  @override
   String get priceFreeHint => '0 = free';
 
   @override
@@ -1011,6 +1020,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ticketTiersLabel => 'Ticket Tiers *';
+
+  @override
+  String get createSectionDetails => 'Details';
+
+  @override
+  String get createSectionTickets => 'Tickets';
+
+  @override
+  String get createSectionMedia => 'Media';
+
+  @override
+  String get createSectionSettings => 'Settings';
+
+  @override
+  String get createVisibilityLabel => 'Visibility';
+
+  @override
+  String get createVisibilityPublic => 'Public';
+
+  @override
+  String get createVisibilityPrivate => 'Private';
 
   @override
   String get addTier => 'Add tier';

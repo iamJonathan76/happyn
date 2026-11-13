@@ -210,7 +210,15 @@ class _TicketTierCardState extends State<TicketTierCard> {
             _breakdown(l, lang, display),
           ],
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _fieldLabel(l.createTicketsAvailable)),
+              const SizedBox(width: 10),
+              Expanded(child: _fieldLabel(l.createMaxPerPerson)),
+            ],
+          ),
+          const SizedBox(height: 6),
           Row(
             children: [
               Expanded(
@@ -239,6 +247,18 @@ class _TicketTierCardState extends State<TicketTierCard> {
       ),
     );
   }
+
+  /// Libellé de champ en petites majuscules, aligné sur « TU REÇOIS » et le
+  /// reste de l'écran de création.
+  Widget _fieldLabel(String text) => Text(
+        text.toUpperCase(),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppText.micro.copyWith(
+            letterSpacing: 0.6,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textMuted),
+      );
 
   Widget _priceField(String label, TextEditingController controller,
       String hint, IconData icon) {
@@ -280,12 +300,16 @@ class _TicketTierCardState extends State<TicketTierCard> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.25),
+        // Vert quand le net est viable : c'est de l'argent qui rentre, il
+        // merite sa couleur. Rouge-sombre quand le prix est trop bas.
+        color: tooLow
+            ? Colors.black.withValues(alpha: 0.25)
+            : AppColors.success.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
             color: tooLow
                 ? AppColors.error.withValues(alpha: 0.35)
-                : Colors.white.withValues(alpha: 0.06)),
+                : AppColors.success.withValues(alpha: 0.28)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

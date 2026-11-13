@@ -656,6 +656,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get cancellation7Days => '7 jours avant';
+
+  @override
   String get addressLabel => 'Adresse exacte';
 
   @override
@@ -918,6 +921,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get roundUpTo => 'Arrondir à';
 
   @override
+  String get createTicketsAvailable => 'Billets disponibles';
+
+  @override
+  String get createMaxPerPerson => 'Maximum par personne';
+
+  @override
   String get priceFreeHint => '0 = gratuit';
 
   @override
@@ -1015,6 +1024,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get ticketTiersLabel => 'Tarifs de billets *';
+
+  @override
+  String get createSectionDetails => 'Détails';
+
+  @override
+  String get createSectionTickets => 'Billetterie';
+
+  @override
+  String get createSectionMedia => 'Médias';
+
+  @override
+  String get createSectionSettings => 'Réglages';
+
+  @override
+  String get createVisibilityLabel => 'Visibilité';
+
+  @override
+  String get createVisibilityPublic => 'Public';
+
+  @override
+  String get createVisibilityPrivate => 'Privé';
 
   @override
   String get addTier => 'Ajouter un tarif';

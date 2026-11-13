@@ -1202,6 +1202,12 @@ abstract class AppLocalizations {
   /// **'{hours} h before'**
   String cancellationHours(int hours);
 
+  /// No description provided for @cancellation7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days before'**
+  String get cancellation7Days;
+
   /// No description provided for @addressLabel.
   ///
   /// In en, this message translates to:
@@ -1652,6 +1658,18 @@ abstract class AppLocalizations {
   /// **'Round up to'**
   String get roundUpTo;
 
+  /// No description provided for @createTicketsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets available'**
+  String get createTicketsAvailable;
+
+  /// No description provided for @createMaxPerPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum per person'**
+  String get createMaxPerPerson;
+
   /// No description provided for @priceFreeHint.
   ///
   /// In en, this message translates to:
@@ -1825,6 +1843,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ticket Tiers *'**
   String get ticketTiersLabel;
+
+  /// No description provided for @createSectionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get createSectionDetails;
+
+  /// No description provided for @createSectionTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets'**
+  String get createSectionTickets;
+
+  /// No description provided for @createSectionMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get createSectionMedia;
+
+  /// No description provided for @createSectionSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get createSectionSettings;
+
+  /// No description provided for @createVisibilityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get createVisibilityLabel;
+
+  /// No description provided for @createVisibilityPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public'**
+  String get createVisibilityPublic;
+
+  /// No description provided for @createVisibilityPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private'**
+  String get createVisibilityPrivate;
 
   /// No description provided for @addTier.
   ///
