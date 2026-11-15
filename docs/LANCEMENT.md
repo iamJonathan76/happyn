@@ -1,22 +1,32 @@
 # HAPPYN — État et ce qui reste
 
-État au 2026-10-18 — 84 migrations, 12 fonctions Edge. **Le code n'est plus le
+État au 2026-11-13 — 103 migrations, 13 fonctions Edge. **Le code n'est plus le
 goulot d'étranglement.** Ce qui reste se répartit en trois familles très
 inégales : des **décisions** (rapides, mais elles bloquent le reste), de la
 **configuration** (mécanique), et ce qui n'est **pas encore écrit**.
 
 Ce qui manque encore et **n'est pas du peaufinage**, vérifié dans le dépôt le
-2026-10-18 :
+2026-11-13 :
 
 - ~~**Sign in with Apple**~~ — **fait et testé sur iPhone le 2026-10-30.**
   `sign_in_with_apple` (natif, nonce → `signInWithIdToken`), bouton branché,
   capacité *Sign in with Apple* sur l'App ID et fournisseur Apple activé dans
   Supabase (bundle `com.happyn.happyn` dans *Authorized Client IDs* ; le secret
   OAuth ne sert qu'au flux web, pas au natif iOS). Règle 4.8 levée.
-- **Les statistiques de l'organisateur** — aucun écran `analytics` dans `lib/`.
-  Il voit ses ventes et ses versements, pas ses chiffres.
-- **Les rappels avant événement** — aucune des 12 fonctions Edge ne les envoie.
-  `pg_cron` est désormais installé (§ 8), mais il ne sert qu'aux versements.
+- ~~**Les statistiques de l'organisateur**~~ — **fait** (migration
+  `20261029000000_organizer_dashboard`, RPC `organizer_dashboard`). Écran
+  `organizer_dashboard_screen.dart`, atteignable depuis Réglages et les
+  notifications : revenu net, billets vendus, entrées, taux de présence,
+  prochain versement, classement par événement, filtres semaine/mois/tout.
+  Hors périmètre encore : vues/impressions et entonnoir de conversion (aucune
+  collecte de ces signaux).
+- **Les rappels avant événement** — **fonction écrite le 2026-11-12**
+  (`20261112000000_event_reminders`, `private.send_event_reminders()` : une
+  notification `event_reminder` par détenteur d'un billet valide, ≈ 24 h avant,
+  une seule fois par événement, sans courriel). **Reste à planifier le cron
+  horaire** : la migration ne le fait pas — même situation que les notes
+  d'événement (§ 5). Tant que le `cron.schedule` n'est pas posé côté Supabase,
+  rien ne part.
 
 ---
 
@@ -46,6 +56,7 @@ Ce qui manque encore et **n'est pas du peaufinage**, vérifié dans le dépôt l
 | Notifs poussées sur iOS (APNs + Firebase) | ✅ testées sur iPhone (2026-10-30) |
 | Registre des paiements (`payments`) — répond à « il a payé, pas de billet » | ✅ code |
 | Stripe Connect : inscription, versements, contestations | ✅ code, § 4 |
+| Tableau de bord organisateur — revenu net, vendus, entrées, taux de présence, prochain versement, classement par événement, semaine/mois/tout | ✅ code (2026-10-29) |
 
 ---
 
@@ -498,9 +509,31 @@ select cron.schedule('happyn-rating-requests', '23 * * * *',
 ### Moments vidéo — en cours (plan arrêté le 2026-10-26)
 
 Au départ, la demande était de **partager un moment en vidéo**, comme les
-photos. Ce que Demba avait livré (`feature/video-posts`, fusionné) est autre
-chose : l'**organisateur** joint une vidéo à **son** événement, à la création.
-On garde ça, et on ajoute le vrai moment vidéo par-dessus.
+photos. Ce que Demba avait livré (`feature/video-posts`, fusionné) était autre
+chose : l'**organisateur** joignait une vidéo à **son** événement, à la
+création.
+
+**Retiré de la création le 2026-11-13.** Un clip est un *moment*, pas un champ
+du formulaire d'événement : il se rattache à un événement quand on veut, même
+après coup, via « Partager un moment » — qui a déjà son sélecteur d'événement
+(`attachableEventsProvider`) et écrit dans le même bucket `event-videos`.
+L'imposer à la création alourdissait un écran déjà long pour un geste qui n'a
+pas à être fait maintenant. Tout le chemin vidéo de `create_event_screen` est
+parti (sélecteur, upload, création du post) sans rien perdre. Reste donc à
+construire le **vrai moment vidéo** dans le composeur ci-dessous : c'est
+désormais le seul chemin pour une vidéo.
+
+**Refonte visuelle de « Créer un événement », le 2026-11-13** (vérifiée sur
+simulateur). Chaque section (Détails, Billetterie, Médias, Réglages) reçoit un
+titre gras + un filet ; les libellés de champ passent en petites majuscules,
+mais *localement* (le widget partagé `AppLabel` garde la casse normale
+ailleurs) ; toutes les pilules sélectionnées sont en violet plein — l'âge, le
+délai d'annulation, les options de photos — fini le contour teinté ; la
+visibilité devient deux pilules Public/Privé qui déplient les sous-réglages
+privés dessous (aucune logique perdue) ; le récap de billetterie se teinte en
+vert quand le net est viable. Trois coquilles corrigées au passage : la tuile
+de fin disait « End » en dur, l'aide sous l'âge était restée en anglais, et
+« 7 jours » s'affichait « 168 h avant ».
 
 **Décisions prises (maquette validée) :**
 
@@ -778,5 +811,8 @@ premier événement payant d'un tiers.
 
 ### 4. Relecture légale des deux langues — § 3.4.
 
-Ensuite : revenus et statistiques de l'organisateur, rappels avant
-événement, suivi de lecture des messages.
+Ensuite : **activer** le cron des rappels avant événement (la fonction
+`send_event_reminders()` existe, le `cron.schedule` reste à poser), et le suivi
+de lecture des messages. Les statistiques de l'organisateur, elles, sont
+**faites** (tableau de bord, § 1) — ce qui manque n'est plus que les
+vues/impressions, qui demandent une collecte qu'on n'a pas.
