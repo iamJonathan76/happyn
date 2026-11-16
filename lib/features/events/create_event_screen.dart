@@ -822,6 +822,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             platformFeeBps:
                                 ref.watch(platformFeeBpsProvider).asData?.value ??
                                     Pricing.defaultPlatformFeeBps,
+                            platformFeeFixedCents: ref
+                                    .watch(platformFeeFixedCentsProvider)
+                                    .asData
+                                    ?.value ??
+                                Pricing.defaultPlatformFeeFixedCents,
                             canRemove: _tiers[i].id == null &&
                                 _tiers.length > 1,
                             onRemove: () => _removeTier(i),

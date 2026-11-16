@@ -232,6 +232,10 @@ Deno.serve(async (req) => {
         p_gross_cents: pi.amount ?? 0,
         p_stripe_fee_cents: feeCents,
         p_platform_fee_bps: parseInt(meta.platform_fee_bps ?? "0", 10),
+        p_platform_fee_fixed_cents: parseInt(
+          meta.platform_fee_fixed_cents ?? "0",
+          10,
+        ),
       });
       if (ledgerErr) {
         // 500 => Stripe rejoue. `record_payment` est idempotente, donc rejouer

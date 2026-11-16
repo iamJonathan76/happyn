@@ -26,6 +26,10 @@ class TicketTierCard extends StatefulWidget {
   /// La commission, telle que la base la déclare (`platform_fee_bps()`).
   final int platformFeeBps;
 
+  /// La part fixe de commission (cents/billet), telle que la base la déclare
+  /// (`platform_fee_fixed_cents()`).
+  final int platformFeeFixedCents;
+
   /// Un tarif déjà enregistré en base n'est pas supprimable (des billets ont
   /// pu être vendus) — et on garde toujours au moins un tarif.
   final bool canRemove;
@@ -35,6 +39,7 @@ class TicketTierCard extends StatefulWidget {
     super.key,
     required this.tier,
     required this.platformFeeBps,
+    required this.platformFeeFixedCents,
     required this.canRemove,
     required this.onRemove,
   });
@@ -99,8 +104,9 @@ class _TicketTierCardState extends State<TicketTierCard> {
     if (net == null) {
       _set(_tier.priceController, '');
     } else {
-      final display =
-          Pricing.displayFromNet(net, platformFeeBps: widget.platformFeeBps);
+      final display = Pricing.displayFromNet(net,
+          platformFeeBps: widget.platformFeeBps,
+          platformFeeFixedCents: widget.platformFeeFixedCents);
       _set(_tier.priceController, display <= 0 ? '' : _format(display));
     }
     _syncing = false;
@@ -121,8 +127,9 @@ class _TicketTierCardState extends State<TicketTierCard> {
       _set(_tier.netController, '');
       return;
     }
-    final net =
-        Pricing.netFromDisplay(display, platformFeeBps: widget.platformFeeBps);
+    final net = Pricing.netFromDisplay(display,
+        platformFeeBps: widget.platformFeeBps,
+        platformFeeFixedCents: widget.platformFeeFixedCents);
     _set(_tier.netController, net <= 0 ? '' : _format(net));
   }
 
@@ -289,10 +296,12 @@ class _TicketTierCardState extends State<TicketTierCard> {
   /// coup ce que l'arrondi lui rapporte.
   Widget _breakdown(AppLocalizations l, String lang, double display) {
     final processing = Pricing.stripeFee(display);
-    final platform =
-        Pricing.platformFee(display, platformFeeBps: widget.platformFeeBps);
-    final net =
-        Pricing.netFromDisplay(display, platformFeeBps: widget.platformFeeBps);
+    final platform = Pricing.platformFee(display,
+        platformFeeBps: widget.platformFeeBps,
+        platformFeeFixedCents: widget.platformFeeFixedCents);
+    final net = Pricing.netFromDisplay(display,
+        platformFeeBps: widget.platformFeeBps,
+        platformFeeFixedCents: widget.platformFeeFixedCents);
     final tooLow = net <= 0;
     String money(double v) => Pricing.money(v, lang);
 
@@ -316,9 +325,9 @@ class _TicketTierCardState extends State<TicketTierCard> {
         children: [
           if (tooLow)
             Text(
-              l.priceTooLow(money(
-                  Pricing.minimumViableDisplay(
-                      platformFeeBps: widget.platformFeeBps))),
+              l.priceTooLow(money(Pricing.minimumViableDisplay(
+                  platformFeeBps: widget.platformFeeBps,
+                  platformFeeFixedCents: widget.platformFeeFixedCents))),
               style: AppText.micro.copyWith(color: AppColors.error, height: 1.4),
             )
           else ...[

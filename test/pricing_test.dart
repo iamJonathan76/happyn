@@ -5,7 +5,7 @@ import 'package:happyn/core/payments/pricing.dart';
 /// dérivaient de `event_ledger` en base, l'app promettrait un montant que le
 /// versement ne tiendrait pas — et ça, c'est un litige, pas un bug d'affichage.
 void main() {
-  const bps = 500; // 5 %, la commission actuelle
+  const bps = 500; // 5 %, le taux figé des événements d'avant 3 % + 0,99 $
 
   group('displayFromNet', () {
     // 20,30 / 0,921 = 22,0412 — arrondi au cent SUPERIEUR, jamais inferieur.
@@ -84,6 +84,53 @@ void main() {
     test("ne renvoie pas l'infini", () {
       expect(Pricing.displayFromNet(20, platformFeeBps: 9800), 0);
       expect(Pricing.minimumViableDisplay(platformFeeBps: 9800), 0);
+    });
+  });
+
+  // Barème en vigueur depuis le 2026-11 : 3 % du prix affiché + 0,99 $ PAR
+  // billet. Les valeurs sont celles du document de tarification (Emmanuel).
+  group('nouveau barème 3 % + 0,99 \$', () {
+    const bps = 300;
+    const fixed = 99;
+
+    test("platformFee reproduit le document de tarification", () {
+      expect(
+          Pricing.platformFee(30,
+              platformFeeBps: bps, platformFeeFixedCents: fixed),
+          1.89);
+      expect(
+          Pricing.platformFee(100,
+              platformFeeBps: bps, platformFeeFixedCents: fixed),
+          3.99);
+      expect(
+          Pricing.platformFee(500,
+              platformFeeBps: bps, platformFeeFixedCents: fixed),
+          15.99);
+    });
+
+    test("la part fixe pèse lourd sur les petits prix", () {
+      // 10 $ : 0,30 (3 %) + 0,99 = 1,29, contre ~0,50 à l'ancien 5 %.
+      expect(
+          Pricing.platformFee(10,
+              platformFeeBps: bps, platformFeeFixedCents: fixed),
+          1.29);
+    });
+
+    test("net + frais Stripe + commission = prix affiché", () {
+      for (final net in [10.0, 20.0, 50.0, 100.0]) {
+        final display = Pricing.displayFromNet(net,
+            platformFeeBps: bps, platformFeeFixedCents: fixed);
+        final back = Pricing.netFromDisplay(display,
+            platformFeeBps: bps, platformFeeFixedCents: fixed);
+        // L'organisateur touche au moins ce qu'il a demandé, jamais moins.
+        expect(back, greaterThanOrEqualTo(net), reason: 'net $net');
+        expect(back - net, lessThan(0.02), reason: 'net $net');
+        final stripe = Pricing.stripeFee(display);
+        final platform = Pricing.platformFee(display,
+            platformFeeBps: bps, platformFeeFixedCents: fixed);
+        expect((back + stripe + platform - display).abs(), lessThan(0.02),
+            reason: 'somme pour net $net');
+      }
     });
   });
 }

@@ -23,52 +23,65 @@ class Pricing {
   static const double stripePercent = 0.029;
   static const double stripeFixed = 0.30;
 
-  /// Repli si la base n'a pas pu être interrogée. La source de vérité est
-  /// `public.platform_fee_bps()` : ce nombre n'est qu'un dernier recours,
-  /// jamais une seconde définition.
-  static const int defaultPlatformFeeBps = 500;
+  /// Repli si la base n'a pas pu être interrogée. La source de vérité reste
+  /// `public.platform_fee_bps()` / `platform_fee_fixed_cents()` : ces nombres
+  /// ne sont qu'un dernier recours, jamais une seconde définition. Alignés sur
+  /// le barème en vigueur (3 % + 0,99 $), pour qu'un écran de création ouvert
+  /// hors ligne annonce le bon ordre de grandeur.
+  static const int defaultPlatformFeeBps = 300;
+  static const int defaultPlatformFeeFixedCents = 99;
 
   /// Prix à afficher pour que l'organisateur touche [net].
   ///
-  /// On résout `net = P − (P × 2,9 % + 0,30) − P × commission` :
+  /// La commission a deux parts : un pourcentage [platformFeeBps] ET un montant
+  /// FIXE par billet [platformFeeFixedCents] (en cents). On résout
+  /// `net = P − (P × 2,9 % + 0,30) − (P × pct + fixe)` :
   ///
-  ///     P = (net + 0,30) / (1 − 0,029 − commission)
+  ///     P = (net + 0,30 + fixe) / (1 − 0,029 − pct)
   ///
   /// Arrondi au cent SUPÉRIEUR : l'organisateur doit toucher au moins ce
   /// qu'il a demandé, jamais un cent de moins.
-  static double displayFromNet(double net, {required int platformFeeBps}) {
+  static double displayFromNet(double net,
+      {required int platformFeeBps, int platformFeeFixedCents = 0}) {
     if (net <= 0) return 0;
     final rate = 1 - stripePercent - platformFeeBps / 10000;
     // Une commission absurde (≥ 97 %) rendrait l'équation insoluble : on ne
     // renvoie pas l'infini, on renvoie 0 et l'écran n'affiche rien.
     if (rate <= 0) return 0;
-    return _ceilCents((net + stripeFixed) / rate);
+    return _ceilCents((net + stripeFixed + platformFeeFixedCents / 100) / rate);
   }
 
   /// Ce que l'organisateur touchera si l'acheteur paie [display].
   /// Peut être négatif sur un prix minuscule : 0,25 $ ne couvre même pas les
-  /// 0,30 $ fixes de Stripe. L'interface doit alors refuser le prix plutôt
-  /// que d'afficher un négatif.
-  static double netFromDisplay(double display, {required int platformFeeBps}) {
+  /// 0,30 $ fixes de Stripe, encore moins la part fixe de commission.
+  /// L'interface doit alors refuser le prix plutôt que d'afficher un négatif.
+  static double netFromDisplay(double display,
+      {required int platformFeeBps, int platformFeeFixedCents = 0}) {
     if (display <= 0) return 0;
     final kept = display * (1 - stripePercent - platformFeeBps / 10000);
-    return _roundCents(kept - stripeFixed);
+    return _roundCents(kept - stripeFixed - platformFeeFixedCents / 100);
   }
 
   /// La part de Stripe sur un prix affiché.
   static double stripeFee(double display) =>
       display <= 0 ? 0 : _roundCents(display * stripePercent + stripeFixed);
 
-  /// La part de HAPPYN sur un prix affiché.
-  static double platformFee(double display, {required int platformFeeBps}) =>
-      display <= 0 ? 0 : _roundCents(display * platformFeeBps / 10000);
+  /// La part de HAPPYN sur un prix affiché : pourcentage + part fixe par billet.
+  static double platformFee(double display,
+          {required int platformFeeBps, int platformFeeFixedCents = 0}) =>
+      display <= 0
+          ? 0
+          : _roundCents(
+              display * platformFeeBps / 10000 + platformFeeFixedCents / 100);
 
   /// Le prix plancher en dessous duquel l'organisateur toucherait zéro ou
-  /// moins. Sert à refuser un prix, pas à en imposer un.
-  static double minimumViableDisplay({required int platformFeeBps}) {
+  /// moins. Sert à refuser un prix, pas à en imposer un. La part fixe relève le
+  /// plancher d'autant.
+  static double minimumViableDisplay(
+      {required int platformFeeBps, int platformFeeFixedCents = 0}) {
     final rate = 1 - stripePercent - platformFeeBps / 10000;
     if (rate <= 0) return 0;
-    return _ceilCents(stripeFixed / rate);
+    return _ceilCents((stripeFixed + platformFeeFixedCents / 100) / rate);
   }
 
   /// Arrondi « joli » vers le HAUT, au pas demandé (0,25 $, 0,50 $, 1 $…).

@@ -23,6 +23,21 @@ final platformFeeBpsProvider = FutureProvider<int>((ref) async {
   return Pricing.defaultPlatformFeeBps;
 });
 
+/// La part FIXE de la commission (cents par billet), lue en base pour les mêmes
+/// raisons que le taux : `public.platform_fee_fixed_cents()` est la seule
+/// définition, celle que le versement appliquera.
+final platformFeeFixedCentsProvider = FutureProvider<int>((ref) async {
+  try {
+    final value =
+        await Supabase.instance.client.rpc('platform_fee_fixed_cents');
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+  } catch (_) {
+    // Hors ligne, ou migration pas encore appliquée.
+  }
+  return Pricing.defaultPlatformFeeFixedCents;
+});
+
 /// Les frais d'annulation, lus EN BASE comme la commission, pour les mêmes
 /// raisons : `cancellation_fee_terms()` est la seule définition, celle que le
 /// remboursement appliquera.

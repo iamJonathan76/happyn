@@ -4379,13 +4379,13 @@ alter table public."event_ratings" enable row level security;
 
 alter table public."payout_reviews" enable row level security;
 
-create policy "Public can read categories" on public."categories" as permissive for select to public using (true);
+create policy "events images are public" on storage."objects" as permissive for select to authenticated using ((bucket_id = 'events'::text));
 
-create policy "events images are public" on storage."objects" as permissive for select to public using ((bucket_id = 'events'::text));
+create policy "Public can read categories" on public."categories" as permissive for select to public using (true);
 
 create policy "own likes insert" on public."post_likes" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = user_id));
 
-create policy "avatars are public" on storage."objects" as permissive for select to public using ((bucket_id = 'avatars'::text));
+create policy "avatars are public" on storage."objects" as permissive for select to authenticated using ((bucket_id = 'avatars'::text));
 
 create policy "legal readable by all" on public."legal_documents" as permissive for select to authenticated, anon using (true);
 
@@ -4397,7 +4397,7 @@ create policy "own blocks insert" on public."blocked_users" as permissive for in
 
 create policy "own blocks select" on public."blocked_users" as permissive for select to authenticated using ((( SELECT auth.uid() AS uid) = blocker_id));
 
-create policy "post images are public" on storage."objects" as permissive for select to authenticated, anon using ((bucket_id = 'posts'::text));
+create policy "post images are public" on storage."objects" as permissive for select to authenticated using ((bucket_id = 'posts'::text));
 
 create policy "own tokens upsert" on public."device_tokens" as permissive for insert to authenticated with check ((( SELECT auth.uid() AS uid) = user_id));
 

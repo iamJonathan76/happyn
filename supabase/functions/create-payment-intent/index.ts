@@ -87,7 +87,9 @@ Deno.serve(async (req) => {
   // Ventes fermées si l'event n'est pas publié ou est terminé
   const { data: evRow } = await admin
     .from("events")
-    .select("end_date, status, created_by, platform_fee_bps, min_age")
+    .select(
+      "end_date, status, created_by, platform_fee_bps, platform_fee_fixed_cents, min_age",
+    )
     .eq("id", tt.event_id)
     .maybeSingle();
   if (evRow?.status && evRow.status !== "published") {
@@ -195,11 +197,15 @@ Deno.serve(async (req) => {
   // rejoue alors pour rien.
   form.append("metadata[event_id]", String(tt.event_id));
   form.append("metadata[organizer_id]", organizerId);
-  // Le taux est figé ici, à l'achat. Même si l'événement était modifié ensuite,
-  // c'est celui-ci qui s'applique à ce paiement.
+  // Le taux ET la part fixe sont figés ici, à l'achat. Même si l'événement
+  // était modifié ensuite, ce sont ceux-ci qui s'appliquent à ce paiement.
   form.append(
     "metadata[platform_fee_bps]",
     String(evRow?.platform_fee_bps ?? 0),
+  );
+  form.append(
+    "metadata[platform_fee_fixed_cents]",
+    String(evRow?.platform_fee_fixed_cents ?? 0),
   );
   // Regroupe, côté Stripe, les encaissements et le virement d'un même
   // événement. Purement descriptif — mais c'est ce qui rend un rapprochement

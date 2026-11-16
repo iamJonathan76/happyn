@@ -299,6 +299,29 @@ select t.record(
      from public.event_ledger() where event_id = '00000000-0000-0000-0000-0000000000e4'),
   'Versement : un billet annule par l''acheteur ne coute rien a l''organisateur');
 
+-- Nouveau bareme 3 % + 0,99 $ PAR BILLET. Deux billets de 100 $, gardes en
+-- entier : commission = round(20000 * 300/10000) + 2 * 99 = 600 + 198 = 798.
+insert into payments (payment_intent_id, event_id, ticket_type_id, organizer_id, buyer_id, quantity,
+                      gross_cents, stripe_fee_cents, platform_fee_bps, platform_fee_fixed_cents) values
+  ('pi_newrate', '00000000-0000-0000-0000-0000000000fe', null,
+   '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000c', 2, 20000, 610, 300, 99);
+select t.record(
+  (select platform_fee = 798
+     from public.event_ledger() where event_id = '00000000-0000-0000-0000-0000000000fe'),
+  'Versement : nouveau bareme 3 % + 0,99 $/billet (2 x 100 $ -> 798 cents)');
+
+-- Meme bareme, billet entierement rembourse : la part fixe NE SE GARDE PAS.
+-- kept = 10000 - 9680 - 320 = 0, donc commission = 0 (0,99 $ compris).
+insert into payments (payment_intent_id, event_id, ticket_type_id, organizer_id, buyer_id, quantity,
+                      gross_cents, stripe_fee_cents, platform_fee_bps, platform_fee_fixed_cents,
+                      refunded_cents, retained_fee_cents) values
+  ('pi_newrate_ref', '00000000-0000-0000-0000-0000000000fd', null,
+   '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000c', 1, 10000, 320, 300, 99, 9680, 320);
+select t.record(
+  (select platform_fee = 0
+     from public.event_ledger() where event_id = '00000000-0000-0000-0000-0000000000fd'),
+  'Versement : nouveau bareme, billet rembourse -> 0,99 $ non garde');
+
 -- Le consentement aux conditions : enregistre par le serveur, pour la version
 -- montree, et re-demande quand elle change
 reset role;
