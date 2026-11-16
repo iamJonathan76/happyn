@@ -295,6 +295,7 @@
   "roundUpTo": "Arrondir à",
   "createTicketsAvailable": "Billets disponibles",
   "createMaxPerPerson": "Maximum par personne",
+  "createPaidComingSoon": "Billet gratuit. Les billets payants arrivent bientôt.",
   "priceFreeHint": "0 = gratuit",
   "tierSoldInfo": "{sold} vendus · quantité min {sold}",
   "maxPerPersonHint": "Max/pers. (0=∞)",

@@ -314,6 +314,7 @@
   "roundUpTo": "Round up to",
   "createTicketsAvailable": "Tickets available",
   "createMaxPerPerson": "Maximum per person",
+  "createPaidComingSoon": "Free ticket. Paid tickets are coming soon.",
   "priceFreeHint": "0 = free",
   "tierSoldInfo": "{sold} sold · min quantity {sold}",
   "@tierSoldInfo": { "placeholders": { "sold": { "type": "int" } } },

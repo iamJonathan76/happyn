@@ -924,6 +924,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createMaxPerPerson => 'Maximum per person';
 
   @override
+  String get createPaidComingSoon =>
+      'Free ticket. Paid tickets are coming soon.';
+
+  @override
   String get priceFreeHint => '0 = free';
 
   @override

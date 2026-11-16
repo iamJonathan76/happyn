@@ -49,6 +49,13 @@ insert into event_addresses (event_id, address_line) values
   ('00000000-0000-0000-0000-0000000000e2', '12 rue Secrete'),
   ('00000000-0000-0000-0000-0000000000e3', '99 rue du Brouillon');
 
+-- Le drapeau « payant ouvert » doit etre ON au depart pour que les tarifs
+-- payants ci-dessous (VIP 25 $) passent le garde-fou guard_paid_events. Les
+-- tests du drapeau, en fin de fichier, le ferment puis le rouvrent.
+insert into public.app_status (id, paid_events_enabled)
+  values (true, true)
+  on conflict (id) do update set paid_events_enabled = true;
+
 insert into ticket_types (id, event_id, name, price, quantity_total, quantity_sold, max_per_order) values
   ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000e1', 'Gratuit', 0,  100, 0, 10),
   ('00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-0000000000e1', 'VIP',     25, 100, 1, 10),
@@ -845,3 +852,43 @@ select t.as_anon();
 select t.fails_with($$select public.register_device_token('tok','ios')$$, 'permission denied',
   'Device token : anon ne peut pas appeler register_device_token');
 reset role;
+
+-- ── Drapeau « evenements payants ouverts » ──────────────────────────────────
+-- HAPPYN se lance en gratuit : tant que le drapeau est faux, aucun billet payant
+-- ne peut etre cree, meme par un appel direct a l'API. La base garde l'argent,
+-- pas l'ecran. Au seed le drapeau est ON ; ces tests le ferment puis le rouvrent
+-- (etat global, manipule en superuser hors des sous-transactions annulees).
+
+-- Seul un admin peut basculer le drapeau.
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.fails_with($$select public.admin_set_paid_events(false)$$, 'not_admin',
+  'Drapeau payant : un non-admin ne peut pas le basculer');
+reset role;
+
+-- Drapeau ON (etat du seed) : l'organisatrice cree un tarif payant.
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.can_write(
+  $$insert into ticket_types (id, event_id, name, price, quantity_total, max_per_order)
+    values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000e1', 'Payant-on', 30, 50, 5)$$,
+  'Drapeau payant ON : un tarif payant est accepte');
+reset role;
+
+-- On ferme le drapeau (en superuser, directement).
+update public.app_status set paid_events_enabled = false where id;
+
+-- Drapeau OFF : tarif payant refuse en base…
+select t.as_user('00000000-0000-0000-0000-00000000000a');
+select t.fails_with(
+  $$insert into ticket_types (id, event_id, name, price, quantity_total, max_per_order)
+    values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000e1', 'Payant-off', 30, 50, 5)$$,
+  'paid_events_disabled',
+  'Drapeau payant OFF : un tarif payant est refuse, meme par appel direct');
+-- …mais un tarif GRATUIT passe toujours (le lancement gratuit doit marcher).
+select t.can_write(
+  $$insert into ticket_types (id, event_id, name, price, quantity_total, max_per_order)
+    values (gen_random_uuid(), '00000000-0000-0000-0000-0000000000e1', 'Gratuit-off', 0, 50, 5)$$,
+  'Drapeau payant OFF : un tarif gratuit reste accepte');
+reset role;
+
+-- On rouvre pour ne pas perturber un eventuel test suivant.
+update public.app_status set paid_events_enabled = true where id;

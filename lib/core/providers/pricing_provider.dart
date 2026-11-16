@@ -38,6 +38,25 @@ final platformFeeFixedCentsProvider = FutureProvider<int>((ref) async {
   return Pricing.defaultPlatformFeeFixedCents;
 });
 
+/// Les événements payants sont-ils ouverts ? HAPPYN se lance en GRATUIT : tant
+/// que `public.paid_events_enabled()` est faux, l'écran de création masque la
+/// billetterie payante, et la base refuse tout prix > 0 (garde-fou
+/// `guard_paid_events`). Le « boom » bascule le drapeau côté base, rien à
+/// redéployer.
+///
+/// En cas d'échec réseau — ou tant que la migration n'est pas appliquée — on
+/// retombe sur `false` : on ne montre jamais un champ payant qu'on n'a pas pu
+/// confirmer ouvert. La base reste de toute façon le vrai verrou.
+final paidEventsEnabledProvider = FutureProvider<bool>((ref) async {
+  try {
+    final value = await Supabase.instance.client.rpc('paid_events_enabled');
+    if (value is bool) return value;
+  } catch (_) {
+    // Hors ligne, ou migration pas encore appliquée.
+  }
+  return false;
+});
+
 /// Les frais d'annulation, lus EN BASE comme la commission, pour les mêmes
 /// raisons : `cancellation_fee_terms()` est la seule définition, celle que le
 /// remboursement appliquera.

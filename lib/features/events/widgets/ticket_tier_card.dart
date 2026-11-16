@@ -30,6 +30,11 @@ class TicketTierCard extends StatefulWidget {
   /// (`platform_fee_fixed_cents()`).
   final int platformFeeFixedCents;
 
+  /// Les billets payants sont-ils ouverts ? HAPPYN se lance en gratuit : tant
+  /// que c'est faux, on ne montre aucun champ de prix (et la base refuse de
+  /// toute façon un prix > 0). Voir `paidEventsEnabledProvider`.
+  final bool paidEnabled;
+
   /// Un tarif déjà enregistré en base n'est pas supprimable (des billets ont
   /// pu être vendus) — et on garde toujours au moins un tarif.
   final bool canRemove;
@@ -40,6 +45,7 @@ class TicketTierCard extends StatefulWidget {
     required this.tier,
     required this.platformFeeBps,
     required this.platformFeeFixedCents,
+    required this.paidEnabled,
     required this.canRemove,
     required this.onRemove,
   });
@@ -199,22 +205,28 @@ class _TicketTierCardState extends State<TicketTierCard> {
             ),
           ],
 
-          // ── Les deux prix ────────────────────────────────────────────────
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _priceField(l.youReceiveLabel, _tier.netController,
-                  l.priceFreeHint, Icons.savings_outlined)),
-              const SizedBox(width: 10),
-              Expanded(child: _priceField(l.buyerPaysLabel,
-                  _tier.priceController, l.priceFreeHint, Icons.sell_outlined)),
+          // ── Les deux prix (seulement si le payant est ouvert) ────────────
+          if (widget.paidEnabled) ...[
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _priceField(l.youReceiveLabel,
+                    _tier.netController, l.priceFreeHint,
+                    Icons.savings_outlined)),
+                const SizedBox(width: 10),
+                Expanded(child: _priceField(l.buyerPaysLabel,
+                    _tier.priceController, l.priceFreeHint,
+                    Icons.sell_outlined)),
+              ],
+            ),
+            if (paid) ...[
+              const SizedBox(height: 10),
+              _breakdown(l, lang, display),
             ],
-          ),
-
-          if (paid) ...[
+          ] else ...[
             const SizedBox(height: 10),
-            _breakdown(l, lang, display),
+            _freeOnlyNote(l),
           ],
 
           const SizedBox(height: 12),
@@ -265,6 +277,30 @@ class _TicketTierCardState extends State<TicketTierCard> {
             letterSpacing: 0.6,
             fontWeight: FontWeight.w600,
             color: AppColors.textMuted),
+      );
+
+  /// Tant que les billets payants ne sont pas ouverts, pas de champ de prix :
+  /// l'organisateur crée un billet gratuit, et c'est tout. La note dit pourquoi,
+  /// pour qu'il ne cherche pas un prix absent.
+  Widget _freeOnlyNote(AppLocalizations l) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.celebration_outlined,
+                color: AppColors.lavenderLight, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(l.createPaidComingSoon,
+                  style: AppText.micro.copyWith(height: 1.4)),
+            ),
+          ],
+        ),
       );
 
   Widget _priceField(String label, TextEditingController controller,
