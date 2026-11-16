@@ -30,6 +30,47 @@ Ce qui manque encore et **n'est pas du peaufinage**, vérifié dans le dépôt l
 
 ---
 
+## 0. Stratégie de lancement — gratuit d'abord (décidé le 2026-11-15)
+
+HAPPYN se lance **avec les événements gratuits seulement**, puis ouvre le
+**payant** plus tard comme une **annonce** (« le boom »). Deux paliers, et c'est
+la clé qui réorganise tout le reste de ce document.
+
+**Pourquoi ce n'est pas qu'une idée marketing.** Tout le risque juridique et
+financier (être le marchand officiel, les taxes de vente, les contestations de
+carte) vient du **chemin de l'argent**. Un événement gratuit n'en fait circuler
+aucun — le code le garantit déjà (`free_event_no_payment` dans
+`create-payment-intent`). Donc, tant que c'est gratuit :
+
+- les décisions d'argent (§ 2.1 frais remboursés, § 2.2 ter contestations) et
+  l'incorporation (§ 2.4) **ne bloquent plus le lancement** — elles reviennent au
+  Palier 2 ;
+- le **payant reste écrit et testé**, mais **en veille derrière un drapeau**
+  `paid_events_enabled` (défaut off) : l'écran de création masque la billetterie
+  payante, et une garde en base refuse un prix > 0. Le « boom » = basculer le
+  drapeau, rien à redéployer. *(🤖 non encore codé ; une décision ouverte :
+  passe-droit admin pour tester une vente en coulisse, ou zéro payant pour tout
+  le monde.)*
+
+**Palier 1 — gratuit** : Google OAuth en production, revue Apple, textes légaux,
+APNs, fiche store. **Palier 2 — le boom** : incorporation, Stripe Connect prod,
+commission 3 % + 0,99 $ prod, puis bascule du drapeau. L'ordre détaillé est dans
+`docs/MISE-EN-PROD.md`, réécrit autour de ces deux paliers.
+
+**Travailler pendant que c'est live.** Le code de l'app est isolé par build (on
+itère sans danger) ; la base est partagée par tout le monde en direct. Donc, une
+fois de vrais utilisateurs installés : migrations **additives** seulement, et
+**toujours** le banc `tests/rls/run.sh` avant la prod. Un 2e projet Supabase de
+préproduction n'est utile qu'au Palier 2, quand l'argent coule — tant que c'est
+gratuit, le banc suffit. Une migration ne devient live que lorsqu'on l'applique
+soi-même dans l'éditeur SQL de prod ; les fichiers et git n'y touchent pas.
+
+**Note de décision pour Emmanuel** : une page / un PDF du 2026-11-15 résume le
+plan, les risques en nom propre, « qui paie en cas de litige », et ce qu'une
+société change — à relire avec un avocat/comptable.
+
+---
+
 ## 1. Fait, et vérifié de bout en bout
 
 | | |
@@ -219,21 +260,55 @@ Deux faiblesses connues du modèle, à traiter en même temps :
 En attendant, la vraie protection est de **choisir à la main** qui a le droit
 de vendre.
 
-### 2.3 Le plancher d'annulation
+### 2.3 Le plancher d'annulation — décidé le 2026-11-15 : option A
 
-L'organisateur peut choisir `0` (aucune annulation), et **rien ne le signale à
-l'acheteur**.
+L'organisateur pouvait choisir `0` (aucune annulation), sans que **rien ne le
+signale à l'acheteur**.
 
-- **A** — retirer `0` : minimum 24 h garanti par HAPPYN
+- **A (RETENUE)** — retirer `0` : minimum 24 h garanti par HAPPYN
 - **B** — garder `0` mais l'afficher clairement à l'achat
 
-Recommandation : **A** pour le lancement.
+Reste à faire (🤖, non encore codé) : retirer l'option « aucune annulation » de
+l'écran de création, et le garde-fou en base pour qu'un `0` soit refusé
+(min 24 h). Les textes qui mentionnent « aucune annulation » suivent.
 
-### 2.4 L'entité juridique
+### 2.4 L'entité juridique — décidé le 2026-11-15 : personne physique pour démarrer
 
-Sans entreprise, les conditions te lient **personnellement**, et tu portes la
-responsabilité des événements d'autrui vendus sur ta plateforme. Stripe Connect
-l'exigera probablement. C'est aussi ce qui ouvrirait `happyn.ca`.
+Sans entreprise, les conditions lient **personnellement** Emmanuel, et il porte
+la responsabilité des événements d'autrui vendus sur la plateforme. Stripe
+Connect l'exigera probablement. C'est aussi ce qui ouvrirait `happyn.ca`.
+
+**Décision.** HAPPYN se lance **au nom d'Emmanuel** (personne physique). C'est
+tenable parce que le lancement est **gratuit** (§ 0) : pas de marchand, pas de
+taxe, pas de contestation tant qu'aucun argent ne circule. Le transfert vers une
+**société (+ D-U-N-S)** est prévu **plus tard**, et doit avoir lieu **avant le
+Palier 2** (l'ouverture du payant à des organisateurs tiers).
+
+**Ce dans quoi il s'engage — le transfert a ses contraintes**, documentées le
+2026-11-15 pour qu'il décide en connaissance de cause :
+
+- **App (Apple)** : procédure officielle de *transfert d'app* vers le compte de
+  la société (on ne convertit pas un compte particulier en organisation) ;
+  certificats et clé APNs à refaire côté receveur.
+- **Argent (Stripe)** : on ne change pas l'entité d'un compte individuel en
+  société — en pratique **nouveau compte** au nom de la société, puis migration.
+  Avec Connect, migrer une plateforme **vivante** est le point délicat : d'où
+  l'intérêt d'incorporer **tant qu'il y a peu de paiements et peu
+  d'organisateurs**.
+- **Juridique / données** : la base ne bouge pas, mais le **marchand officiel**
+  change → CGU, politique et nom affiché à mettre à jour, utilisateurs à
+  informer. Volet pour l'avocat du Palier 1.c / § 3.4.
+
+**La leçon** : plus on attend pour incorporer, plus le transfert coûte cher
+(plus de paiements, d'organisateurs, d'historique Connect à migrer). Le bon
+moment = **juste avant d'ouvrir le payant à des tiers**.
+
+Une **note de décision** (page web + PDF, 2026-11-15) résume ce plan, les
+risques en nom propre, « qui paie en cas de litige » (contestation : l'argent est
+repris au marchand ; sans société = Emmanuel directement, avec société = la
+société, biens personnels en principe à l'abri, sauf taxes de vente impayées,
+garantie personnelle ou fraude), et sert à préparer la discussion avec un
+avocat/comptable. **Ce n'est pas un avis juridique.**
 
 ### 2.5 Les onze `[À DÉCIDER]` du recueil légal
 
