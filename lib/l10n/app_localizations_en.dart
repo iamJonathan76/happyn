@@ -928,6 +928,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Free ticket. Paid tickets are coming soon.';
 
   @override
+  String eventWhen(String date, String time) {
+    return '$date at $time';
+  }
+
+  @override
   String get priceFreeHint => '0 = free';
 
   @override

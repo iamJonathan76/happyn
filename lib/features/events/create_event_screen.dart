@@ -576,7 +576,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
   /// Affiche le code après création d'un event privé, avec copie/partage.
         String _formatDate(DateTime dt) {
-    return '${dt.day}/${dt.month}/${dt.year} at ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+    // Le connecteur « à » / « at » suit la langue : il était figé en anglais.
+    final date = '${dt.day}/${dt.month}/${dt.year}';
+    final time =
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    return AppLocalizations.of(context).eventWhen(date, time);
   }
 
   /// Titre de section (« Détails », « Billetterie »…) avec son filet.

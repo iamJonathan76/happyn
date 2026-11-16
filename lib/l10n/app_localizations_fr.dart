@@ -931,6 +931,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Billet gratuit. Les billets payants arrivent bientôt.';
 
   @override
+  String eventWhen(String date, String time) {
+    return '$date à $time';
+  }
+
+  @override
   String get priceFreeHint => '0 = gratuit';
 
   @override

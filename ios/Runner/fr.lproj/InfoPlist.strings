@@ -1,0 +1,9 @@
+/* Phrases de permission affichées par iOS, en français. Elles remplacent les
+   valeurs anglaises d'Info.plist quand l'appareil est en français. La parité des
+   clés avec en.lproj est ce qu'Apple attend pour la revue. */
+
+"NSCameraUsageDescription" = "HAPPYN utilise l'appareil photo pour scanner les billets à l'entrée des événements.";
+
+"NSLocationWhenInUseUsageDescription" = "HAPPYN utilise votre position approximative, uniquement pour afficher les événements près de vous et seulement quand l'app est ouverte. Elle sert à trouver les événements à proximité, n'est jamais enregistrée et n'est jamais montrée à personne. Vous pouvez aussi choisir une ville à la main.";
+
+"NSPhotoLibraryUsageDescription" = "HAPPYN accède à vos photos et vidéos pour que vous puissiez choisir une photo de profil, une affiche d'événement ou un média à publier. Seul le média que vous sélectionnez est téléversé.";

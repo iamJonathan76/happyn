@@ -1676,6 +1676,12 @@ abstract class AppLocalizations {
   /// **'Free ticket. Paid tickets are coming soon.'**
   String get createPaidComingSoon;
 
+  /// No description provided for @eventWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} at {time}'**
+  String eventWhen(String date, String time);
+
   /// No description provided for @priceFreeHint.
   ///
   /// In en, this message translates to:
