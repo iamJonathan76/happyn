@@ -1354,7 +1354,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             ),
-            child: Column(
+            // Material transparent : sans lui, le fond coloré du Container masque
+            // l'encre des ListTile (effet d'appui invisible) et Flutter lève une
+            // assertion fatale en debug. Il donne une surface d'encre sans
+            // changer le fond ni la mise en page.
+            child: Material(
+              type: MaterialType.transparency,
+              child: Column(
               children: [
                 for (final s in _suggestions)
                   ListTile(
@@ -1372,6 +1378,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     onTap: () => _pickAddress(s),
                   ),
               ],
+            ),
             ),
           )
         // « Aucune adresse trouvee » UNIQUEMENT quand la reponse correspond au
