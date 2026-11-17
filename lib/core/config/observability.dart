@@ -48,9 +48,22 @@ Future<void> runWithObservability(Future<void> Function() start) async {
 
       options.environment = kReleaseMode ? 'production' : 'debug';
 
-      // Échantillonnage des performances : 20 % suffit à voir une tendance et
-      // garde le quota gratuit pour ce qui compte vraiment, les erreurs.
-      options.tracesSampleRate = 0.2;
+      // En debug, on ne laisse remonter QUE l'erreur de test explicite. Nos
+      // propres essais sur simulateur et les assertions Flutter — qui n'existent
+      // qu'en debug et ne plantent jamais en Release — noyaient sinon les vrais
+      // plantages de prod dans le projet Sentry (vu avec l'assertion ListTile,
+      // remontée « Fatal » depuis nos tests). L'init reste active pour que le
+      // bouton de test des réglages fonctionne encore.
+      options.beforeSend = (event, hint) {
+        if (kDebugMode && event.tags?['where'] != 'settings.testError') {
+          return null;
+        }
+        return event;
+      };
+
+      // Échantillonnage des performances : 20 % en prod suffit à voir une
+      // tendance ; aucune transaction en debug, même raison que ci-dessus.
+      options.tracesSampleRate = kReleaseMode ? 0.2 : 0.0;
     },
     appRunner: start,
   );
