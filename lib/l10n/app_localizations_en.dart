@@ -1604,6 +1604,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navProfile => 'Profile';
 
   @override
+  String get navCreate => 'Create';
+
+  @override
   String get onbTitle1 => 'Discover Events\nNear You';
 
   @override

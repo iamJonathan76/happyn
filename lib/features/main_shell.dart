@@ -5,6 +5,7 @@ import 'package:happyn/core/providers/user_profile_provider.dart';
 import 'package:happyn/core/theme/app_text.dart';
 import 'package:happyn/core/theme/app_colors.dart';
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 import 'package:happyn/core/push/push_service.dart';
 import 'package:happyn/l10n/app_localizations.dart';
 import 'package:happyn/features/home/home_screen.dart';
@@ -105,6 +106,9 @@ class _MainShellState extends ConsumerState<MainShell>
         children: [
           Scaffold(
             backgroundColor: AppColors.background,
+            // Le corps passe SOUS la barre : contenu plein écran, et le nav en
+            // verre dépoli floute ce qui défile derrière lui.
+            extendBody: true,
             body: IndexedStack(
               index: _currentIndex == 2 ? 0 : _currentIndex,
               children: _pages,
@@ -204,141 +208,115 @@ class _MainShellState extends ConsumerState<MainShell>
 
   Widget _buildBottomNav() {
     final l = AppLocalizations.of(context);
-    final items = [
-      {'icon': Icons.home_rounded, 'label': l.navHome},
-      {'icon': Icons.explore_outlined, 'label': l.navDiscover},
-      {'icon': Icons.add, 'label': ''},
-      {'icon': Icons.confirmation_number_outlined, 'label': l.navTickets},
-      {'icon': Icons.person_outline, 'label': l.navProfile},
+    final labels = [l.navHome, l.navDiscover, l.navCreate, l.navTickets, l.navProfile];
+    const icons = [
+      Icons.home_rounded,
+      Icons.explore_outlined,
+      Icons.add,
+      Icons.confirmation_number_outlined,
+      Icons.person_outline,
     ];
 
-    // Cinq éléments côte à côte ne peuvent pas honorer une police système à
-    // 300 % : les libellés se chevauchent et la barre devient illisible.
-    //
-    // On plafonne l'échelle ICI seulement, et pas dans toute l'app. Brider
-    // globalement reviendrait à ignorer un réglage d'accessibilité que la
-    // personne a choisi exprès, y compris sur les écrans qui savent très bien
-    // grandir. Une barre d'onglets est le seul endroit où la contrainte est
-    // physique : cinq colonnes, une largeur d'écran.
-    //
-    // 1.3 reste une augmentation réelle et lisible. Au-delà, iOS lui-même passe
-    // ses barres d'onglets à une autre disposition plutôt que d'agrandir.
-    final navScaler =
-        MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
+    Widget buildItem(int i) {
+      final isActive = i == _currentIndex;
+      final isCreate = i == 2;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.96),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).padding.bottom + 8,
-        top: 8,
-      ),
-      // `Expanded` sur chaque colonne plutôt que `spaceAround` : ainsi chaque
-      // onglet reçoit exactement un cinquième de la largeur, quelle que soit la
-      // longueur de son libellé. Avec `spaceAround`, les colonnes prenaient leur
-      // largeur naturelle et « Discover » poussait « Profile » hors de l'écran
-      // dès que la police grossissait.
-      child: Row(
-        children: items.asMap().entries.map((entry) {
-          final i = entry.key;
-          final item = entry.value;
-          final isActive = i == _currentIndex;
+      // Icônes seules : pas de libellé permanent. Le nom apparaît sur APPUI
+      // LONG (Tooltip) — la barre reste épurée tout en restant découvrable.
+      final Widget content;
+      if (isCreate) {
+        content = Container(
+          width: 40,
+          height: 40,
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.add, color: Colors.white, size: 23),
+        );
+      } else {
+        final iconWidget = i == 4
+            ? _ProfileTabIcon(active: isActive)
+            : Icon(icons[i],
+                size: 24, color: isActive ? Colors.white : AppColors.textLow);
+        content = Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          // L'onglet actif est posé dans une capsule sombre neutre.
+          decoration: isActive
+              ? BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(18),
+                )
+              : null,
+          child: iconWidget,
+        );
+      }
 
-          // FAB center button
-          if (i == 2) {
-            return Expanded(
-              // `heightFactor: 1` : sans lui, ce `Center` prend TOUTE la
-              // hauteur qu'on lui laisse. Dans une `Row` les enfants recoivent
-              // des contraintes laches, et un `bottomNavigationBar` en recoit
-              // de laches aussi — la barre occupait donc l'ecran entier, ses
-              // icones se retrouvaient centrees au milieu, et il ne restait
-              // plus aucune place pour la page. Avec ce facteur, le `Center`
-              // se dimensionne sur son enfant : 48 points, la hauteur voulue.
-              child: Center(
-                heightFactor: 1,
-                child: GestureDetector(
-                  onTap: _openCreateSheet,
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      // Violet plein (comme la puce de categorie active et le
-                      // selecteur de periode) : le degrade reste a l'identite
-                      // (splash, welcome, onboarding), pas aux boutons.
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.35),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child:
-                        const Icon(Icons.add, color: Colors.white, size: 24),
-                  ),
-                ),
-              ),
-            );
-          }
-
-          return Expanded(
-            child: GestureDetector(
-              // `opaque` : sans lui, seule la colonne dessinée réagit au
-              // toucher, et les marges de l'onglet sont mortes. Sur une barre
-              // d'onglets, rater sa cible d'un demi-millimètre est fréquent.
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                // Retaper Home en y étant déjà → remonter en haut de la page.
-                if (i == 0 &&
-                    _currentIndex == 0 &&
-                    _homeScrollController.hasClients) {
-                  _homeScrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 350),
-                    curve: Curves.easeOut,
-                  );
-                } else {
-                  setState(() => _currentIndex = i);
-                }
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (i == 4)
-                    _ProfileTabIcon(active: isActive)
-                  else
-                    Icon(
-                      item['icon'] as IconData,
-                      size: 22,
-                      color: isActive ? AppColors.lavender : AppColors.textLow,
-                    ),
-                  const SizedBox(height: 2),
-                  Padding(
-                    // Deux libellés voisins ne doivent jamais se toucher :
-                    // « TicketsProfile » se lit comme un seul mot.
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: Text(
-                      item['label'] as String,
-                      textScaler: navScaler,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: AppText.microBold.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color:
-                            isActive ? AppColors.lavender : AppColors.textLow,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+      return Expanded(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (isCreate) {
+              _openCreateSheet();
+              return;
+            }
+            // Retaper Home en y étant déjà → remonter en haut.
+            if (i == 0 &&
+                _currentIndex == 0 &&
+                _homeScrollController.hasClients) {
+              _homeScrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOut,
+              );
+            } else {
+              setState(() => _currentIndex = i);
+            }
+          },
+          // `heightFactor: 1` : sans lui, l'`Align` prendrait toute la hauteur
+          // lâche d'une barre d'onglets et la pilule mangerait l'écran (et le
+          // flou baverait sur toute la page).
+          child: Align(
+            heightFactor: 1,
+            child: Tooltip(
+              message: labels[i],
+              triggerMode: TooltipTriggerMode.longPress,
+              preferBelow: false,
+              child: content,
             ),
-          );
-        }).toList(),
+          ),
+        ),
+      );
+    }
+
+    // Pilule flottante en verre dépoli, posée BAS : on ne garde que ce qu'il
+    // faut pour dégager l'indicateur d'accueil, sans le grand espace flottant
+    // d'un SafeArea complet. (Pour la remonter : augmenter `navBottom`.)
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final navBottom = bottomInset > 20 ? bottomInset - 14 : 6.0;
+    return Padding(
+      padding: EdgeInsets.only(left: 16, right: 16, bottom: navBottom),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0x8C16161F),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.40),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+            child: Row(children: List.generate(5, buildItem)),
+          ),
+        ),
       ),
     );
   }

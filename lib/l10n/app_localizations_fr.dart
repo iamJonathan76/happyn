@@ -1622,6 +1622,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navProfile => 'Profil';
 
   @override
+  String get navCreate => 'Créer';
+
+  @override
   String get onbTitle1 => 'Découvre des événements\nprès de toi';
 
   @override

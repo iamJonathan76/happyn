@@ -2924,6 +2924,12 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get navProfile;
 
+  /// No description provided for @navCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get navCreate;
+
   /// No description provided for @onbTitle1.
   ///
   /// In en, this message translates to:
