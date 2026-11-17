@@ -99,11 +99,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: CustomScrollView(
           controller: widget.scrollController,
           slivers: [
-            SliverToBoxAdapter(
-              child: SizedBox(height: MediaQuery.of(context).padding.top + 8),
-            ),
-            SliverToBoxAdapter(child: _buildHeader()),
-            SliverToBoxAdapter(child: _buildSearchBar()),
+            _buildTopBar(),
             SliverToBoxAdapter(child: _buildLocation(eventsAsync)),
             SliverToBoxAdapter(child: _buildCategories()),
             // Un seul bandeau d'evenements, trie par date de tenue : « ce que
@@ -161,6 +157,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onHorizontalDragCancel: () => _panel.close(),
         ),
       );
+
+  /// La barre du haut — salutation + actions + recherche — se cache quand on
+  /// descend et revient dès qu'on remonte, pour laisser le contenu respirer.
+  /// `floating` + `snap` d'un `SliverAppBar` font exactement ce geste (et gèrent
+  /// seuls le dégagement de la barre d'état).
+  Widget _buildTopBar() {
+    return SliverAppBar(
+      backgroundColor: AppColors.background,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      floating: true,
+      snap: true,
+      pinned: false,
+      automaticallyImplyLeading: false,
+      centerTitle: false,
+      titleSpacing: 0,
+      toolbarHeight: 64,
+      title: _buildHeader(),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(64),
+        child: _buildSearchBar(),
+      ),
+    );
+  }
 
   Widget _buildHeader() {
     return Padding(
