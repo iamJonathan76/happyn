@@ -314,7 +314,6 @@
   "roundUpTo": "Round up to",
   "createTicketsAvailable": "Tickets available",
   "createMaxPerPerson": "Maximum per person",
-  "createPaidComingSoon": "Free ticket. Paid tickets are coming soon.",
   "eventWhen": "{date} at {time}",
   "@eventWhen": {"placeholders": {"date": {"type": "String"}, "time": {"type": "String"}}},
   "priceFreeHint": "0 = free",

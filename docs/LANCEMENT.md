@@ -30,44 +30,43 @@ Ce qui manque encore et **n'est pas du peaufinage**, vérifié dans le dépôt l
 
 ---
 
-## 0. Stratégie de lancement — gratuit d'abord (décidé le 2026-11-15)
+## 0. Stratégie de lancement — app complète, validée par Apple, lancée à la main (décidé le 2026-11-16)
 
-HAPPYN se lance **avec les événements gratuits seulement**, puis ouvre le
-**payant** plus tard comme une **annonce** (« le boom »). Deux paliers, et c'est
-la clé qui réorganise tout le reste de ce document.
+*(Remplace l'idée « gratuit d'abord » du 2026-11-15, abandonnée : le drapeau
+`paid_events_enabled` et son garde-fou ont été retirés le 2026-11-16.)*
 
-**Pourquoi ce n'est pas qu'une idée marketing.** Tout le risque juridique et
-financier (être le marchand officiel, les taxes de vente, les contestations de
-carte) vient du **chemin de l'argent**. Un événement gratuit n'en fait circuler
-aucun — le code le garantit déjà (`free_event_no_payment` dans
-`create-payment-intent`). Donc, tant que c'est gratuit :
+Décision d'Emmanuel : on code l'app **complète, paiement inclus** — pas de
+« bientôt » dans l'app, qu'Apple recale comme fonction en placeholder — on la
+fait **valider par Apple**, et comme on lance nous-mêmes **à la main**, l'app
+approuvée peut **attendre** (« manual release ») pendant qu'on étudie le reste.
 
-- les décisions d'argent (§ 2.1 frais remboursés, § 2.2 ter contestations) et
-  l'incorporation (§ 2.4) **ne bloquent plus le lancement** — elles reviennent au
-  Palier 2 ;
-- le **payant reste écrit et testé**, mais **en veille derrière un drapeau**
-  `paid_events_enabled` (défaut off) : l'écran de création masque la billetterie
-  payante, et une garde en base refuse un prix > 0. Le « boom » = basculer le
-  drapeau, rien à redéployer. *(🤖 non encore codé ; une décision ouverte :
-  passe-droit admin pour tester une vente en coulisse, ou zéro payant pour tout
-  le monde.)*
+**Tout se fait au nom d'Emmanuel pour l'instant** (personne physique, § 2.4). La
+société et le transfert s'étudient en parallèle, sans bloquer la validation.
 
-**Palier 1 — gratuit** : Google OAuth en production, revue Apple, textes légaux,
-APNs, fiche store. **Palier 2 — le boom** : incorporation, Stripe Connect prod,
-commission 3 % + 0,99 $ prod, puis bascule du drapeau. L'ordre détaillé est dans
-`docs/MISE-EN-PROD.md`, réécrit autour de ces deux paliers.
+Ce que ça implique concrètement :
 
-**Travailler pendant que c'est live.** Le code de l'app est isolé par build (on
-itère sans danger) ; la base est partagée par tout le monde en direct. Donc, une
-fois de vrais utilisateurs installés : migrations **additives** seulement, et
-**toujours** le banc `tests/rls/run.sh` avant la prod. Un 2e projet Supabase de
-préproduction n'est utile qu'au Palier 2, quand l'argent coule — tant que c'est
-gratuit, le banc suffit. Une migration ne devient live que lorsqu'on l'applique
-soi-même dans l'éditeur SQL de prod ; les fichiers et git n'y touchent pas.
+- **Pas d'IAP Apple.** Les billets d'événement sont un service du monde réel :
+  Apple n'exige pas son paiement in-app, Stripe est permis (comme Eventbrite,
+  Dice). Pas de commission Apple de 30 %. *(À reconfirmer dans les guidelines au
+  moment de soumettre.)*
+- **Le paiement doit MARCHER pour la revue.** Il faut donc Stripe Connect
+  fonctionnel (§ 4) **avant** de soumettre, et un **chemin de test pour le
+  relecteur** (événement de démo + code promo/gratuit, ou instructions), car il
+  ne saisit pas de vraie carte.
+- **Soumettre ≠ lancer.** « Manual release » garde l'app approuvée jusqu'à ton
+  feu vert. L'exposition de marchand ne devient réelle qu'au **lancement** (vraies
+  ventes) — d'où le fait qu'on peut valider maintenant et **incorporer avant de
+  lancer pour de vrai**.
 
-**Note de décision pour Emmanuel** : une page / un PDF du 2026-11-15 résume le
-plan, les risques en nom propre, « qui paie en cas de litige », et ce qu'une
-société change — à relire avec un avocat/comptable.
+**Note de décision** (page web + PDF, 2026-11-15) : risques en nom propre, « qui
+paie en cas de litige », ce qu'une société change — à relire avec un
+avocat/comptable.
+
+**Travailler pendant que c'est live.** Le code de l'app est isolé par build ; la
+base est partagée. Une fois de vrais utilisateurs installés : migrations
+**additives** seulement, et **toujours** le banc `tests/rls/run.sh` avant la
+prod. Une migration ne devient live que lorsqu'on l'applique soi-même dans
+l'éditeur SQL ; les fichiers et git n'y touchent pas.
 
 ---
 

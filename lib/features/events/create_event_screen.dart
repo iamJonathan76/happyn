@@ -831,13 +831,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                     .asData
                                     ?.value ??
                                 Pricing.defaultPlatformFeeFixedCents,
-                            // Lancement gratuit : tant que le drapeau est faux,
-                            // pas de champ de prix. La base verrouille aussi.
-                            paidEnabled: ref
-                                    .watch(paidEventsEnabledProvider)
-                                    .asData
-                                    ?.value ??
-                                false,
                             canRemove: _tiers[i].id == null &&
                                 _tiers.length > 1,
                             onRemove: () => _removeTier(i),

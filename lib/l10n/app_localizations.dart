@@ -1670,12 +1670,6 @@ abstract class AppLocalizations {
   /// **'Maximum per person'**
   String get createMaxPerPerson;
 
-  /// No description provided for @createPaidComingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Free ticket. Paid tickets are coming soon.'**
-  String get createPaidComingSoon;
-
   /// No description provided for @eventWhen.
   ///
   /// In en, this message translates to:

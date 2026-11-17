@@ -927,10 +927,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get createMaxPerPerson => 'Maximum par personne';
 
   @override
-  String get createPaidComingSoon =>
-      'Billet gratuit. Les billets payants arrivent bientôt.';
-
-  @override
   String eventWhen(String date, String time) {
     return '$date à $time';
   }
